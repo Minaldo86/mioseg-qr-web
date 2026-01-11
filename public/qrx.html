@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR-X Vorschau · mioseg qr</title>
+    <style>
+      body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0f0f10; color:#fff; }
+      .wrap { max-width: 860px; margin: 0 auto; padding: 22px 16px 40px; }
+      .top { display:flex; gap:12px; align-items:center; margin-bottom: 12px; }
+      .logo { width:48px; height:48px; border-radius: 14px; background: rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-weight:800; }
+      .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; padding: 16px; }
+      h1 { margin: 0; font-size: 20px; }
+      .sub { color: rgba(255,255,255,0.72); font-size: 13px; margin-top: 2px; }
+      .row { margin-top: 14px; }
+      .label { font-size: 12px; color: rgba(255,255,255,0.62); margin-bottom: 6px; }
+      .text { color: rgba(255,255,255,0.88); line-height: 1.5; white-space: pre-wrap; }
+      .btns { display:flex; gap:10px; flex-wrap: wrap; margin-top: 14px; }
+      .btn { padding: 12px 14px; border-radius: 12px; font-weight: 800; border: 0; cursor: pointer; }
+      .btnPrimary { background: #fff; color:#000; }
+      .btnGhost { background: transparent; color:#fff; border: 1px solid rgba(255,255,255,0.18); }
+      .grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+      @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } }
+      .img { width:100%; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); background:#111; }
+      .file { display:flex; justify-content:space-between; gap:10px; padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); }
+      .file a { color:#9bd1ff; text-decoration:none; word-break: break-all; }
+      .hint { font-size: 12px; color: rgba(255,255,255,0.60); margin-top: 10px; }
+      .warn { color: #FFD166; }
+      .err { color: #ff6b6b; }
+      .pill { display:inline-block; padding: 5px 9px; border-radius:999px; border:1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.05); font-size: 12px; color: rgba(255,255,255,0.8); }
+      .newsItem { padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.25); margin-bottom: 8px; }
+      .newsDate { font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="top">
+        <div class="logo">QR</div>
+        <div>
+          <div class="pill">QR-X Vorschau</div>
+          <div class="sub">Speichern ist nur in der App möglich.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="stateTitle" class="sub">Lade QR-X…</div>
+
+        <div id="content" style="display:none;">
+          <h1 id="title"></h1>
+          <div class="sub" id="subtitle"></div>
+
+          <div class="btns">
+            <button id="openAppBtn" class="btn btnPrimary">In App öffnen</button>
+            <button id="copyBtn" class="btn btnGhost">Link kopieren</button>
+          </div>
+
+          <div class="row" id="logoRow" style="display:none;">
+            <div class="label">Logo</div>
+            <img id="logoImg" class="img" alt="Logo" />
+          </div>
+
+          <div class="row">
+            <div class="label">Beschreibung</div>
+            <div class="text" id="desc"></div>
+          </div>
+
+          <div class="row" id="newsRow" style="display:none;">
+            <div class="label">News & Updates</div>
+            <div id="newsList"></div>
+          </div>
+
+          <div class="row" id="imagesRow" style="display:none;">
+            <div class="label">Bilder</div>
+            <div id="imagesGrid" class="grid"></div>
+          </div>
+
+          <div class="row" id="filesRow" style="display:none;">
+            <div class="label">Dateien</div>
+            <div id="filesList"></div>
+          </div>
+
+          <div class="hint">
+            <span class="warn">Hinweis:</span> Speichern geht in der App. Wenn du die App noch nicht hast, lade sie bitte aus dem Store.
+          </div>
+        </div>
+
+        <div id="error" style="display:none;">
+          <div class="err" id="errorText"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function getQrxIdFromPath() {
+        // /qrx/<id>
+        const parts = location.pathname.split("/").filter(Boolean);
+        const idx = parts.indexOf("qrx");
+        if (idx === -1) return null;
+        return parts[idx + 1] || null;
+      }
+
+      function safeText(v) {
+        return typeof v === "string" ? v : "";
+      }
+
+      function formatDate(iso) {
+        try {
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) return "";
+          return d.toLocaleString();
+        } catch {
+          return "";
+        }
+      }
+
+      const qrxId = getQrxIdFromPath();
+      const canonicalLink = `${location.origin}/qrx/${qrxId || ""}`;
+
+      const stateTitle = document.getElementById("stateTitle");
+      const content = document.getElementById("content");
+      const errorBox = document.getElementById("error");
+      const errorText = document.getElementById("errorText");
+
+      const titleEl = document.getElementById("title");
+      const subtitleEl = document.getElementById("subtitle");
+      const descEl = document.getElementById("desc");
+
+      const logoRow = document.getElementById("logoRow");
+      const logoImg = document.getElementById("logoImg");
+
+      const newsRow = document.getElementById("newsRow");
+      const newsList = document.getElementById("newsList");
+
+      const imagesRow = document.getElementById("imagesRow");
+      const imagesGrid = document.getElementById("imagesGrid");
+
+      const filesRow = document.getElementById("filesRow");
+      const filesList = document.getElementById("filesList");
+
+      document.getElementById("copyBtn").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(canonicalLink);
+          alert("Link kopiert!");
+        } catch {
+          prompt("Kopiere den Link:", canonicalLink);
+        }
+      });
+
+      document.getElementById("openAppBtn").addEventListener("click", () => {
+        if (!qrxId) return;
+
+        // ✅ App öffnen (Custom Scheme)
+        // Falls dein Expo Linking anders ist, sag mir dein Scheme/Bundle, dann passe ich es 1:1 an.
+        const deepLink = `miosegqr://qrx/${qrxId}?readonly=1`;
+
+        // Versuch App zu öffnen
+        window.location.href = deepLink;
+
+        // Optionaler Fallback (später Store-Links einfügen)
+        setTimeout(() => {
+          alert("Wenn sich die App nicht geöffnet hat, installiere sie bitte zuerst aus dem Store.");
+        }, 900);
+      });
+
+      async function load() {
+        if (!qrxId) {
+          stateTitle.textContent = "";
+          errorBox.style.display = "block";
+          errorText.textContent = "Ungültiger Link.";
+          return;
+        }
+
+        stateTitle.textContent = "Lade QR-X…";
+
+        const resp = await fetch(`/api/qrx?id=${encodeURIComponent(qrxId)}`);
+        if (resp.status === 404) {
+          stateTitle.textContent = "";
+          errorBox.style.display = "block";
+          errorText.textContent = "Der Ersteller hat den QR-X gelöscht.";
+          return;
+        }
+
+        if (!resp.ok) {
+          const txt = await resp.text().catch(() => "");
+          stateTitle.textContent = "";
+          errorBox.style.display = "block";
+          errorText.textContent = "QR-X konnte nicht geladen werden. Bitte später erneut versuchen.";
+          console.warn("api error:", txt);
+          return;
+        }
+
+        const data = await resp.json();
+        const entry = data.entry;
+        const media = Array.isArray(data.media) ? data.media : [];
+
+        titleEl.textContent = safeText(entry.title) || "QR-X";
+        subtitleEl.textContent = `ID: ${qrxId}`;
+        descEl.textContent = safeText(entry.description) || "Keine Beschreibung vorhanden.";
+
+        // Logo
+        if (entry.logo_url) {
+          logoRow.style.display = "block";
+          logoImg.src = entry.logo_url;
+        }
+
+        // News
+        const news = Array.isArray(entry.news) ? entry.news : [];
+        if (news.length > 0) {
+          newsRow.style.display = "block";
+          newsList.innerHTML = "";
+          news.forEach((n) => {
+            const item = document.createElement("div");
+            item.className = "newsItem";
+            item.innerHTML =
+              `<div class="text">${safeText(n.text)}</div>` +
+              `<div class="newsDate">${formatDate(n.createdAt)}</div>`;
+            newsList.appendChild(item);
+          });
+        }
+
+        // Images / Files
+        const images = media.filter((m) => m.type === "image" && m.url);
+        const files = media.filter((m) => m.type === "file" && m.url);
+
+        if (images.length > 0) {
+          imagesRow.style.display = "block";
+          imagesGrid.innerHTML = "";
+          images.forEach((m) => {
+            const img = document.createElement("img");
+            img.className = "img";
+            img.src = m.url;
+            img.alt = m.filename || "image";
+            imagesGrid.appendChild(img);
+          });
+        }
+
+        if (files.length > 0) {
+          filesRow.style.display = "block";
+          filesList.innerHTML = "";
+          files.forEach((m) => {
+            const row = document.createElement("div");
+            row.className = "file";
+            const left = document.createElement("div");
+            left.textContent = m.filename || "Datei";
+
+            const a = document.createElement("a");
+            a.href = m.url;
+            a.target = "_blank";
+            a.rel = "noreferrer";
+            a.textContent = "Öffnen";
+
+            row.appendChild(left);
+            row.appendChild(a);
+            filesList.appendChild(row);
+          });
+        }
+
+        stateTitle.style.display = "none";
+        content.style.display = "block";
+      }
+
+      load().catch((e) => {
+        console.error(e);
+        stateTitle.textContent = "";
+        errorBox.style.display = "block";
+        errorText.textContent = "QR-X konnte nicht geladen werden. Bitte später erneut versuchen.";
+      });
+    </script>
+  </body>
+</html>

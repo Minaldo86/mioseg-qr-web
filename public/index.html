@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mioseg qr</title>
+    <style>
+      body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:#0f0f10; color:#fff; }
+      .wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px; }
+      .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 16px; }
+      h1 { margin: 0 0 6px; font-size: 26px; }
+      p { color: rgba(255,255,255,0.78); line-height: 1.5; }
+      .btn { display:inline-block; margin-top:10px; padding:12px 14px; border-radius: 12px; background:#fff; color:#000; text-decoration:none; font-weight:700; }
+      .muted { margin-top: 14px; font-size: 12px; color: rgba(255,255,255,0.6); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>mioseg qr</h1>
+        <p>
+          QR-X Vorschau im Browser. Inhalte ansehen ist möglich — speichern geht in der App.
+        </p>
+        <a class="btn" href="#">App öffnen</a>
+        <div class="muted">
+          Wenn du einen QR-X Link hast, öffne ihn wie: <code>/qrx/&lt;ID&gt;</code>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.querySelector(".btn").addEventListener("click", (e) => {
+        e.preventDefault();
+        // Fallback: Hier später Store-Links rein
+        alert("App öffnen: bitte über einen konkreten QR-X Link (…/qrx/<id>)");
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/qrx/:id", "destination": "/qrx.html" }
+  ]
+}
