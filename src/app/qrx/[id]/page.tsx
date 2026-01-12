@@ -1,9 +1,8 @@
-// src/app/qrx/[id]/page.tsx
-type Props = {
+export default function QrxPage({
+  params,
+}: {
   params: { id: string };
-};
-
-export default function QrxPage({ params }: Props) {
+}) {
   return (
     <main style={{ padding: 40 }}>
       <h1>QR-X PAGE ✅</h1>
