@@ -1,20 +1,15 @@
-import "./globals.css";
+// src/app/qrx/[id]/page.tsx
 export const dynamic = "force-dynamic";
 
-
-export const metadata = {
-  title: "mioseg qr",
-  description: "QR-X Viewer",
+type Props = {
+  params: { id: string };
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function QrxPage({ params }: Props) {
   return (
-    <html lang="de">
-      <body>{children}</body>
-    </html>
+    <main style={{ padding: 40, fontFamily: "system-ui" }}>
+      <h1>QR-X PAGE ✅</h1>
+      <p>ID: {params.id}</p>
+    </main>
   );
 }

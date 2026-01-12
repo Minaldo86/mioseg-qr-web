@@ -1,17 +1,8 @@
-import { useRouter } from "next/router";
-
-export default function QrxPage() {
-  const router = useRouter();
-  const { id } = router.query;
-
-  if (!id) {
-    return <p style={{ padding: 40 }}>Lade QR-X…</p>;
-  }
-
+export default function Home() {
   return (
     <main style={{ padding: 40 }}>
-      <h1>QR-X PAGE ✅</h1>
-      <p>ID: {id}</p>
+      <h1>APP ROUTER TEST ✅</h1>
+      <p>Diese Seite kommt aus src/app/page.tsx</p>
     </main>
   );
 }
