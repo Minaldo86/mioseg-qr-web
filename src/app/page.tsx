@@ -5,61 +5,57 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
+        {/* Logo / Branding */}
+        <div className={styles.logoWrapper}>
+          <Image
+            src="/logo.png" // falls du noch kein Logo hast: Datei einfach später ersetzen
+            alt="mioseg qr"
+            width={120}
+            height={120}
+            priority
+          />
+        </div>
+
+        {/* Headline */}
+        <h1 className={styles.title}>mioseg qr</h1>
+        <p className={styles.subtitle}>
+          QR-X Inhalte ansehen, teilen und speichern
+        </p>
+
+        {/* Info */}
         <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
           <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+            Dieser QR-X wurde mit <strong>mioseg qr</strong> erstellt.
+          </p>
+          <p>
+            Mit der App kannst du QR-X speichern, Updates erhalten und Inhalte
+            verwalten.
           </p>
         </div>
+
+        {/* Call to Action */}
         <div className={styles.ctas}>
           <a
             className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
+            href="https://mioseg-qr.com"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+            App herunterladen
           </a>
+
           <a
             className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/qrx/demo"
           >
-            Documentation
+            Beispiel-QR-X ansehen
           </a>
         </div>
+
+        {/* Footer */}
+        <footer className={styles.footer}>
+          <p>© {new Date().getFullYear()} mioseg qr</p>
+        </footer>
       </main>
     </div>
   );
