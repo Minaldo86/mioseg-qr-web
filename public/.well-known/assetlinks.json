@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.mioseg.qr",
+      "sha256_cert_fingerprints": [
+        "DEIN:ANDROID:SHA256:FINGERPRINT"
+      ]
+    }
+  }
+]
