@@ -2,10 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-
-  experimental: {
-    appDir: true, // 🔴 DAS FEHLTE
-  },
+  // KEIN output: "export"
+  // KEIN experimental.appDir (Next 15 nutzt App Router automatisch)
 };
 
 export default nextConfig;
