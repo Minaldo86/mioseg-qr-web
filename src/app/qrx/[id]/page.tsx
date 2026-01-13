@@ -139,7 +139,8 @@ export default async function QrxPage({
           <p className={styles.muted}>Noch keine News vorhanden.</p>
         ) : (
           <div className={styles.newsBox}>
-            {(entry.news ?? []).map((n, idx) => (
+            {(entry.news ?? []).map((n: { text: string; createdAt: string }, idx: number) => (
+
               <div key={`${n.createdAt}-${idx}`} className={styles.newsRow}>
                 <div className={styles.newsText}>{n.text}</div>
                 <div className={styles.newsDate}>{new Date(n.createdAt).toLocaleString()}</div>
