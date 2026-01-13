@@ -8,11 +8,7 @@ const compat = new FlatCompat({ baseDirectory: __dirname });
 
 export default [
   js.configs.recommended,
-
-  // Next.js ESLint Presets (kompatibel gemacht für Flat Config)
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-
-  // Ignores
   {
     ignores: [".next/**", "out/**", "build/**", "next-env.d.ts"],
   },
