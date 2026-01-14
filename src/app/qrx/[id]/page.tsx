@@ -23,14 +23,19 @@ type QrxMedia = {
   bytes?: number | null;
 };
 
+type SearchParams = Record<string, string | string[] | undefined>;
+
 export default async function QrxPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<SearchParams>;
 }) {
   const { id } = await params;
+  const sp = (await searchParams) ?? {};
+  const debug = sp.debug === "1";
 
-  // QR-X ID kann z.B. "qrx:abcd" oder "abcd" sein
   const qrxId = id.startsWith("qrx:") ? id.slice(4) : id;
 
   const { data: entry, error: entryErr } = await supabase
@@ -40,6 +45,26 @@ export default async function QrxPage({
     .maybeSingle()
     .returns<QrxEntry>();
 
+  const { data: media, error: mediaErr } = await supabase
+    .from("qr_x_media")
+    .select("id, qrx_id, type, url, filename, bytes")
+    .eq("qrx_id", qrxId)
+    .returns<QrxMedia[]>();
+
+  const debugPayload = {
+    idParam: id,
+    qrxId,
+    entryFound: !!entry,
+    entryErr: entryErr ? ((entryErr as any).message ?? entryErr) : null,
+    mediaCount: (media ?? []).length,
+    mediaErr: mediaErr ? ((mediaErr as any).message ?? mediaErr) : null,
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    },
+  };
+
+  // 404 UI (unsere Seite, nicht Vercel 404)
   if (entryErr || !entry) {
     return (
       <main className={styles.page}>
@@ -47,32 +72,14 @@ export default async function QrxPage({
           <h1 className={styles.title}>404</h1>
           <p className={styles.sub}>QR-X wurde nicht gefunden oder wurde gelöscht.</p>
 
-          {/* DEBUG BOX */}
-          <pre className={styles.debug}>
-            {JSON.stringify(
-              {
-                qrxId,
-                entry: entry ?? null,
-                entryErr: entryErr ? (entryErr as any).message ?? entryErr : null,
-              },
-              null,
-              2
-            )}
-          </pre>
+          {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
         </div>
       </main>
     );
   }
 
-  const { data: media } = await supabase
-    .from("qr_x_media")
-    .select("id, qrx_id, type, url, filename, bytes")
-    .eq("qrx_id", qrxId)
-    .returns<QrxMedia[]>();
-
   const images = (media ?? []).filter((m) => m.type === "image");
   const files = (media ?? []).filter((m) => m.type === "file");
-
   const deepLink = `miosegqr://qrx/${qrxId}`;
 
   return (
@@ -87,6 +94,8 @@ export default async function QrxPage({
           In App öffnen
         </a>
       </div>
+
+      {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
 
       {entry.logo_url && (
         <div className={styles.logoWrap}>
