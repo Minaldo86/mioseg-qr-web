@@ -25,6 +25,25 @@ type QrxMedia = {
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
+function toErrorMessage(err: unknown): string | null {
+  if (!err) return null;
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+
+  if (typeof err === "object") {
+    const e = err as Record<string, unknown>;
+    const msg = e["message"];
+    if (typeof msg === "string") return msg;
+    try {
+      return JSON.stringify(err);
+    } catch {
+      return "Unknown error";
+    }
+  }
+
+  return String(err);
+}
+
 export default async function QrxPage({
   params,
   searchParams,
@@ -55,16 +74,15 @@ export default async function QrxPage({
     idParam: id,
     qrxId,
     entryFound: !!entry,
-    entryErr: entryErr ? ((entryErr as any).message ?? entryErr) : null,
+    entryErr: toErrorMessage(entryErr),
     mediaCount: (media ?? []).length,
-    mediaErr: mediaErr ? ((mediaErr as any).message ?? mediaErr) : null,
+    mediaErr: toErrorMessage(mediaErr),
     env: {
       NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     },
   };
 
-  // 404 UI (unsere Seite, nicht Vercel 404)
   if (entryErr || !entry) {
     return (
       <main className={styles.page}>
