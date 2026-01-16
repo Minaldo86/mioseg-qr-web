@@ -1,5 +1,5 @@
-import { supabase } from "@/lib/supabase";
 import styles from "./page.module.css";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 type NewsItem = { text: string; createdAt: string };
 
@@ -25,6 +25,11 @@ type QrxMedia = {
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
+function getFirst(param: string | string[] | undefined): string | undefined {
+  if (Array.isArray(param)) return param[0];
+  return param;
+}
+
 function toErrorMessage(err: unknown): string | null {
   if (!err) return null;
   if (typeof err === "string") return err;
@@ -44,6 +49,19 @@ function toErrorMessage(err: unknown): string | null {
   return String(err);
 }
 
+function normalizeQrxId(id: string): string {
+  let v = String(id || "").trim();
+  try {
+    v = decodeURIComponent(v);
+  } catch {
+    // ignore
+  }
+  if (v.startsWith("qrx:")) v = v.slice(4);
+  return v;
+}
+
+export const dynamic = "force-dynamic";
+
 export default async function QrxPage({
   params,
   searchParams,
@@ -53,9 +71,11 @@ export default async function QrxPage({
 }) {
   const { id } = await params;
   const sp = (await searchParams) ?? {};
-  const debug = sp.debug === "1";
+  const debug = getFirst(sp.debug) === "1";
 
-  const qrxId = id.startsWith("qrx:") ? id.slice(4) : id;
+  const qrxId = normalizeQrxId(id);
+
+  const supabase = createSupabaseServerClient();
 
   const { data: entry, error: entryErr } = await supabase
     .from("qr_x_entries")
@@ -78,10 +98,20 @@ export default async function QrxPage({
     mediaCount: (media ?? []).length,
     mediaErr: toErrorMessage(mediaErr),
     env: {
-      NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      SUPABASE_URL: !!process.env.SUPABASE_URL,
+      SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
+      NEXT_PUBLIC_EXPO_GO_LINK_BASE: !!process.env.NEXT_PUBLIC_EXPO_GO_LINK_BASE,
     },
   };
+
+  const expoGoBase = process.env.NEXT_PUBLIC_EXPO_GO_LINK_BASE?.trim();
+  const expoGoOpenLink = expoGoBase ? `${expoGoBase}/--/qrx/${qrxId}` : null;
+  const nativeOpenLink = `miosegqr://qrx/${qrxId}`;
+  const openInAppLink = expoGoOpenLink ?? nativeOpenLink;
+
+  const expoGoSaveLink = expoGoBase ? `${expoGoBase}/--/qrx/${qrxId}?save=1` : null;
+  const nativeSaveLink = `miosegqr://qrx/${qrxId}?save=1`;
+  const saveInAppLink = expoGoSaveLink ?? nativeSaveLink;
 
   if (entryErr || !entry) {
     return (
@@ -96,9 +126,8 @@ export default async function QrxPage({
     );
   }
 
-  const images = (media ?? []).filter((m) => m.type === "image");
-  const files = (media ?? []).filter((m) => m.type === "file");
-  const deepLink = `miosegqr://qrx/${qrxId}`;
+  const images: QrxMedia[] = (media ?? []).filter((m: QrxMedia) => m.type === "image");
+  const files: QrxMedia[] = (media ?? []).filter((m: QrxMedia) => m.type === "file");
 
   return (
     <main className={styles.page}>
@@ -108,9 +137,15 @@ export default async function QrxPage({
           <p className={styles.sub}>Aktuelle Informationen zum QR-X</p>
         </div>
 
-        <a className={styles.openBtn} href={deepLink}>
-          In App öffnen
-        </a>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <a className={styles.openBtn} href={openInAppLink}>
+            In App öffnen
+          </a>
+
+          <a className={styles.openBtn} href={saveInAppLink}>
+            In App speichern
+          </a>
+        </div>
       </div>
 
       {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
@@ -133,7 +168,7 @@ export default async function QrxPage({
           <p className={styles.muted}>Keine Bilder vorhanden.</p>
         ) : (
           <div className={styles.grid}>
-            {images.map((img) => (
+            {images.map((img: QrxMedia) => (
               <a key={img.id} className={styles.imgCard} href={img.url} target="_blank" rel="noreferrer">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className={styles.img} src={img.url} alt={img.filename} />
@@ -150,7 +185,7 @@ export default async function QrxPage({
           <p className={styles.muted}>Keine Dateien vorhanden.</p>
         ) : (
           <div className={styles.list}>
-            {files.map((f) => (
+            {files.map((f: QrxMedia) => (
               <a key={f.id} className={styles.fileRow} href={f.url} target="_blank" rel="noreferrer">
                 <span className={styles.bullet}>•</span>
                 <span className={styles.fileName}>{f.filename}</span>

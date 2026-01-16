@@ -7,6 +7,7 @@
     "Segoe UI Emoji";
 }
 
+/* --- Header --- */
 .header {
   max-width: 980px;
   margin: 0 auto 18px auto;
@@ -42,12 +43,34 @@
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
+  transition: background 120ms ease, transform 120ms ease;
 }
 
 .openBtn:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.openBtn:active {
+  transform: translateY(1px);
+}
+
+/* Mobile: Header untereinander */
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .openBtn {
+    width: 100%;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+}
+
+/* --- Card (404 etc.) --- */
 .card {
   max-width: 720px;
   margin: 80px auto 0 auto;
@@ -57,6 +80,7 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+/* --- Logo --- */
 .logoWrap {
   max-width: 980px;
   margin: 0 auto 14px auto;
@@ -72,6 +96,7 @@
   border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
+/* --- Sections --- */
 .section {
   max-width: 980px;
   margin: 0 auto 14px auto;
@@ -94,14 +119,17 @@
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.86);
   white-space: pre-wrap;
+  overflow-wrap: anywhere; /* ✅ lange Texte/URLs brechen */
 }
 
 .muted {
   margin: 0;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.6);
+  overflow-wrap: anywhere;
 }
 
+/* --- Images --- */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -115,6 +143,13 @@
   background: rgba(0, 0, 0, 0.25);
   text-decoration: none;
   color: #fff;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+.imgCard:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.32);
 }
 
 .img {
@@ -128,8 +163,12 @@
   padding: 8px 10px;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.75);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+/* --- Files --- */
 .list {
   display: flex;
   flex-direction: column;
@@ -146,21 +185,30 @@
   background: rgba(0, 0, 0, 0.18);
   text-decoration: none;
   color: #fff;
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
 .fileRow:hover {
   background: rgba(0, 0, 0, 0.26);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .bullet {
   opacity: 0.8;
+  flex: 0 0 auto;
 }
 
 .fileName {
   font-size: 13px;
   opacity: 0.9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0; /* ✅ wichtig für ellipsis in flex */
+  flex: 1;
 }
 
+/* --- Maps Button --- */
 .mapBtn {
   margin-top: 10px;
   display: inline-flex;
@@ -172,17 +220,25 @@
   text-decoration: none;
   font-size: 13px;
   font-weight: 700;
+  transition: background 120ms ease, transform 120ms ease;
 }
 
 .mapBtn:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.mapBtn:active {
+  transform: translateY(1px);
+}
+
+/* --- News --- */
 .newsBox {
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(0, 0, 0, 0.18);
   padding: 10px;
+  max-height: 320px; /* ✅ lange Listen werden scrollbar */
+  overflow: auto;
 }
 
 .newsRow {
@@ -198,6 +254,7 @@
   font-size: 13px;
   color: rgba(255, 255, 255, 0.92);
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .newsDate {
@@ -206,6 +263,7 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
+/* --- Footer --- */
 .footer {
   max-width: 980px;
   margin: 26px auto 0 auto;
@@ -214,14 +272,17 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
+/* --- Debug --- */
 .debug {
   margin-top: 12px;
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 12px;
   overflow: auto;
   max-width: 100%;
+  white-space: pre-wrap; /* ✅ bricht um */
+  overflow-wrap: anywhere; /* ✅ bricht lange Keys/URLs */
 }
