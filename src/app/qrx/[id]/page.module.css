@@ -30,6 +30,13 @@
   color: rgba(255, 255, 255, 0.65);
 }
 
+.ctaCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
 .openBtn {
   display: inline-flex;
   align-items: center;
@@ -54,10 +61,29 @@
   transform: translateY(1px);
 }
 
+/* --- App Fallback Hint (unter den Buttons) --- */
+.appHint {
+  width: 100%;
+  text-align: right;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.downloadLink {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 800;
+  text-decoration: underline;
+}
+
 /* Mobile: Header untereinander */
 @media (max-width: 640px) {
   .header {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ctaCol {
+    width: 100%;
     align-items: flex-start;
   }
 
@@ -67,6 +93,10 @@
 
   .title {
     font-size: 24px;
+  }
+
+  .appHint {
+    text-align: left;
   }
 }
 
@@ -285,56 +315,4 @@
   max-width: 100%;
   white-space: pre-wrap; /* ✅ bricht um */
   overflow-wrap: anywhere; /* ✅ bricht lange Keys/URLs */
-}
-
-/* --- App Fallback Hint (unter den Buttons) --- */
-.appHint {
-  width: 100%;
-  text-align: right;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-/* Mobile: Hint links, damit es natürlicher wirkt */
-@media (max-width: 640px) {
-  .appHint {
-    text-align: left;
-  }
-}
-
-.appHint {
-  width: 100%;
-  text-align: right;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.downloadLink {
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 800;
-  text-decoration: underline;
-}
-
-@media (max-width: 640px) {
-  .appHint {
-    text-align: left;
-  }
-}
-
-.ctaCol {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
-}
-
-.appHint {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.downloadLink {
-  color: #ffffff;
-  font-weight: 800;
-  text-decoration: underline;
 }
