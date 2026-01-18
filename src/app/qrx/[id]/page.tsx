@@ -1,4 +1,3 @@
-// src/app/qrx/[id]/page.tsx
 import styles from "./page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { headers } from "next/headers";
@@ -46,7 +45,9 @@ function normalizeQrxId(id: string): string {
   let v = String(id || "").trim();
   try {
     v = decodeURIComponent(v);
-  } catch {}
+  } catch {
+    // ignore
+  }
   if (v.startsWith("qrx:")) v = v.slice(4);
   return v;
 }
@@ -65,11 +66,11 @@ export default async function QrxPage({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams?: SearchParams;
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<SearchParams>;
 }) {
-  const { id } = params;
-  const sp = searchParams ?? {};
+  const { id } = await params;
+  const sp = (await searchParams) ?? {};
   const debug = getFirst(sp.debug) === "1";
 
   const qrxId = normalizeQrxId(id);
@@ -88,7 +89,7 @@ export default async function QrxPage({
     .eq("qrx_id", qrxId)
     .returns<QrxMedia[]>();
 
-  // ✅ Next 15: headers() ist bei dir async -> await!
+  // ✅ headers() hier holen (nicht als Prop)
   const h = await headers();
   const ua = h.get("user-agent");
   const showDownloadHint = isProbablyMobile(ua);
@@ -122,11 +123,9 @@ export default async function QrxPage({
   const images: QrxMedia[] = (media ?? []).filter((m) => m.type === "image");
   const files: QrxMedia[] = (media ?? []).filter((m) => m.type === "file");
 
-  // ✅ EIN Button: (optional save=1, falls du später QR-Codes "Speichern" triggern willst)
+  // ✅ ein Button – Standard "öffnen"
   const wantSave = getFirst(sp.save) === "1";
   const deepLink = wantSave ? `miosegqr://qrx/${qrxId}?save=1` : `miosegqr://qrx/${qrxId}`;
-
-  // ✅ Fallback-Seite
   const fallbackUrl = `/get-app?from=${encodeURIComponent(`/qrx/${qrxId}${wantSave ? "?save=1" : ""}`)}`;
 
   return (
@@ -138,12 +137,10 @@ export default async function QrxPage({
         </div>
 
         <div className={styles.ctaCol}>
-          {/* ✅ EIN Button */}
           <a className={styles.openBtn} href={deepLink} data-fallback={fallbackUrl} id="openAppBtn">
             In App öffnen
           </a>
 
-          {/* ✅ Text "App herunterladen" sichtbar (nur mobile/tablet) */}
           {showDownloadHint && (
             <div className={styles.appHint}>
               App nicht installiert?{" "}
@@ -155,7 +152,6 @@ export default async function QrxPage({
         </div>
       </div>
 
-      {/* ✅ DeepLink versuchen, sonst Fallback */}
       <script
         dangerouslySetInnerHTML={{
           __html: `
@@ -168,12 +164,10 @@ export default async function QrxPage({
     var fallback = btn.getAttribute("data-fallback");
     if(!href) return;
 
-    // Versuch: App öffnen (nur bei User-Klick)
-    try { window.location.href = href; } catch(e){}
+    try { window.location.href = href; } catch(e){ /* ignore */ }
 
-    // Falls App nicht installiert / Browser blockt: nach kurzer Zeit Download-Seite
     setTimeout(function(){
-      try { window.location.href = fallback; } catch(e){}
+      try { window.location.href = fallback; } catch(e){ /* ignore */ }
     }, 1200);
 
     e.preventDefault();
