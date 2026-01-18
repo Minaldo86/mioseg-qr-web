@@ -1,0 +1,91 @@
+export const dynamic = "force-dynamic";
+
+function getStoreLinks() {
+  // Hier später echte Store-Links eintragen, wenn du im Play Store / App Store bist.
+  // Bis dahin kannst du z.B. deinen APK-Download oder Expo-Download-Link einsetzen.
+  const android = process.env.NEXT_PUBLIC_ANDROID_APP_URL?.trim() || "";
+  const ios = process.env.NEXT_PUBLIC_IOS_APP_URL?.trim() || "";
+  return { android, ios };
+}
+
+export default async function GetAppPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const from = typeof sp.from === "string" ? sp.from : "/";
+
+  const { android, ios } = getStoreLinks();
+
+  return (
+    <main style={{ minHeight: "100vh", padding: 24, background: "#0f0f10", color: "#fff", fontFamily: "system-ui" }}>
+      <div
+        style={{
+          maxWidth: 720,
+          margin: "0 auto",
+          borderRadius: 16,
+          border: "1px solid rgba(255,255,255,0.14)",
+          background: "rgba(255,255,255,0.06)",
+          padding: 18,
+        }}
+      >
+        <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800 }}>mioseg qr installieren</h1>
+        <p style={{ marginTop: 8, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>
+          Du hast einen QR-X Link geöffnet, aber die App ist auf diesem Gerät noch nicht installiert.
+          Installiere die App, damit du QR-X Inhalte direkt speichern und verwalten kannst.
+        </p>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+          {android ? (
+            <a
+              href={android}
+              style={{
+                padding: "10px 14px",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.16)",
+                background: "rgba(255,255,255,0.08)",
+                color: "#fff",
+                textDecoration: "none",
+                fontWeight: 800,
+              }}
+            >
+              Android: Download / Play Store
+            </a>
+          ) : (
+            <div style={{ color: "rgba(255,255,255,0.7)" }}>
+              Android-Link fehlt (NEXT_PUBLIC_ANDROID_APP_URL). Du kannst ihn später eintragen.
+            </div>
+          )}
+
+          {ios ? (
+            <a
+              href={ios}
+              style={{
+                padding: "10px 14px",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.16)",
+                background: "rgba(255,255,255,0.08)",
+                color: "#fff",
+                textDecoration: "none",
+                fontWeight: 800,
+              }}
+            >
+              iOS: App Store
+            </a>
+          ) : (
+            <div style={{ color: "rgba(255,255,255,0.7)" }}>
+              iOS-Link fehlt (NEXT_PUBLIC_IOS_APP_URL). Du kannst ihn später eintragen.
+            </div>
+          )}
+        </div>
+
+        <div style={{ marginTop: 18 }}>
+          <a href={from} style={{ color: "rgba(255,255,255,0.85)" }}>
+            ← Zurück zum QR-X Inhalt
+          </a>
+        </div>
+      </div>
+    </main>
+  );
+}

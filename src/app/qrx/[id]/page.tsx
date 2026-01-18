@@ -60,14 +60,24 @@ function normalizeQrxId(id: string): string {
   return v;
 }
 
+function isProbablyMobile(ua: string | null): boolean {
+  if (!ua) return false;
+  const u = ua.toLowerCase();
+  return /android|iphone|ipad|ipod|mobile|tablet/.test(u);
+}
+
+// ✅ wichtig: sicherstellen, dass es NICHT auf Edge läuft
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function QrxPage({
   params,
   searchParams,
+  headers,
 }: {
   params: Promise<{ id: string }>;
   searchParams?: Promise<SearchParams>;
+  headers: () => Headers;
 }) {
   const { id } = await params;
   const sp = (await searchParams) ?? {};
@@ -90,6 +100,10 @@ export default async function QrxPage({
     .eq("qrx_id", qrxId)
     .returns<QrxMedia[]>();
 
+  const h = headers();
+  const ua = h.get("user-agent");
+  const showDownloadHint = isProbablyMobile(ua);
+
   const debugPayload = {
     idParam: id,
     qrxId,
@@ -100,18 +114,9 @@ export default async function QrxPage({
     env: {
       SUPABASE_URL: !!process.env.SUPABASE_URL,
       SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
-      NEXT_PUBLIC_EXPO_GO_LINK_BASE: !!process.env.NEXT_PUBLIC_EXPO_GO_LINK_BASE,
+      runtime: "nodejs",
     },
   };
-
-  const expoGoBase = process.env.NEXT_PUBLIC_EXPO_GO_LINK_BASE?.trim();
-  const expoGoOpenLink = expoGoBase ? `${expoGoBase}/--/qrx/${qrxId}` : null;
-  const nativeOpenLink = `miosegqr://qrx/${qrxId}`;
-  const openInAppLink = expoGoOpenLink ?? nativeOpenLink;
-
-  const expoGoSaveLink = expoGoBase ? `${expoGoBase}/--/qrx/${qrxId}?save=1` : null;
-  const nativeSaveLink = `miosegqr://qrx/${qrxId}?save=1`;
-  const saveInAppLink = expoGoSaveLink ?? nativeSaveLink;
 
   if (entryErr || !entry) {
     return (
@@ -129,6 +134,13 @@ export default async function QrxPage({
   const images: QrxMedia[] = (media ?? []).filter((m: QrxMedia) => m.type === "image");
   const files: QrxMedia[] = (media ?? []).filter((m: QrxMedia) => m.type === "file");
 
+  // ✅ Nur EIN Button (je nach URL optional "save=1")
+  const wantSave = getFirst(sp.save) === "1";
+  const deepLink = wantSave ? `miosegqr://qrx/${qrxId}?save=1` : `miosegqr://qrx/${qrxId}`;
+
+  // ✅ Fallback-Seite (wenn App nicht installiert ist)
+  const fallbackUrl = `/get-app?from=${encodeURIComponent(`/qrx/${qrxId}${wantSave ? "?save=1" : ""}`)}`;
+
   return (
     <main className={styles.page}>
       <div className={styles.header}>
@@ -137,16 +149,51 @@ export default async function QrxPage({
           <p className={styles.sub}>Aktuelle Informationen zum QR-X</p>
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          <a className={styles.openBtn} href={openInAppLink}>
-            In App öffnen
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+          {/* ✅ EIN Button */}
+          <a className={styles.openBtn} href={deepLink} data-fallback={fallbackUrl} id="openAppBtn">
+            {wantSave ? "In App speichern" : "In App öffnen"}
           </a>
 
-          <a className={styles.openBtn} href={saveInAppLink}>
-            In App speichern
-          </a>
+          {/* ✅ Hinweis + Download-Link */}
+          {showDownloadHint && (
+            <div className={styles.appHint}>
+              App nicht installiert?{" "}
+              <a className={styles.downloadLink} href={fallbackUrl}>
+                Hier herunterladen
+              </a>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* ✅ kleines Script: Deep Link versuchen, sonst Fallback */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+(function(){
+  var btn = document.getElementById("openAppBtn");
+  if(!btn) return;
+
+  btn.addEventListener("click", function(e){
+    var href = btn.getAttribute("href");
+    var fallback = btn.getAttribute("data-fallback");
+    if(!href) return;
+
+    // Wenn Browser "download/open" Dialog zeigt oder Scheme blockt, versuchen wir trotzdem
+    // und leiten nach kurzer Zeit auf Download-Seite weiter.
+    // Wichtig: Nur bei User-Klick ausführen.
+    setTimeout(function(){
+      try { window.location.href = fallback; } catch(e){}
+    }, 1200);
+
+    try { window.location.href = href; } catch(e){}
+    e.preventDefault();
+  });
+})();
+          `.trim(),
+        }}
+      />
 
       {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
 
