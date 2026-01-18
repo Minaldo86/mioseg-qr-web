@@ -1,5 +1,6 @@
 import styles from "./page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { headers } from "next/headers";
 
 type NewsItem = { text: string; createdAt: string };
 
@@ -73,14 +74,12 @@ export const dynamic = "force-dynamic";
 export default async function QrxPage({
   params,
   searchParams,
-  headers,
 }: {
-  params: Promise<{ id: string }>;
-  searchParams?: Promise<SearchParams>;
-  headers: () => Headers;
+  params: { id: string };
+  searchParams?: SearchParams;
 }) {
-  const { id } = await params;
-  const sp = (await searchParams) ?? {};
+  const { id } = params;
+  const sp = searchParams ?? {};
   const debug = getFirst(sp.debug) === "1";
 
   const qrxId = normalizeQrxId(id);
@@ -100,7 +99,7 @@ export default async function QrxPage({
     .eq("qrx_id", qrxId)
     .returns<QrxMedia[]>();
 
-  const h = headers();
+  const h = headers(); // ✅ kein await
   const ua = h.get("user-agent");
   const showDownloadHint = isProbablyMobile(ua);
 
@@ -134,7 +133,7 @@ export default async function QrxPage({
   const images: QrxMedia[] = (media ?? []).filter((m: QrxMedia) => m.type === "image");
   const files: QrxMedia[] = (media ?? []).filter((m: QrxMedia) => m.type === "file");
 
-  // ✅ Nur EIN Button (je nach URL optional "save=1")
+  // ✅ nur EIN Button – Standard: öffnen
   const wantSave = getFirst(sp.save) === "1";
   const deepLink = wantSave ? `miosegqr://qrx/${qrxId}?save=1` : `miosegqr://qrx/${qrxId}`;
 
@@ -149,13 +148,11 @@ export default async function QrxPage({
           <p className={styles.sub}>Aktuelle Informationen zum QR-X</p>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-          {/* ✅ EIN Button */}
+        <div className={styles.ctaCol}>
           <a className={styles.openBtn} href={deepLink} data-fallback={fallbackUrl} id="openAppBtn">
-            {wantSave ? "In App speichern" : "In App öffnen"}
+            In App öffnen
           </a>
 
-          {/* ✅ Hinweis + Download-Link */}
           {showDownloadHint && (
             <div className={styles.appHint}>
               App nicht installiert?{" "}
@@ -167,7 +164,6 @@ export default async function QrxPage({
         </div>
       </div>
 
-      {/* ✅ kleines Script: Deep Link versuchen, sonst Fallback */}
       <script
         dangerouslySetInnerHTML={{
           __html: `
@@ -180,14 +176,12 @@ export default async function QrxPage({
     var fallback = btn.getAttribute("data-fallback");
     if(!href) return;
 
-    // Wenn Browser "download/open" Dialog zeigt oder Scheme blockt, versuchen wir trotzdem
-    // und leiten nach kurzer Zeit auf Download-Seite weiter.
-    // Wichtig: Nur bei User-Klick ausführen.
+    try { window.location.href = href; } catch(e){}
+
     setTimeout(function(){
       try { window.location.href = fallback; } catch(e){}
     }, 1200);
 
-    try { window.location.href = href; } catch(e){}
     e.preventDefault();
   });
 })();
