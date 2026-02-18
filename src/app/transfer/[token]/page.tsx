@@ -1,7 +1,7 @@
 // src/app/transfer/[token]/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 function isAndroid() {
   if (typeof navigator === "undefined") return false;
@@ -15,16 +15,36 @@ function isIOS() {
 
 function safeToken(input: unknown) {
   const t = String(input ?? "").trim();
-  // Token ist bei dir hex / url-safe -> minimaler Check
   return t.length > 0 ? t : "";
 }
 
-export default function TransferTokenPage({
-  params,
-}: {
-  params: { token: string };
-}) {
-  const token = useMemo(() => safeToken(params?.token), [params?.token]);
+type TransferPageProps =
+  | { params: { token: string } }
+  | { params: Promise<{ token: string }> };
+
+export default function TransferTokenPage(props: TransferPageProps) {
+  const [token, setToken] = useState<string>("");
+
+  // ✅ Next 15: params kann Promise sein -> robust auflösen
+  useEffect(() => {
+    let mounted = true;
+
+    const resolveParams = async () => {
+      try {
+        const p: any = (props as any).params;
+        const resolved = typeof p?.then === "function" ? await p : p;
+        const t = safeToken(resolved?.token);
+        if (mounted) setToken(t);
+      } catch {
+        if (mounted) setToken("");
+      }
+    };
+
+    resolveParams();
+    return () => {
+      mounted = false;
+    };
+  }, [props]);
 
   const [triedOpen, setTriedOpen] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
@@ -34,21 +54,19 @@ export default function TransferTokenPage({
     return token ? `miosegqr://transfer/${encodeURIComponent(token)}` : "";
   }, [token]);
 
-  // ✅ Diese Seite selbst als Universal Link
+  // ✅ Universal Link (diese Seite selbst)
   const universalLink = useMemo(() => {
     return token
       ? `https://mioseg-qr.com/transfer/${encodeURIComponent(token)}`
       : "https://mioseg-qr.com";
   }, [token]);
 
-  // ✅ Store Links (Platzhalter – später ersetzen)
+  // ✅ Store Links (bis du live bist, ok als Platzhalter)
   const storeLink = useMemo(() => {
     if (isAndroid()) {
-      // TODO: Replace with your Play Store URL once published
       return "https://play.google.com/store/apps/details?id=com.mioseg.qr";
     }
     if (isIOS()) {
-      // TODO: Replace with your App Store URL once published
       return "https://apps.apple.com/";
     }
     return "https://mioseg-qr.com/get-app";
@@ -57,19 +75,17 @@ export default function TransferTokenPage({
   useEffect(() => {
     if (!token) return;
 
-    // Auto-Open nur auf Mobile sinnvoll
     const mobile = isAndroid() || isIOS();
     if (!mobile) {
       setShowFallback(true);
       return;
     }
 
-    // ✅ 1) Versuch: App öffnen per Scheme
-    // (funktioniert, wenn App installiert ist und scheme in app.json gesetzt ist)
+    // ✅ 1) Versuch: App öffnen
     setTriedOpen(true);
     window.location.href = appDeepLink;
 
-    // ✅ 2) Fallback anzeigen, wenn nach kurzer Zeit nichts passiert
+    // ✅ 2) Fallback anzeigen
     const t = window.setTimeout(() => {
       setShowFallback(true);
     }, 1200);
@@ -134,7 +150,6 @@ export default function TransferTokenPage({
         {(showFallback || !triedOpen) && (
           <>
             <div style={{ height: 10 }} />
-
             <div style={styles.hr} />
 
             <h2 style={styles.h2}>App nicht installiert?</h2>
@@ -142,7 +157,7 @@ export default function TransferTokenPage({
               Installiere mioseg qr und öffne danach den Link erneut.
             </p>
 
-            <a style={styles.secondaryBtn} href={storeLink} target="_blank">
+            <a style={styles.secondaryBtn} href={storeLink} target="_blank" rel="noreferrer">
               App herunterladen
             </a>
 
@@ -163,7 +178,7 @@ export default function TransferTokenPage({
   );
 }
 
-// ✅ minimaler Dark-Style wie bei dir
+// ✅ minimaler Dark-Style
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
