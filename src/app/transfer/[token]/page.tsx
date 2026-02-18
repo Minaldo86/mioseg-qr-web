@@ -1,21 +1,85 @@
-// src/app/transfer/[token]/page.tsx
-import React from "react";
+"use client";
 
-function safeToken(input: unknown) {
-  const t = String(input ?? "").trim();
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+
+function isAndroid(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
+function isIOS(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function safeToken(input: unknown): string {
+  if (typeof input !== "string") return "";
+  const t = input.trim();
   return t.length > 0 ? t : "";
 }
 
-export default async function TransferTokenPage(props: any) {
-  // ✅ Next 15 kann params bei dir als Promise ODER als Object typisieren.
-  // Wir unterstützen beides, ohne TS-Constraint-Probleme.
-  const maybeParams = props?.params;
-  const resolvedParams =
-    maybeParams && typeof maybeParams?.then === "function"
-      ? await maybeParams
-      : maybeParams;
+export default function TransferTokenPage() {
+  const params = useParams();
 
-  const token = safeToken(resolvedParams?.token);
+  // next/navigation liefert string | string[] | undefined
+  const token = useMemo(() => {
+    const raw = (params as Record<string, string | string[] | undefined>)?.token;
+    const v = Array.isArray(raw) ? raw[0] : raw;
+    return safeToken(v);
+  }, [params]);
+
+  const [triedOpen, setTriedOpen] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
+
+  // ✅ Deep Link (öffnet App, wenn installiert)
+  const appDeepLink = useMemo(() => {
+    return token ? `miosegqr://transfer/${encodeURIComponent(token)}` : "";
+  }, [token]);
+
+  // ✅ Universal Link (diese Seite)
+  const universalLink = useMemo(() => {
+    return token ? `https://mioseg-qr.com/transfer/${encodeURIComponent(token)}` : "https://mioseg-qr.com";
+  }, [token]);
+
+  // ✅ Store Links (Platzhalter bis App live ist)
+  const storeLink = useMemo(() => {
+    if (isAndroid()) return "https://play.google.com/store/apps/details?id=com.mioseg.qr";
+    if (isIOS()) return "https://apps.apple.com/";
+    return "https://mioseg-qr.com/get-app";
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const mobile = isAndroid() || isIOS();
+    if (!mobile) {
+      setShowFallback(true);
+      return;
+    }
+
+    setTriedOpen(true);
+    window.location.href = appDeepLink;
+
+    const t = window.setTimeout(() => setShowFallback(true), 1200);
+    return () => window.clearTimeout(t);
+  }, [token, appDeepLink]);
+
+  const onOpenApp = () => {
+    if (!token) return;
+    setTriedOpen(true);
+    window.location.href = appDeepLink;
+    window.setTimeout(() => setShowFallback(true), 1200);
+  };
+
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(universalLink);
+      window.alert("Link kopiert ✅");
+    } catch {
+      window.alert("Kopieren nicht möglich – bitte manuell markieren.");
+    }
+  };
 
   if (!token) {
     return (
@@ -31,66 +95,6 @@ export default async function TransferTokenPage(props: any) {
     );
   }
 
-  const universalLink = `https://mioseg-qr.com/transfer/${encodeURIComponent(
-    token
-  )}`;
-  const appDeepLink = `miosegqr://transfer/${encodeURIComponent(token)}`;
-  const playStore = "https://play.google.com/store/apps/details?id=com.mioseg.qr";
-  const appStore = "https://apps.apple.com/";
-  const getApp = "https://mioseg-qr.com/get-app";
-
-  const script = `
-(function(){
-  var appDeepLink = ${JSON.stringify(appDeepLink)};
-  var universalLink = ${JSON.stringify(universalLink)};
-  var playStore = ${JSON.stringify(playStore)};
-  var appStore = ${JSON.stringify(appStore)};
-  var getApp = ${JSON.stringify(getApp)};
-
-  function isAndroid(){ return /Android/i.test(navigator.userAgent || ""); }
-  function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent || ""); }
-
-  function show(el){ if(el) el.style.display = "block"; }
-
-  var fallback = document.getElementById("fallback");
-  var storeBtn = document.getElementById("storeBtn");
-  var copyBtn = document.getElementById("copyBtn");
-  var openBtn = document.getElementById("openBtn");
-  var direct = document.getElementById("directLink");
-
-  if (direct) { direct.textContent = universalLink; direct.href = universalLink; }
-
-  function storeLink(){
-    if (isAndroid()) return playStore;
-    if (isIOS()) return appStore;
-    return getApp;
-  }
-
-  function openApp(){
-    try { window.location.href = appDeepLink; } catch(e){}
-    window.setTimeout(function(){ show(fallback); }, 1200);
-  }
-
-  if (openBtn) openBtn.addEventListener("click", function(){ openApp(); });
-
-  if (storeBtn) storeBtn.addEventListener("click", function(){
-    window.open(storeLink(), "_blank", "noopener,noreferrer");
-  });
-
-  if (copyBtn) copyBtn.addEventListener("click", async function(){
-    try {
-      await navigator.clipboard.writeText(universalLink);
-      alert("Link kopiert ✅");
-    } catch(e) {
-      alert("Kopieren nicht möglich – bitte manuell markieren.");
-    }
-  });
-
-  // Auto-open nur auf Mobile
-  if (isAndroid() || isIOS()) openApp();
-  else show(fallback);
-})();`;
-
   return (
     <div style={styles.page}>
       <div style={styles.card}>
@@ -100,48 +104,42 @@ export default async function TransferTokenPage(props: any) {
         </div>
 
         <h1 style={styles.h1}>QR-X Übertragung</h1>
-        <p style={styles.p}>
-          Wir öffnen jetzt die App, damit du die Übertragung annehmen kannst.
-        </p>
+        <p style={styles.p}>Wir öffnen jetzt die App, damit du die Übertragung annehmen kannst.</p>
 
-        <button id="openBtn" style={styles.primaryBtn}>
+        <button style={styles.primaryBtn} onClick={onOpenApp}>
           In App öffnen
         </button>
 
         <div style={styles.smallBox}>
           <div style={styles.smallTitle}>Falls du nicht eingeloggt bist:</div>
-          <div style={styles.smallText}>
-            Bitte in der App einloggen – danach kannst du den Transfer annehmen.
-          </div>
+          <div style={styles.smallText}>Bitte in der App einloggen – danach kannst du den Transfer annehmen.</div>
         </div>
 
-        <div id="fallback" style={{ display: "none" }}>
-          <div style={{ height: 10 }} />
-          <div style={styles.hr} />
+        {(showFallback || !triedOpen) && (
+          <>
+            <div style={{ height: 10 }} />
+            <div style={styles.hr} />
 
-          <h2 style={styles.h2}>App nicht installiert?</h2>
-          <p style={styles.p}>
-            Installiere mioseg qr und öffne danach den Link erneut.
-          </p>
+            <h2 style={styles.h2}>App nicht installiert?</h2>
+            <p style={styles.p}>Installiere mioseg qr und öffne danach den Link erneut.</p>
 
-          <button id="storeBtn" style={styles.secondaryBtn}>
-            App herunterladen
-          </button>
-
-          <button id="copyBtn" style={styles.ghostBtn}>
-            Link kopieren
-          </button>
-
-          <div style={styles.mini}>
-            Direktlink:{" "}
-            <a id="directLink" style={styles.link} href={universalLink}>
-              {universalLink}
+            <a style={styles.secondaryBtn} href={storeLink} target="_blank" rel="noreferrer">
+              App herunterladen
             </a>
-          </div>
-        </div>
-      </div>
 
-      <script dangerouslySetInnerHTML={{ __html: script }} />
+            <button style={styles.ghostBtn} onClick={onCopy}>
+              Link kopieren
+            </button>
+
+            <div style={styles.mini}>
+              Direktlink:{" "}
+              <a style={styles.link} href={universalLink}>
+                {universalLink}
+              </a>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -170,12 +168,7 @@ const styles: Record<string, React.CSSProperties> = {
   logoText: { fontWeight: 700, letterSpacing: 0.3, color: "#dfefff" },
   h1: { margin: "8px 0 10px 0", fontSize: 22 },
   h2: { margin: "12px 0 8px 0", fontSize: 16 },
-  p: {
-    margin: "0 0 12px 0",
-    color: "rgba(255,255,255,0.78)",
-    lineHeight: 1.5,
-    fontSize: 14,
-  },
+  p: { margin: "0 0 12px 0", color: "rgba(255,255,255,0.78)", lineHeight: 1.5, fontSize: 14 },
   primaryBtn: {
     width: "100%",
     padding: "12px 14px",
@@ -199,7 +192,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     textDecoration: "none",
     marginTop: 8,
-    cursor: "pointer",
   },
   ghostBtn: {
     width: "100%",
@@ -219,12 +211,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: "1px solid rgba(255,255,255,0.08)",
     background: "rgba(255,255,255,0.04)",
   },
-  smallTitle: {
-    fontSize: 12,
-    fontWeight: 800,
-    marginBottom: 4,
-    color: "rgba(255,255,255,0.9)",
-  },
+  smallTitle: { fontSize: 12, fontWeight: 800, marginBottom: 4, color: "rgba(255,255,255,0.9)" },
   smallText: { fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 },
   hr: { height: 1, background: "rgba(255,255,255,0.08)", margin: "14px 0" },
   mini: {
