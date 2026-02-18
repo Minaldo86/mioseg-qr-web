@@ -6,14 +6,16 @@ function safeToken(input: unknown) {
   return t.length > 0 ? t : "";
 }
 
-export default async function TransferTokenPage({
-  params,
-}: {
-  // ✅ Next 15 erwartet bei dir params als Promise
-  params: Promise<{ token: string }>;
-}) {
-  const { token: rawToken } = await params;
-  const token = safeToken(rawToken);
+export default async function TransferTokenPage(props: any) {
+  // ✅ Next 15 kann params bei dir als Promise ODER als Object typisieren.
+  // Wir unterstützen beides, ohne TS-Constraint-Probleme.
+  const maybeParams = props?.params;
+  const resolvedParams =
+    maybeParams && typeof maybeParams?.then === "function"
+      ? await maybeParams
+      : maybeParams;
+
+  const token = safeToken(resolvedParams?.token);
 
   if (!token) {
     return (
@@ -29,16 +31,16 @@ export default async function TransferTokenPage({
     );
   }
 
-  const universalLink = `https://mioseg-qr.com/transfer/${encodeURIComponent(token)}`;
+  const universalLink = `https://mioseg-qr.com/transfer/${encodeURIComponent(
+    token
+  )}`;
   const appDeepLink = `miosegqr://transfer/${encodeURIComponent(token)}`;
   const playStore = "https://play.google.com/store/apps/details?id=com.mioseg.qr";
   const appStore = "https://apps.apple.com/";
   const getApp = "https://mioseg-qr.com/get-app";
 
-  // ✅ Script macht: Mobile-Erkennung -> App öffnen -> nach 1.2s Fallback UI einblenden
   const script = `
 (function(){
-  var token = ${JSON.stringify(token)};
   var appDeepLink = ${JSON.stringify(appDeepLink)};
   var universalLink = ${JSON.stringify(universalLink)};
   var playStore = ${JSON.stringify(playStore)};
@@ -49,7 +51,6 @@ export default async function TransferTokenPage({
   function isIOS(){ return /iPhone|iPad|iPod/i.test(navigator.userAgent || ""); }
 
   function show(el){ if(el) el.style.display = "block"; }
-  function hide(el){ if(el) el.style.display = "none"; }
 
   var fallback = document.getElementById("fallback");
   var storeBtn = document.getElementById("storeBtn");
@@ -57,8 +58,7 @@ export default async function TransferTokenPage({
   var openBtn = document.getElementById("openBtn");
   var direct = document.getElementById("directLink");
 
-  if (direct) direct.textContent = universalLink;
-  if (direct) direct.href = universalLink;
+  if (direct) { direct.textContent = universalLink; direct.href = universalLink; }
 
   function storeLink(){
     if (isAndroid()) return playStore;
@@ -73,29 +73,22 @@ export default async function TransferTokenPage({
 
   if (openBtn) openBtn.addEventListener("click", function(){ openApp(); });
 
-  if (storeBtn) {
-    storeBtn.addEventListener("click", function(){
-      window.open(storeLink(), "_blank", "noopener,noreferrer");
-    });
-  }
+  if (storeBtn) storeBtn.addEventListener("click", function(){
+    window.open(storeLink(), "_blank", "noopener,noreferrer");
+  });
 
-  if (copyBtn) {
-    copyBtn.addEventListener("click", async function(){
-      try {
-        await navigator.clipboard.writeText(universalLink);
-        alert("Link kopiert ✅");
-      } catch(e) {
-        alert("Kopieren nicht möglich – bitte manuell markieren.");
-      }
-    });
-  }
+  if (copyBtn) copyBtn.addEventListener("click", async function(){
+    try {
+      await navigator.clipboard.writeText(universalLink);
+      alert("Link kopiert ✅");
+    } catch(e) {
+      alert("Kopieren nicht möglich – bitte manuell markieren.");
+    }
+  });
 
   // Auto-open nur auf Mobile
-  if (isAndroid() || isIOS()) {
-    openApp();
-  } else {
-    show(fallback);
-  }
+  if (isAndroid() || isIOS()) openApp();
+  else show(fallback);
 })();`;
 
   return (
@@ -107,7 +100,9 @@ export default async function TransferTokenPage({
         </div>
 
         <h1 style={styles.h1}>QR-X Übertragung</h1>
-        <p style={styles.p}>Wir öffnen jetzt die App, damit du die Übertragung annehmen kannst.</p>
+        <p style={styles.p}>
+          Wir öffnen jetzt die App, damit du die Übertragung annehmen kannst.
+        </p>
 
         <button id="openBtn" style={styles.primaryBtn}>
           In App öffnen
@@ -125,7 +120,9 @@ export default async function TransferTokenPage({
           <div style={styles.hr} />
 
           <h2 style={styles.h2}>App nicht installiert?</h2>
-          <p style={styles.p}>Installiere mioseg qr und öffne danach den Link erneut.</p>
+          <p style={styles.p}>
+            Installiere mioseg qr und öffne danach den Link erneut.
+          </p>
 
           <button id="storeBtn" style={styles.secondaryBtn}>
             App herunterladen
@@ -173,7 +170,12 @@ const styles: Record<string, React.CSSProperties> = {
   logoText: { fontWeight: 700, letterSpacing: 0.3, color: "#dfefff" },
   h1: { margin: "8px 0 10px 0", fontSize: 22 },
   h2: { margin: "12px 0 8px 0", fontSize: 16 },
-  p: { margin: "0 0 12px 0", color: "rgba(255,255,255,0.78)", lineHeight: 1.5, fontSize: 14 },
+  p: {
+    margin: "0 0 12px 0",
+    color: "rgba(255,255,255,0.78)",
+    lineHeight: 1.5,
+    fontSize: 14,
+  },
   primaryBtn: {
     width: "100%",
     padding: "12px 14px",
@@ -217,9 +219,20 @@ const styles: Record<string, React.CSSProperties> = {
     border: "1px solid rgba(255,255,255,0.08)",
     background: "rgba(255,255,255,0.04)",
   },
-  smallTitle: { fontSize: 12, fontWeight: 800, marginBottom: 4, color: "rgba(255,255,255,0.9)" },
+  smallTitle: {
+    fontSize: 12,
+    fontWeight: 800,
+    marginBottom: 4,
+    color: "rgba(255,255,255,0.9)",
+  },
   smallText: { fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.45 },
   hr: { height: 1, background: "rgba(255,255,255,0.08)", margin: "14px 0" },
-  mini: { marginTop: 12, fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.45, wordBreak: "break-word" },
+  mini: {
+    marginTop: 12,
+    fontSize: 12,
+    color: "rgba(255,255,255,0.55)",
+    lineHeight: 1.45,
+    wordBreak: "break-word",
+  },
   link: { color: "#4da3ff", textDecoration: "none" },
 };
