@@ -1,6 +1,7 @@
 import styles from "./page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { headers } from "next/headers";
+import TrackViewClient from "./TrackViewClient";
 
 type NewsItem = { text: string; createdAt: string };
 
@@ -89,7 +90,7 @@ export default async function QrxPage({
     .eq("qrx_id", qrxId)
     .returns<QrxMedia[]>();
 
-  // ✅ headers() hier holen (nicht als Prop)
+  // ✅ FIX: headers() ist bei dir async -> await!
   const h = await headers();
   const ua = h.get("user-agent");
   const showDownloadHint = isProbablyMobile(ua);
@@ -123,13 +124,15 @@ export default async function QrxPage({
   const images: QrxMedia[] = (media ?? []).filter((m) => m.type === "image");
   const files: QrxMedia[] = (media ?? []).filter((m) => m.type === "file");
 
-  // ✅ ein Button – Standard "öffnen"
   const wantSave = getFirst(sp.save) === "1";
   const deepLink = wantSave ? `miosegqr://qrx/${qrxId}?save=1` : `miosegqr://qrx/${qrxId}`;
   const fallbackUrl = `/get-app?from=${encodeURIComponent(`/qrx/${qrxId}${wantSave ? "?save=1" : ""}`)}`;
 
   return (
     <main className={styles.page}>
+      {/* ✅ Tracking (clientseitig): zählt "unique views" über /api/qrx/track-view */}
+      <TrackViewClient qrxId={qrxId} />
+
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>{entry.title}</h1>
@@ -164,10 +167,10 @@ export default async function QrxPage({
     var fallback = btn.getAttribute("data-fallback");
     if(!href) return;
 
-    try { window.location.href = href; } catch(e){ /* ignore */ }
+    try { window.location.href = href; } catch(e){}
 
     setTimeout(function(){
-      try { window.location.href = fallback; } catch(e){ /* ignore */ }
+      try { window.location.href = fallback; } catch(e){}
     }, 1200);
 
     e.preventDefault();
