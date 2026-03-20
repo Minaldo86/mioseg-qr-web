@@ -1,25 +1,30 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useEffect } from "react";
 
-export default function FolderTransferRedirectPage() {
-  const params = useParams<{ token?: string }>();
+type FolderTransferRedirectPageProps = {
+  params: Promise<{
+    token: string;
+  }>;
+};
 
-  const token = useMemo(() => {
-    const raw = params?.token;
-    return typeof raw === "string" ? raw.trim() : "";
-  }, [params]);
+export default async function FolderTransferRedirectPage({
+  params,
+}: FolderTransferRedirectPageProps) {
+  const { token = "" } = await params;
 
+  return <FolderTransferRedirectClient token={token} />;
+}
+
+function FolderTransferRedirectClient({ token }: { token: string }) {
   useEffect(() => {
     if (!token) return;
 
-    const deep = `miosegqr://folder-transfer/${encodeURIComponent(token)}`;
+    // ✅ WICHTIG: 3 Slashes, damit "folder-transfer" Teil des PATH ist
+    const deep = `miosegqr:///folder-transfer/${encodeURIComponent(token)}`;
 
-    // Versuch: App öffnen
     window.location.href = deep;
 
-    // Fallback nach 1.2s
     const t = window.setTimeout(() => {
       window.location.href = "https://mioseg-qr.com";
     }, 1200);
@@ -33,7 +38,7 @@ export default function FolderTransferRedirectPage() {
       <p>Wir öffnen die App…</p>
 
       <a
-        href={`miosegqr://folder-transfer/${encodeURIComponent(token)}`}
+        href={`miosegqr:///folder-transfer/${encodeURIComponent(token)}`}
         style={{
           display: "inline-block",
           marginTop: 12,

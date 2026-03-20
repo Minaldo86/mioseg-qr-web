@@ -1,27 +1,21 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
 type RpcResult = Record<string, unknown>;
 type SupabasePostgrestErrorLike = { message: string; details?: unknown };
 
-function getEnv(name: string) {
-  const v = process.env[name];
-  return typeof v === "string" ? v.trim() : "";
-}
+function getSupabase(): SupabaseClient {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-function getSupabaseAdminClient() {
-  // akzeptiert beide Varianten (SUPABASE_URL oder NEXT_PUBLIC_SUPABASE_URL)
-  const url = getEnv("SUPABASE_URL") || getEnv("NEXT_PUBLIC_SUPABASE_URL");
-  const serviceKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) {
+    // Wichtig: nicht beim Import crashen – erst wenn Route wirklich aufgerufen wird.
+    throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+  }
 
-  if (!url) throw new Error("Missing env: SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL)");
-  if (!serviceKey) throw new Error("Missing env: SUPABASE_SERVICE_ROLE_KEY");
-
-  return createClient(url, serviceKey, {
-    auth: { persistSession: false },
-  });
+  return createClient(url, key);
 }
 
 export async function POST(req: Request) {
@@ -38,8 +32,7 @@ export async function POST(req: Request) {
     if (!qrxId) return NextResponse.json({ error: "Missing qrxId" }, { status: 400 });
     if (!visitorHash) return NextResponse.json({ error: "Missing visitorHash" }, { status: 400 });
 
-    // ✅ Client erst hier erstellen (nicht beim Import)
-    const supabase = getSupabaseAdminClient();
+    const supabase = getSupabase();
 
     const { data, error } = await supabase.rpc("qrx_track_unique_view", {
       p_qrx_id: qrxId,
@@ -48,13 +41,13 @@ export async function POST(req: Request) {
 
     if (error) {
       const e = error as SupabasePostgrestErrorLike;
-      const details = typeof e.details !== "undefined" ? e.details : null;
-      return NextResponse.json({ error: e.message, details }, { status: 500 });
+      return NextResponse.json(
+        { error: e.message, details: typeof e.details !== "undefined" ? e.details : null },
+        { status: 500 }
+      );
     }
 
-    const safeData: RpcResult =
-      typeof data === "object" && data !== null ? (data as RpcResult) : {};
-
+    const safeData: RpcResult = typeof data === "object" && data !== null ? (data as RpcResult) : {};
     return NextResponse.json({ success: true, ...safeData });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Server error";

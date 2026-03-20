@@ -1,9 +1,8 @@
-// src/app/transfer/[token]/page.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { supabasePublic } from "@/lib/supabase-public"; // <- falls dein Export anders heißt: anpassen
+import { supabasePublic } from "@/lib/supabase-public";
 
 function isAndroid() {
   if (typeof navigator === "undefined") return false;
@@ -31,15 +30,12 @@ function fmtRemaining(seconds: number) {
 
 type TransferInfo = {
   token?: string | null;
-  status?: string | null; // z.B. "pending" | "accepted" | "expired" | "canceled"
+  status?: string | null;
   expires_at?: string | null;
   created_at?: string | null;
   accepted_at?: string | null;
-
   recipient_email?: string | null;
   qrx_id?: string | null;
-
-  // falls deine RPC das liefert (nice-to-have)
   qrx_title?: string | null;
 };
 
@@ -53,7 +49,6 @@ type UiState =
 export default function TransferTokenPage() {
   const params = useParams();
 
-  // Next 15 typed routes: params kann string oder string[] sein
   const token = useMemo(() => {
     const raw = (params as Record<string, string | string[] | undefined>)?.token;
     const v = Array.isArray(raw) ? raw[0] : raw;
@@ -61,32 +56,25 @@ export default function TransferTokenPage() {
   }, [params]);
 
   const [ui, setUi] = useState<UiState>({ kind: "loading" });
-
   const [qrxTitle, setQrxTitle] = useState<string | null>(null);
-
   const [remainingSec, setRemainingSec] = useState<number>(0);
   const intervalRef = useRef<number | null>(null);
-
   const [triedOpen, setTriedOpen] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
 
-  // Deep Link -> App öffnet Transfer Screen
   const appDeepLink = useMemo(() => {
     return token ? `miosegqr://transfer/${encodeURIComponent(token)}` : "";
   }, [token]);
 
-  // Universal Link (diese Seite)
   const universalLink = useMemo(() => {
     return token ? `https://mioseg-qr.com/transfer/${encodeURIComponent(token)}` : "https://mioseg-qr.com";
   }, [token]);
 
   const storeLink = useMemo(() => {
     if (isAndroid()) {
-      // TODO: Sobald Play Store live: ersetzen (oder lassen, wenn korrekt)
       return "https://play.google.com/store/apps/details?id=com.mioseg.qr";
     }
     if (isIOS()) {
-      // TODO: Sobald App Store live: ersetzen
       return "https://apps.apple.com/";
     }
     return "https://mioseg-qr.com/get-app";
@@ -145,6 +133,11 @@ export default function TransferTokenPage() {
       return;
     }
 
+    if (!supabasePublic) {
+      setUi({ kind: "invalid", message: "Supabase ist nicht konfiguriert." });
+      return;
+    }
+
     setUi({ kind: "loading" });
     setQrxTitle(null);
     setShowFallback(false);
@@ -152,7 +145,6 @@ export default function TransferTokenPage() {
     stopTimer();
     setRemainingSec(0);
 
-    // 1) Transfer-Info via RPC (du hast: get_qrx_transfer_info(p_token text))
     const { data, error } = await supabasePublic.rpc("get_qrx_transfer_info", {
       p_token: token,
     });
@@ -171,17 +163,16 @@ export default function TransferTokenPage() {
 
     const status = computeStatus(row);
 
-    // QR-X Name aus RPC übernehmen, wenn vorhanden
     if (row.qrx_title && row.qrx_title.trim()) {
       setQrxTitle(row.qrx_title.trim());
     } else if (row.qrx_id) {
-      // 2) Optionaler Fallback: QR-X Title aus qr_x_entries holen (wenn Policies es erlauben)
       const { data: eData } = await supabasePublic
         .from("qr_x_entries")
         .select("title")
         .eq("id", row.qrx_id)
         .maybeSingle();
-      const t = (eData?.title as unknown);
+
+      const t = eData?.title;
       const title = typeof t === "string" ? t.trim() : "";
       if (title) setQrxTitle(title);
     }
@@ -207,11 +198,10 @@ export default function TransferTokenPage() {
   };
 
   useEffect(() => {
-    loadTransferInfo();
+    void loadTransferInfo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // Auto-Open App (nur wenn Transfer pending & mobile)
   useEffect(() => {
     if (ui.kind !== "pending") return;
     if (!token) return;
@@ -249,7 +239,6 @@ export default function TransferTokenPage() {
     }
   };
 
-  // ---------- UI helpers ----------
   const recipientEmail =
     ui.kind === "pending"
       ? ui.info.recipient_email ?? null
@@ -278,9 +267,7 @@ export default function TransferTokenPage() {
 
         <h1 style={styles.h1}>QR-X Übertragung</h1>
 
-        {ui.kind === "loading" && (
-          <p style={styles.p}>Transfer wird geprüft…</p>
-        )}
+        {ui.kind === "loading" && <p style={styles.p}>Transfer wird geprüft…</p>}
 
         {ui.kind === "invalid" && (
           <>
@@ -335,9 +322,7 @@ export default function TransferTokenPage() {
 
         {ui.kind === "pending" && (
           <>
-            <p style={styles.p}>
-              Wir öffnen jetzt die App, damit du die Übertragung annehmen kannst.
-            </p>
+            <p style={styles.p}>Wir öffnen jetzt die App, damit du die Übertragung annehmen kannst.</p>
 
             <div style={styles.infoBox}>
               <div style={styles.infoRow}>
@@ -352,9 +337,7 @@ export default function TransferTokenPage() {
 
               <div style={styles.infoRow}>
                 <div style={styles.infoLabel}>Läuft ab in</div>
-                <div style={styles.infoValue}>
-                  {expiresAt ? fmtRemaining(remainingSec) : "—"}
-                </div>
+                <div style={styles.infoValue}>{expiresAt ? fmtRemaining(remainingSec) : "—"}</div>
               </div>
             </div>
 
@@ -364,9 +347,7 @@ export default function TransferTokenPage() {
 
             <div style={styles.smallBox}>
               <div style={styles.smallTitle}>Falls du nicht eingeloggt bist:</div>
-              <div style={styles.smallText}>
-                Bitte in der App einloggen – danach kannst du den Transfer annehmen.
-              </div>
+              <div style={styles.smallText}>Bitte in der App einloggen – danach kannst du den Transfer annehmen.</div>
             </div>
 
             {(showFallback || !triedOpen) && (
@@ -375,9 +356,7 @@ export default function TransferTokenPage() {
                 <div style={styles.hr} />
 
                 <h2 style={styles.h2}>App nicht installiert?</h2>
-                <p style={styles.p}>
-                  Installiere mioseg qr und öffne danach den Link erneut.
-                </p>
+                <p style={styles.p}>Installiere mioseg qr und öffne danach den Link erneut.</p>
 
                 <a style={styles.secondaryBtn} href={storeLink} target="_blank" rel="noreferrer">
                   App herunterladen
@@ -397,7 +376,7 @@ export default function TransferTokenPage() {
             )}
 
             <div style={{ marginTop: 12 }}>
-              <button style={styles.tinyBtn} onClick={loadTransferInfo}>
+              <button style={styles.tinyBtn} onClick={() => void loadTransferInfo()}>
                 Transfer erneut prüfen
               </button>
             </div>
@@ -538,7 +517,6 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#4da3ff",
     textDecoration: "none",
   },
-
   infoBox: {
     marginTop: 8,
     marginBottom: 8,
@@ -565,7 +543,6 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: "right",
     wordBreak: "break-word",
   },
-
   badgeRow: {
     marginTop: 6,
     marginBottom: 8,
