@@ -294,6 +294,75 @@ export default function Home() {
 
       <section className={styles.sectionAlt}>
         <div className={styles.sectionIntro}>
+          <span className={styles.sectionEyebrow}>Follower & automatische Updates</span>
+          <h2 className={styles.sectionTitle}>QR-X kann Menschen binden und bei Änderungen automatisch informieren</h2>
+          <p className={styles.sectionText}>
+            Ein QR-X ist nicht nur eine statische Seite. Nutzer können ihm folgen,
+            der Ersteller sieht die Reichweite und Änderungen können automatisch
+            an Follower ausgespielt werden. Dadurch wird aus einem QR-Code ein
+            echter Informationskanal.
+          </p>
+        </div>
+
+        <div className={styles.followGrid}>
+          <div className={styles.followCardFeatured}>
+            <div className={styles.followBadge}>Besonders stark für reale Updates</div>
+            <h3 className={styles.followTitleFeatured}>
+              Ideal, wenn Informationen sich ändern und Menschen zuverlässig Bescheid wissen sollen.
+            </h3>
+            <p className={styles.followTextFeatured}>
+              Ein klassischer QR-Code zeigt oft nur einen Link. Ein QR-X kann
+              dagegen eine Beziehung aufbauen: Nutzer folgen dem Inhalt, der
+              Ersteller sieht, wie viele Menschen interessiert sind, und
+              Änderungen erreichen diese Zielgruppe automatisch.
+            </p>
+            <ul className={styles.followListFeatured}>
+              <li>Follower-Zahl sichtbar für den Ersteller</li>
+              <li>Änderungen automatisch an Follower kommunizieren</li>
+              <li>mehr Relevanz als ein statischer Code</li>
+              <li>ideal für wiederkehrende Informationen und Hinweise</li>
+            </ul>
+          </div>
+
+          <div className={styles.followInfoGrid}>
+            <div className={styles.followCard}>
+              <h3 className={styles.featureTitle}>Arztpraxis &amp; Betriebsurlaub</h3>
+              <p className={styles.featureText}>
+                Eine Praxis kann per QR-X aktuelle Hinweise, Urlaubszeiten,
+                Vertretungen oder geänderte Öffnungszeiten veröffentlichen und
+                Follower automatisch informieren.
+              </p>
+            </div>
+
+            <div className={styles.followCard}>
+              <h3 className={styles.featureTitle}>Restaurant &amp; Öffnungszeiten</h3>
+              <p className={styles.featureText}>
+                Wenn sich Zeiten, Speisekarte oder Sonderaktionen ändern, bleibt
+                der QR-X aktuell und interessierte Nutzer bekommen Änderungen mit.
+              </p>
+            </div>
+
+            <div className={styles.followCard}>
+              <h3 className={styles.featureTitle}>Fahrzeug, Produkt oder Angebot</h3>
+              <p className={styles.featureText}>
+                Bei Preisänderungen, neuen Bildern, Verfügbarkeiten oder Status-
+                Updates können Follower direkt informiert werden.
+              </p>
+            </div>
+
+            <div className={styles.followCard}>
+              <h3 className={styles.featureTitle}>Events &amp; Organisation</h3>
+              <p className={styles.featureText}>
+                Programmänderungen, neue Uhrzeiten, Hinweise oder kurzfristige
+                Infos lassen sich schnell aktualisieren und an Follower ausspielen.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionIntro}>
           <span className={styles.sectionEyebrow}>Warum jeder die App braucht</span>
           <h2 className={styles.sectionTitle}>Nicht nur scannen. Behalten, verwalten und wiederverwenden.</h2>
           <p className={styles.sectionText}>
@@ -425,22 +494,92 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.ctaSection}>
-        <div className={styles.ctaCard}>
-          <h2 className={styles.ctaTitle}>Ein QR-Code ist nur der Anfang. Der Mehrwert kommt mit mioseg qr.</h2>
-          <p className={styles.ctaText}>
-            Lade die App herunter, speichere deine Scans dauerhaft, nutze
-            Standort und Kartenansicht, erstelle eigene QR-X und verwalte
-            Business QR-X für professionelle Inhalte, Kontakte und Medien.
-          </p>
+      <section className={styles.downloadSection}>
+        <div className={styles.downloadCard}>
+          <div className={styles.downloadTop}>
+            <div className={styles.downloadBrand}>
+              <div className={styles.downloadLogoWrap}>
+                <Image
+                  src="/mioseg_qr_white_transparent.png"
+                  alt="mioseg qr Download Logo"
+                  width={52}
+                  height={52}
+                  className={styles.downloadLogo}
+                />
+              </div>
 
-          <div className={styles.heroButtons}>
-            <Link href="/get-app" className={styles.primaryButton}>
-              App herunterladen
-            </Link>
-            <Link href="/nutzungsbedingungen" className={styles.secondaryButtonDark}>
-              Nutzungsbedingungen
-            </Link>
+              <div className={styles.downloadBrandText}>
+                <span className={styles.downloadBrandTitle}>mioseg qr</span>
+                <span className={styles.downloadBrandSubtitle}>
+                  Deine App für Scans, QR-X, Business QR-X, Standortbezug und lebendige Updates
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.downloadButtons}>
+              <Link href="/get-app" className={styles.downloadPrimaryButton}>
+                Im Store ansehen
+              </Link>
+              <Link href="/get-app" className={styles.downloadSecondaryButton}>
+                Download-Infos
+              </Link>
+            </div>
+          </div>
+
+          <div className={styles.trustGrid}>
+            <div className={styles.trustCard}>
+              <div className={styles.trustTitle}>iPhone & Android</div>
+              <p className={styles.trustText}>
+                Für mobile Nutzung gedacht – ideal zum schnellen Scannen,
+                Speichern und Wiederfinden unterwegs.
+              </p>
+            </div>
+
+            <div className={styles.trustCard}>
+              <div className={styles.trustTitle}>Datenschutz & Rechtliches</div>
+              <p className={styles.trustText}>
+                Öffentliche Seiten für Datenschutz, Impressum und
+                Nutzungsbedingungen sind direkt erreichbar.
+              </p>
+            </div>
+
+            <div className={styles.trustCard}>
+              <div className={styles.trustTitle}>Standort nur mit Zustimmung</div>
+              <p className={styles.trustText}>
+                Ortsdaten werden nur verwendet, wenn der Nutzer sie im jeweiligen
+                Vorgang aktiv freigibt.
+              </p>
+            </div>
+
+            <div className={styles.trustCard}>
+              <div className={styles.trustTitle}>Ein Account, viele Vorteile</div>
+              <p className={styles.trustText}>
+                Gespeicherte Scans, eigene QR-X, Ordner, Medien, Updates,
+                Follower und Business-Inhalte bleiben an einem Ort gebündelt.
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.downloadBottom}>
+            <div className={styles.storeHints}>
+              <span className={styles.storeHint}>✓ Scan-Verlauf mit Mehrwert</span>
+              <span className={styles.storeHint}>✓ QR-X statt statischer Links</span>
+              <span className={styles.storeHint}>✓ Business QR-X für professionelle Nutzung</span>
+              <span className={styles.storeHint}>✓ Standort, Kartenansicht und Navigation</span>
+              <span className={styles.storeHint}>✓ Follower und automatische Update-Infos</span>
+            </div>
+
+            <div className={styles.downloadLegalLinks}>
+              <Link href="/impressum" className={styles.downloadLegalLink}>
+                Impressum
+              </Link>
+              <Link href="/datenschutz" className={styles.downloadLegalLink}>
+                Datenschutz
+              </Link>
+              <Link href="/nutzungsbedingungen" className={styles.downloadLegalLink}>
+                Nutzungsbedingungen
+              </Link>
+            </div>
           </div>
         </div>
       </section>
