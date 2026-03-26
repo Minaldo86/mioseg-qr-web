@@ -536,10 +536,10 @@ export default function Home() {
             </div>
 
             <div className={styles.trustCard}>
-              <div className={styles.trustTitle}>Datenschutz & Rechtliches</div>
+              <div className={styles.trustTitle}>Datenschutz in der App</div>
               <p className={styles.trustText}>
-                Öffentliche Seiten für Datenschutz, Impressum und
-                Nutzungsbedingungen sind direkt erreichbar.
+                Rechtliche Inhalte sind in der App erreichbar und zusätzlich
+                dezent ganz unten auf der Website verlinkt.
               </p>
             </div>
 
@@ -567,18 +567,6 @@ export default function Home() {
               <span className={styles.storeHint}>✓ Business QR-X für professionelle Nutzung</span>
               <span className={styles.storeHint}>✓ Standort, Kartenansicht und Navigation</span>
               <span className={styles.storeHint}>✓ Follower und automatische Update-Infos</span>
-            </div>
-
-            <div className={styles.downloadLegalLinks}>
-              <Link href="/impressum" className={styles.downloadLegalLink}>
-                Impressum
-              </Link>
-              <Link href="/datenschutz" className={styles.downloadLegalLink}>
-                Datenschutz
-              </Link>
-              <Link href="/nutzungsbedingungen" className={styles.downloadLegalLink}>
-                Nutzungsbedingungen
-              </Link>
             </div>
           </div>
         </div>

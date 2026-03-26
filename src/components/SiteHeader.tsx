@@ -14,9 +14,6 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Start" },
   { href: "/get-app", label: "Get App" },
-  { href: "/impressum", label: "Impressum" },
-  { href: "/datenschutz", label: "Datenschutz" },
-  { href: "/nutzungsbedingungen", label: "Nutzungsbedingungen" },
 ];
 
 export default function SiteHeader() {
