@@ -113,6 +113,12 @@
   font-weight: 800;
   font-size: 15px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
 }
 
 .secondaryButton,
@@ -129,6 +135,13 @@
   font-weight: 800;
   font-size: 15px;
   border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.secondaryButton:hover,
+.secondaryButtonDark:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 .heroFacts {
@@ -347,7 +360,7 @@
 }
 
 .sectionIntro {
-  max-width: 760px;
+  max-width: 820px;
   margin-bottom: 28px;
 }
 
@@ -378,15 +391,98 @@
   color: #5d6b7d;
 }
 
-.grid3,
-.businessGrid {
+.compareGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.compareCard,
+.compareCardFeatured {
+  border-radius: 26px;
+  padding: 26px;
+}
+
+.compareCard {
+  background: #ffffff;
+  border: 1px solid #e5edf5;
+  box-shadow: 0 12px 30px rgba(14, 23, 38, 0.04);
+}
+
+.compareCardFeatured {
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  box-shadow: 0 18px 40px rgba(13, 23, 38, 0.18);
+}
+
+.compareLabel,
+.compareLabelFeatured {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.compareLabel {
+  background: #eef4fb;
+  color: #28496f;
+}
+
+.compareLabelFeatured {
+  background: rgba(255, 255, 255, 0.1);
+  color: #d9ebff;
+}
+
+.compareTitle,
+.compareTitleFeatured {
+  margin: 0 0 14px 0;
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+.compareTitle {
+  color: #0e1726;
+}
+
+.compareTitleFeatured {
+  color: #ffffff;
+}
+
+.compareList,
+.compareListFeatured,
+.pricingList {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 2;
+  font-size: 15px;
+}
+
+.compareList {
+  color: #4c5b6f;
+}
+
+.compareListFeatured {
+  color: #dbe7f6;
+}
+
+.useCaseGrid,
+.businessGrid,
+.valueGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
-.featureCard,
-.businessCard {
+.useCaseCard,
+.businessCard,
+.valueCard,
+.featureCard {
   background-color: #ffffff;
   border: 1px solid #e5edf5;
   border-radius: 24px;
@@ -394,13 +490,29 @@
   box-shadow: 0 12px 30px rgba(14, 23, 38, 0.04);
 }
 
-.featureTitle {
+.useCaseType {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 14px;
+  background: #eef4fb;
+  color: #30527d;
+}
+
+.useCaseTitle,
+.featureTitle,
+.pricingTitle {
   margin: 0 0 12px 0;
   font-size: 22px;
   font-weight: 800;
   color: #0e1726;
 }
 
+.useCaseText,
 .featureText {
   margin: 0;
   font-size: 15px;
@@ -426,20 +538,6 @@
   border: 1px solid #e5edf5;
   border-radius: 28px;
   padding: 28px;
-}
-
-.pricingTitle {
-  margin: 0 0 16px 0;
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.pricingList {
-  margin: 0;
-  padding-left: 20px;
-  line-height: 2;
-  font-size: 15px;
-  color: inherit;
 }
 
 .ctaSection {
@@ -483,8 +581,10 @@
     justify-content: flex-start;
   }
 
-  .grid3,
+  .compareGrid,
+  .useCaseGrid,
   .businessGrid,
+  .valueGrid,
   .pricingWrap {
     grid-template-columns: 1fr;
   }
@@ -573,6 +673,10 @@
 
   .featureCard,
   .businessCard,
+  .valueCard,
+  .useCaseCard,
+  .compareCard,
+  .compareCardFeatured,
   .pricingCardPrimary,
   .pricingCardSecondary,
   .ctaCard {
@@ -635,8 +739,11 @@
     font-size: 26px;
   }
 
+  .useCaseTitle,
   .featureTitle,
-  .pricingTitle {
+  .pricingTitle,
+  .compareTitle,
+  .compareTitleFeatured {
     font-size: 20px;
   }
 

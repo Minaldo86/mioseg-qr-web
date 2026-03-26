@@ -29,21 +29,21 @@ export default function Home() {
             </div>
 
             <h1 className={styles.heroTitle}>
-              QR-Codes neu gedacht.
+              Normale QR-Codes reichen oft nicht.
               <br />
-              Speichern, verwalten, teilen und als QR-X veröffentlichen.
+              QR-X macht daraus echte Inhalte, Updates und Mehrwert.
             </h1>
 
             <p className={styles.heroText}>
-              Mit mioseg qr können Nutzer QR-Codes scannen, organisieren und
-              eigene QR-X erstellen. Von einfachen Inhalten bis zu Business
-              QR-X mit Firmenprofil, Kontaktbuttons, Medien, Speichererweiterung
-              und Webansicht.
+              Mit mioseg qr scannst du nicht nur QR-Codes – du speicherst,
+              organisierst und verwaltest sie dauerhaft. Und mit QR-X machst du
+              aus einem einfachen Code eine flexible, aktualisierbare und
+              professionelle Webansicht mit Medien, Aktionen und echtem Nutzen.
             </p>
 
             <div className={styles.heroButtons}>
               <Link href="/get-app" className={styles.primaryButton}>
-                App ansehen
+                App herunterladen
               </Link>
               <Link href="/datenschutz" className={styles.secondaryButton}>
                 Datenschutz
@@ -52,16 +52,22 @@ export default function Home() {
 
             <div className={styles.heroFacts}>
               <div className={styles.factCard}>
-                <strong className={styles.factNumber}>1</strong>
-                <span className={styles.factLabel}>QR-X kostenlos zum Start</span>
+                <strong className={styles.factNumber}>Scannen</strong>
+                <span className={styles.factLabel}>
+                  QR-Codes speichern statt später wieder suchen
+                </span>
               </div>
               <div className={styles.factCard}>
-                <strong className={styles.factNumber}>Pay-per-Use</strong>
-                <span className={styles.factLabel}>Credits statt Abo</span>
+                <strong className={styles.factNumber}>QR-X</strong>
+                <span className={styles.factLabel}>
+                  Mehr Inhalte, Updates und Medien hinter einem Code
+                </span>
               </div>
               <div className={styles.factCard}>
                 <strong className={styles.factNumber}>Business</strong>
-                <span className={styles.factLabel}>QR-X für Unternehmen</span>
+                <span className={styles.factLabel}>
+                  Firmenprofil, Kontaktbuttons und professioneller Auftritt
+                </span>
               </div>
             </div>
           </div>
@@ -92,31 +98,32 @@ export default function Home() {
 
                   <div className={styles.heroLogoTextWrap}>
                     <span className={styles.heroLogoTitle}>mioseg qr</span>
-                    <span className={styles.heroLogoSubtitle}>Business QR-X Demo</span>
+                    <span className={styles.heroLogoSubtitle}>Mehr als nur ein QR-Scanner</span>
                   </div>
                 </div>
 
                 <div className={styles.phoneCardPrimary}>
-                  <p className={styles.phoneOverline}>QR-X Business</p>
-                  <h3 className={styles.phoneCardTitle}>mioseg qr Demo</h3>
+                  <p className={styles.phoneOverline}>Warum Nutzer die App behalten</p>
+                  <h3 className={styles.phoneCardTitle}>Scans, QR-X und Updates an einem Ort</h3>
                   <p className={styles.phoneCardText}>
-                    Firmenprofil, Website, Anruf, Navigation, Bilder, Videos und
-                    Updates in einer Webansicht.
+                    Alles bleibt gespeichert, sortierbar und später wieder
+                    abrufbar – statt jedes Mal neu zu scannen oder Links zu verlieren.
                   </p>
                 </div>
 
                 <div className={styles.phoneCardSecondary}>
-                  <p className={styles.phoneOverline}>Scan &amp; Verwaltung</p>
+                  <p className={styles.phoneOverline}>Mehrwert im Alltag</p>
                   <p className={styles.phoneCardText}>
-                    QR-Codes speichern, in Ordnern sortieren, teilen und Änderungen
-                    nachverfolgen.
+                    Restaurant, Event, Fahrzeug, Produkt oder Unternehmen:
+                    ein QR-X kann Website, Video, Galerie, Infos und Kontakt
+                    in einer Ansicht bündeln.
                   </p>
                 </div>
 
                 <div className={styles.phoneActionRow}>
-                  <div className={styles.phoneActionChip}>Website</div>
-                  <div className={styles.phoneActionChip}>Anrufen</div>
-                  <div className={styles.phoneActionChip}>Route</div>
+                  <div className={styles.phoneActionChip}>Scans speichern</div>
+                  <div className={styles.phoneActionChip}>QR-X erstellen</div>
+                  <div className={styles.phoneActionChip}>Business nutzen</div>
                 </div>
               </div>
             </div>
@@ -126,43 +133,119 @@ export default function Home() {
 
       <section className={styles.section}>
         <div className={styles.sectionIntro}>
-          <span className={styles.sectionEyebrow}>Funktionen</span>
-          <h2 className={styles.sectionTitle}>Alles für moderne QR-Workflows</h2>
+          <span className={styles.sectionEyebrow}>Der Unterschied</span>
+          <h2 className={styles.sectionTitle}>Warum ein normaler QR-Code oft nicht mehr ausreicht</h2>
           <p className={styles.sectionText}>
-            Entwickelt für private Nutzer, Creator und Unternehmen, die Inhalte
-            nicht nur verlinken, sondern dauerhaft verwalten und weiterentwickeln
-            wollen.
+            Viele QR-Codes leiten nur auf eine starre Website weiter. Nutzer
+            verlieren den Link später wieder, Inhalte ändern sich nicht sichtbar
+            und wichtige Informationen sind oft unübersichtlich verteilt.
           </p>
         </div>
 
-        <div className={styles.grid3}>
-          <div className={styles.featureCard}>
-            <h3 className={styles.featureTitle}>Scannen &amp; Speichern</h3>
-            <p className={styles.featureText}>
-              QR-Codes erfassen, sichern und später wiederfinden – inklusive
-              Verwaltung in Ordnern und optionalem Standortbezug.
-            </p>
+        <div className={styles.compareGrid}>
+          <div className={styles.compareCard}>
+            <div className={styles.compareLabel}>Normaler QR-Code</div>
+            <h3 className={styles.compareTitle}>Einmal scannen, einmal weitergeleitet</h3>
+            <ul className={styles.compareList}>
+              <li>führt meist nur auf einen einzelnen Link</li>
+              <li>keine strukturierte Verwaltung in der App</li>
+              <li>später oft nicht mehr wiederzufinden</li>
+              <li>wenig Flexibilität bei neuen Inhalten</li>
+            </ul>
           </div>
 
-          <div className={styles.featureCard}>
-            <h3 className={styles.featureTitle}>Eigene QR-X erstellen</h3>
-            <p className={styles.featureText}>
-              Inhalte wie Texte, Bilder, PDFs, MP3 oder MP4 an einen QR-X binden
-              und flexibel aktualisieren.
-            </p>
-          </div>
-
-          <div className={styles.featureCard}>
-            <h3 className={styles.featureTitle}>Teilen &amp; Webansicht</h3>
-            <p className={styles.featureText}>
-              QR-X können über öffentliche Webansichten erreichbar gemacht und
-              mit anderen geteilt werden.
-            </p>
+          <div className={styles.compareCardFeatured}>
+            <div className={styles.compareLabelFeatured}>QR-X mit mioseg qr</div>
+            <h3 className={styles.compareTitleFeatured}>Mehr Inhalte, mehr Nutzen, mehr Kontrolle</h3>
+            <ul className={styles.compareListFeatured}>
+              <li>Scans dauerhaft speichern und organisieren</li>
+              <li>Texte, Bilder, PDFs, MP3, MP4 und Updates integrieren</li>
+              <li>Inhalte später anpassen, ohne den QR-Code neu zu drucken</li>
+              <li>für privat und Business deutlich vielseitiger</li>
+            </ul>
           </div>
         </div>
       </section>
 
       <section className={styles.sectionAlt}>
+        <div className={styles.sectionIntro}>
+          <span className={styles.sectionEyebrow}>Alltagsbeispiele</span>
+          <h2 className={styles.sectionTitle}>Dafür braucht man mioseg qr im echten Leben</h2>
+          <p className={styles.sectionText}>
+            Die App überzeugt, wenn Nutzer sofort sehen, wo sie im Alltag
+            echten Mehrwert bringt.
+          </p>
+        </div>
+
+        <div className={styles.useCaseGrid}>
+          <div className={styles.useCaseCard}>
+            <div className={styles.useCaseType}>Normale QR-Codes</div>
+            <h3 className={styles.useCaseTitle}>Speisekarte, WLAN, Produktlink</h3>
+            <p className={styles.useCaseText}>
+              Statt denselben QR-Code immer wieder neu zu scannen, speicherst du
+              ihn direkt in der App und findest ihn später sofort wieder.
+            </p>
+          </div>
+
+          <div className={styles.useCaseCard}>
+            <div className={styles.useCaseType}>QR-X</div>
+            <h3 className={styles.useCaseTitle}>Event, Produkt, Fahrzeug oder Angebot</h3>
+            <p className={styles.useCaseText}>
+              Ein einziger Code kann Tickets, Videos, Bilder, Updates, Downloads
+              und Zusatzinfos bündeln – alles an einem Ort.
+            </p>
+          </div>
+
+          <div className={styles.useCaseCard}>
+            <div className={styles.useCaseType}>Business QR-X</div>
+            <h3 className={styles.useCaseTitle}>Firma, Dienstleister, Restaurant, Fuhrpark</h3>
+            <p className={styles.useCaseText}>
+              Professionelle Webansichten mit Firmenname, Coverbild, Website,
+              Anruf, Navigation und Medien sorgen für deutlich mehr Vertrauen.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionIntro}>
+          <span className={styles.sectionEyebrow}>Warum jeder die App braucht</span>
+          <h2 className={styles.sectionTitle}>Nicht nur scannen. Behalten, verwalten und wiederverwenden.</h2>
+          <p className={styles.sectionText}>
+            Der größte Unterschied liegt nicht nur im Erstellen von QR-X –
+            sondern darin, dass Nutzer ihre gescannten Codes endlich sinnvoll
+            speichern und strukturieren können.
+          </p>
+        </div>
+
+        <div className={styles.valueGrid}>
+          <div className={styles.valueCard}>
+            <h3 className={styles.featureTitle}>Nie wieder einen wichtigen QR-Code verlieren</h3>
+            <p className={styles.featureText}>
+              Restaurant, Parkplatz, Anleitung, Produktseite oder Kontaktlink:
+              alles bleibt in deiner App gespeichert.
+            </p>
+          </div>
+
+          <div className={styles.valueCard}>
+            <h3 className={styles.featureTitle}>Mehr aus einem QR-Code machen</h3>
+            <p className={styles.featureText}>
+              Mit QR-X wird aus einem einfachen Scan eine echte Inhaltsseite mit
+              Bildern, Videos, Dateien und Updates.
+            </p>
+          </div>
+
+          <div className={styles.valueCard}>
+            <h3 className={styles.featureTitle}>Ideal für private und geschäftliche Nutzung</h3>
+            <p className={styles.featureText}>
+              Vom privaten Sammeln bis zum professionellen Firmenauftritt:
+              die App deckt beide Welten sauber ab.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
         <div className={styles.sectionIntro}>
           <span className={styles.sectionEyebrow}>Business QR-X</span>
           <h2 className={styles.sectionTitle}>Für Unternehmen sichtbar professioneller</h2>
@@ -200,7 +283,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={styles.section}>
+      <section className={styles.sectionAlt}>
         <div className={styles.sectionIntro}>
           <span className={styles.sectionEyebrow}>Preismodell</span>
           <h2 className={styles.sectionTitle}>Kein Abo. Volle Flexibilität.</h2>
@@ -235,16 +318,16 @@ export default function Home() {
 
       <section className={styles.ctaSection}>
         <div className={styles.ctaCard}>
-          <h2 className={styles.ctaTitle}>Bereit für die nächste Generation von QR-Codes?</h2>
+          <h2 className={styles.ctaTitle}>Ein QR-Code ist nur der Anfang. Der Mehrwert kommt mit mioseg qr.</h2>
           <p className={styles.ctaText}>
-            Entdecke mioseg qr, verwalte deine QR-X strukturiert und nutze die
-            Webplattform für öffentliche Inhalte, Business-Präsentationen und
-            flexible Updates.
+            Lade die App herunter, speichere deine Scans dauerhaft, erstelle
+            eigene QR-X und nutze Business QR-X für professionelle Inhalte,
+            Kontakte und Medien.
           </p>
 
           <div className={styles.heroButtons}>
             <Link href="/get-app" className={styles.primaryButton}>
-              Zur App
+              App herunterladen
             </Link>
             <Link href="/nutzungsbedingungen" className={styles.secondaryButtonDark}>
               Nutzungsbedingungen
