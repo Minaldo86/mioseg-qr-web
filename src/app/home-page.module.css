@@ -456,7 +456,8 @@
 
 .compareList,
 .compareListFeatured,
-.pricingList {
+.pricingList,
+.locationListFeatured {
   margin: 0;
   padding-left: 20px;
   line-height: 2;
@@ -471,18 +472,38 @@
   color: #dbe7f6;
 }
 
-.useCaseGrid,
+.showcaseCard {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.showcaseImageWrap {
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid #dfe8f2;
+  box-shadow: 0 18px 40px rgba(14, 23, 38, 0.08);
+  background: #ffffff;
+}
+
+.showcaseImage {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.showcaseTextGrid,
 .businessGrid,
-.valueGrid {
+.pricingWrap {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
-.useCaseCard,
+.showcaseTextCard,
 .businessCard,
 .valueCard,
-.featureCard {
+.locationCard {
   background-color: #ffffff;
   border: 1px solid #e5edf5;
   border-radius: 24px;
@@ -490,7 +511,8 @@
   box-shadow: 0 12px 30px rgba(14, 23, 38, 0.04);
 }
 
-.useCaseType {
+.useCaseType,
+.locationBadge {
   display: inline-flex;
   align-items: center;
   min-height: 32px;
@@ -520,10 +542,51 @@
   color: #5d6b7d;
 }
 
-.pricingWrap {
+.locationGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.locationCardFeatured {
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-radius: 28px;
+  padding: 28px;
+  box-shadow: 0 18px 40px rgba(13, 23, 38, 0.18);
+}
+
+.locationTitleFeatured {
+  margin: 0 0 14px 0;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.locationTextFeatured {
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  line-height: 1.85;
+  color: #dbe7f6;
+}
+
+.locationInfoGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+}
+
+.valueGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.pricingWrap {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .pricingCardPrimary {
@@ -582,10 +645,15 @@
   }
 
   .compareGrid,
-  .useCaseGrid,
+  .showcaseTextGrid,
   .businessGrid,
   .valueGrid,
-  .pricingWrap {
+  .pricingWrap,
+  .locationGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .locationInfoGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -671,17 +739,26 @@
     line-height: 1.7;
   }
 
-  .featureCard,
-  .businessCard,
-  .valueCard,
-  .useCaseCard,
   .compareCard,
   .compareCardFeatured,
+  .showcaseTextCard,
+  .businessCard,
+  .valueCard,
+  .locationCard,
+  .locationCardFeatured,
   .pricingCardPrimary,
   .pricingCardSecondary,
   .ctaCard {
     padding: 22px;
     border-radius: 22px;
+  }
+
+  .showcaseImageWrap {
+    border-radius: 22px;
+  }
+
+  .locationTitleFeatured {
+    font-size: 24px;
   }
 
   .ctaSection {
@@ -745,6 +822,10 @@
   .compareTitle,
   .compareTitleFeatured {
     font-size: 20px;
+  }
+
+  .locationTitleFeatured {
+    font-size: 22px;
   }
 
   .ctaTitle {

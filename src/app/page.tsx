@@ -169,45 +169,130 @@ export default function Home() {
 
       <section className={styles.sectionAlt}>
         <div className={styles.sectionIntro}>
-          <span className={styles.sectionEyebrow}>Alltagsbeispiele</span>
-          <h2 className={styles.sectionTitle}>Dafür braucht man mioseg qr im echten Leben</h2>
+          <span className={styles.sectionEyebrow}>Use Cases</span>
+          <h2 className={styles.sectionTitle}>So sieht der Mehrwert im echten Alltag aus</h2>
           <p className={styles.sectionText}>
-            Die App überzeugt, wenn Nutzer sofort sehen, wo sie im Alltag
-            echten Mehrwert bringt.
+            Die App überzeugt dann am stärksten, wenn Nutzer sofort erkennen,
+            warum normale QR-Codes, QR-X und Business QR-X in der Praxis völlig
+            unterschiedliche Stärken haben.
           </p>
         </div>
 
-        <div className={styles.useCaseGrid}>
-          <div className={styles.useCaseCard}>
-            <div className={styles.useCaseType}>Normale QR-Codes</div>
-            <h3 className={styles.useCaseTitle}>Speisekarte, WLAN, Produktlink</h3>
-            <p className={styles.useCaseText}>
-              Statt denselben QR-Code immer wieder neu zu scannen, speicherst du
-              ihn direkt in der App und findest ihn später sofort wieder.
-            </p>
+        <div className={styles.showcaseCard}>
+          <div className={styles.showcaseImageWrap}>
+            <Image
+              src="/use-cases-triptych.png"
+              alt="Vergleich von normalen QR-Codes, flexiblem QR-X und Business QR-X im Alltag"
+              width={1536}
+              height={1024}
+              className={styles.showcaseImage}
+            />
           </div>
 
-          <div className={styles.useCaseCard}>
-            <div className={styles.useCaseType}>QR-X</div>
-            <h3 className={styles.useCaseTitle}>Event, Produkt, Fahrzeug oder Angebot</h3>
-            <p className={styles.useCaseText}>
-              Ein einziger Code kann Tickets, Videos, Bilder, Updates, Downloads
-              und Zusatzinfos bündeln – alles an einem Ort.
-            </p>
-          </div>
+          <div className={styles.showcaseTextGrid}>
+            <div className={styles.showcaseTextCard}>
+              <div className={styles.useCaseType}>Normale QR-Codes</div>
+              <h3 className={styles.useCaseTitle}>Speisekarte, WLAN, Produktlink</h3>
+              <p className={styles.useCaseText}>
+                Perfekt zum schnellen Öffnen eines Links. Mit mioseg qr kannst du
+                solche Scans direkt speichern und später wiederfinden, statt
+                dieselben Codes erneut suchen zu müssen.
+              </p>
+            </div>
 
-          <div className={styles.useCaseCard}>
-            <div className={styles.useCaseType}>Business QR-X</div>
-            <h3 className={styles.useCaseTitle}>Firma, Dienstleister, Restaurant, Fuhrpark</h3>
-            <p className={styles.useCaseText}>
-              Professionelle Webansichten mit Firmenname, Coverbild, Website,
-              Anruf, Navigation und Medien sorgen für deutlich mehr Vertrauen.
-            </p>
+            <div className={styles.showcaseTextCard}>
+              <div className={styles.useCaseType}>QR-X</div>
+              <h3 className={styles.useCaseTitle}>Event, Angebot, Fahrzeug oder Produkt</h3>
+              <p className={styles.useCaseText}>
+                Ein QR-X kann deutlich mehr als ein Link: Tickets, Videos,
+                Galerie, Downloads, Infos und Updates in einer flexiblen Ansicht.
+              </p>
+            </div>
+
+            <div className={styles.showcaseTextCard}>
+              <div className={styles.useCaseType}>Business QR-X</div>
+              <h3 className={styles.useCaseTitle}>Firma, Dienstleister, Fuhrpark, Restaurant</h3>
+              <p className={styles.useCaseText}>
+                Professionelle Darstellung mit Firmenname, Coverbild, Kontakt,
+                Website, Anruf, Navigation und Medien – ideal für Vertrauen und
+                bessere Conversion.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       <section className={styles.section}>
+        <div className={styles.sectionIntro}>
+          <span className={styles.sectionEyebrow}>Standort & Kartenansicht</span>
+          <h2 className={styles.sectionTitle}>Scannen, Ort speichern und später direkt wieder hin navigieren</h2>
+          <p className={styles.sectionText}>
+            Einer der stärksten Alltagsvorteile von mioseg qr: Beim Scannen oder
+            Erstellen kann der Standort gespeichert werden. So wird aus einem
+            QR-Code nicht nur ein Link, sondern auch ein wiederfindbarer Ort.
+          </p>
+        </div>
+
+        <div className={styles.locationGrid}>
+          <div className={styles.locationCardFeatured}>
+            <div className={styles.locationBadge}>Warum das stark ist</div>
+            <h3 className={styles.locationTitleFeatured}>
+              Der QR-Code bleibt nicht nur als Inhalt gespeichert, sondern auch mit seinem Ort.
+            </h3>
+            <p className={styles.locationTextFeatured}>
+              Das ist besonders praktisch für Restaurants, Baustellen, Fahrzeuge,
+              Schilder, Lagerorte, Parkplätze, Maschinen, Produkte vor Ort oder
+              Fundstellen, die du später wiederfinden möchtest.
+            </p>
+            <ul className={styles.locationListFeatured}>
+              <li>Scan mit Standort speichern</li>
+              <li>gespeicherte QR-Codes auf Karte wiederfinden</li>
+              <li>direkt zur Position navigieren</li>
+              <li>ideal für private Nutzung und Business-Prozesse</li>
+            </ul>
+          </div>
+
+          <div className={styles.locationInfoGrid}>
+            <div className={styles.locationCard}>
+              <h3 className={styles.featureTitle}>Standort beim Scan merken</h3>
+              <p className={styles.featureText}>
+                Wenn du einen QR-Code unterwegs scannst, kann die App den Ort
+                direkt mit speichern. So weißt du später nicht nur was, sondern
+                auch wo es war.
+              </p>
+            </div>
+
+            <div className={styles.locationCard}>
+              <h3 className={styles.featureTitle}>Kartenansicht statt Chaos</h3>
+              <p className={styles.featureText}>
+                Gespeicherte Scans lassen sich übersichtlicher verstehen, wenn
+                sie zusätzlich auf einer Karte verortet sind. Das spart Zeit und
+                macht die Sammlung deutlich praktischer.
+              </p>
+            </div>
+
+            <div className={styles.locationCard}>
+              <h3 className={styles.featureTitle}>Direkt dorthin navigieren</h3>
+              <p className={styles.featureText}>
+                Du findest einen gespeicherten QR-Code später wieder und kannst
+                direkt zur Position zurück navigieren – besonders stark bei
+                Orten, Baustellen, Fahrzeugen oder Standorten.
+              </p>
+            </div>
+
+            <div className={styles.locationCard}>
+              <h3 className={styles.featureTitle}>Nützlich für Alltag und Arbeit</h3>
+              <p className={styles.featureText}>
+                Ob Lieblingscafé, Parkplatz, Montageort, Lager, Objekt oder
+                Servicepunkt: mioseg qr macht aus gescannten Codes ein
+                wiederverwendbares System mit Ortsbezug.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.sectionAlt}>
         <div className={styles.sectionIntro}>
           <span className={styles.sectionEyebrow}>Warum jeder die App braucht</span>
           <h2 className={styles.sectionTitle}>Nicht nur scannen. Behalten, verwalten und wiederverwenden.</h2>
@@ -236,10 +321,34 @@ export default function Home() {
           </div>
 
           <div className={styles.valueCard}>
+            <h3 className={styles.featureTitle}>Scans mit Ort und Kontext verstehen</h3>
+            <p className={styles.featureText}>
+              Durch Standort, Karte und spätere Navigation ist nicht nur der
+              Code selbst gespeichert, sondern auch der reale Bezug dazu.
+            </p>
+          </div>
+
+          <div className={styles.valueCard}>
             <h3 className={styles.featureTitle}>Ideal für private und geschäftliche Nutzung</h3>
             <p className={styles.featureText}>
               Vom privaten Sammeln bis zum professionellen Firmenauftritt:
               die App deckt beide Welten sauber ab.
+            </p>
+          </div>
+
+          <div className={styles.valueCard}>
+            <h3 className={styles.featureTitle}>Mehr Ordnung durch Ordner und Historie</h3>
+            <p className={styles.featureText}>
+              Gespeicherte Scans, QR-X und Änderungen bleiben strukturiert statt
+              in Chats, Browser-Tabs oder Notizen verloren zu gehen.
+            </p>
+          </div>
+
+          <div className={styles.valueCard}>
+            <h3 className={styles.featureTitle}>Später wiederfinden statt neu suchen</h3>
+            <p className={styles.featureText}>
+              Das spart Zeit im Alltag und macht die App langfristig nützlich –
+              genau deshalb bleibt sie auf dem Handy.
             </p>
           </div>
         </div>
@@ -320,9 +429,9 @@ export default function Home() {
         <div className={styles.ctaCard}>
           <h2 className={styles.ctaTitle}>Ein QR-Code ist nur der Anfang. Der Mehrwert kommt mit mioseg qr.</h2>
           <p className={styles.ctaText}>
-            Lade die App herunter, speichere deine Scans dauerhaft, erstelle
-            eigene QR-X und nutze Business QR-X für professionelle Inhalte,
-            Kontakte und Medien.
+            Lade die App herunter, speichere deine Scans dauerhaft, nutze
+            Standort und Kartenansicht, erstelle eigene QR-X und verwalte
+            Business QR-X für professionelle Inhalte, Kontakte und Medien.
           </p>
 
           <div className={styles.heroButtons}>
