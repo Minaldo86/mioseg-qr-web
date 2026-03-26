@@ -1,0 +1,646 @@
+.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #08111d 0%, #0d1726 36%, #ffffff 36%, #ffffff 100%);
+}
+
+.heroSection {
+  padding: 72px 24px 56px;
+}
+
+.heroContent {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.heroTextWrap {
+  color: #ffffff;
+}
+
+.brandBadgeWrap {
+  margin-bottom: 18px;
+}
+
+.brandBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  max-width: 100%;
+}
+
+.brandBadgeLogoWrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+.brandBadgeLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.brandBadgeTextWrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.brandBadgeTitle {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.2px;
+}
+
+.brandBadgeSubtitle {
+  color: #b8c9dc;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.heroTitle {
+  font-size: 54px;
+  line-height: 1.06;
+  font-weight: 900;
+  margin: 0 0 18px 0;
+  letter-spacing: -1.4px;
+  text-wrap: balance;
+}
+
+.heroText {
+  font-size: 18px;
+  line-height: 1.75;
+  color: #b7c5d7;
+  max-width: 720px;
+  margin: 0 0 28px 0;
+}
+
+.heroButtons {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 14px;
+  background-color: #ffffff;
+  color: #0d1726;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+}
+
+.secondaryButton,
+.secondaryButtonDark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 14px;
+  background-color: transparent;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.heroFacts {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.factCard {
+  min-width: 160px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.factNumber {
+  font-size: 18px;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.factLabel {
+  font-size: 13px;
+  color: #b7c5d7;
+  line-height: 1.5;
+}
+
+.heroVisual {
+  display: flex;
+  justify-content: center;
+}
+
+.visualStage {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.glowOne {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  background: rgba(90, 150, 255, 0.18);
+  filter: blur(50px);
+  top: 10px;
+  right: 20px;
+  z-index: 0;
+}
+
+.glowTwo {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  filter: blur(50px);
+  bottom: 40px;
+  left: 10px;
+  z-index: 0;
+}
+
+.phoneMockup {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 380px;
+  border-radius: 30px;
+  padding: 18px;
+  background: linear-gradient(180deg, #101d2f 0%, #13243a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+}
+
+.phoneHeader {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.phoneDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background-color: #6f84a0;
+}
+
+.heroLogoShowcase {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.heroLogoShell {
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.heroLogo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.heroLogoTextWrap {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.heroLogoTitle {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+}
+
+.heroLogoSubtitle {
+  color: #a8bed7;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.phoneCardPrimary {
+  border-radius: 22px;
+  background: linear-gradient(180deg, #1b3351 0%, #28486e 100%);
+  padding: 18px;
+  margin-bottom: 14px;
+  color: #ffffff;
+}
+
+.phoneCardSecondary {
+  border-radius: 22px;
+  background-color: #0e1a2b;
+  border: 1px solid #21344f;
+  padding: 18px;
+  margin-bottom: 14px;
+  color: #ffffff;
+}
+
+.phoneOverline {
+  margin: 0 0 8px 0;
+  color: #9fc8ff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.phoneCardTitle {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.phoneCardText {
+  margin: 0;
+  color: #d8e6f9;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.phoneActionRow {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.phoneActionChip {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background-color: #13253b;
+  border: 1px solid #27415f;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.section {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.sectionAlt {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 60px 24px;
+  background-color: #f7fafc;
+  border-radius: 32px;
+}
+
+.sectionIntro {
+  max-width: 760px;
+  margin-bottom: 28px;
+}
+
+.sectionEyebrow {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #355b8d;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.sectionTitle {
+  margin: 0 0 12px 0;
+  font-size: 38px;
+  line-height: 1.15;
+  font-weight: 900;
+  color: #0e1726;
+  letter-spacing: -0.8px;
+  text-wrap: balance;
+}
+
+.sectionText {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.75;
+  color: #5d6b7d;
+}
+
+.grid3,
+.businessGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.featureCard,
+.businessCard {
+  background-color: #ffffff;
+  border: 1px solid #e5edf5;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 12px 30px rgba(14, 23, 38, 0.04);
+}
+
+.featureTitle {
+  margin: 0 0 12px 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0e1726;
+}
+
+.featureText {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #5d6b7d;
+}
+
+.pricingWrap {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.pricingCardPrimary {
+  background: linear-gradient(180deg, #0d1726 0%, #12233a 100%);
+  color: #ffffff;
+  border-radius: 28px;
+  padding: 28px;
+}
+
+.pricingCardSecondary {
+  background-color: #ffffff;
+  border: 1px solid #e5edf5;
+  border-radius: 28px;
+  padding: 28px;
+}
+
+.pricingTitle {
+  margin: 0 0 16px 0;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.pricingList {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 2;
+  font-size: 15px;
+  color: inherit;
+}
+
+.ctaSection {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 24px 40px;
+}
+
+.ctaCard {
+  border-radius: 32px;
+  padding: 34px;
+  background: linear-gradient(180deg, #13233b 0%, #0d1726 100%);
+  color: #ffffff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+}
+
+.ctaTitle {
+  margin: 0 0 12px 0;
+  font-size: 36px;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  text-wrap: balance;
+}
+
+.ctaText {
+  margin: 0 0 22px 0;
+  font-size: 17px;
+  line-height: 1.75;
+  color: #c8d6e8;
+  max-width: 860px;
+}
+
+@media (max-width: 1100px) {
+  .heroContent {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .heroVisual {
+    justify-content: flex-start;
+  }
+
+  .grid3,
+  .businessGrid,
+  .pricingWrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    background: linear-gradient(180deg, #08111d 0%, #0d1726 27%, #ffffff 27%, #ffffff 100%);
+  }
+
+  .heroSection {
+    padding: 44px 18px 38px;
+  }
+
+  .heroTitle {
+    font-size: 36px;
+    line-height: 1.12;
+    letter-spacing: -0.9px;
+  }
+
+  .heroText {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .heroButtons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primaryButton,
+  .secondaryButton,
+  .secondaryButtonDark {
+    width: 100%;
+  }
+
+  .heroFacts {
+    flex-direction: column;
+  }
+
+  .factCard {
+    min-width: 0;
+  }
+
+  .phoneMockup {
+    max-width: 100%;
+    border-radius: 24px;
+    padding: 16px;
+  }
+
+  .heroLogoShowcase {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .heroLogoShell {
+    width: 74px;
+    height: 74px;
+    border-radius: 20px;
+  }
+
+  .heroLogoTitle {
+    font-size: 20px;
+  }
+
+  .phoneCardTitle {
+    font-size: 22px;
+  }
+
+  .section,
+  .sectionAlt {
+    padding: 42px 18px;
+    border-radius: 24px;
+  }
+
+  .sectionTitle {
+    font-size: 30px;
+    line-height: 1.18;
+  }
+
+  .sectionText,
+  .ctaText {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .featureCard,
+  .businessCard,
+  .pricingCardPrimary,
+  .pricingCardSecondary,
+  .ctaCard {
+    padding: 22px;
+    border-radius: 22px;
+  }
+
+  .ctaSection {
+    padding: 18px 18px 34px;
+  }
+
+  .ctaTitle {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroSection {
+    padding: 36px 14px 28px;
+  }
+
+  .brandBadge {
+    width: 100%;
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .brandBadgeLogoWrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .heroTitle {
+    font-size: 30px;
+    line-height: 1.14;
+  }
+
+  .heroText {
+    font-size: 15px;
+  }
+
+  .phoneActionRow {
+    gap: 8px;
+  }
+
+  .phoneActionChip {
+    width: 100%;
+    text-align: center;
+  }
+
+  .section,
+  .sectionAlt,
+  .ctaSection {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .sectionTitle {
+    font-size: 26px;
+  }
+
+  .featureTitle,
+  .pricingTitle {
+    font-size: 20px;
+  }
+
+  .ctaTitle {
+    font-size: 26px;
+  }
+}
