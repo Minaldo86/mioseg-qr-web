@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -6,7 +7,25 @@ export default function Home() {
       <section style={styles.heroSection}>
         <div style={styles.heroContent}>
           <div style={styles.heroTextWrap}>
-            <span style={styles.badge}>mioseg qr · QR-X Plattform</span>
+            <div style={styles.brandBadgeWrap}>
+              <div style={styles.brandBadge}>
+                <div style={styles.brandBadgeLogoWrap}>
+                  <Image
+                    src="/mioseg_qr_white_transparent.png"
+                    alt="mioseg qr Logo"
+                    width={34}
+                    height={34}
+                    style={styles.brandBadgeLogo}
+                    priority
+                  />
+                </div>
+
+                <div style={styles.brandBadgeTextWrap}>
+                  <span style={styles.brandBadgeTitle}>mioseg qr</span>
+                  <span style={styles.brandBadgeSubtitle}>QR-X Plattform</span>
+                </div>
+              </div>
+            </div>
 
             <h1 style={styles.heroTitle}>
               QR-Codes neu gedacht.
@@ -47,34 +66,57 @@ export default function Home() {
           </div>
 
           <div style={styles.heroVisual}>
-            <div style={styles.phoneMockup}>
-              <div style={styles.phoneHeader}>
-                <span style={styles.phoneDot} />
-                <span style={styles.phoneDot} />
-                <span style={styles.phoneDot} />
-              </div>
+            <div style={styles.visualStage}>
+              <div style={styles.glowOne} />
+              <div style={styles.glowTwo} />
 
-              <div style={styles.phoneCardPrimary}>
-                <p style={styles.phoneOverline}>QR-X Business</p>
-                <h3 style={styles.phoneCardTitle}>mioseg qr Demo</h3>
-                <p style={styles.phoneCardText}>
-                  Firmenprofil, Website, Anruf, Navigation, Bilder, Videos und
-                  Updates in einer Webansicht.
-                </p>
-              </div>
+              <div style={styles.phoneMockup}>
+                <div style={styles.phoneHeader}>
+                  <span style={styles.phoneDot} />
+                  <span style={styles.phoneDot} />
+                  <span style={styles.phoneDot} />
+                </div>
 
-              <div style={styles.phoneCardSecondary}>
-                <p style={styles.phoneOverline}>Scan & Verwaltung</p>
-                <p style={styles.phoneCardText}>
-                  QR-Codes speichern, in Ordnern sortieren, teilen und Änderungen
-                  nachverfolgen.
-                </p>
-              </div>
+                <div style={styles.heroLogoShowcase}>
+                  <div style={styles.heroLogoShell}>
+                    <Image
+                      src="/mioseg_qr_white_transparent.png"
+                      alt="mioseg qr Hero Logo"
+                      width={88}
+                      height={88}
+                      style={styles.heroLogo}
+                      priority
+                    />
+                  </div>
 
-              <div style={styles.phoneActionRow}>
-                <div style={styles.phoneActionChip}>Website</div>
-                <div style={styles.phoneActionChip}>Anrufen</div>
-                <div style={styles.phoneActionChip}>Route</div>
+                  <div style={styles.heroLogoTextWrap}>
+                    <span style={styles.heroLogoTitle}>mioseg qr</span>
+                    <span style={styles.heroLogoSubtitle}>Business QR-X Demo</span>
+                  </div>
+                </div>
+
+                <div style={styles.phoneCardPrimary}>
+                  <p style={styles.phoneOverline}>QR-X Business</p>
+                  <h3 style={styles.phoneCardTitle}>mioseg qr Demo</h3>
+                  <p style={styles.phoneCardText}>
+                    Firmenprofil, Website, Anruf, Navigation, Bilder, Videos und
+                    Updates in einer Webansicht.
+                  </p>
+                </div>
+
+                <div style={styles.phoneCardSecondary}>
+                  <p style={styles.phoneOverline}>Scan & Verwaltung</p>
+                  <p style={styles.phoneCardText}>
+                    QR-Codes speichern, in Ordnern sortieren, teilen und Änderungen
+                    nachverfolgen.
+                  </p>
+                </div>
+
+                <div style={styles.phoneActionRow}>
+                  <div style={styles.phoneActionChip}>Website</div>
+                  <div style={styles.phoneActionChip}>Anrufen</div>
+                  <div style={styles.phoneActionChip}>Route</div>
+                </div>
               </div>
             </div>
           </div>
@@ -203,7 +245,7 @@ export default function Home() {
             <Link href="/get-app" style={styles.primaryButton}>
               Zur App
             </Link>
-            <Link href="/nutzungsbedingungen" style={styles.secondaryButton}>
+            <Link href="/nutzungsbedingungen" style={styles.secondaryButtonDark}>
               Nutzungsbedingungen
             </Link>
           </div>
@@ -234,17 +276,55 @@ const styles: Record<string, React.CSSProperties> = {
   heroTextWrap: {
     color: "#ffffff",
   },
-  badge: {
-    display: "inline-block",
-    padding: "8px 14px",
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.14)",
-    color: "#d9e8ff",
-    fontSize: 13,
-    fontWeight: 700,
+
+  brandBadgeWrap: {
     marginBottom: 18,
   },
+  brandBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 12,
+    padding: "12px 16px",
+    borderRadius: 22,
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.14)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+  },
+  brandBadgeLogoWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 6,
+    flexShrink: 0,
+  },
+  brandBadgeLogo: {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain",
+  },
+  brandBadgeTextWrap: {
+    display: "flex",
+    flexDirection: "column",
+    lineHeight: 1.1,
+  },
+  brandBadgeTitle: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: 900,
+    letterSpacing: -0.2,
+  },
+  brandBadgeSubtitle: {
+    color: "#b8c9dc",
+    fontSize: 12,
+    fontWeight: 700,
+    marginTop: 4,
+  },
+
   heroTitle: {
     fontSize: 54,
     lineHeight: 1.06,
@@ -293,6 +373,21 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 15,
     border: "1px solid rgba(255,255,255,0.18)",
   },
+  secondaryButtonDark: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 48,
+    padding: "0 20px",
+    borderRadius: 14,
+    backgroundColor: "transparent",
+    color: "#ffffff",
+    textDecoration: "none",
+    fontWeight: 800,
+    fontSize: 15,
+    border: "1px solid rgba(255,255,255,0.18)",
+  },
+
   heroFacts: {
     display: "flex",
     gap: 14,
@@ -323,7 +418,40 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     justifyContent: "center",
   },
+  visualStage: {
+    position: "relative",
+    width: "100%",
+    maxWidth: 420,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  glowOne: {
+    position: "absolute",
+    width: 260,
+    height: 260,
+    borderRadius: 999,
+    background: "rgba(90, 150, 255, 0.18)",
+    filter: "blur(50px)",
+    top: 10,
+    right: 20,
+    zIndex: 0,
+  },
+  glowTwo: {
+    position: "absolute",
+    width: 180,
+    height: 180,
+    borderRadius: 999,
+    background: "rgba(255, 255, 255, 0.08)",
+    filter: "blur(50px)",
+    bottom: 40,
+    left: 10,
+    zIndex: 0,
+  },
+
   phoneMockup: {
+    position: "relative",
+    zIndex: 1,
     width: "100%",
     maxWidth: 380,
     borderRadius: 30,
@@ -344,6 +472,54 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 999,
     backgroundColor: "#6f84a0",
   },
+
+  heroLogoShowcase: {
+    display: "flex",
+    alignItems: "center",
+    gap: 14,
+    marginBottom: 16,
+    padding: "14px 16px",
+    borderRadius: 22,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.07)",
+  },
+  heroLogoShell: {
+    width: 84,
+    height: 84,
+    borderRadius: 24,
+    background:
+      "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 100%)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+    flexShrink: 0,
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
+  },
+  heroLogo: {
+    width: "100%",
+    height: "100%",
+    objectFit: "contain",
+  },
+  heroLogoTextWrap: {
+    display: "flex",
+    flexDirection: "column",
+    lineHeight: 1.1,
+  },
+  heroLogoTitle: {
+    color: "#ffffff",
+    fontSize: 22,
+    fontWeight: 900,
+    letterSpacing: -0.4,
+  },
+  heroLogoSubtitle: {
+    color: "#a8bed7",
+    fontSize: 13,
+    fontWeight: 700,
+    marginTop: 6,
+  },
+
   phoneCardPrimary: {
     borderRadius: 22,
     background: "linear-gradient(180deg, #1b3351 0%, #28486e 100%)",
