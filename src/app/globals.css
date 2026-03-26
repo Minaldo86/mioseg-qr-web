@@ -6,37 +6,32 @@ html {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+}
+
+body {
+  min-width: 320px;
+  color: #0f172a;
+  background: #ffffff;
 }
 
 a {
   color: inherit;
 }
 
-@media (max-width: 980px) {
-  header [style*="justify-content: center"] {
-    display: none !important;
-  }
+img {
+  max-width: 100%;
+  height: auto;
 }
 
-@media (max-width: 980px) {
-  button[aria-label="Menü öffnen"],
-  button[aria-label="Menü schließen"] {
-    display: inline-flex !important;
-  }
-}
-
-@media (max-width: 980px) {
-  div[style*="margin-top: 12px"][style*="padding: 16px"] {
-    display: block !important;
-  }
-}
-
-@media (max-width: 980px) {
-  a[href="/get-app"][style*="min-height: 46px"][style*="white-space: nowrap"] {
-    display: none !important;
-  }
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 @media (max-width: 980px) {
