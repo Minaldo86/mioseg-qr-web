@@ -12,7 +12,7 @@ export default function Home() {
               <div className={styles.brandBadge}>
                 <div className={styles.brandBadgeLogoWrap}>
                   <img
-                    src="/mioseg_qr_white_transparent.png"
+                    src="/logo-white.png"
                     alt="mioseg qr Logo"
                     className={styles.brandBadgeLogo}
                   />
@@ -84,7 +84,7 @@ export default function Home() {
                 <div className={styles.heroLogoShowcase}>
                   <div className={styles.heroLogoShell}>
                     <img
-                      src="/mioseg_qr_white_transparent.png"
+                      src="/logo-white.png"
                       alt="mioseg qr Hero Logo"
                       className={styles.heroLogo}
                     />
@@ -493,11 +493,9 @@ export default function Home() {
           <div className={styles.downloadTop}>
             <div className={styles.downloadBrand}>
               <div className={styles.downloadLogoWrap}>
-                <Image
-                  src="/mioseg_qr_white_transparent.png"
+                <img
+                  src="/logo-white.png"
                   alt="mioseg qr Download Logo"
-                  width={52}
-                  height={52}
                   className={styles.downloadLogo}
                 />
               </div>
@@ -567,4 +565,4 @@ export default function Home() {
       </section>
     </main>
   );
-} 
+}
