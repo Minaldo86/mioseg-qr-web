@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import styles from "./site-header.module.css";
 
@@ -8,15 +7,12 @@ export default function SiteHeader() {
   return (
     <header className={styles.wrapper}>
       <div className={styles.inner}>
-        {/* LOGO */}
         <Link href="/" className={styles.brand}>
           <div className={styles.logoBox}>
-            <Image
+            <img
               src="/mioseg_qr_white_transparent.png"
               alt="mioseg qr"
-              width={40}
-              height={40}
-              priority
+              className={styles.logo}
             />
           </div>
 
@@ -26,7 +22,6 @@ export default function SiteHeader() {
           </div>
         </Link>
 
-        {/* NUR CTA */}
         <Link href="/get-app" className={styles.cta}>
           Get App
         </Link>
