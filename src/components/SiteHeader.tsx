@@ -7,18 +7,13 @@ export default function SiteHeader() {
   return (
     <header className={styles.wrapper}>
       <div className={styles.inner}>
-        <Link href="/" className={styles.brand}>
+        <Link href="/" className={styles.brand} aria-label="mioseg qr Startseite">
           <div className={styles.logoBox}>
             <img
               src="/logo-white.png"
-              alt="mioseg qr"
+              alt="mioseg qr Logo"
               className={styles.logo}
             />
-          </div>
-
-          <div className={styles.textWrap}>
-            <span className={styles.title}>mioseg qr</span>
-            <span className={styles.subtitle}>QR-X Plattform</span>
           </div>
         </Link>
 

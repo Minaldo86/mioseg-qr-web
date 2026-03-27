@@ -9,21 +9,14 @@ export default function Home() {
         <div className={styles.heroContent}>
           <div className={styles.heroTextWrap}>
             <div className={styles.brandBadgeWrap}>
-              <div className={styles.brandBadge}>
-                <div className={styles.brandBadgeLogoWrap}>
-                  <img
-                    src="/logo-white.png"
-                    alt="mioseg qr Logo"
-                    className={styles.brandBadgeLogo}
-                  />
-                </div>
-
-                <div className={styles.brandBadgeTextWrap}>
-                  <span className={styles.brandBadgeTitle}>mioseg qr</span>
-                  <span className={styles.brandBadgeSubtitle}>QR-X Plattform</span>
-                </div>
-              </div>
-            </div>
+  <div className={styles.brandBadgeSolo}>
+    <img
+      src="/logo-white.png"
+      alt="mioseg qr Logo"
+      className={styles.brandBadgeSoloLogo}
+    />
+  </div>
+</div>
 
             <h1 className={styles.heroTitle}>
               Normale QR-Codes reichen oft nicht.
