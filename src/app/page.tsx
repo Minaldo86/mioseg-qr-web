@@ -9,13 +9,11 @@ export default function Home() {
         <div className={styles.heroContent}>
           <div className={styles.heroTextWrap}>
             <div className={styles.brandBadgeWrap}>
-  <div className={styles.brandBadgeSolo}>
-    <img
-      src="/logo-white.png"
-      alt="mioseg qr Logo"
-      className={styles.brandBadgeSoloLogo}
-    />
-  </div>
+  <img
+    src="/logo-white.png"
+    alt="mioseg qr Logo"
+    className={styles.heroBrandLogo}
+  />
 </div>
 
             <h1 className={styles.heroTitle}>

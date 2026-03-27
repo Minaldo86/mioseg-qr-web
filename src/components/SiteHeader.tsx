@@ -8,13 +8,11 @@ export default function SiteHeader() {
     <header className={styles.wrapper}>
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} aria-label="mioseg qr Startseite">
-          <div className={styles.logoBox}>
-            <img
-              src="/logo-white.png"
-              alt="mioseg qr Logo"
-              className={styles.logo}
-            />
-          </div>
+          <img
+            src="/logo-white.png"
+            alt="mioseg qr Logo"
+            className={styles.logo}
+          />
         </Link>
 
         <Link href="/get-app" className={styles.cta}>

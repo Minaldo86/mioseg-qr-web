@@ -20,9 +20,17 @@
   color: #ffffff;
 }
 
-brandB.brandBadgeWrap {
-  margin-top: 28px;
-  margin-bottom: 34px;
+.brandBadgeWrap {
+  margin-top: 34px;
+  margin-bottom: 18px;
+}
+
+.heroBrandLogo {
+  display: block;
+  width: 520px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .brandBadge {
@@ -957,6 +965,25 @@ brandB.brandBadgeWrap {
     font-size: 24px;
   }
 }
+@media (max-width: 768px) {
+  .brandBadgeWrap {
+    margin-top: 20px;
+    margin-bottom: 14px;
+  }
+
+  .heroBrandLogo {
+    width: 320px;
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 480px) {
+  .heroBrandLogo {
+    width: 260px;
+    max-width: 88%;
+  }
+}
+
 
 @media (max-width: 480px) {
   .heroSection {

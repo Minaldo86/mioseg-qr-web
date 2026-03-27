@@ -9,56 +9,23 @@
 .inner {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 14px 20px;
+  padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
   text-decoration: none;
 }
 
-.logoBox {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  overflow: hidden;
-}
-
 .logo {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
   display: block;
-}
-
-.textWrap {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
-
-.title {
-  color: #ffffff;
-  font-weight: 900;
-  font-size: 15px;
-}
-
-.subtitle {
-  color: #8fa4bb;
-  font-size: 11px;
-  font-weight: 600;
-  margin-top: 2px;
+  width: 148px;
+  height: auto;
+  object-fit: contain;
 }
 
 .cta {
@@ -75,4 +42,14 @@
 
 .cta:hover {
   transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .inner {
+    padding: 12px 16px;
+  }
+
+  .logo {
+    width: 118px;
+  }
 }
