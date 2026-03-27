@@ -11,13 +11,10 @@ export default function Home() {
             <div className={styles.brandBadgeWrap}>
               <div className={styles.brandBadge}>
                 <div className={styles.brandBadgeLogoWrap}>
-                  <Image
+                  <img
                     src="/mioseg_qr_white_transparent.png"
                     alt="mioseg qr Logo"
-                    width={34}
-                    height={34}
                     className={styles.brandBadgeLogo}
-                    priority
                   />
                 </div>
 
@@ -86,13 +83,10 @@ export default function Home() {
 
                 <div className={styles.heroLogoShowcase}>
                   <div className={styles.heroLogoShell}>
-                    <Image
+                    <img
                       src="/mioseg_qr_white_transparent.png"
                       alt="mioseg qr Hero Logo"
-                      width={88}
-                      height={88}
                       className={styles.heroLogo}
-                      priority
                     />
                   </div>
 
@@ -573,4 +567,4 @@ export default function Home() {
       </section>
     </main>
   );
-}
+} 
