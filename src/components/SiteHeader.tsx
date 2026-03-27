@@ -10,7 +10,7 @@ export default function SiteHeader() {
         <Link href="/" className={styles.brand}>
           <div className={styles.logoBox}>
             <img
-              src="/mioseg_qr_white_transparent.png"
+              src="/logo-white.png"
               alt="mioseg qr"
               className={styles.logo}
             />
