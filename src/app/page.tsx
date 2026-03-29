@@ -113,7 +113,7 @@ export default function Home() {
       <section id="features" className={styles.section}>
         <div className={styles.sectionIntro}>
           <span className={styles.sectionEyebrow}>Die wichtigsten Funktionen</span>
-          <h2 className={styles.sectionTitle}>
+          <h2 className={`${styles.sectionTitle} ${styles.sectionTitleLight}`}>
             Weniger erklären. Schneller verstehen.
           </h2>
           <p className={styles.sectionText}>
