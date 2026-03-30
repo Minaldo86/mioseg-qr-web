@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "./home-page.module.css";
 
-import LanguageSwitcher from "@/src/components/LanguageSwitcher";
-import { defaultLocale, isValidLocale } from "@/src/i18n/config";
-import { getDictionary } from "@/src/i18n/get-dictionary";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
+import { defaultLocale, isValidLocale } from "../../i18n/config";
+import { getDictionary } from "../../i18n/get-dictionary";
 
 type Props = {
   params: {
