@@ -1,18 +1,9 @@
 
-
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./home-page.module.css";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
-export default function Home() {
-  return (
-    <main style={{display:"flex",height:"100vh",alignItems:"center",justifyContent:"center",background:"#0d1726",color:"#fff",fontSize:"24px"}}>
-      Seite aktuell im Aufbau 🚧
-    </main>
-  );
-} 
-
-{/*
 export default function Home() {
   return (
     <main className={styles.page}>
@@ -394,4 +385,4 @@ export default function Home() {
       </section>
     </main>
   );
-}*/} 
+}

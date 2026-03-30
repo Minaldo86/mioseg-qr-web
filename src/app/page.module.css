@@ -16,6 +16,9 @@
   font-family: var(--font-geist-sans);
   background-color: var(--background);
 }
+.languageSwitcherWrap {
+  margin-top: 16px;
+}
 
 .main {
   display: flex;
