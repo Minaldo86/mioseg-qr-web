@@ -10,7 +10,9 @@ export default function Home() {
       Seite aktuell im Aufbau 🚧
     </main>
   );
-} löschen
+} 
+
+{/*
 export default function Home() {
   return (
     <main className={styles.page}>
@@ -392,4 +394,4 @@ export default function Home() {
       </section>
     </main>
   );
-}
+}*/} 
