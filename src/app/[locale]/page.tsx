@@ -7,13 +7,17 @@ import { defaultLocale, isValidLocale } from "../../i18n/config";
 import { getDictionary } from "../../i18n/get-dictionary";
 
 type Props = {
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 };
 
-export default function Home({ params }: Props) {
-  const locale = isValidLocale(params.locale) ? params.locale : defaultLocale;
+export default async function Home({ params }: Props) {
+  const resolvedParams = await params;
+  const locale = isValidLocale(resolvedParams.locale)
+    ? resolvedParams.locale
+    : defaultLocale;
+
   const t = getDictionary(locale);
 
   return (
