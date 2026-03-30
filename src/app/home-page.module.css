@@ -1005,7 +1005,7 @@
     border-radius: 24px;
   }
 .sectionTitleLight {
-  color: #ffffff;
+  color: #ffffff !important;
 }
   .sectionTitle {
     font-size: 30px;
