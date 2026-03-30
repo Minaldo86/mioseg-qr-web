@@ -10,31 +10,167 @@ export default function GetAppPage() {
 
   return (
     <main style={styles.page}>
-      <section style={styles.heroSection}>
-        <div style={styles.container}>
-          <div style={styles.heroGrid}>
+      <style>{`
+        @keyframes floatOne {
+          0% { transform: translate3d(0, 0, 0) scale(1); }
+          50% { transform: translate3d(18px, -22px, 0) scale(1.04); }
+          100% { transform: translate3d(0, 0, 0) scale(1); }
+        }
+
+        @keyframes floatTwo {
+          0% { transform: translate3d(0, 0, 0) scale(1); }
+          50% { transform: translate3d(-22px, 18px, 0) scale(1.05); }
+          100% { transform: translate3d(0, 0, 0) scale(1); }
+        }
+
+        @keyframes shimmer {
+          0% { opacity: 0.45; transform: translateX(-8px); }
+          50% { opacity: 0.9; transform: translateX(8px); }
+          100% { opacity: 0.45; transform: translateX(-8px); }
+        }
+
+        @media (max-width: 1100px) {
+          .getapp-hero-grid {
+            grid-template-columns: 1fr !important;
+            gap: 30px !important;
+          }
+
+          .getapp-preview-grid {
+            grid-template-columns: 1fr 1fr !important;
+          }
+
+          .getapp-feature-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .getapp-info-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .getapp-container {
+            padding-left: 18px !important;
+            padding-right: 18px !important;
+          }
+
+          .getapp-hero-section {
+            padding-top: 46px !important;
+            padding-bottom: 42px !important;
+          }
+
+          .getapp-title {
+            font-size: 36px !important;
+            line-height: 1.1 !important;
+            letter-spacing: -1px !important;
+          }
+
+          .getapp-text {
+            font-size: 16px !important;
+            line-height: 1.75 !important;
+          }
+
+          .getapp-store-row,
+          .getapp-button-row,
+          .getapp-facts-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+          }
+
+          .getapp-store-badge,
+          .getapp-primary-button,
+          .getapp-secondary-button {
+            width: 100% !important;
+          }
+
+          .getapp-phone-shell {
+            width: 100% !important;
+            max-width: 360px !important;
+            height: 680px !important;
+          }
+
+          .getapp-preview-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .getapp-section,
+          .getapp-section-alt {
+            padding-top: 42px !important;
+            padding-bottom: 42px !important;
+          }
+
+          .getapp-section-title {
+            font-size: 30px !important;
+            line-height: 1.15 !important;
+          }
+
+          .getapp-section-text {
+            font-size: 16px !important;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .getapp-container {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+          }
+
+          .getapp-title {
+            font-size: 31px !important;
+          }
+
+          .getapp-phone-shell {
+            height: 640px !important;
+            border-radius: 34px !important;
+          }
+
+          .getapp-phone-screen {
+            border-radius: 28px !important;
+          }
+
+          .getapp-phone-card-title {
+            font-size: 21px !important;
+          }
+
+          .getapp-card-title {
+            font-size: 20px !important;
+          }
+
+          .getapp-section-title {
+            font-size: 26px !important;
+          }
+        }
+      `}</style>
+
+      <section style={styles.heroSection} className="getapp-hero-section">
+        <div style={styles.animatedGlowOne} />
+        <div style={styles.animatedGlowTwo} />
+
+        <div style={styles.container} className="getapp-container">
+          <div style={styles.heroGrid} className="getapp-hero-grid">
             <div style={styles.heroLeft}>
               <span style={styles.badge}>mioseg qr · App Download</span>
 
-              <h1 style={styles.title}>
+              <h1 style={styles.title} className="getapp-title">
                 Hol dir die mioseg qr App
                 <br />
                 für iPhone und Android.
               </h1>
 
-              <p style={styles.text}>
+              <p style={styles.text} className="getapp-text">
                 Scanne QR-Codes, speichere Inhalte, erstelle eigene QR-X und nutze
                 Business QR-X mit professioneller Webansicht, Kontaktfunktionen,
                 Medien und flexibler Verwaltung.
               </p>
 
-              <div style={styles.storeBadgeRow}>
+              <div style={styles.storeBadgeRow} className="getapp-store-row">
                 <a
                   href={appStoreUrl}
                   style={{
                     ...styles.storeBadge,
                     ...(isAppStoreLive ? null : styles.storeBadgeDisabled),
                   }}
+                  className="getapp-store-badge"
                   aria-disabled={!isAppStoreLive}
                 >
                   <span style={styles.storeBadgeIcon}></span>
@@ -50,6 +186,7 @@ export default function GetAppPage() {
                     ...styles.storeBadge,
                     ...(isGooglePlayLive ? null : styles.storeBadgeDisabled),
                   }}
+                  className="getapp-store-badge"
                   aria-disabled={!isGooglePlayLive}
                 >
                   <span style={styles.storeBadgePlay}>▶</span>
@@ -60,13 +197,14 @@ export default function GetAppPage() {
                 </a>
               </div>
 
-              <div style={styles.buttonRow}>
+              <div style={styles.buttonRow} className="getapp-button-row">
                 <a
                   href={appStoreUrl}
                   style={{
                     ...styles.primaryButton,
                     ...(isAppStoreLive ? null : styles.buttonDisabled),
                   }}
+                  className="getapp-primary-button"
                   aria-disabled={!isAppStoreLive}
                 >
                   Im App Store
@@ -78,13 +216,14 @@ export default function GetAppPage() {
                     ...styles.secondaryButton,
                     ...(isGooglePlayLive ? null : styles.buttonDisabledAlt),
                   }}
+                  className="getapp-secondary-button"
                   aria-disabled={!isGooglePlayLive}
                 >
                   Bei Google Play
                 </a>
               </div>
 
-              <div style={styles.heroFacts}>
+              <div style={styles.heroFacts} className="getapp-facts-row">
                 <div style={styles.factCard}>
                   <strong style={styles.factTitle}>Scannen</strong>
                   <span style={styles.factText}>
@@ -109,13 +248,10 @@ export default function GetAppPage() {
             </div>
 
             <div style={styles.previewWrap}>
-              <div style={styles.previewGlowOne} />
-              <div style={styles.previewGlowTwo} />
-
-              <div style={styles.phoneShell}>
+              <div style={styles.phoneShell} className="getapp-phone-shell">
                 <div style={styles.phoneNotch} />
 
-                <div style={styles.phoneScreen}>
+                <div style={styles.phoneScreen} className="getapp-phone-screen">
                   <div style={styles.phoneTopBar}>
                     <span style={styles.phoneTime}>9:41</span>
                     <div style={styles.phoneStatusIcons}>
@@ -144,8 +280,8 @@ export default function GetAppPage() {
 
                   <div style={styles.phoneMainCard}>
                     <div style={styles.phoneOverline}>Die App auf einen Blick</div>
-                    <h3 style={styles.phoneCardTitle}>
-                      Alles Wichtige rund um QR-Codes an einem Ort
+                    <h3 style={styles.phoneCardTitle} className="getapp-phone-card-title">
+                      Moderne QR-Workflows in einer App
                     </h3>
                     <p style={styles.phoneCardText}>
                       Scans, gespeicherte Inhalte, eigene QR-X und Business-Funktionen
@@ -192,51 +328,147 @@ export default function GetAppPage() {
         </div>
       </section>
 
-      <section style={styles.section}>
-        <div style={styles.container}>
+      <section style={styles.previewSection} className="getapp-section">
+        <div style={styles.container} className="getapp-container">
           <div style={styles.sectionIntro}>
-            <span style={styles.sectionEyebrow}>Was dich erwartet</span>
-            <h2 style={styles.sectionTitle}>Eine App für moderne QR-Workflows</h2>
-            <p style={styles.sectionText}>
-              mioseg qr verbindet klassisches Scannen mit einer eigenen QR-X
-              Plattform für private Nutzer und Unternehmen.
+            <span style={styles.sectionEyebrow}>App Einblicke</span>
+            <h2 style={styles.sectionTitle} className="getapp-section-title">
+              Zeig direkt, was Nutzer in der App erwartet
+            </h2>
+            <p style={styles.sectionText} className="getapp-section-text">
+              Hier kannst du echte Screenshots deiner App einsetzen. Das macht die
+              Seite glaubwürdiger und deutlich hochwertiger.
             </p>
           </div>
 
-          <div style={styles.grid}>
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Scannen & Speichern</h3>
-              <p style={styles.cardText}>
-                Erfasse QR-Codes, speichere sie dauerhaft und organisiere sie
-                übersichtlich in deiner App.
-              </p>
+          <div style={styles.previewGrid} className="getapp-preview-grid">
+            <div style={styles.previewCard}>
+              <div style={styles.previewImageWrap}>
+                <img
+                  src="/landing/scan-screen.jpg"
+                  alt="Scan Screen"
+                  style={styles.previewImage}
+                />
+              </div>
+              <div style={styles.previewCardTextWrap}>
+                <div style={styles.previewCardBadge}>Scannen</div>
+                <h3 style={styles.previewCardTitle}>QR-Codes schnell erfassen</h3>
+                <p style={styles.previewCardText}>
+                  Direkt scannen, benennen und dauerhaft in der App behalten.
+                </p>
+              </div>
             </div>
 
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Eigene QR-X erstellen</h3>
-              <p style={styles.cardText}>
-                Erstelle eigene Inhalte mit Texten, Bildern, PDFs, MP3 oder MP4
-                und pflege sie flexibel weiter.
-              </p>
+            <div style={styles.previewCard}>
+              <div style={styles.previewImageWrap}>
+                <img
+                  src="/landing/map-screen.jpg"
+                  alt="Map Screen"
+                  style={styles.previewImage}
+                />
+              </div>
+              <div style={styles.previewCardTextWrap}>
+                <div style={styles.previewCardBadge}>Karte</div>
+                <h3 style={styles.previewCardTitle}>Standorte wiederfinden</h3>
+                <p style={styles.previewCardText}>
+                  Gespeicherte Scans auf der Karte sehen und später direkt zurück navigieren.
+                </p>
+              </div>
             </div>
 
-            <div style={styles.card}>
-              <h3 style={styles.cardTitle}>Business QR-X</h3>
-              <p style={styles.cardText}>
-                Nutze professionelle Webansichten mit Firmenname, Coverbild,
-                Kontaktbuttons und modernem Business-Look.
-              </p>
+            <div style={styles.previewCard}>
+              <div style={styles.previewImageWrap}>
+                <img
+                  src="/landing/create-screen.jpg"
+                  alt="Create Screen"
+                  style={styles.previewImage}
+                />
+              </div>
+              <div style={styles.previewCardTextWrap}>
+                <div style={styles.previewCardBadge}>Erstellen</div>
+                <h3 style={styles.previewCardTitle}>Eigene QR-X anlegen</h3>
+                <p style={styles.previewCardText}>
+                  Eigene Inhalte mit Text, Bildern und Medien flexibel gestalten.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section style={styles.sectionAlt}>
-        <div style={styles.container}>
-          <div style={styles.infoBox}>
+      <section style={styles.section} className="getapp-section">
+        <div style={styles.container} className="getapp-container">
+          <div style={styles.sectionIntro}>
+            <span style={styles.sectionEyebrow}>Was dich erwartet</span>
+            <h2 style={styles.sectionTitle} className="getapp-section-title">
+              Eine App für moderne QR-Workflows
+            </h2>
+            <p style={styles.sectionText} className="getapp-section-text">
+              mioseg qr verbindet klassisches Scannen mit einer eigenen QR-X
+              Plattform für private Nutzer und Unternehmen.
+            </p>
+          </div>
+
+          <div style={styles.featureGrid} className="getapp-feature-grid">
+            <div style={styles.featureCardFeatured}>
+              <div style={styles.featureCardLabel}>Besonders stark</div>
+              <h3 style={styles.featureCardFeaturedTitle}>
+                Mehr als ein QR-Scanner
+              </h3>
+              <p style={styles.featureCardFeaturedText}>
+                Die App verbindet klassisches Speichern mit QR-X, Business-Funktionen,
+                Kartenansicht und strukturierter Verwaltung.
+              </p>
+              <div style={styles.featureList}>
+                <div style={styles.featureListItem}>✓ Scannen & dauerhaft speichern</div>
+                <div style={styles.featureListItem}>✓ Eigene QR-X flexibel pflegen</div>
+                <div style={styles.featureListItem}>✓ Business QR-X professionell nutzen</div>
+              </div>
+            </div>
+
+            <div style={styles.featureCardColumn}>
+              <div style={styles.card}>
+                <h3 style={styles.cardTitle} className="getapp-card-title">
+                  Scannen & Speichern
+                </h3>
+                <p style={styles.cardText}>
+                  Erfasse QR-Codes, speichere sie dauerhaft und organisiere sie
+                  übersichtlich in deiner App.
+                </p>
+              </div>
+
+              <div style={styles.card}>
+                <h3 style={styles.cardTitle} className="getapp-card-title">
+                  Eigene QR-X erstellen
+                </h3>
+                <p style={styles.cardText}>
+                  Erstelle eigene Inhalte mit Texten, Bildern, PDFs, MP3 oder MP4
+                  und pflege sie flexibel weiter.
+                </p>
+              </div>
+
+              <div style={styles.card}>
+                <h3 style={styles.cardTitle} className="getapp-card-title">
+                  Business QR-X
+                </h3>
+                <p style={styles.cardText}>
+                  Nutze professionelle Webansichten mit Firmenname, Coverbild,
+                  Kontaktbuttons und modernem Business-Look.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={styles.sectionAlt} className="getapp-section-alt">
+        <div style={styles.container} className="getapp-container">
+          <div style={styles.infoBox} className="getapp-info-grid">
             <div style={styles.infoBoxLeft}>
               <span style={styles.sectionEyebrow}>Download & Verfügbarkeit</span>
-              <h2 style={styles.sectionTitle}>Bald oder bereits verfügbar</h2>
+              <h2 style={styles.sectionTitle} className="getapp-section-title">
+                Bald oder bereits verfügbar
+              </h2>
               <p style={styles.infoText}>
                 Hier kannst du später deine offiziellen Store-Links hinterlegen und
                 Besucher direkt zum richtigen App-Store weiterleiten.
@@ -275,17 +507,47 @@ export default function GetAppPage() {
 const styles: Record<string, CSSProperties> = {
   page: {
     minHeight: "100vh",
+    overflow: "hidden",
     background:
       "linear-gradient(180deg, #08111d 0%, #0d1726 34%, #ffffff 34%, #ffffff 100%)",
+  },
+
+  animatedGlowOne: {
+    position: "absolute",
+    top: 60,
+    right: "8%",
+    width: 320,
+    height: 320,
+    borderRadius: 999,
+    background: "rgba(79, 148, 255, 0.15)",
+    filter: "blur(60px)",
+    animation: "floatOne 8s ease-in-out infinite",
+    pointerEvents: "none",
+  },
+
+  animatedGlowTwo: {
+    position: "absolute",
+    top: 220,
+    left: "6%",
+    width: 220,
+    height: 220,
+    borderRadius: 999,
+    background: "rgba(255, 255, 255, 0.08)",
+    filter: "blur(56px)",
+    animation: "floatTwo 9s ease-in-out infinite",
+    pointerEvents: "none",
   },
 
   container: {
     maxWidth: 1180,
     margin: "0 auto",
     padding: "0 24px",
+    position: "relative",
+    zIndex: 1,
   },
 
   heroSection: {
+    position: "relative",
     padding: "80px 0 64px",
     color: "#ffffff",
   },
@@ -479,33 +741,8 @@ const styles: Record<string, CSSProperties> = {
     minHeight: 560,
   },
 
-  previewGlowOne: {
-    position: "absolute",
-    width: 280,
-    height: 280,
-    borderRadius: 999,
-    background: "rgba(90,150,255,0.16)",
-    filter: "blur(52px)",
-    top: 6,
-    right: 8,
-    zIndex: 0,
-  },
-
-  previewGlowTwo: {
-    position: "absolute",
-    width: 190,
-    height: 190,
-    borderRadius: 999,
-    background: "rgba(255,255,255,0.08)",
-    filter: "blur(46px)",
-    bottom: 30,
-    left: 10,
-    zIndex: 0,
-  },
-
   phoneShell: {
     position: "relative",
-    zIndex: 1,
     width: 340,
     height: 690,
     borderRadius: 42,
@@ -735,6 +972,69 @@ const styles: Record<string, CSSProperties> = {
     color: "#c7d5e6",
   },
 
+  previewSection: {
+    padding: "64px 0",
+  },
+
+  previewGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 20,
+  },
+
+  previewCard: {
+    background: "#ffffff",
+    border: "1px solid #e5edf5",
+    borderRadius: 26,
+    overflow: "hidden",
+    boxShadow: "0 16px 34px rgba(14, 23, 38, 0.05)",
+  },
+
+  previewImageWrap: {
+    background: "#eef4fb",
+    aspectRatio: "10 / 16",
+    overflow: "hidden",
+  },
+
+  previewImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  },
+
+  previewCardTextWrap: {
+    padding: 20,
+  },
+
+  previewCardBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    minHeight: 32,
+    padding: "0 12px",
+    borderRadius: 999,
+    background: "#eef4fb",
+    color: "#28496f",
+    fontSize: 12,
+    fontWeight: 800,
+    marginBottom: 12,
+  },
+
+  previewCardTitle: {
+    margin: "0 0 10px 0",
+    fontSize: 22,
+    lineHeight: 1.2,
+    fontWeight: 900,
+    color: "#0e1726",
+  },
+
+  previewCardText: {
+    margin: 0,
+    fontSize: 15,
+    lineHeight: 1.75,
+    color: "#5d6b7d",
+  },
+
   section: {
     padding: "64px 0",
   },
@@ -774,9 +1074,64 @@ const styles: Record<string, CSSProperties> = {
     color: "#5d6b7d",
   },
 
-  grid: {
+  featureGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gridTemplateColumns: "0.95fr 1.05fr",
+    gap: 20,
+    alignItems: "start",
+  },
+
+  featureCardFeatured: {
+    borderRadius: 28,
+    padding: 28,
+    background: "linear-gradient(180deg, #0d1726 0%, #17304d 100%)",
+    color: "#ffffff",
+    boxShadow: "0 18px 40px rgba(13, 23, 38, 0.18)",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+
+  featureCardLabel: {
+    display: "inline-flex",
+    alignItems: "center",
+    minHeight: 34,
+    padding: "0 12px",
+    borderRadius: 999,
+    background: "rgba(255,255,255,0.10)",
+    color: "#d9ebff",
+    fontSize: 12,
+    fontWeight: 800,
+    marginBottom: 14,
+  },
+
+  featureCardFeaturedTitle: {
+    margin: "0 0 14px 0",
+    fontSize: 28,
+    lineHeight: 1.2,
+    fontWeight: 900,
+  },
+
+  featureCardFeaturedText: {
+    margin: "0 0 16px 0",
+    fontSize: 15,
+    lineHeight: 1.85,
+    color: "#dbe7f6",
+  },
+
+  featureList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+  },
+
+  featureListItem: {
+    color: "#e7f0fb",
+    fontSize: 14,
+    fontWeight: 700,
+    lineHeight: 1.6,
+  },
+
+  featureCardColumn: {
+    display: "grid",
     gap: 20,
   },
 
