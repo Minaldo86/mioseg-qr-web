@@ -3,13 +3,17 @@ import { defaultLocale, isValidLocale, rtlLocales } from "../../i18n/config";
 
 type Props = {
   children: ReactNode;
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 };
 
-export default function LocaleLayout({ children, params }: Props) {
-  const locale = isValidLocale(params.locale) ? params.locale : defaultLocale;
+export default async function LocaleLayout({ children, params }: Props) {
+  const resolvedParams = await params;
+  const locale = isValidLocale(resolvedParams.locale)
+    ? resolvedParams.locale
+    : defaultLocale;
+
   const dir = rtlLocales.includes(locale) ? "rtl" : "ltr";
 
   return (
