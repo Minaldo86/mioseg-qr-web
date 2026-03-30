@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { defaultLocale, isValidLocale, rtlLocales } from "@/src/i18n/config";
+import type { ReactNode } from "react";
+import { defaultLocale, isValidLocale, rtlLocales } from "../../i18n/config";
 
 type Props = {
   children: ReactNode;

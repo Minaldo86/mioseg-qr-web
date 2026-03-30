@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { defaultLocale, locales, type Locale } from "@/src/i18n/config";
+import { defaultLocale, locales, type Locale } from "../i18n/config";
 
 import styles from "./language-switcher.module.css";
 
