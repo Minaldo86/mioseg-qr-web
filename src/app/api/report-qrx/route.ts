@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "../../../lib/supabase-admin";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
 type ReportReason =
   | "fake_or_fraud"
