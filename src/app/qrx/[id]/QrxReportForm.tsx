@@ -74,8 +74,8 @@ export default function QrxReportForm({ qrxId }: Props) {
       setDone(true);
       setDescription("");
       setEmail("");
-    } catch (e: any) {
-      setError(e?.message || "Meldung konnte nicht gesendet werden.");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Meldung konnte nicht gesendet werden.");
     } finally {
       setWorking(false);
     }
@@ -96,7 +96,8 @@ export default function QrxReportForm({ qrxId }: Props) {
               <div>
                 <h2 style={title}>QR-X melden</h2>
                 <p style={sub}>
-                  Melde diesen QR-X nur, wenn du ein echtes Problem erkennst. Eine Meldung sperrt den QR-X nicht automatisch.
+                  Melde diesen QR-X nur, wenn du ein echtes Problem erkennst.
+                  Eine Meldung sperrt den QR-X nicht automatisch.
                 </p>
               </div>
 
@@ -153,6 +154,7 @@ export default function QrxReportForm({ qrxId }: Props) {
                   <button type="button" onClick={resetAndClose} style={secondaryButton}>
                     Abbrechen
                   </button>
+
                   <button
                     type="button"
                     onClick={submitReport}
@@ -177,18 +179,19 @@ export default function QrxReportForm({ qrxId }: Props) {
 const reportFooterWrap: React.CSSProperties = {
   display: "flex",
   justifyContent: "center",
-  marginTop: 18,
-  marginBottom: 6,
+  marginTop: 30,
+  marginBottom: 30,
 };
 
 const reportLink: React.CSSProperties = {
   border: "none",
   background: "transparent",
-  color: "rgba(255,255,255,0.45)",
-  fontSize: 12,
+  color: "#facc15",
+  fontSize: 15,
+  fontWeight: 700,
   textDecoration: "underline",
   cursor: "pointer",
-  padding: 6,
+  padding: 10,
 };
 
 const overlay: React.CSSProperties = {
@@ -242,7 +245,6 @@ const closeButton: React.CSSProperties = {
   height: 36,
   cursor: "pointer",
   fontSize: 24,
-  lineHeight: "24px",
 };
 
 const formGrid: React.CSSProperties = {
@@ -322,8 +324,6 @@ const errorBox: React.CSSProperties = {
   background: "rgba(127,29,29,0.35)",
   color: "#fecaca",
   padding: 12,
-  fontSize: 13,
-  lineHeight: "18px",
 };
 
 const successBox: React.CSSProperties = {
@@ -332,7 +332,5 @@ const successBox: React.CSSProperties = {
   background: "rgba(20,83,45,0.35)",
   color: "#bbf7d0",
   padding: 14,
-  fontSize: 14,
   fontWeight: 800,
-  lineHeight: "20px",
 };
