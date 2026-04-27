@@ -85,7 +85,7 @@ export default function QrxReportForm({ qrxId }: Props) {
     <>
       <div style={reportFooterWrap}>
         <button type="button" onClick={() => setOpen(true)} style={reportLink}>
-          Problem melden
+          Inhalt beanstanden
         </button>
       </div>
 
@@ -179,19 +179,20 @@ export default function QrxReportForm({ qrxId }: Props) {
 const reportFooterWrap: React.CSSProperties = {
   display: "flex",
   justifyContent: "center",
-  marginTop: 30,
-  marginBottom: 30,
+  marginTop: 8,
+  marginBottom: 0,
 };
 
 const reportLink: React.CSSProperties = {
   border: "none",
   background: "transparent",
-  color: "#facc15",
-  fontSize: 15,
-  fontWeight: 700,
-  textDecoration: "underline",
+  color: "rgba(255,255,255,0.34)",
+  fontSize: 10,
+  fontWeight: 500,
+  textDecoration: "none",
   cursor: "pointer",
-  padding: 10,
+  padding: "4px 6px",
+  lineHeight: "14px",
 };
 
 const overlay: React.CSSProperties = {
