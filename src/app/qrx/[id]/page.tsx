@@ -1,4 +1,3 @@
-
 import styles from "./page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { headers } from "next/headers";
@@ -22,6 +21,8 @@ type QrxEntry = {
   cta_website: string | null;
   cta_navigation: string | null;
   company_name: string | null;
+  suspended: boolean | null;
+  suspended_reason: string | null;
 };
 
 type QrxMedia = {
@@ -115,7 +116,9 @@ export default async function QrxPage({
       cta_phone,
       cta_website,
       cta_navigation,
-      company_name
+      company_name,
+      suspended,
+      suspended_reason
     `)
     .eq("id", qrxId)
     .maybeSingle()
@@ -136,6 +139,8 @@ export default async function QrxPage({
     qrxId,
     entryFound: !!entry,
     entryErr: toErrorMessage(entryErr),
+    suspended: entry?.suspended ?? null,
+    suspendedReason: entry?.suspended_reason ?? null,
     mediaCount: (media ?? []).length,
     mediaErr: toErrorMessage(mediaErr),
     env: {
@@ -151,6 +156,25 @@ export default async function QrxPage({
         <div className={styles.card}>
           <h1 className={styles.title}>404</h1>
           <p className={styles.sub}>QR-X wurde nicht gefunden oder wurde gelöscht.</p>
+          {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
+        </div>
+      </main>
+    );
+  }
+
+  if (entry.suspended === true) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>QR-X gesperrt</h1>
+          <p className={styles.sub}>
+            Dieser QR-X wurde vorübergehend deaktiviert und ist aktuell nicht verfügbar.
+          </p>
+
+          {entry.suspended_reason?.trim() ? (
+            <p className={styles.sub}>Grund: {entry.suspended_reason}</p>
+          ) : null}
+
           {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
         </div>
       </main>
