@@ -2,6 +2,7 @@ import styles from "./page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { headers } from "next/headers";
 import TrackViewClient from "./TrackViewClient";
+import QrxReportForm from "./QrxReportForm";
 
 type NewsItem = { text: string; createdAt: string };
 
@@ -413,6 +414,10 @@ export default async function QrxPage({
           </div>
         )}
       </section>
+
+    <section className={styles.section}>
+  <QrxReportForm qrxId={qrxId} />
+</section>
 
       <div className={styles.footer}>mioseg qr • QR-X Web</div>
     </main>
