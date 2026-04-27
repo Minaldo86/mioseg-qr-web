@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseAdmin } from "../../../lib/supabase-admin";
 
 type ReportReason =
   | "fake_or_fraud"
@@ -176,9 +176,9 @@ export async function POST(req: Request) {
       ticketNumber,
       ticketId: ticket.id,
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return Response.json(
-      { error: e?.message || "Server error" },
+      { error: e instanceof Error ? e.message : "Server error" },
       { status: 500 }
     );
   }
