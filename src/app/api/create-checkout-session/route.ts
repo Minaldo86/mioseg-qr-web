@@ -26,9 +26,7 @@ function getStripe() {
     throw new Error("STRIPE_SECRET_KEY fehlt.");
   }
 
-  return new Stripe(key, {
-    apiVersion: "2024-06-20",
-  });
+  return new Stripe(key);
 }
 
 function getOrigin(req: Request) {
