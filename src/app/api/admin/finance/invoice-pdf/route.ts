@@ -28,6 +28,25 @@ function isAdminRequest(req: Request) {
   }
 }
 
+function uniqueValues(values: Array<string | null | undefined>) {
+  return Array.from(
+    new Set(
+      values
+        .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+        .map((value) => value.trim())
+    )
+  );
+}
+
+function normalizeStoragePath(path: string) {
+  return path
+    .replace(/^\/+/, "")
+    .replace(/^qrx-invoices\//, "")
+    .replace(/^qrx_invoice\//, "")
+    .replace(/^qrx-invoice\//, "")
+    .replace(/^invoices\//, "");
+}
+
 export async function GET(req: Request) {
   try {
     if (!isAdminRequest(req)) {
@@ -58,38 +77,94 @@ export async function GET(req: Request) {
       return Response.json({ error: "Rechnung nicht gefunden." }, { status: 404 });
     }
 
-    const path =
+    const rawPath =
       typeof invoice.pdf_path === "string" && invoice.pdf_path
         ? invoice.pdf_path
         : typeof invoice.storage_path === "string" && invoice.storage_path
           ? invoice.storage_path
           : null;
 
-    const normalizedPath = path
-      ?.replace(/^qrx-invoices\//, "")
-      ?.replace(/^\/+/g, "");
-
-    if (!path) {
-      return Response.json({ error: "Für diese Rechnung ist noch kein PDF-Pfad hinterlegt." }, { status: 404 });
-    }
-
-    const bucket =
-      typeof invoice.storage_bucket === "string" && invoice.storage_bucket
-        ? invoice.storage_bucket
-        : "qrx-invoices";
-
-    const { data: signed, error: signedError } = await supabaseAdmin.storage
-      .from(bucket)
-      .createSignedUrl(normalizedPath, 60 * 10);
-
-    if (signedError || !signed?.signedUrl) {
+    if (!rawPath) {
       return Response.json(
-        { error: "PDF konnte nicht signiert werden.", details: signedError?.message ?? null, bucket, path },
-        { status: 500 }
+        { error: "Für diese Rechnung ist noch kein PDF-Pfad hinterlegt." },
+        { status: 404 }
       );
     }
 
-    return Response.redirect(signed.signedUrl, 302);
+    const normalizedPath = normalizeStoragePath(rawPath);
+    const fileName = normalizedPath.split("/").filter(Boolean).pop() || normalizedPath;
+
+    const userId =
+      typeof invoice.user_id === "string" && invoice.user_id
+        ? invoice.user_id
+        : null;
+
+    const invoiceNumber =
+      typeof invoice.invoice_number === "string" && invoice.invoice_number
+        ? invoice.invoice_number
+        : null;
+
+    const storageBucket =
+      typeof invoice.storage_bucket === "string" && invoice.storage_bucket
+        ? invoice.storage_bucket
+        : null;
+
+    const bucketCandidates = uniqueValues([
+      storageBucket,
+      "qrx-invoices",
+      "qrx_invoice",
+      "qrx-invoice",
+      "invoices",
+    ]);
+
+    const pathCandidates = uniqueValues([
+      rawPath,
+      normalizedPath,
+      fileName,
+      userId ? `${userId}/${fileName}` : null,
+      invoiceNumber && userId ? `${userId}/${invoiceNumber}.pdf` : null,
+      invoiceNumber ? `${invoiceNumber}.pdf` : null,
+    ]);
+
+    const attempts: Array<{
+      bucket: string;
+      path: string;
+      error: string | null;
+    }> = [];
+
+    for (const bucket of bucketCandidates) {
+      for (const path of pathCandidates) {
+        const cleanPath = bucket === storageBucket ? path : normalizeStoragePath(path);
+
+        const { data: signed, error: signedError } = await supabaseAdmin.storage
+          .from(bucket)
+          .createSignedUrl(cleanPath, 60 * 10);
+
+        if (signed?.signedUrl && !signedError) {
+          return Response.redirect(signed.signedUrl, 302);
+        }
+
+        attempts.push({
+          bucket,
+          path: cleanPath,
+          error: signedError?.message ?? "Object not found",
+        });
+      }
+    }
+
+    return Response.json(
+      {
+        error: "PDF konnte nicht im Storage gefunden werden.",
+        invoiceId: id,
+        invoiceNumber,
+        rawPath,
+        storageBucket,
+        attempted: attempts.slice(0, 30),
+        hint:
+          "Die Rechnung ist in qrx_invoices vorhanden, aber die PDF-Datei liegt nicht unter dem gespeicherten Pfad im Supabase Storage. Prüfe Bucket und Objektpfad.",
+      },
+      { status: 404 }
+    );
   } catch (error: unknown) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Server error" },
