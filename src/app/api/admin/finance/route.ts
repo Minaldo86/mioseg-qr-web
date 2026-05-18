@@ -163,9 +163,18 @@ export async function GET(req: Request) {
 
     invoices.forEach((invoice) => {
       const item = ensureProvider(normalizeProvider(invoice.payment_provider));
-      const gross = toCents(invoice.total_cents) || toCents(invoice.amount_cents);
-      const net = toCents(invoice.net_cents);
-      const tax = toCents(invoice.tax_cents);
+const gross =
+  toCents(invoice.total_cents) ||
+  toCents(invoice.amount_cents) ||
+  toCents((invoice as Record<string, unknown>).gross_amount_cents);
+
+const net =
+  toCents(invoice.net_cents) ||
+  toCents((invoice as Record<string, unknown>).net_amount_cents);
+
+const tax =
+  toCents(invoice.tax_cents) ||
+  toCents((invoice as Record<string, unknown>).tax_amount_cents);
       const refunded =
         (invoice.purchase_id ? refundsByPurchaseId.get(invoice.purchase_id) ?? 0 : 0) ||
         (invoice.stripe_payment_intent_id ? refundsByPaymentIntent.get(invoice.stripe_payment_intent_id) ?? 0 : 0);
