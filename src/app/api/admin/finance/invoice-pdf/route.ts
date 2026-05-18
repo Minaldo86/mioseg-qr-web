@@ -41,10 +41,10 @@ function uniqueValues(values: Array<string | null | undefined>) {
 function normalizeStoragePath(path: string) {
   return path
     .replace(/^\/+/, "")
+    .replace(/^invoices\//, "")
     .replace(/^qrx-invoices\//, "")
     .replace(/^qrx_invoice\//, "")
-    .replace(/^qrx-invoice\//, "")
-    .replace(/^invoices\//, "");
+    .replace(/^qrx-invoice\//, "");
 }
 
 export async function GET(req: Request) {
@@ -109,12 +109,14 @@ export async function GET(req: Request) {
         ? invoice.storage_bucket
         : null;
 
+    // Wichtig: Deine PDFs liegen laut Supabase Storage im Bucket "invoices".
+    // Deshalb steht "invoices" bewusst vor alten/falschen Bucket-Namen.
     const bucketCandidates = uniqueValues([
+      "invoices",
       storageBucket,
       "qrx-invoices",
       "qrx_invoice",
       "qrx-invoice",
-      "invoices",
     ]);
 
     const pathCandidates = uniqueValues([
@@ -134,7 +136,7 @@ export async function GET(req: Request) {
 
     for (const bucket of bucketCandidates) {
       for (const path of pathCandidates) {
-        const cleanPath = bucket === storageBucket ? path : normalizeStoragePath(path);
+        const cleanPath = normalizeStoragePath(path);
 
         const { data: signed, error: signedError } = await supabaseAdmin.storage
           .from(bucket)
@@ -159,9 +161,9 @@ export async function GET(req: Request) {
         invoiceNumber,
         rawPath,
         storageBucket,
-        attempted: attempts.slice(0, 30),
+        attempted: attempts.slice(0, 40),
         hint:
-          "Die Rechnung ist in qrx_invoices vorhanden, aber die PDF-Datei liegt nicht unter dem gespeicherten Pfad im Supabase Storage. Prüfe Bucket und Objektpfad.",
+          "Die Rechnung existiert, aber die Datei wurde unter keinem getesteten Storage-Pfad gefunden. Prüfe Bucket 'invoices' und den exakten Objektpfad.",
       },
       { status: 404 }
     );
