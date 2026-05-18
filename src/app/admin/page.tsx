@@ -200,6 +200,46 @@ type QrxAdminItem = {
   deleted_by_admin?: boolean | null;
 };
 
+
+type FinancePayoutBatch = {
+  id: string;
+  payment_provider: string | null;
+  provider_payout_id: string | null;
+  payout_reference: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  paid_at: string | null;
+  currency: string | null;
+  gross_cents: number | null;
+  fee_cents: number | null;
+  refund_cents: number | null;
+  net_payout_cents: number | null;
+  invoice_count: number | null;
+  purchase_count: number | null;
+  refund_count: number | null;
+  status: string | null;
+  note: string | null;
+  created_at: string | null;
+};
+
+type FinancePayoutResult = {
+  ok: boolean;
+  from: string;
+  to: string;
+  provider: string;
+  payouts: FinancePayoutBatch[];
+  totals: {
+    batchCount: number;
+    grossCents: number;
+    feeCents: number;
+    refundCents: number;
+    netPayoutCents: number;
+    invoiceCount: number;
+    purchaseCount: number;
+    refundCount: number;
+  };
+};
+
 type PricingConfig = {
   id?: string | number | null;
   launch_discount_enabled?: boolean | null;
@@ -1045,6 +1085,11 @@ export default function AdminPage() {
   const [financeData, setFinanceData] = useState<FinanceResult | null>(null);
   const [financeError, setFinanceError] = useState<string | null>(null);
 
+  const [financePayoutLoading, setFinancePayoutLoading] = useState(false);
+  const [financePayoutData, setFinancePayoutData] = useState<FinancePayoutResult | null>(null);
+  const [financePayoutError, setFinancePayoutError] = useState<string | null>(null);
+
+
 
   const adminTabs: Array<{ key: AdminTab; label: string; hint: string }> = [
     { key: "overview", label: "Übersicht", hint: "Kennzahlen und wichtigste offene Punkte" },
@@ -1153,6 +1198,36 @@ export default function AdminPage() {
       setFinanceError(error instanceof Error ? error.message : "Finanzdaten konnten nicht geladen werden.");
     } finally {
       setFinanceLoading(false);
+    }
+  };
+
+
+  const fetchFinancePayouts = async () => {
+    try {
+      setFinancePayoutLoading(true);
+      setFinancePayoutError(null);
+
+      const params = new URLSearchParams();
+      params.set("from", financeFrom);
+      params.set("to", financeTo);
+      if (financeProvider !== "all") params.set("provider", financeProvider);
+
+      const res = await fetch(`/api/admin/finance/payouts?${params.toString()}`, {
+        cache: "no-store",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Auszahlungen konnten nicht geladen werden.");
+      }
+
+      setFinancePayoutData(data);
+    } catch (error: unknown) {
+      console.error("fetchFinancePayouts error:", error);
+      setFinancePayoutError(error instanceof Error ? error.message : "Auszahlungen konnten nicht geladen werden.");
+    } finally {
+      setFinancePayoutLoading(false);
     }
   };
 
@@ -1439,6 +1514,7 @@ export default function AdminPage() {
     fetchReportedQrx();
     fetchPricing();
     fetchFinance();
+    fetchFinancePayouts();
     fetchAdminActions();
   }, []);
 
@@ -2372,8 +2448,16 @@ export default function AdminPage() {
               </select>
             </label>
 
-            <button type="button" onClick={fetchFinance} disabled={financeLoading} style={{ ...styles.refreshButton, opacity: financeLoading ? 0.65 : 1 }}>
-              {financeLoading ? "Lade…" : "Finanzen laden"}
+            <button
+              type="button"
+              onClick={() => {
+                fetchFinance();
+                fetchFinancePayouts();
+              }}
+              disabled={financeLoading || financePayoutLoading}
+              style={{ ...styles.refreshButton, opacity: financeLoading || financePayoutLoading ? 0.65 : 1 }}
+            >
+              {financeLoading || financePayoutLoading ? "Lade…" : "Finanzen laden"}
             </button>
 
             <button type="button" onClick={downloadFinanceCsv} style={styles.creditButton}>
@@ -2426,6 +2510,91 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+
+          <div style={{ ...styles.commandPanel, marginBottom: 14 }}>
+            <h3 style={styles.panelTitle}>Auszahlungen / Payouts</h3>
+            <p style={{ ...styles.subtleText, marginTop: 0 }}>
+              Vorbereitung für spätere Stripe-, Apple- und Google-Auszahlungen. Aktuell ist die Struktur vorbereitet; echte Payout-Batches können später automatisch oder manuell erzeugt werden.
+            </p>
+
+            {financePayoutError ? (
+              <div style={{ ...styles.resultBox, background: "#3f1111", borderColor: "#991b1b", color: "#fecaca", marginBottom: 14 }}>
+                {financePayoutError}
+              </div>
+            ) : null}
+
+            <div style={styles.dashboardGrid}>
+              <div style={styles.lookupMiniCard}>
+                <div style={styles.lookupMiniLabel}>Payout-Batches</div>
+                <div style={styles.lookupMiniValue}>{financePayoutLoading ? "…" : financePayoutData?.totals?.batchCount ?? 0}</div>
+                <div style={styles.historyNote}>Geladene Auszahlungsgruppen im Zeitraum.</div>
+              </div>
+
+              <div style={styles.lookupMiniCard}>
+                <div style={styles.lookupMiniLabel}>Brutto in Payouts</div>
+                <div style={styles.lookupMiniValue}>{formatPrice(financePayoutData?.totals?.grossCents ?? 0, "EUR")}</div>
+                <div style={styles.historyNote}>Summe zugeordneter Umsätze.</div>
+              </div>
+
+              <div style={styles.lookupMiniCard}>
+                <div style={styles.lookupMiniLabel}>Gebühren</div>
+                <div style={styles.lookupMiniValue}>{formatPrice(financePayoutData?.totals?.feeCents ?? 0, "EUR")}</div>
+                <div style={styles.historyNote}>Stripe/Apple/Google Gebühren, sobald zugeordnet.</div>
+              </div>
+
+              <div style={styles.lookupMiniCard}>
+                <div style={styles.lookupMiniLabel}>Netto-Auszahlung</div>
+                <div style={styles.lookupMiniValue}>{formatPrice(financePayoutData?.totals?.netPayoutCents ?? 0, "EUR")}</div>
+                <div style={styles.historyNote}>Tatsächlich ausgezahlter Betrag.</div>
+              </div>
+            </div>
+
+            <div style={styles.tableWrap}>
+              <table style={styles.dataTable}>
+                <thead>
+                  <tr>
+                    <th style={styles.tableTh}>Provider</th>
+                    <th style={styles.tableTh}>Referenz</th>
+                    <th style={styles.tableTh}>Zeitraum</th>
+                    <th style={styles.tableTh}>Ausgezahlt am</th>
+                    <th style={styles.tableTh}>Brutto</th>
+                    <th style={styles.tableTh}>Gebühr</th>
+                    <th style={styles.tableTh}>Refunds</th>
+                    <th style={styles.tableTh}>Netto Auszahlung</th>
+                    <th style={styles.tableTh}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(financePayoutData?.payouts ?? []).length === 0 ? (
+                    <tr>
+                      <td style={styles.tableTd} colSpan={9}>
+                        Noch keine Payout-Batches vorhanden. Das ist aktuell normal.
+                      </td>
+                    </tr>
+                  ) : (
+                    (financePayoutData?.payouts ?? []).map((payout) => (
+                      <tr key={payout.id}>
+                        <td style={styles.tableTd}>{formatProvider(payout.payment_provider)}</td>
+                        <td style={styles.tableTd}>{payout.provider_payout_id || payout.payout_reference || payout.id}</td>
+                        <td style={styles.tableTd}>
+                          {(payout.period_start || "–") + " bis " + (payout.period_end || "–")}
+                        </td>
+                        <td style={styles.tableTd}>
+                          {payout.paid_at ? new Date(payout.paid_at).toLocaleString("de-DE") : "–"}
+                        </td>
+                        <td style={styles.tableTd}>{formatPrice(payout.gross_cents ?? 0, payout.currency || "EUR")}</td>
+                        <td style={styles.tableTd}>{formatPrice(payout.fee_cents ?? 0, payout.currency || "EUR")}</td>
+                        <td style={styles.tableTd}>{formatPrice(payout.refund_cents ?? 0, payout.currency || "EUR")}</td>
+                        <td style={styles.tableTd}>{formatPrice(payout.net_payout_cents ?? 0, payout.currency || "EUR")}</td>
+                        <td style={styles.tableTd}>{payout.status || "draft"}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
