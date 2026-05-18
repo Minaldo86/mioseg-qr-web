@@ -31,6 +31,7 @@ type AdminTab =
   | "support"
   | "users"
   | "credits"
+  | "finance"
   | "prices"
   | "logs";
 
@@ -224,6 +225,52 @@ type PricingPackDraft = {
   price_cents_regular: string;
   badge: string;
   is_active: boolean;
+};
+
+
+type FinanceInvoiceEntry = {
+  id: string;
+  invoice_number: string | null;
+  user_id: string | null;
+  purchase_id: string | null;
+  stripe_payment_intent_id: string | null;
+  payment_provider: string | null;
+  total_cents: number | null;
+  amount_cents: number | null;
+  tax_cents: number | null;
+  net_cents: number | null;
+  currency: string | null;
+  billing_email: string | null;
+  billing_country_code: string | null;
+  pdf_path: string | null;
+  storage_path: string | null;
+  created_at: string | null;
+  sent_at: string | null;
+};
+
+type FinanceProviderSummary = {
+  provider: string;
+  invoiceCount: number;
+  grossCents: number;
+  netCents: number;
+  taxCents: number;
+  refundedCents: number;
+};
+
+type FinanceResult = {
+  ok: boolean;
+  from: string;
+  to: string;
+  invoices: FinanceInvoiceEntry[];
+  providerSummary: FinanceProviderSummary[];
+  totals: {
+    invoiceCount: number;
+    grossCents: number;
+    netCents: number;
+    taxCents: number;
+    refundedCents: number;
+  };
+  warnings?: string[];
 };
 
 type PricingResult = {
@@ -733,6 +780,57 @@ const styles = {
     fontSize: 18,
     fontWeight: 900,
   } as const,
+
+  tableWrap: {
+    width: "100%",
+    overflowX: "auto",
+    borderRadius: 16,
+    border: "1px solid #243044",
+    background: "#0b1324",
+  } as const,
+  dataTable: {
+    width: "100%",
+    borderCollapse: "collapse" as const,
+    minWidth: 980,
+  } as const,
+  tableTh: {
+    textAlign: "left" as const,
+    padding: "12px 12px",
+    color: "#93a5bd",
+    fontSize: 12,
+    fontWeight: 900,
+    borderBottom: "1px solid #243044",
+    whiteSpace: "nowrap" as const,
+  } as const,
+  tableTd: {
+    padding: "12px 12px",
+    color: "#e2e8f0",
+    fontSize: 13,
+    borderBottom: "1px solid #172133",
+    verticalAlign: "top" as const,
+    whiteSpace: "nowrap" as const,
+  } as const,
+  smallButton: {
+    border: "1px solid #2d3f59",
+    borderRadius: 10,
+    background: "#172133",
+    color: "#f8fafc",
+    padding: "8px 10px",
+    fontWeight: 800,
+    cursor: "pointer",
+    fontSize: 12,
+  } as const,
+  disabledSmallButton: {
+    border: "1px solid #243044",
+    borderRadius: 10,
+    background: "#111827",
+    color: "#64748b",
+    padding: "8px 10px",
+    fontWeight: 800,
+    cursor: "not-allowed",
+    fontSize: 12,
+  } as const,
+
   resultBox: {
     borderRadius: 12,
     padding: 12,
@@ -935,6 +1033,19 @@ export default function AdminPage() {
   const [reviewingQrxId, setReviewingQrxId] = useState<string | null>(null);
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>("overview");
 
+  const todayIsoDate = new Date().toISOString().slice(0, 10);
+  const monthStartIsoDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    .toISOString()
+    .slice(0, 10);
+
+  const [financeFrom, setFinanceFrom] = useState(monthStartIsoDate);
+  const [financeTo, setFinanceTo] = useState(todayIsoDate);
+  const [financeProvider, setFinanceProvider] = useState("all");
+  const [financeLoading, setFinanceLoading] = useState(false);
+  const [financeData, setFinanceData] = useState<FinanceResult | null>(null);
+  const [financeError, setFinanceError] = useState<string | null>(null);
+
+
   const adminTabs: Array<{ key: AdminTab; label: string; hint: string }> = [
     { key: "overview", label: "Übersicht", hint: "Kennzahlen und wichtigste offene Punkte" },
     { key: "verifications", label: "Verifizierungen", hint: "Business-QR-X Nachweise prüfen" },
@@ -942,6 +1053,7 @@ export default function AdminPage() {
     { key: "support", label: "Support", hint: "Tickets und Reklamationen bearbeiten" },
     { key: "users", label: "Nutzer", hint: "Nutzer suchen und QR-X zuordnen" },
     { key: "credits", label: "Credits", hint: "Gutschriften und Credit-Historie" },
+    { key: "finance", label: "Finanzen", hint: "Rechnungen, Umsatz und Steuerexport vorbereiten" },
     { key: "prices", label: "Preise", hint: "Credit-Pakete und Preis-Konfiguration lesen" },
     { key: "logs", label: "Logs", hint: "Letzte Admin-Aktionen prüfen" },
   ];
@@ -993,6 +1105,89 @@ export default function AdminPage() {
         return "Abgebrochen";
       default:
         return status || "Unbekannt";
+    }
+  };
+
+
+  const formatProvider = (value: string | null | undefined) => {
+    const provider = String(value || "stripe").toLowerCase();
+
+    if (provider === "apple") return "Apple App Store";
+    if (provider === "google") return "Google Play";
+    if (provider === "stripe") return "Stripe Web";
+    return provider;
+  };
+
+  const downloadFinanceCsv = () => {
+    if (!financeData?.invoices?.length) {
+      alert("Keine Rechnungen für den Export geladen.");
+      return;
+    }
+
+    const rows = financeData.invoices.map((invoice) => ({
+      invoice_number: invoice.invoice_number || "",
+      created_at: invoice.created_at || "",
+      provider: formatProvider(invoice.payment_provider),
+      user_id: invoice.user_id || "",
+      billing_email: invoice.billing_email || "",
+      country: invoice.billing_country_code || "",
+      gross_cents: invoice.total_cents ?? invoice.amount_cents ?? 0,
+      net_cents: invoice.net_cents ?? "",
+      tax_cents: invoice.tax_cents ?? "",
+      currency: invoice.currency || "EUR",
+      purchase_id: invoice.purchase_id || "",
+      stripe_payment_intent_id: invoice.stripe_payment_intent_id || "",
+      pdf_path: invoice.pdf_path || invoice.storage_path || "",
+    }));
+
+    const headers = Object.keys(rows[0]);
+    const csv = [
+      headers.join(";"),
+      ...rows.map((row) =>
+        headers
+          .map((header) => {
+            const value = String(row[header as keyof typeof row] ?? "");
+            return `"${value.replaceAll('"', '""')}"`;
+          })
+          .join(";")
+      ),
+    ].join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `mioseg-finance-${financeFrom}-bis-${financeTo}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const fetchFinance = async () => {
+    try {
+      setFinanceLoading(true);
+      setFinanceError(null);
+
+      const params = new URLSearchParams();
+      params.set("from", financeFrom);
+      params.set("to", financeTo);
+      if (financeProvider !== "all") params.set("provider", financeProvider);
+
+      const res = await fetch(`/api/admin/finance?${params.toString()}`, {
+        cache: "no-store",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Finanzdaten konnten nicht geladen werden.");
+      }
+
+      setFinanceData(data);
+    } catch (error: unknown) {
+      console.error("fetchFinance error:", error);
+      setFinanceError(error instanceof Error ? error.message : "Finanzdaten konnten nicht geladen werden.");
+    } finally {
+      setFinanceLoading(false);
     }
   };
 
@@ -1278,6 +1473,7 @@ export default function AdminPage() {
     fetchTickets();
     fetchReportedQrx();
     fetchPricing();
+    fetchFinance();
     fetchAdminActions();
   }, []);
 
@@ -2108,6 +2304,24 @@ export default function AdminPage() {
               </button>
             </div>
 
+
+            <div style={styles.metricCard}>
+              <div style={styles.metricLabel}>Finanzen aktueller Zeitraum</div>
+              <div style={styles.metricValue}>
+                {financeLoading ? "…" : formatPrice(financeData?.totals?.grossCents ?? 0, "EUR")}
+              </div>
+              <div style={styles.metricHint}>
+                Rechnungen: {financeData?.totals?.invoiceCount ?? 0} · Refunds: {formatPrice(financeData?.totals?.refundedCents ?? 0, "EUR")}
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveAdminTab("finance")}
+                style={{ ...styles.secondaryLink, marginTop: 12 }}
+              >
+                Finanzen öffnen
+              </button>
+            </div>
+
             <div style={styles.metricCard}>
               <div style={styles.metricLabel}>Letzte Admin-Aktion</div>
               <div style={{ ...styles.metricValue, fontSize: 18 }}>
@@ -2163,6 +2377,146 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
+
+
+        <div style={{ ...styles.commandPanel, marginBottom: 18, display: activeAdminTab === "finance" ? "block" : "none" }}>
+          <h2 style={styles.panelTitle}>Finanzen / Steuer</h2>
+          <p style={{ ...styles.subtleText, marginTop: 0 }}>
+            Vorbereitung für Steuerberater-Export, Rechnungsprüfung und spätere Apple-/Google-Zahlungen.
+            Stripe ist bereits vorgesehen; Apple App Store und Google Play sind als Zahlungsquellen vorbereitet.
+          </p>
+
+          <div style={styles.actionsRow}>
+            <label style={styles.filterWrap}>
+              <span style={styles.filterLabel}>Von</span>
+              <input type="date" value={financeFrom} onChange={(e) => setFinanceFrom(e.target.value)} style={styles.filterSelect} />
+            </label>
+
+            <label style={styles.filterWrap}>
+              <span style={styles.filterLabel}>Bis</span>
+              <input type="date" value={financeTo} onChange={(e) => setFinanceTo(e.target.value)} style={styles.filterSelect} />
+            </label>
+
+            <label style={styles.filterWrap}>
+              <span style={styles.filterLabel}>Quelle</span>
+              <select value={financeProvider} onChange={(e) => setFinanceProvider(e.target.value)} style={styles.filterSelect}>
+                <option value="all">Alle</option>
+                <option value="stripe">Stripe Web</option>
+                <option value="apple">Apple App Store</option>
+                <option value="google">Google Play</option>
+              </select>
+            </label>
+
+            <button type="button" onClick={fetchFinance} disabled={financeLoading} style={{ ...styles.refreshButton, opacity: financeLoading ? 0.65 : 1 }}>
+              {financeLoading ? "Lade…" : "Finanzen laden"}
+            </button>
+
+            <button type="button" onClick={downloadFinanceCsv} disabled={!financeData?.invoices?.length} style={financeData?.invoices?.length ? styles.creditButton : styles.disabledSmallButton}>
+              CSV exportieren
+            </button>
+          </div>
+
+          {financeError ? (
+            <div style={{ ...styles.resultBox, background: "#3f1111", borderColor: "#991b1b", color: "#fecaca", marginBottom: 14 }}>
+              {financeError}
+            </div>
+          ) : null}
+
+          <div style={styles.dashboardGrid}>
+            <div style={styles.metricCard}>
+              <div style={styles.metricLabel}>Brutto Umsatz</div>
+              <div style={styles.metricValue}>{formatPrice(financeData?.totals?.grossCents ?? 0, "EUR")}</div>
+              <div style={styles.metricHint}>Summe aus geladenen Rechnungen im Zeitraum.</div>
+            </div>
+            <div style={styles.metricCard}>
+              <div style={styles.metricLabel}>Netto</div>
+              <div style={styles.metricValue}>{formatPrice(financeData?.totals?.netCents ?? 0, "EUR")}</div>
+              <div style={styles.metricHint}>Falls vorhanden aus qrx_invoices; sonst 0 bis DB erweitert ist.</div>
+            </div>
+            <div style={styles.metricCard}>
+              <div style={styles.metricLabel}>MwSt / Steuer</div>
+              <div style={styles.metricValue}>{formatPrice(financeData?.totals?.taxCents ?? 0, "EUR")}</div>
+              <div style={styles.metricHint}>Vorbereitet für Steuerberater-Export.</div>
+            </div>
+            <div style={styles.metricCard}>
+              <div style={styles.metricLabel}>Erstattungen</div>
+              <div style={styles.metricValue}>{formatPrice(financeData?.totals?.refundedCents ?? 0, "EUR")}</div>
+              <div style={styles.metricHint}>Aus Kaufhistorie, soweit vorhanden.</div>
+            </div>
+          </div>
+
+          <div style={{ ...styles.commandPanel, marginBottom: 14 }}>
+            <h3 style={styles.panelTitle}>Umsatz nach Zahlungsquelle</h3>
+            <div style={styles.dashboardGrid}>
+              {(financeData?.providerSummary ?? [
+                { provider: "stripe", invoiceCount: 0, grossCents: 0, netCents: 0, taxCents: 0, refundedCents: 0 },
+                { provider: "apple", invoiceCount: 0, grossCents: 0, netCents: 0, taxCents: 0, refundedCents: 0 },
+                { provider: "google", invoiceCount: 0, grossCents: 0, netCents: 0, taxCents: 0, refundedCents: 0 },
+              ]).map((item) => (
+                <div key={item.provider} style={styles.lookupMiniCard}>
+                  <div style={styles.lookupMiniLabel}>{formatProvider(item.provider)}</div>
+                  <div style={styles.lookupMiniValue}>{formatPrice(item.grossCents, "EUR")}</div>
+                  <div style={styles.historyNote}>
+                    Rechnungen: {item.invoiceCount} · Netto: {formatPrice(item.netCents, "EUR")} · Steuer: {formatPrice(item.taxCents, "EUR")}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={styles.tableWrap}>
+            <table style={styles.dataTable}>
+              <thead>
+                <tr>
+                  <th style={styles.tableTh}>Rechnung</th>
+                  <th style={styles.tableTh}>Datum</th>
+                  <th style={styles.tableTh}>Quelle</th>
+                  <th style={styles.tableTh}>E-Mail</th>
+                  <th style={styles.tableTh}>Land</th>
+                  <th style={styles.tableTh}>Brutto</th>
+                  <th style={styles.tableTh}>Netto</th>
+                  <th style={styles.tableTh}>Steuer</th>
+                  <th style={styles.tableTh}>PDF</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(financeData?.invoices ?? []).length === 0 ? (
+                  <tr>
+                    <td style={styles.tableTd} colSpan={9}>Noch keine Rechnungen geladen oder keine Treffer im Zeitraum.</td>
+                  </tr>
+                ) : (
+                  (financeData?.invoices ?? []).map((invoice) => {
+                    const pdfPath = invoice.pdf_path || invoice.storage_path;
+                    return (
+                      <tr key={invoice.id}>
+                        <td style={styles.tableTd}>{invoice.invoice_number || invoice.id}</td>
+                        <td style={styles.tableTd}>{invoice.created_at ? new Date(invoice.created_at).toLocaleString("de-DE") : "–"}</td>
+                        <td style={styles.tableTd}>{formatProvider(invoice.payment_provider)}</td>
+                        <td style={styles.tableTd}>{invoice.billing_email || "–"}</td>
+                        <td style={styles.tableTd}>{invoice.billing_country_code || "–"}</td>
+                        <td style={styles.tableTd}>{formatPrice(invoice.total_cents ?? invoice.amount_cents ?? 0, invoice.currency || "EUR")}</td>
+                        <td style={styles.tableTd}>{formatPrice(invoice.net_cents ?? 0, invoice.currency || "EUR")}</td>
+                        <td style={styles.tableTd}>{formatPrice(invoice.tax_cents ?? 0, invoice.currency || "EUR")}</td>
+                        <td style={styles.tableTd}>
+                          {pdfPath ? (
+                            <a href={`/api/admin/finance/invoice-pdf?id=${encodeURIComponent(invoice.id)}`} target="_blank" rel="noreferrer" style={styles.secondaryLink}>PDF öffnen</a>
+                          ) : (
+                            <span style={styles.subtleText}>Kein PDF</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {financeData?.warnings?.length ? (
+            <div style={{ ...styles.historyBox, color: "#fde68a" }}>Hinweise: {financeData.warnings.join(" · ")}</div>
+          ) : null}
+        </div>
+
 
         <div style={{ ...styles.commandPanel, marginBottom: 18, display: activeAdminTab === "users" ? "block" : "none" }}>
           <h2 style={styles.panelTitle}>Nutzer-Suche</h2>
