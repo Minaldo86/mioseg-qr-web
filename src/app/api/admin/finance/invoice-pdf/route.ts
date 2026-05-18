@@ -65,6 +65,10 @@ export async function GET(req: Request) {
           ? invoice.storage_path
           : null;
 
+    const normalizedPath = path
+      ?.replace(/^qrx-invoices\//, "")
+      ?.replace(/^\/+/g, "");
+
     if (!path) {
       return Response.json({ error: "Für diese Rechnung ist noch kein PDF-Pfad hinterlegt." }, { status: 404 });
     }
@@ -76,7 +80,7 @@ export async function GET(req: Request) {
 
     const { data: signed, error: signedError } = await supabaseAdmin.storage
       .from(bucket)
-      .createSignedUrl(path, 60 * 5);
+      .createSignedUrl(normalizedPath, 60 * 10);
 
     if (signedError || !signed?.signedUrl) {
       return Response.json(
