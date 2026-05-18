@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 const encoder = new TextEncoder();
 
-function json(obj: any, status = 200) {
+function json(obj: unknown, status = 200) {
   return Response.json(obj, { status });
 }
 
@@ -116,7 +116,11 @@ export async function POST(req: Request) {
       protected: true,
       accessGranted: valid,
     });
-  } catch (error: any) {
-    return json({ error: error?.message || "Server error" }, 500);
+  } catch (error: unknown) {
+
+    return json(
+      { error: error instanceof Error ? error.message : "Server error" },
+      500
+    );
   }
 }

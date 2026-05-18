@@ -1072,8 +1072,8 @@ export default function AdminPage() {
 
       setPricingMessage(`Launch-Rabatt wurde ${nextValue ? "aktiviert" : "deaktiviert"}.`);
       await fetchPricing();
-    } catch (error: any) {
-      alert(error?.message || "Launch-Rabatt konnte nicht geändert werden.");
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : "Launch-Rabatt konnte nicht geändert werden.");
     } finally {
       setPricingConfigSaving(false);
     }
@@ -1149,8 +1149,8 @@ export default function AdminPage() {
 
       setPricingMessage(`Paket ${pack.id} wurde gespeichert.`);
       await fetchPricing();
-    } catch (error: any) {
-      alert(error?.message || "Paket konnte nicht gespeichert werden.");
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : "Paket konnte nicht gespeichert werden.");
     } finally {
       setPricingSavingId(null);
     }
@@ -1447,9 +1447,9 @@ export default function AdminPage() {
 
       setNotes((prev) => ({ ...prev, [requestId]: "" }));
       await fetchRequests();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleReview error:", error);
-      alert(error?.message || "Aktion fehlgeschlagen");
+      alert(error instanceof Error ? error.message : "Aktion fehlgeschlagen");
     } finally {
       setWorkingId(null);
     }
@@ -1493,9 +1493,9 @@ export default function AdminPage() {
       );
       setCreditNote("");
       await fetchAdminActions();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleAddCredits error:", error);
-      alert(error?.message || "Credits konnten nicht gebucht werden.");
+      alert(error instanceof Error ? error.message : "Credits konnten nicht gebucht werden.");
     } finally {
       setCreditWorking(false);
     }
@@ -1524,9 +1524,9 @@ export default function AdminPage() {
       }
 
       setCreditHistory(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleFetchCreditHistory error:", error);
-      alert(error?.message || "Credit-Historie konnte nicht geladen werden.");
+      alert(error instanceof Error ? error.message : "Credit-Historie konnte nicht geladen werden.");
     } finally {
       setHistoryLoading(false);
     }
@@ -1570,9 +1570,9 @@ export default function AdminPage() {
 
       await handleFetchCreditHistory();
       await fetchAdminActions();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleRefundPurchase error:", error);
-      alert(error?.message || "Erstattung konnte nicht durchgeführt werden.");
+      alert(error instanceof Error ? error.message : "Erstattung konnte nicht durchgeführt werden.");
     } finally {
       setRefundWorkingPurchaseId(null);
     }
@@ -1613,9 +1613,9 @@ export default function AdminPage() {
       setTicketQrxId("");
       await fetchTickets();
       await fetchAdminActions();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleCreateTicket error:", error);
-      alert(error?.message || "Supportfall konnte nicht angelegt werden.");
+      alert(error instanceof Error ? error.message : "Supportfall konnte nicht angelegt werden.");
     } finally {
       setTicketWorking(false);
     }
@@ -1655,9 +1655,9 @@ export default function AdminPage() {
       await fetchTickets();
       await fetchAdminActions();
       await handleFetchCreditHistory();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleUpdateTicketStatus error:", error);
-      alert(error?.message || "Supportfall konnte nicht aktualisiert werden.");
+      alert(error instanceof Error ? error.message : "Supportfall konnte nicht aktualisiert werden.");
     }
   };
 
@@ -1721,9 +1721,9 @@ export default function AdminPage() {
       await fetchAdminActions();
 
       alert("QR-X wurde gesperrt.");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleSuspendTicketQrx error:", error);
-      alert(error?.message || "QR-X konnte nicht gesperrt werden.");
+      alert(error instanceof Error ? error.message : "QR-X konnte nicht gesperrt werden.");
     }
   };
 
@@ -1758,9 +1758,9 @@ export default function AdminPage() {
         setHistoryUserId(data.userId);
         setTicketUserId(data.userId);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleUserLookup error:", error);
-      alert(error?.message || "Nutzer konnte nicht gefunden werden.");
+      alert(error instanceof Error ? error.message : "Nutzer konnte nicht gefunden werden.");
     } finally {
       setUserLookupLoading(false);
     }
@@ -1828,9 +1828,9 @@ export default function AdminPage() {
 
       await handleUserLookup();
       await fetchAdminActions();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleUserModerationAction error:", error);
-      alert(error?.message || "Aktion konnte nicht durchgeführt werden.");
+      alert(error instanceof Error ? error.message : "Aktion konnte nicht durchgeführt werden.");
     } finally {
       setUserModerationWorking(false);
     }
@@ -1861,9 +1861,9 @@ export default function AdminPage() {
       setQrxAdminItem(data.qrx);
       setQrxLookupId(data.qrx?.id || qrxId);
       setQrxSuspendReason(data.qrx?.suspended_reason || "");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleQrxLookup error:", error);
-      alert(error?.message || "QR-X konnte nicht geladen werden.");
+      alert(error instanceof Error ? error.message : "QR-X konnte nicht geladen werden.");
     } finally {
       setQrxLookupLoading(false);
     }
@@ -1901,9 +1901,9 @@ export default function AdminPage() {
       await fetchAdminActions();
 
       alert("QR-X wurde als geprüft markiert.");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleMarkQrxReviewed error:", error);
-      alert(error?.message || "QR-X konnte nicht als geprüft markiert werden.");
+      alert(error instanceof Error ? error.message : "QR-X konnte nicht als geprüft markiert werden.");
     } finally {
       setReviewingQrxId(null);
     }
@@ -1943,9 +1943,9 @@ export default function AdminPage() {
       setQrxSuspendReason(data.qrx?.suspended_reason || "");
       await fetchReportedQrx();
       await fetchAdminActions();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleSetQrxSuspended error:", error);
-      alert(error?.message || "QR-X Status konnte nicht geändert werden.");
+      alert(error instanceof Error ? error.message : "QR-X Status konnte nicht geändert werden.");
     } finally {
       setQrxActionWorking(false);
     }
@@ -2001,9 +2001,9 @@ export default function AdminPage() {
       await fetchAdminActions();
 
       alert(isDelete ? "QR-X wurde gelöscht." : "QR-X wurde wiederhergestellt.");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("handleSetQrxDeleted error:", error);
-      alert(error?.message || "QR-X Aktion konnte nicht durchgeführt werden.");
+      alert(error instanceof Error ? error.message : "QR-X Aktion konnte nicht durchgeführt werden.");
     } finally {
       setQrxActionWorking(false);
     }

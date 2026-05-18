@@ -53,8 +53,13 @@ export default function QrxPasswordGate({
       }
 
       setErrorText("Falsches Passwort. Bitte prüfe deine Eingabe.");
-    } catch (error: any) {
-      setErrorText(error?.message || "Passwort konnte nicht geprüft werden.");
+    } catch (error: unknown) {
+
+      setErrorText(
+        error instanceof Error
+          ? error.message
+          : "Passwort konnte nicht geprüft werden."
+      );
     } finally {
       setChecking(false);
     }
