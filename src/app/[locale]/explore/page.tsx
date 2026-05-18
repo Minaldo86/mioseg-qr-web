@@ -185,9 +185,9 @@ export default async function ExplorePage({
       <div
         key={key}
         onClick={() => {
-          if (typeof window !== "undefined" && (window as any).focusMarker) {
-            (window as any).focusMarker(entry.id);
-          }
+          if (typeof window === "undefined") return;
+          const focusMarker = (window as Window & { focusMarker?: (id: string) => void }).focusMarker;
+          if (focusMarker) focusMarker(entry.id);
         }}
       >
         <Link

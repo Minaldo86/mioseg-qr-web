@@ -16,9 +16,36 @@ type MapPoint = {
   longitude: number;
 };
 
+type LeafletLatLng = unknown;
+
+type LeafletMarker = {
+  addTo: (map: LeafletMap) => LeafletMarker;
+  bindPopup: (html: string) => LeafletMarker;
+  openPopup: () => LeafletMarker;
+  getLatLng: () => LeafletLatLng;
+};
+
+type LeafletMap = {
+  setView: (center: [number, number] | LeafletLatLng, zoom: number, options?: { animate?: boolean }) => LeafletMap;
+  fitBounds: (bounds: [number, number][], options?: { padding?: [number, number] }) => LeafletMap;
+  remove: () => void;
+};
+
+type LeafletApi = {
+  map: (element: HTMLElement) => LeafletMap;
+  tileLayer: (url: string) => { addTo: (map: LeafletMap) => unknown };
+  divIcon: (options: {
+    className: string;
+    html: string;
+    iconSize: [number, number];
+    iconAnchor: [number, number];
+  }) => unknown;
+  marker: (latLng: [number, number], options?: { icon?: unknown }) => LeafletMarker;
+};
+
 declare global {
   interface Window {
-    L?: any;
+    L?: LeafletApi;
     focusMarker?: (id: string) => void;
   }
 }
@@ -31,7 +58,7 @@ function escapeHtml(value: string) {
     .replaceAll('"', "&quot;");
 }
 
-async function ensureLeaflet() {
+async function ensureLeaflet(): Promise<LeafletApi | null> {
   if (typeof window === "undefined") return null;
   if (window.L) return window.L;
 
@@ -64,8 +91,8 @@ export default function ExploreMapClient({
   userLng: number | null;
 }) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<Record<string, any>>({});
+  const mapRef = useRef<LeafletMap | null>(null);
+  const markersRef = useRef<Record<string, LeafletMarker>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -76,16 +103,12 @@ export default function ExploreMapClient({
       if (!L || cancelled) return;
 
       const fallbackCenter: [number, number] =
-        points.length > 0
-          ? [points[0].latitude, points[0].longitude]
-          : [51.0, 9.0];
+        points.length > 0 ? [points[0].latitude, points[0].longitude] : [51.0, 9.0];
 
-      const map = L.map(mapElRef.current).setView(
-        hasUserLocation && userLat && userLng
-          ? [userLat, userLng]
-          : fallbackCenter,
-        hasUserLocation ? 11 : 6
-      );
+      const center: [number, number] =
+        hasUserLocation && userLat != null && userLng != null ? [userLat, userLng] : fallbackCenter;
+
+      const map = L.map(mapElRef.current).setView(center, hasUserLocation ? 11 : 6);
 
       mapRef.current = map;
 
@@ -131,7 +154,6 @@ export default function ExploreMapClient({
         map.fitBounds(bounds, { padding: [40, 40] });
       }
 
-      // 🔥 Verbindung Karten ↔ Map
       window.focusMarker = (id: string) => {
         const marker = markersRef.current[id];
         if (!marker) return;
@@ -145,11 +167,14 @@ export default function ExploreMapClient({
 
     return () => {
       cancelled = true;
+      window.focusMarker = undefined;
       if (mapRef.current) {
         mapRef.current.remove();
+        mapRef.current = null;
       }
+      markersRef.current = {};
     };
-  }, [points]);
+  }, [points, hasUserLocation, userLat, userLng]);
 
   return (
     <div
