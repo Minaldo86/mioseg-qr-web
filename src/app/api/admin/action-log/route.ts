@@ -48,9 +48,9 @@ export async function GET(req: Request) {
     }
 
     return Response.json(data ?? []);
-  } catch (e: any) {
+  } catch (e: unknown) {
     return Response.json(
-      { error: e?.message || "Server error" },
+      { error: e instanceof Error ? e.message : "Server error" },
       { status: 500 }
     );
   }
