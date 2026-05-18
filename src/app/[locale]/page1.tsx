@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 type Props = {
   params: Promise<{
@@ -76,9 +77,12 @@ export default async function Page({ params }: Props) {
             {text.badge}
           </div>
 
-          <img
+          <Image
             src="/logo-white.png"
             alt="mioseg qr Logo"
+            width={320}
+            height={120}
+            priority
             style={{
               width: "320px",
               maxWidth: "100%",
@@ -266,9 +270,11 @@ export default async function Page({ params }: Props) {
                   flexShrink: 0,
                 }}
               >
-                <img
+                <Image
                   src="/logo-white.png"
                   alt="mioseg qr"
+                  width={80}
+                  height={80}
                   style={{
                     width: "100%",
                     height: "100%",
