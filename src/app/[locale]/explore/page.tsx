@@ -1,5 +1,5 @@
 import Link from "next/link";
-import styles from "../[locale]/home-page.module.css";
+import styles from "../home-page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import ExploreMapClient from "./ExploreMapClient";
 
