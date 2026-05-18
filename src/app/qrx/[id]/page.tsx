@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { headers } from "next/headers";
 import TrackViewClient from "./TrackViewClient";
 import QrxReportForm from "./QrxReportForm";
+import QrxPasswordGate from "./QrxPasswordGate";
 
 type NewsItem = { text: string; createdAt: string };
 
@@ -24,6 +25,10 @@ type QrxEntry = {
   company_name: string | null;
   suspended: boolean | null;
   suspended_reason: string | null;
+  deleted_at: string | null;
+  deleted_reason: string | null;
+  deleted_by_admin: boolean | null;
+  password_protected: boolean | null;
 };
 
 type QrxMedia = {
@@ -119,7 +124,11 @@ export default async function QrxPage({
       cta_navigation,
       company_name,
       suspended,
-      suspended_reason
+      suspended_reason,
+      deleted_at,
+      deleted_reason,
+      deleted_by_admin,
+      password_protected
     `)
     .eq("id", qrxId)
     .maybeSingle()
@@ -142,6 +151,10 @@ export default async function QrxPage({
     entryErr: toErrorMessage(entryErr),
     suspended: entry?.suspended ?? null,
     suspendedReason: entry?.suspended_reason ?? null,
+    deletedAt: entry?.deleted_at ?? null,
+    deletedReason: entry?.deleted_reason ?? null,
+    deletedByAdmin: entry?.deleted_by_admin ?? null,
+    passwordProtected: entry?.password_protected ?? null,
     mediaCount: (media ?? []).length,
     mediaErr: toErrorMessage(mediaErr),
     env: {
@@ -157,6 +170,21 @@ export default async function QrxPage({
         <div className={styles.card}>
           <h1 className={styles.title}>404</h1>
           <p className={styles.sub}>QR-X wurde nicht gefunden oder wurde gelöscht.</p>
+          {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
+        </div>
+      </main>
+    );
+  }
+
+  if (entry.deleted_at) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>QR-X nicht verfügbar</h1>
+          <p className={styles.sub}>
+            Dieser QR-X ist nicht mehr verfügbar.
+          </p>
+
           {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
         </div>
       </main>
@@ -213,7 +241,8 @@ export default async function QrxPage({
     <main className={styles.page}>
       <TrackViewClient qrxId={qrxId} />
 
-      {!isBusiness ? (
+      <QrxPasswordGate qrxId={qrxId} enabled={entry.password_protected === true}>
+        {!isBusiness ? (
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>{entry.title}</h1>
@@ -420,6 +449,7 @@ export default async function QrxPage({
 </section>
 
       <div className={styles.footer}>mioseg qr • QR-X Web</div>
+      </QrxPasswordGate>
     </main>
   );
 }

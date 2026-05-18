@@ -137,33 +137,56 @@ export async function POST(req: Request) {
     const stripe = getStripe();
     const origin = getOrigin(req);
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      success_url: `${origin}/credits-test?success=1&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/credits-test?canceled=1`,
-      client_reference_id: userId,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency,
-            unit_amount: amount,
-            product_data: {
-              name: `${pack.credits} mioseg qr Credits`,
-              description: pack.badge ? `Paket ${pack.id} · ${pack.badge}` : `Paket ${pack.id}`,
-            },
-          },
+const session = await stripe.checkout.sessions.create({
+  mode: "payment",
+  payment_method_types: ["card"],
+
+  success_url: `${origin}/credits-test?success=1&session_id={CHECKOUT_SESSION_ID}`,
+  cancel_url: `${origin}/credits-test?canceled=1`,
+
+  client_reference_id: userId,
+
+  // 🔥 WICHTIG für Rechnung
+  billing_address_collection: "required",
+  customer_creation: "always",
+  phone_number_collection: { enabled: true },
+  tax_id_collection: { enabled: true },
+
+  line_items: [
+    {
+      quantity: 1,
+      price_data: {
+        currency,
+        unit_amount: amount,
+        product_data: {
+          name: `${pack.credits} mioseg qr Credits`,
+          description: pack.badge
+            ? `Paket ${pack.id} · ${pack.badge}`
+            : `Paket ${pack.id}`,
         },
-      ],
-      metadata: {
-        userId,
-        packId: pack.id,
-        credits: String(pack.credits),
-        amountCents: String(amount),
-        source: "web_test_checkout",
       },
-    });
+    },
+  ],
+
+  // 🔥 GANZ WICHTIG: payment_intent_data
+  payment_intent_data: {
+    metadata: {
+      user_id: userId,
+      pack_id: pack.id,
+      credits: String(pack.credits),
+      amount_cents: String(amount),
+      source: "web_checkout",
+
+      // Diese werden später aus Stripe ergänzt
+      billing_email: "",
+      billing_name: "",
+      billing_street: "",
+      billing_postal_code: "",
+      billing_city: "",
+      billing_country_code: "",
+    },
+  },
+});
 
     return Response.json({
       ok: true,
