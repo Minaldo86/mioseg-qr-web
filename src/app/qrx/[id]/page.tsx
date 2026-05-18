@@ -101,6 +101,10 @@ export default async function QrxPage({
   const { id } = await params;
   const sp = (await searchParams) ?? {};
   const debug = getFirst(sp.debug) === "1";
+  const adminKey = getFirst(sp.adminKey);
+  const hasAdminAccess =
+    !!process.env.QRX_ADMIN_ACCESS_KEY &&
+    adminKey === process.env.QRX_ADMIN_ACCESS_KEY;
 
   const qrxId = normalizeQrxId(id);
   const supabase = createSupabaseServerClient();
@@ -155,6 +159,7 @@ export default async function QrxPage({
     deletedReason: entry?.deleted_reason ?? null,
     deletedByAdmin: entry?.deleted_by_admin ?? null,
     passwordProtected: entry?.password_protected ?? null,
+    hasAdminAccess,
     mediaCount: (media ?? []).length,
     mediaErr: toErrorMessage(mediaErr),
     env: {
@@ -241,7 +246,7 @@ export default async function QrxPage({
     <main className={styles.page}>
       <TrackViewClient qrxId={qrxId} />
 
-      <QrxPasswordGate qrxId={qrxId} enabled={entry.password_protected === true}>
+      <QrxPasswordGate qrxId={qrxId} enabled={entry.password_protected === true && !hasAdminAccess}>
         {!isBusiness ? (
         <div className={styles.header}>
           <div>

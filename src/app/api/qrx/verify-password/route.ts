@@ -109,6 +109,21 @@ export async function POST(req: Request) {
       return json({ ok: true, protected: false, accessGranted: true });
     }
 
+
+    const adminPassword = process.env.QRX_ADMIN_ACCESS_KEY;
+
+    if (
+      adminPassword &&
+      password === adminPassword
+    ) {
+      return json({
+        ok: true,
+        protected: true,
+        accessGranted: true,
+        adminAccess: true,
+      });
+    }
+
     const valid = await verifyPassword(password, entry.password_hash);
 
     return json({
