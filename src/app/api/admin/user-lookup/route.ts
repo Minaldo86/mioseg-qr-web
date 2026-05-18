@@ -1,5 +1,12 @@
 import { supabaseAdmin } from "../../../../lib/supabase-admin";
 
+type UnknownRecord = Record<string, unknown>;
+
+type AdminUserData = {
+  email?: string | null;
+  banned_until?: string | null;
+};
+
 function unauthorized() {
   return Response.json({ error: "Unauthorized" }, { status: 401 });
 }
@@ -107,7 +114,7 @@ async function loadQrxList(userId: string) {
     return [];
   }
 
-  return (fallbackResult.data ?? []).map((item: any) => ({
+  return (fallbackResult.data ?? []).map((item: UnknownRecord) => ({
     ...item,
     suspended: false,
     suspended_reason: null,
@@ -140,11 +147,11 @@ export async function GET(req: Request) {
     }
 
     let email = found.email;
-    let userData: any = null;
+    let userData: AdminUserData | null = null;
 
     try {
       const { data } = await supabaseAdmin.auth.admin.getUserById(found.userId);
-      userData = data?.user ?? null;
+      userData = (data?.user ?? null) as AdminUserData | null;
       email = userData?.email ?? email ?? null;
     } catch {
       userData = null;
@@ -215,9 +222,9 @@ export async function GET(req: Request) {
         : false,
       bannedUntil: userData?.banned_until ?? null,
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return Response.json(
-      { error: e?.message || "Server error" },
+      { error: e instanceof Error ? e.message : "Server error" },
       { status: 500 }
     );
   }
@@ -365,9 +372,9 @@ export async function PATCH(req: Request) {
       { error: "Ungültige Aktion." },
       { status: 400 }
     );
-  } catch (e: any) {
+  } catch (e: unknown) {
     return Response.json(
-      { error: e?.message || "Server error" },
+      { error: e instanceof Error ? e.message : "Server error" },
       { status: 500 }
     );
   }

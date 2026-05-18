@@ -1,5 +1,13 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+type QrxStatusBody = {
+  qrxId?: unknown;
+  moderationAction?: unknown;
+  suspended?: unknown;
+  reason?: unknown;
+  deleteAction?: unknown;
+};
+
 const QRX_SELECT =
   "id, owner_user_id, title, type, verified, company_name, category, created_at, updated_at, suspended, suspended_reason, suspended_at, report_count, report_score, moderation_status, moderation_flagged_at, auto_suspended_at, deleted_at, deleted_reason, deleted_by_admin";
 
@@ -120,7 +128,7 @@ export async function PATCH(req: Request) {
       return unauthorized();
     }
 
-    const body = await req.json();
+    const body = (await req.json()) as QrxStatusBody;
 
     const qrxId = String(body?.qrxId || "").trim();
     const moderationAction =
