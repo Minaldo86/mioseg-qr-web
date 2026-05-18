@@ -206,9 +206,9 @@ export async function POST(req: Request) {
       refunded: !requestRow.refund_done,
       refundedAmount: !requestRow.refund_done ? refundAmount : 0,
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     return Response.json(
-      { error: e?.message || "Server error" },
+      { error: e instanceof Error ? e.message : "Server error" },
       { status: 500 }
     );
   }

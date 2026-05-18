@@ -3,6 +3,28 @@ import { supabaseAdmin } from "../../../../lib/supabase-admin";
 const QRX_VERIFICATION_BUCKET = "qrx-verification-documents";
 const DEFAULT_SITE_URL = "https://mioseg-qr.com";
 
+type VerificationRequestRow = {
+  id: string;
+  qrx_id: string | null;
+  owner_user_id: string | null;
+  status: string | null;
+  document_filename: string | null;
+  document_type: string | null;
+  document_path: string | null;
+  created_at: string | null;
+  qr_x_entries?: {
+    title?: string | null;
+    company_name?: string | null;
+    category?: string | null;
+    verified?: boolean | null;
+  } | {
+    title?: string | null;
+    company_name?: string | null;
+    category?: string | null;
+    verified?: boolean | null;
+  }[] | null;
+};
+
 function buildWaitingInfo(createdAt: string | null) {
   if (!createdAt) {
     return {
@@ -60,7 +82,7 @@ export async function GET() {
     const siteBaseUrl = (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, "");
 
     const enriched = await Promise.all(
-      (data ?? []).map(async (item: any) => {
+      (data ?? []).map(async (item: VerificationRequestRow) => {
         let signedDocumentUrl: string | null = null;
 
         if (item.document_path) {
@@ -98,9 +120,9 @@ export async function GET() {
     );
 
     return Response.json(enriched);
-  } catch (e: any) {
+  } catch (e: unknown) {
     return Response.json(
-      { error: e?.message || "Server error" },
+      { error: e instanceof Error ? e.message : "Server error" },
       { status: 500 }
     );
   }

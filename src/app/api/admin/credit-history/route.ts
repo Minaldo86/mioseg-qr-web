@@ -116,20 +116,20 @@ export async function GET(req: Request) {
 
     const purchaseRows = Array.isArray(purchases) ? purchases : [];
 
-    const totalPurchasedCredits = purchaseRows.reduce((sum, row: any) => {
-      const status = String(row?.status || "").toLowerCase();
+    const totalPurchasedCredits = purchaseRows.reduce((sum, row: Record<string, unknown>) => {
+      const status = String(row.status || "").toLowerCase();
       if (status && !["paid", "succeeded", "completed"].includes(status)) return sum;
-      return sum + toNumber(row?.credits);
+      return sum + toNumber(row.credits);
     }, 0);
 
-    const totalPaidCents = purchaseRows.reduce((sum, row: any) => {
-      const status = String(row?.status || "").toLowerCase();
+    const totalPaidCents = purchaseRows.reduce((sum, row: Record<string, unknown>) => {
+      const status = String(row.status || "").toLowerCase();
       if (status && !["paid", "succeeded", "completed"].includes(status)) return sum;
-      return sum + toNumber(row?.amount_cents);
+      return sum + toNumber(row.amount_cents);
     }, 0);
 
-    const totalRefundedCents = purchaseRows.reduce((sum, row: any) => {
-      return sum + toNumber(row?.refunded_cents) + toNumber(row?.refunded_amount_cents);
+    const totalRefundedCents = purchaseRows.reduce((sum, row: Record<string, unknown>) => {
+      return sum + toNumber(row.refunded_cents) + toNumber(row.refunded_amount_cents);
     }, 0);
 
     return Response.json({
