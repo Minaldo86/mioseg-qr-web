@@ -582,6 +582,32 @@ const ADMIN_I18N = {
     admin_action_launch_discount_updated: "Launch-Rabatt geändert",
     admin_action_refund_created: "Erstattung erstellt",
     admin_action_unknown: "{{action}}",
+
+    prices_section_title: "Preis-/Credit-Konfiguration",
+    prices_section_hint: "Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web die Preise aus Supabase laden.",
+    prices_refresh: "Preise aktualisieren",
+    prices_disable_launch_discount: "Launch-Rabatt deaktivieren",
+    prices_enable_launch_discount: "Launch-Rabatt aktivieren",
+    prices_launch_discount_card: "Launch-Rabatt",
+    prices_currency_card: "Währung",
+    prices_active_packs_card: "Aktive Pakete",
+    prices_daily_limit_card: "Tageslimit Admin-Credits",
+    prices_launch_discount_active: "Aktiv",
+    prices_launch_discount_inactive: "Inaktiv",
+    prices_launch_discount_hint: "Steuert, ob Launch- oder Normalpreise relevant sind.",
+    prices_currency_hint: "Währung aus der Pricing-Konfiguration.",
+    prices_active_packs_hint: "Pakete, die aktuell aktiv markiert sind.",
+    prices_daily_limit_hint: "Heute noch manuell gutzuschreibende Credits.",
+    prices_launch_price_cents: "Launch-Preis in Cent",
+    prices_regular_price_cents: "Normalpreis in Cent",
+    prices_badge: "Badge",
+    prices_badge_placeholder: "z. B. Beliebt",
+    prices_pack_active: "Paket aktiv",
+    prices_save_pack: "Paket speichern",
+    prices_updated_at: "Aktualisiert",
+    prices_id: "ID",
+    prices_sorting: "Sortierung",
+    prices_credits_label: "Credits",
 },
   en: {
     language_de: "Deutsch",
@@ -835,6 +861,32 @@ const ADMIN_I18N = {
     admin_action_launch_discount_updated: "Launch discount changed",
     admin_action_refund_created: "Refund created",
     admin_action_unknown: "{{action}}",
+
+    prices_section_title: "Price / credit configuration",
+    prices_section_hint: "Manage credit packs carefully. Changes apply directly once app/web load prices from Supabase.",
+    prices_refresh: "Refresh prices",
+    prices_disable_launch_discount: "Disable launch discount",
+    prices_enable_launch_discount: "Enable launch discount",
+    prices_launch_discount_card: "Launch discount",
+    prices_currency_card: "Currency",
+    prices_active_packs_card: "Active packs",
+    prices_daily_limit_card: "Daily admin credit limit",
+    prices_launch_discount_active: "Active",
+    prices_launch_discount_inactive: "Inactive",
+    prices_launch_discount_hint: "Controls whether launch or regular prices are relevant.",
+    prices_currency_hint: "Currency from the pricing configuration.",
+    prices_active_packs_hint: "Packs currently marked as active.",
+    prices_daily_limit_hint: "Credits that can still be granted manually today.",
+    prices_launch_price_cents: "Launch price in cents",
+    prices_regular_price_cents: "Regular price in cents",
+    prices_badge: "Badge",
+    prices_badge_placeholder: "e.g. Popular",
+    prices_pack_active: "Pack active",
+    prices_save_pack: "Save pack",
+    prices_updated_at: "Updated",
+    prices_id: "ID",
+    prices_sorting: "Sort order",
+    prices_credits_label: "Credits",
 },
 } as const;
 
@@ -4173,9 +4225,9 @@ export default function AdminPage() {
         <div style={{ ...styles.commandPanel, marginBottom: 18, display: activeAdminTab === "prices" ? "block" : "none" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <div>
-              <h2 style={styles.panelTitle}>Preis-/Credit-Konfiguration</h2>
+              <h2 style={styles.panelTitle}>{tAdmin("prices_section_title")}</h2>
               <p style={{ ...styles.subtleText, marginTop: 0, marginBottom: 10 }}>
-Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web die Preise aus Supabase laden.
+{tAdmin("prices_section_hint")}
               </p>
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -4210,35 +4262,35 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
             <div style={{ display: "grid", gap: 14 }}>
               <div style={styles.dashboardGrid}>
                 <div style={styles.metricCard}>
-                  <div style={styles.metricLabel}>Launch-Rabatt</div>
+                  <div style={styles.metricLabel}>{tAdmin("prices_launch_discount_card")}</div>
                   <div style={styles.metricValue}>
                     {pricingData.pricingConfig?.launch_discount_enabled ? "Aktiv" : "Inaktiv"}
                   </div>
-                  <div style={styles.metricHint}>Steuert, ob Launch- oder Normalpreise relevant sind.</div>
+                  <div style={styles.metricHint}>{tAdmin("prices_launch_discount_hint")}</div>
                 </div>
 
                 <div style={styles.metricCard}>
-                  <div style={styles.metricLabel}>Währung</div>
+                  <div style={styles.metricLabel}>{tAdmin("prices_currency_card")}</div>
                   <div style={styles.metricValue}>{pricingData.pricingConfig?.currency || "EUR"}</div>
-                  <div style={styles.metricHint}>Währung aus der Pricing-Konfiguration.</div>
+                  <div style={styles.metricHint}>{tAdmin("prices_currency_hint")}</div>
                 </div>
 
                 <div style={styles.metricCard}>
-                  <div style={styles.metricLabel}>Aktive Pakete</div>
+                  <div style={styles.metricLabel}>{tAdmin("prices_active_packs_card")}</div>
                   <div style={styles.metricValue}>
                     {pricingData.pricingPacks.filter((pack) => pack.is_active).length}
                   </div>
-                  <div style={styles.metricHint}>Pakete, die aktuell aktiv markiert sind.</div>
+                  <div style={styles.metricHint}>{tAdmin("prices_active_packs_hint")}</div>
                 </div>
 
                 <div style={styles.metricCard}>
-                  <div style={styles.metricLabel}>Tageslimit Admin-Credits</div>
+                  <div style={styles.metricLabel}>{tAdmin("prices_daily_limit_card")}</div>
                   <div style={styles.metricValue}>
                     {pricingData.limits
                       ? `${pricingData.limits.remainingCreditsToday}/${pricingData.limits.maxDailyCreditGrant}`
                       : "–"}
                   </div>
-                  <div style={styles.metricHint}>Heute noch manuell gutzuschreibende Credits.</div>
+                  <div style={styles.metricHint}>{tAdmin("prices_daily_limit_hint")}</div>
                 </div>
               </div>
 
@@ -4254,11 +4306,11 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
                         <div style={styles.ticketTop}>
                           <div>
                             <div style={styles.ticketTitle}>
-                              {pack.credits} Credits
+                              {pack.credits} {tAdmin("prices_credits_label")}
                               {pack.badge ? ` · ${pack.badge}` : ""}
                             </div>
                             <div style={styles.ticketMeta}>
-                              ID: {pack.id} · Sortierung: {pack.sort_order ?? "–"}
+                              {tAdmin("prices_id")}: {pack.id} · {tAdmin("prices_sorting")}: {pack.sort_order ?? "–"}
                             </div>
                           </div>
                           <div style={pack.is_active ? styles.ticketStatusResolved : styles.ticketStatusOpen}>
@@ -4307,7 +4359,7 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
                                 onChange={(e) =>
                                   handlePricingDraftChange(pack.id, "badge", e.target.value)
                                 }
-                                placeholder="z. B. Beliebt"
+                                placeholder={tAdmin("prices_badge_placeholder")}
                                 style={styles.input}
                               />
                             </label>
@@ -4339,7 +4391,7 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
                           </div>
 
                           <div style={styles.ticketMeta}>
-                            Aktualisiert: {pack.updated_at ? new Date(pack.updated_at).toLocaleString("de-DE") : "–"}
+                            {tAdmin("prices_updated_at")}: {pack.updated_at ? new Date(pack.updated_at).toLocaleString("de-DE") : "–"}
                           </div>
                         </div>
                       </div>
