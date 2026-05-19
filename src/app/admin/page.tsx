@@ -557,6 +557,31 @@ const ADMIN_I18N = {
     credits_total_refunded: "Erstattete Credits",
     credits_granted_today: "Heute gutgeschrieben",
 
+
+    logs_title: "Admin-Aktionslog",
+    logs_hint: "Durchsuche kritische Änderungen: Preise, Credits, QR-X Sperren, Support und Verifizierungen.",
+    logs_refresh: "Aktionen aktualisieren",
+    logs_loaded_actions: "Geladene Aktionen",
+    logs_today: "Heute",
+    logs_filtered: "Gefiltert",
+    logs_loaded_hint: "Aktuell geladene Einträge aus dem Admin-Log.",
+    logs_today_hint: "Admin-Aktionen am heutigen Tag.",
+    logs_filtered_hint: "Einträge passend zu Suche und Filter.",
+    logs_search_placeholder: "Suche nach User-ID, QR-X-ID, Notiz, Aktion…",
+    logs_action_label: "Aktion",
+    logs_open_user: "Nutzer öffnen",
+    logs_open_qrx: "QR-X öffnen",
+    logs_load_moderation: "In Moderation laden",
+    admin_action_all_qrx_unsuspended: "Alle QR-X freigegeben",
+    admin_action_all_qrx_suspended: "Alle QR-X gesperrt",
+    admin_action_user_unbanned: "Nutzer entsperrt",
+    admin_action_user_banned: "Nutzer gesperrt",
+    admin_action_qrx_suspended: "QR-X gesperrt",
+    admin_action_qrx_unsuspended: "QR-X freigegeben",
+    admin_action_pricing_updated: "Preis aktualisiert",
+    admin_action_launch_discount_updated: "Launch-Rabatt geändert",
+    admin_action_refund_created: "Erstattung erstellt",
+    admin_action_unknown: "{{action}}",
 },
   en: {
     language_de: "Deutsch",
@@ -785,6 +810,31 @@ const ADMIN_I18N = {
     credits_total_refunded: "Refunded credits",
     credits_granted_today: "Granted today",
 
+
+    logs_title: "Admin action log",
+    logs_hint: "Search critical changes: prices, credits, QR-X suspensions, support and verifications.",
+    logs_refresh: "Refresh actions",
+    logs_loaded_actions: "Loaded actions",
+    logs_today: "Today",
+    logs_filtered: "Filtered",
+    logs_loaded_hint: "Currently loaded entries from the admin log.",
+    logs_today_hint: "Admin actions today.",
+    logs_filtered_hint: "Entries matching search and filters.",
+    logs_search_placeholder: "Search by user ID, QR-X ID, note, action…",
+    logs_action_label: "Action",
+    logs_open_user: "Open user",
+    logs_open_qrx: "Open QR-X",
+    logs_load_moderation: "Load in moderation",
+    admin_action_all_qrx_unsuspended: "All QR-X released",
+    admin_action_all_qrx_suspended: "All QR-X suspended",
+    admin_action_user_unbanned: "User unbanned",
+    admin_action_user_banned: "User banned",
+    admin_action_qrx_suspended: "QR-X suspended",
+    admin_action_qrx_unsuspended: "QR-X released",
+    admin_action_pricing_updated: "Pricing updated",
+    admin_action_launch_discount_updated: "Launch discount changed",
+    admin_action_refund_created: "Refund created",
+    admin_action_unknown: "{{action}}",
 },
 } as const;
 
@@ -1466,8 +1516,26 @@ function formatAdminAction(value: string, t: (key: AdminTranslationKey) => strin
       return t("admin_action_qrx_soft_deleted");
     case "qrx_restored":
       return t("admin_action_qrx_restored");
+    case "all_qrx_unsuspended":
+      return t("admin_action_all_qrx_unsuspended");
+    case "all_qrx_suspended":
+      return t("admin_action_all_qrx_suspended");
+    case "user_unbanned":
+      return t("admin_action_user_unbanned");
+    case "user_banned":
+      return t("admin_action_user_banned");
+    case "qrx_suspended":
+      return t("admin_action_qrx_suspended");
+    case "qrx_unsuspended":
+      return t("admin_action_qrx_unsuspended");
+    case "pricing_updated":
+      return t("admin_action_pricing_updated");
+    case "launch_discount_updated":
+      return t("admin_action_launch_discount_updated");
+    case "refund_created":
+      return t("admin_action_refund_created");
     default:
-      return value.replaceAll("_", " ");
+      return t("admin_action_unknown").replace("{{action}}", value.replaceAll("_", " "));
   }
 }
 
@@ -4286,7 +4354,7 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
         <div style={{ ...styles.commandPanel, marginBottom: 18, display: activeAdminTab === "logs" ? "block" : "none" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <div>
-              <h2 style={styles.panelTitle}>Admin-Aktionslog</h2>
+              <h2 style={styles.panelTitle}>{tAdmin("logs_title")}</h2>
               <p style={{ ...styles.subtleText, marginTop: 0, marginBottom: 10 }}>
                 Durchsuche kritische Änderungen: Preise, Credits, QR-X Sperren, Support und Verifizierungen.
               </p>
@@ -4298,19 +4366,19 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
 
           <div style={styles.dashboardGrid}>
             <div style={styles.metricCard}>
-              <div style={styles.metricLabel}>Geladene Aktionen</div>
+              <div style={styles.metricLabel}>{tAdmin("logs_loaded_actions")}</div>
               <div style={styles.metricValue}>{adminActionsLoading ? "…" : adminActions.length}</div>
               <div style={styles.metricHint}>Aktuell geladene Einträge aus dem Admin-Log.</div>
             </div>
 
             <div style={styles.metricCard}>
-              <div style={styles.metricLabel}>Heute</div>
+              <div style={styles.metricLabel}>{tAdmin("logs_today")}</div>
               <div style={styles.metricValue}>{adminActionsLoading ? "…" : todayAdminActionsCount}</div>
               <div style={styles.metricHint}>Admin-Aktionen am heutigen Tag.</div>
             </div>
 
             <div style={styles.metricCard}>
-              <div style={styles.metricLabel}>Gefiltert</div>
+              <div style={styles.metricLabel}>{tAdmin("logs_filtered")}</div>
               <div style={styles.metricValue}>{adminActionsLoading ? "…" : filteredAdminActions.length}</div>
               <div style={styles.metricHint}>Einträge passend zu Suche und Filter.</div>
             </div>
@@ -4320,7 +4388,7 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
             <input
               value={adminLogSearch}
               onChange={(e) => setAdminLogSearch(e.target.value)}
-              placeholder="Suche nach User-ID, QR-X-ID, Notiz, Aktion…"
+              placeholder={tAdmin("logs_search_placeholder")}
               style={styles.searchInput}
             />
 
@@ -4380,7 +4448,7 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
                       </div>
                     </div>
 
-                    <div style={styles.counterBadge}>{entry.action_type}</div>
+                    <div style={styles.counterBadge}>{formatAdminAction(entry.action_type, tAdmin)}</div>
                   </div>
 
                   {entry.note ? <div style={styles.historyNote}>{entry.note}</div> : null}
