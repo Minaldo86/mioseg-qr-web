@@ -21,6 +21,7 @@ type QrxEntry = {
   cover_image_url: string | null;
   cta_phone: string | null;
   cta_website: string | null;
+  cta_email: string | null;
   cta_navigation: string | null;
   company_name: string | null;
   suspended: boolean | null;
@@ -125,6 +126,7 @@ export default async function QrxPage({
       cover_image_url,
       cta_phone,
       cta_website,
+      cta_email,
       cta_navigation,
       company_name,
       suspended,
@@ -221,6 +223,7 @@ export default async function QrxPage({
   const isBusiness = entry.type === "business";
   const hasWebsite = !!entry.cta_website?.trim();
   const hasPhone = !!entry.cta_phone?.trim();
+  const hasEmail = !!entry.cta_email?.trim();
   const hasNavigation = !!entry.cta_navigation?.trim();
 
   const companyName = entry.company_name?.trim() || entry.title;
@@ -241,6 +244,7 @@ export default async function QrxPage({
   const websiteUrl = normalizeWebsite(entry.cta_website);
   const navigationUrl = normalizeNavigation(entry.cta_navigation);
   const phoneUrl = entry.cta_phone?.trim() ? `tel:${entry.cta_phone.trim()}` : null;
+  const emailUrl = entry.cta_email?.trim() ? `mailto:${entry.cta_email.trim()}` : null;
 
   return (
     <main className={styles.page}>
@@ -305,7 +309,7 @@ export default async function QrxPage({
 
             <h1 className={styles.businessCompanyName}>{companyName}</h1>
 
-            {(hasWebsite || hasPhone) && (
+            {(hasWebsite || hasPhone || hasEmail) && (
               <div className={styles.businessHeroActions}>
                 {websiteUrl ? (
                   <a className={styles.businessActionBtn} href={websiteUrl} target="_blank" rel="noreferrer">
@@ -316,6 +320,12 @@ export default async function QrxPage({
                 {phoneUrl ? (
                   <a className={styles.businessActionBtn} href={phoneUrl}>
                     Anrufen
+                  </a>
+                ) : null}
+
+                {emailUrl ? (
+                  <a className={styles.businessActionBtn} href={emailUrl}>
+                    E-Mail
                   </a>
                 ) : null}
               </div>
