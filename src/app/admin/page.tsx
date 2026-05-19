@@ -326,6 +326,469 @@ type PricingResult = {
 
 const CREDIT_PRESETS = [5, 10, 25, 50, 100];
 
+type AdminLanguage = "de" | "en";
+type AdminTranslationKey = keyof typeof ADMIN_I18N.de;
+
+const ADMIN_I18N = {
+  de: {
+    language_de: "Deutsch",
+    language_en: "English",
+
+    admin_title: "Admin – Kommandozentrale",
+    admin_subtitle:
+      "Prüfe Business-QR-X, verwalte Verifizierungen und buche Credits bei Kulanz oder Erstattung.",
+
+    tab_overview: "Übersicht",
+    tab_overview_hint: "Kennzahlen und wichtigste offene Punkte",
+    tab_verifications: "Verifizierungen",
+    tab_verifications_hint: "Business-QR-X Nachweise prüfen",
+    tab_reports: "Meldungen",
+    tab_reports_hint: "Gemeldete und gesperrte QR-X moderieren",
+    tab_support: "Support",
+    tab_support_hint: "Tickets und Reklamationen bearbeiten",
+    tab_users: "Nutzer",
+    tab_users_hint: "Nutzer suchen und QR-X zuordnen",
+    tab_credits: "Credits",
+    tab_credits_hint: "Gutschriften und Credit-Historie",
+    tab_finance: "Finanzen",
+    tab_finance_hint: "Rechnungen, Umsatz und Steuerexport vorbereiten",
+    tab_prices: "Preise",
+    tab_prices_hint: "Credit-Pakete und Preis-Konfiguration lesen",
+    tab_logs: "Logs",
+    tab_logs_hint: "Letzte Admin-Aktionen prüfen",
+
+    problem_credits_wrong: "Credits falsch abgezogen",
+    problem_verification_waiting: "Verifizierung hängt",
+    problem_upload_problem: "Upload Problem",
+    problem_transfer_problem: "Transfer Problem",
+    problem_qrx_report: "QR-X Meldung",
+    problem_other: "Sonstiges",
+
+    ticket_status_open: "Offen",
+    ticket_status_in_review: "In Prüfung",
+    ticket_status_resolved: "Gelöst",
+
+    moderation_flagged: "Zur Prüfung markiert",
+    moderation_auto_suspended: "Automatisch gesperrt",
+    moderation_ok: "OK",
+    moderation_unknown: "Unbekannt",
+
+    admin_action_credits_added: "Credits gutgeschrieben",
+    admin_action_credits_refunded_from_ticket: "Ticket-Credits erstattet",
+    admin_action_support_ticket_resolved_with_credit: "Ticket mit Credits gelöst",
+    admin_action_support_ticket_created: "Supportfall angelegt",
+    admin_action_support_ticket_in_review: "Supportfall in Prüfung",
+    admin_action_support_ticket_resolved: "Supportfall gelöst",
+    admin_action_support_ticket_open: "Supportfall geöffnet",
+    admin_action_verification_approved: "QR-X verifiziert",
+    admin_action_verification_rejected: "QR-X abgelehnt",
+    admin_action_qrx_soft_deleted: "QR-X gelöscht",
+    admin_action_qrx_restored: "QR-X wiederhergestellt",
+
+    purchase_status_paid: "Bezahlt",
+    purchase_status_pending: "Offen",
+    purchase_status_failed: "Fehlgeschlagen",
+    purchase_status_refunded: "Erstattet",
+    purchase_status_canceled: "Abgebrochen",
+    purchase_status_unknown: "Unbekannt",
+  
+
+    section_reports_title: "Meldungen / Moderation",
+    section_reports_hint:
+      "Prüfe gemeldete QR-X, markiere geprüfte Einträge oder sperre problematische Inhalte.",
+    section_support_title: "Support / Tickets",
+    section_support_hint:
+      "Lege Supportfälle an, prüfe Reklamationen und buche bei Bedarf Credits zurück.",
+    section_users_title: "Nutzerverwaltung",
+    section_users_hint:
+      "Suche Nutzer per User-ID, QR-X-ID oder E-Mail und prüfe zugehörige QR-X.",
+    section_qrx_status_title: "QR-X Status prüfen",
+    section_qrx_status_hint:
+      "Lade einzelne QR-X, sperre sie, stelle sie wieder her oder markiere sie als geprüft.",
+
+    btn_refresh: "Aktualisieren",
+    btn_load: "Laden",
+    btn_loading: "Lade…",
+    btn_search: "Suchen",
+    btn_check: "Prüfen",
+    btn_open: "Öffnen",
+    btn_save: "Speichern",
+    btn_cancel: "Abbrechen",
+    btn_delete: "Löschen",
+    btn_restore: "Wiederherstellen",
+    btn_suspend: "Sperren",
+    btn_release: "Freigeben",
+    btn_mark_reviewed: "Als geprüft markieren",
+    btn_create_ticket: "Supportfall anlegen",
+    btn_set_in_review: "In Prüfung setzen",
+    btn_resolve: "Als gelöst markieren",
+    btn_refund_credits: "Credits erstatten",
+    btn_suspend_qrx: "QR-X sperren",
+    btn_show_all_qrx: "Alle QR-X anzeigen",
+    btn_hide_qrx: "QR-X ausblenden",
+
+    table_qrx: "QR-X",
+    table_title: "Titel",
+    table_user: "Nutzer",
+    table_status: "Status",
+    table_reports: "Meldungen",
+    table_score: "Score",
+    table_created: "Erstellt",
+    table_updated: "Aktualisiert",
+    table_actions: "Aktionen",
+    table_type: "Typ",
+    table_company: "Firma",
+    table_category: "Kategorie",
+    table_verified: "Verifiziert",
+    table_deleted: "Gelöscht",
+    table_reason: "Grund",
+    table_ticket: "Ticket",
+    table_problem: "Problem",
+    table_description: "Beschreibung",
+    table_email: "E-Mail",
+    table_amount: "Betrag",
+    table_note: "Notiz",
+    table_date: "Datum",
+
+    input_search_reports_placeholder: "QR-X, Titel, Firma, User-ID oder Grund suchen…",
+    input_user_lookup_placeholder: "User-ID, QR-X-ID oder E-Mail eingeben…",
+    input_qrx_lookup_placeholder: "QR-X-ID eingeben…",
+    input_suspend_reason_placeholder: "Sperr-/Löschgrund eintragen…",
+    input_ticket_title_placeholder: "Kurzer Titel für den Supportfall…",
+    input_ticket_description_placeholder: "Beschreibung / interne Notiz…",
+    input_refund_credits_placeholder: "Credits",
+
+    label_reported_qrx: "Gemeldete QR-X",
+    label_auto_suspended: "Automatisch gesperrt",
+    label_open_tickets: "Offene Tickets",
+    label_recent_tickets: "Letzte Tickets",
+    label_recent_qrx: "Letzte QR-X",
+    label_user_blocked: "Nutzer gesperrt",
+    label_user_active: "Nutzer aktiv",
+    label_suspended: "Gesperrt",
+    label_not_suspended: "Nicht gesperrt",
+    label_soft_deleted: "Soft gelöscht",
+    label_not_deleted: "Nicht gelöscht",
+    label_yes: "Ja",
+    label_no: "Nein",
+    label_none: "–",
+    label_all: "Alle",
+    label_all_actions: "Alle Aktionen",
+
+    empty_reports: "Keine gemeldeten QR-X vorhanden.",
+    empty_tickets: "Keine Supportfälle vorhanden.",
+    empty_user_result: "Noch kein Nutzer geladen.",
+    empty_qrx_result: "Noch kein QR-X geladen.",
+    loading_reports: "Meldungen werden geladen…",
+    loading_tickets: "Supportfälle werden geladen…",
+    loading_user: "Nutzer wird geladen…",
+    loading_qrx: "QR-X wird geladen…",
+
+    qrx_report_count: "{{count}} Meldung(en)",
+    qrx_report_score: "Report-Score: {{score}}",
+    qrx_owner: "Owner",
+    qrx_open_web: "Web öffnen",
+    qrx_current_status: "Aktueller Status",
+    qrx_moderation_status: "Moderationsstatus",
+
+    ticket_create_title: "Neuen Supportfall anlegen",
+    ticket_list_title: "Supportfälle",
+    ticket_credit_refund_title: "Credit-Erstattung",
+    ticket_reporter_email: "Reporter-E-Mail",
+    ticket_report_reason: "Meldegrund",
+    ticket_resolution_note: "Lösungsnotiz",
+
+    user_lookup_title: "Nutzer suchen",
+    user_lookup_summary: "Nutzerübersicht",
+    user_current_credits: "Aktuelle Credits",
+    user_qrx_count: "QR-X gesamt",
+    user_business_qrx_count: "Business QR-X",
+    user_verified_qrx_count: "Verifiziert",
+    user_open_tickets_count: "Offene Tickets",
+    user_open_verifications_count: "Offene Verifizierungen",
+    user_ban: "Nutzer sperren",
+    user_unban: "Nutzer entsperren",
+    user_suspend_all_qrx: "Alle QR-X sperren",
+    user_unsuspend_all_qrx: "Alle QR-X freigeben",
+
+    filter_all: "Alle",
+    filter_open: "Offen",
+    filter_in_review: "In Prüfung",
+    filter_resolved: "Gelöst",
+
+    ticket_create_failed: "Supportfall konnte nicht angelegt werden.",
+    ticket_update_failed: "Supportfall konnte nicht aktualisiert werden.",
+    ticket_no_user_id: "Dieser Supportfall hat keine User-ID. Bitte User-ID im Ticket hinterlegen.",
+    ticket_refund_amount_invalid: "Bitte eine gültige Credit-Anzahl für die Erstattung eintragen.",
+    ticket_refund_max: "Maximal 100 Credits pro Erstattung erlaubt.",
+    ticket_no_qrx_id: "Dieses Ticket hat keine QR-X-ID.",
+    qrx_suspend_failed: "QR-X konnte nicht gesperrt werden.",
+    qrx_suspended_success: "QR-X wurde gesperrt.",
+
+    ticket_title_required: "Bitte einen kurzen Titel für den Supportfall eintragen.",
+    finance_title: "Finanzübersicht",
+    finance_export_csv: "CSV Export",
+    finance_provider: "Zahlungsanbieter",
+    finance_period: "Zeitraum",
+    finance_total_revenue: "Gesamtumsatz",
+    finance_net_revenue: "Netto-Umsatz",
+    finance_tax: "Steuern / MwSt",
+    finance_refunds: "Erstattungen",
+    finance_payouts: "Auszahlungen",
+    finance_invoices: "Rechnungen",
+    finance_invoice_count: "Rechnungen gesamt",
+    finance_purchase_count: "Käufe gesamt",
+    finance_refund_count: "Refunds gesamt",
+    finance_load_error: "Finanzdaten konnten nicht geladen werden.",
+    finance_payout_error: "Auszahlungen konnten nicht geladen werden.",
+
+    pricing_title: "Preisverwaltung",
+    pricing_launch_discount: "Launch-Rabatt",
+    pricing_credit_packs: "Credit-Pakete",
+    pricing_active: "Aktiv",
+    pricing_inactive: "Inaktiv",
+    pricing_save_success: "Preis-Paket wurde gespeichert.",
+    pricing_save_failed: "Paket konnte nicht gespeichert werden.",
+    pricing_load_error: "Preise konnten nicht geladen werden.",
+
+    credits_history_title: "Credit-Historie",
+    credits_current_balance: "Aktuelle Credits",
+    credits_total_purchased: "Gekaufte Credits",
+    credits_total_refunded: "Erstattete Credits",
+    credits_granted_today: "Heute gutgeschrieben",
+
+},
+  en: {
+    language_de: "Deutsch",
+    language_en: "English",
+
+    admin_title: "Admin – Command Center",
+    admin_subtitle:
+      "Review Business QR-X requests, manage verifications and grant credits for goodwill or refunds.",
+
+    tab_overview: "Overview",
+    tab_overview_hint: "Key metrics and most important open items",
+    tab_verifications: "Verifications",
+    tab_verifications_hint: "Review Business QR-X proof documents",
+    tab_reports: "Reports",
+    tab_reports_hint: "Moderate reported and suspended QR-X",
+    tab_support: "Support",
+    tab_support_hint: "Handle tickets and complaints",
+    tab_users: "Users",
+    tab_users_hint: "Search users and assign QR-X",
+    tab_credits: "Credits",
+    tab_credits_hint: "Credit grants and credit history",
+    tab_finance: "Finance",
+    tab_finance_hint: "Prepare invoices, revenue and tax exports",
+    tab_prices: "Prices",
+    tab_prices_hint: "View credit packs and pricing configuration",
+    tab_logs: "Logs",
+    tab_logs_hint: "Review recent admin actions",
+
+    problem_credits_wrong: "Credits charged incorrectly",
+    problem_verification_waiting: "Verification pending too long",
+    problem_upload_problem: "Upload problem",
+    problem_transfer_problem: "Transfer problem",
+    problem_qrx_report: "QR-X report",
+    problem_other: "Other",
+
+    ticket_status_open: "Open",
+    ticket_status_in_review: "In review",
+    ticket_status_resolved: "Resolved",
+
+    moderation_flagged: "Marked for review",
+    moderation_auto_suspended: "Automatically suspended",
+    moderation_ok: "OK",
+    moderation_unknown: "Unknown",
+
+    admin_action_credits_added: "Credits granted",
+    admin_action_credits_refunded_from_ticket: "Ticket credits refunded",
+    admin_action_support_ticket_resolved_with_credit: "Ticket resolved with credits",
+    admin_action_support_ticket_created: "Support ticket created",
+    admin_action_support_ticket_in_review: "Support ticket in review",
+    admin_action_support_ticket_resolved: "Support ticket resolved",
+    admin_action_support_ticket_open: "Support ticket reopened",
+    admin_action_verification_approved: "QR-X verified",
+    admin_action_verification_rejected: "QR-X rejected",
+    admin_action_qrx_soft_deleted: "QR-X deleted",
+    admin_action_qrx_restored: "QR-X restored",
+
+    purchase_status_paid: "Paid",
+    purchase_status_pending: "Pending",
+    purchase_status_failed: "Failed",
+    purchase_status_refunded: "Refunded",
+    purchase_status_canceled: "Canceled",
+    purchase_status_unknown: "Unknown",
+  
+
+    section_reports_title: "Reports / Moderation",
+    section_reports_hint:
+      "Review reported QR-X, mark entries as reviewed or suspend problematic content.",
+    section_support_title: "Support / Tickets",
+    section_support_hint:
+      "Create support cases, review complaints and refund credits when needed.",
+    section_users_title: "User management",
+    section_users_hint:
+      "Search users by user ID, QR-X ID or email and review their QR-X.",
+    section_qrx_status_title: "Check QR-X status",
+    section_qrx_status_hint:
+      "Load individual QR-X, suspend them, restore them or mark them as reviewed.",
+
+    btn_refresh: "Refresh",
+    btn_load: "Load",
+    btn_loading: "Loading…",
+    btn_search: "Search",
+    btn_check: "Check",
+    btn_open: "Open",
+    btn_save: "Save",
+    btn_cancel: "Cancel",
+    btn_delete: "Delete",
+    btn_restore: "Restore",
+    btn_suspend: "Suspend",
+    btn_release: "Release",
+    btn_mark_reviewed: "Mark as reviewed",
+    btn_create_ticket: "Create support case",
+    btn_set_in_review: "Set in review",
+    btn_resolve: "Mark resolved",
+    btn_refund_credits: "Refund credits",
+    btn_suspend_qrx: "Suspend QR-X",
+    btn_show_all_qrx: "Show all QR-X",
+    btn_hide_qrx: "Hide QR-X",
+
+    table_qrx: "QR-X",
+    table_title: "Title",
+    table_user: "User",
+    table_status: "Status",
+    table_reports: "Reports",
+    table_score: "Score",
+    table_created: "Created",
+    table_updated: "Updated",
+    table_actions: "Actions",
+    table_type: "Type",
+    table_company: "Company",
+    table_category: "Category",
+    table_verified: "Verified",
+    table_deleted: "Deleted",
+    table_reason: "Reason",
+    table_ticket: "Ticket",
+    table_problem: "Problem",
+    table_description: "Description",
+    table_email: "Email",
+    table_amount: "Amount",
+    table_note: "Note",
+    table_date: "Date",
+
+    input_search_reports_placeholder: "Search QR-X, title, company, user ID or reason…",
+    input_user_lookup_placeholder: "Enter user ID, QR-X ID or email…",
+    input_qrx_lookup_placeholder: "Enter QR-X ID…",
+    input_suspend_reason_placeholder: "Enter suspension/deletion reason…",
+    input_ticket_title_placeholder: "Short title for the support case…",
+    input_ticket_description_placeholder: "Description / internal note…",
+    input_refund_credits_placeholder: "Credits",
+
+    label_reported_qrx: "Reported QR-X",
+    label_auto_suspended: "Automatically suspended",
+    label_open_tickets: "Open tickets",
+    label_recent_tickets: "Recent tickets",
+    label_recent_qrx: "Recent QR-X",
+    label_user_blocked: "User blocked",
+    label_user_active: "User active",
+    label_suspended: "Suspended",
+    label_not_suspended: "Not suspended",
+    label_soft_deleted: "Soft deleted",
+    label_not_deleted: "Not deleted",
+    label_yes: "Yes",
+    label_no: "No",
+    label_none: "–",
+    label_all: "All",
+    label_all_actions: "All actions",
+
+    empty_reports: "No reported QR-X available.",
+    empty_tickets: "No support cases available.",
+    empty_user_result: "No user loaded yet.",
+    empty_qrx_result: "No QR-X loaded yet.",
+    loading_reports: "Loading reports…",
+    loading_tickets: "Loading support cases…",
+    loading_user: "Loading user…",
+    loading_qrx: "Loading QR-X…",
+
+    qrx_report_count: "{{count}} report(s)",
+    qrx_report_score: "Report score: {{score}}",
+    qrx_owner: "Owner",
+    qrx_open_web: "Open web",
+    qrx_current_status: "Current status",
+    qrx_moderation_status: "Moderation status",
+
+    ticket_create_title: "Create new support case",
+    ticket_list_title: "Support cases",
+    ticket_credit_refund_title: "Credit refund",
+    ticket_reporter_email: "Reporter email",
+    ticket_report_reason: "Report reason",
+    ticket_resolution_note: "Resolution note",
+
+    user_lookup_title: "Search user",
+    user_lookup_summary: "User overview",
+    user_current_credits: "Current credits",
+    user_qrx_count: "QR-X total",
+    user_business_qrx_count: "Business QR-X",
+    user_verified_qrx_count: "Verified",
+    user_open_tickets_count: "Open tickets",
+    user_open_verifications_count: "Open verifications",
+    user_ban: "Ban user",
+    user_unban: "Unban user",
+    user_suspend_all_qrx: "Suspend all QR-X",
+    user_unsuspend_all_qrx: "Release all QR-X",
+
+    filter_all: "All",
+    filter_open: "Open",
+    filter_in_review: "In review",
+    filter_resolved: "Resolved",
+
+    ticket_create_failed: "Support case could not be created.",
+    ticket_update_failed: "Support case could not be updated.",
+    ticket_no_user_id: "This support case has no user ID. Please add a user ID to the ticket.",
+    ticket_refund_amount_invalid: "Please enter a valid credit amount for the refund.",
+    ticket_refund_max: "Maximum 100 credits per refund allowed.",
+    ticket_no_qrx_id: "This ticket has no QR-X ID.",
+    qrx_suspend_failed: "QR-X could not be suspended.",
+    qrx_suspended_success: "QR-X has been suspended.",
+
+    ticket_title_required: "Please enter a short title for the support case.",
+    finance_title: "Finance overview",
+    finance_export_csv: "CSV export",
+    finance_provider: "Payment provider",
+    finance_period: "Period",
+    finance_total_revenue: "Total revenue",
+    finance_net_revenue: "Net revenue",
+    finance_tax: "Taxes / VAT",
+    finance_refunds: "Refunds",
+    finance_payouts: "Payouts",
+    finance_invoices: "Invoices",
+    finance_invoice_count: "Total invoices",
+    finance_purchase_count: "Total purchases",
+    finance_refund_count: "Total refunds",
+    finance_load_error: "Finance data could not be loaded.",
+    finance_payout_error: "Payouts could not be loaded.",
+
+    pricing_title: "Pricing management",
+    pricing_launch_discount: "Launch discount",
+    pricing_credit_packs: "Credit packs",
+    pricing_active: "Active",
+    pricing_inactive: "Inactive",
+    pricing_save_success: "Pricing pack was saved.",
+    pricing_save_failed: "Pricing pack could not be saved.",
+    pricing_load_error: "Pricing data could not be loaded.",
+
+    credits_history_title: "Credit history",
+    credits_current_balance: "Current credits",
+    credits_total_purchased: "Purchased credits",
+    credits_total_refunded: "Refunded credits",
+    credits_granted_today: "Granted today",
+
+},
+} as const;
+
+
 const styles = {
   page: {
     minHeight: "100vh",
@@ -890,44 +1353,44 @@ function formatCategory(value: string | null) {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function formatProblemType(value: string) {
+function formatProblemType(value: string, t: (key: AdminTranslationKey) => string) {
   switch (value) {
     case "credits_wrong":
-      return "Credits falsch abgezogen";
+      return t("problem_credits_wrong");
     case "verification_waiting":
-      return "Verifizierung hängt";
+      return t("problem_verification_waiting");
     case "upload_problem":
-      return "Upload Problem";
+      return t("problem_upload_problem");
     case "transfer_problem":
-      return "Transfer Problem";
+      return t("problem_transfer_problem");
     case "qrx_report":
-      return "QR-X Meldung";
+      return t("problem_qrx_report");
     default:
-      return "Sonstiges";
+      return t("problem_other");
   }
 }
 
-function formatTicketStatus(value: string) {
+function formatTicketStatus(value: string, t: (key: AdminTranslationKey) => string) {
   switch (value) {
     case "in_review":
-      return "In Prüfung";
+      return t("ticket_status_in_review");
     case "resolved":
-      return "Gelöst";
+      return t("ticket_status_resolved");
     default:
-      return "Offen";
+      return t("ticket_status_open");
   }
 }
 
-function formatModerationStatus(value: string | null | undefined) {
+function formatModerationStatus(value: string | null | undefined, t: (key: AdminTranslationKey) => string) {
   switch (value) {
     case "flagged":
-      return "Zur Prüfung markiert";
+      return t("moderation_flagged");
     case "auto_suspended":
-      return "Automatisch gesperrt";
+      return t("moderation_auto_suspended");
     case "ok":
-      return "OK";
+      return t("moderation_ok");
     default:
-      return "Unbekannt";
+      return t("moderation_unknown");
   }
 }
 
@@ -979,30 +1442,30 @@ function getTicketStatusStyle(value: string) {
   return styles.ticketStatusOpen;
 }
 
-function formatAdminAction(value: string) {
+function formatAdminAction(value: string, t: (key: AdminTranslationKey) => string) {
   switch (value) {
     case "credits_added":
-      return "Credits gutgeschrieben";
+      return t("admin_action_credits_added");
     case "credits_refunded_from_ticket":
-      return "Ticket-Credits erstattet";
+      return t("admin_action_credits_refunded_from_ticket");
     case "support_ticket_resolved_with_credit":
-      return "Ticket mit Credits gelöst";
+      return t("admin_action_support_ticket_resolved_with_credit");
     case "support_ticket_created":
-      return "Supportfall angelegt";
+      return t("admin_action_support_ticket_created");
     case "support_ticket_in_review":
-      return "Supportfall in Prüfung";
+      return t("admin_action_support_ticket_in_review");
     case "support_ticket_resolved":
-      return "Supportfall gelöst";
+      return t("admin_action_support_ticket_resolved");
     case "support_ticket_open":
-      return "Supportfall geöffnet";
+      return t("admin_action_support_ticket_open");
     case "verification_approved":
-      return "QR-X verifiziert";
+      return t("admin_action_verification_approved");
     case "verification_rejected":
-      return "QR-X abgelehnt";
+      return t("admin_action_verification_rejected");
     case "qrx_soft_deleted":
-      return "QR-X gelöscht";
+      return t("admin_action_qrx_soft_deleted");
     case "qrx_restored":
-      return "QR-X wiederhergestellt";
+      return t("admin_action_qrx_restored");
     default:
       return value.replaceAll("_", " ");
   }
@@ -1073,6 +1536,22 @@ export default function AdminPage() {
   const [reviewingQrxId, setReviewingQrxId] = useState<string | null>(null);
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>("overview");
 
+  const [adminLanguage, setAdminLanguage] = useState<AdminLanguage>("de");
+  const tAdmin = (
+    key: AdminTranslationKey,
+    values?: Record<string, string | number | null | undefined>
+  ) => {
+    const template = ADMIN_I18N[adminLanguage][key];
+
+    if (!values) return template;
+
+    return template.replace(/\{\{(\w+)\}\}/g, (_match: string, name: string) => {
+      const value = values[name];
+      return value == null ? "" : String(value);
+    });
+  };
+
+
   const todayIsoDate = new Date().toISOString().slice(0, 10);
   const monthStartIsoDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     .toISOString()
@@ -1091,16 +1570,20 @@ export default function AdminPage() {
 
 
 
-  const adminTabs: Array<{ key: AdminTab; label: string; hint: string }> = [
-    { key: "overview", label: "Übersicht", hint: "Kennzahlen und wichtigste offene Punkte" },
-    { key: "verifications", label: "Verifizierungen", hint: "Business-QR-X Nachweise prüfen" },
-    { key: "reports", label: "Meldungen", hint: "Gemeldete und gesperrte QR-X moderieren" },
-    { key: "support", label: "Support", hint: "Tickets und Reklamationen bearbeiten" },
-    { key: "users", label: "Nutzer", hint: "Nutzer suchen und QR-X zuordnen" },
-    { key: "credits", label: "Credits", hint: "Gutschriften und Credit-Historie" },
-    { key: "finance", label: "Finanzen", hint: "Rechnungen, Umsatz und Steuerexport vorbereiten" },
-    { key: "prices", label: "Preise", hint: "Credit-Pakete und Preis-Konfiguration lesen" },
-    { key: "logs", label: "Logs", hint: "Letzte Admin-Aktionen prüfen" },
+  const adminTabs: Array<{
+    key: AdminTab;
+    labelKey: AdminTranslationKey;
+    hintKey: AdminTranslationKey;
+  }> = [
+    { key: "overview", labelKey: "tab_overview", hintKey: "tab_overview_hint" },
+    { key: "verifications", labelKey: "tab_verifications", hintKey: "tab_verifications_hint" },
+    { key: "reports", labelKey: "tab_reports", hintKey: "tab_reports_hint" },
+    { key: "support", labelKey: "tab_support", hintKey: "tab_support_hint" },
+    { key: "users", labelKey: "tab_users", hintKey: "tab_users_hint" },
+    { key: "credits", labelKey: "tab_credits", hintKey: "tab_credits_hint" },
+    { key: "finance", labelKey: "tab_finance", hintKey: "tab_finance_hint" },
+    { key: "prices", labelKey: "tab_prices", hintKey: "tab_prices_hint" },
+    { key: "logs", labelKey: "tab_logs", hintKey: "tab_logs_hint" },
   ];
 
   const formatPrice = (cents: number | null | undefined, currency?: string | null) => {
@@ -1138,18 +1621,18 @@ export default function AdminPage() {
       case "paid":
       case "succeeded":
       case "completed":
-        return "Bezahlt";
+        return tAdmin("purchase_status_paid");
       case "pending":
-        return "Offen";
+        return tAdmin("purchase_status_pending");
       case "failed":
-        return "Fehlgeschlagen";
+        return tAdmin("purchase_status_failed");
       case "refunded":
-        return "Erstattet";
+        return tAdmin("purchase_status_refunded");
       case "canceled":
       case "cancelled":
-        return "Abgebrochen";
+        return tAdmin("purchase_status_canceled");
       default:
-        return status || "Unbekannt";
+        return status || tAdmin("purchase_status_unknown");
     }
   };
 
@@ -1189,13 +1672,13 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Finanzdaten konnten nicht geladen werden.");
+        throw new Error(data?.error || tAdmin("finance_load_error"));
       }
 
       setFinanceData(data);
     } catch (error: unknown) {
       console.error("fetchFinance error:", error);
-      setFinanceError(error instanceof Error ? error.message : "Finanzdaten konnten nicht geladen werden.");
+      setFinanceError(error instanceof Error ? error.message : tAdmin("finance_load_error"));
     } finally {
       setFinanceLoading(false);
     }
@@ -1219,13 +1702,13 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Auszahlungen konnten nicht geladen werden.");
+        throw new Error(data?.error || tAdmin("finance_payout_error"));
       }
 
       setFinancePayoutData(data);
     } catch (error: unknown) {
       console.error("fetchFinancePayouts error:", error);
-      setFinancePayoutError(error instanceof Error ? error.message : "Auszahlungen konnten nicht geladen werden.");
+      setFinancePayoutError(error instanceof Error ? error.message : tAdmin("finance_payout_error"));
     } finally {
       setFinancePayoutLoading(false);
     }
@@ -1239,7 +1722,7 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Preise konnten nicht geladen werden.");
+        throw new Error(data?.error || tAdmin("pricing_load_error"));
       }
 
       const packs = Array.isArray(data?.pricingPacks) ? data.pricingPacks : [];
@@ -1643,7 +2126,7 @@ export default function AdminPage() {
 
       const haystack = [
         entry.action_type,
-        formatAdminAction(entry.action_type),
+        formatAdminAction(entry.action_type, tAdmin),
         entry.target_user_id || "",
         entry.qrx_id || "",
         entry.note || "",
@@ -1655,7 +2138,7 @@ export default function AdminPage() {
 
       return haystack.includes(term);
     });
-  }, [adminActions, adminLogSearch, adminLogTypeFilter]);
+  }, [adminActions, adminLogSearch, adminLogTypeFilter, adminLanguage]);
 
   const handleReview = async (
     requestId: string,
@@ -1821,7 +2304,7 @@ export default function AdminPage() {
       setTicketResult(null);
 
       if (!ticketTitle.trim()) {
-        throw new Error("Bitte einen kurzen Titel für den Supportfall eintragen.");
+        throw new Error(tAdmin("ticket_title_required"));
       }
 
       const res = await fetch("/api/admin/support-tickets", {
@@ -1841,7 +2324,7 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Supportfall konnte nicht angelegt werden.");
+        throw new Error(data?.error || tAdmin("ticket_create_failed"));
       }
 
       setTicketResult(`Supportfall angelegt: ${data.ticket?.ticket_number || data.ticket?.id || "OK"}`);
@@ -1852,7 +2335,7 @@ export default function AdminPage() {
       await fetchAdminActions();
     } catch (error: unknown) {
       console.error("handleCreateTicket error:", error);
-      alert(error instanceof Error ? error.message : "Supportfall konnte nicht angelegt werden.");
+      alert(error instanceof Error ? error.message : tAdmin("ticket_create_failed"));
     } finally {
       setTicketWorking(false);
     }
@@ -1879,7 +2362,7 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Supportfall konnte nicht aktualisiert werden.");
+        throw new Error(data?.error || tAdmin("ticket_update_failed"));
       }
 
       if (refundAmount && refundAmount > 0) {
@@ -1894,7 +2377,7 @@ export default function AdminPage() {
       await handleFetchCreditHistory();
     } catch (error: unknown) {
       console.error("handleUpdateTicketStatus error:", error);
-      alert(error instanceof Error ? error.message : "Supportfall konnte nicht aktualisiert werden.");
+      alert(error instanceof Error ? error.message : tAdmin("ticket_update_failed"));
     }
   };
 
@@ -1903,17 +2386,17 @@ export default function AdminPage() {
     const amount = Number(rawAmount);
 
     if (!ticket.user_id) {
-      alert("Dieser Supportfall hat keine User-ID. Bitte User-ID im Ticket hinterlegen.");
+      alert(tAdmin("ticket_no_user_id"));
       return;
     }
 
     if (!Number.isInteger(amount) || amount <= 0) {
-      alert("Bitte eine gültige Credit-Anzahl für die Erstattung eintragen.");
+      alert(tAdmin("ticket_refund_amount_invalid"));
       return;
     }
 
     if (amount > 100) {
-      alert("Maximal 100 Credits pro Erstattung erlaubt.");
+      alert(tAdmin("ticket_refund_max"));
       return;
     }
 
@@ -1924,7 +2407,7 @@ export default function AdminPage() {
   const handleSuspendTicketQrx = async (ticket: SupportTicket) => {
     try {
       if (!ticket.qrx_id) {
-        alert("Dieses Ticket hat keine QR-X-ID.");
+        alert(tAdmin("ticket_no_qrx_id"));
         return;
       }
 
@@ -1947,7 +2430,7 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "QR-X konnte nicht gesperrt werden.");
+        throw new Error(data?.error || tAdmin("qrx_suspend_failed"));
       }
 
       setQrxAdminItem(data.qrx);
@@ -1957,10 +2440,10 @@ export default function AdminPage() {
       await fetchTickets();
       await fetchAdminActions();
 
-      alert("QR-X wurde gesperrt.");
+      alert(tAdmin("qrx_suspended_success"));
     } catch (error: unknown) {
       console.error("handleSuspendTicketQrx error:", error);
-      alert(error instanceof Error ? error.message : "QR-X konnte nicht gesperrt werden.");
+      alert(error instanceof Error ? error.message : tAdmin("qrx_suspend_failed"));
     }
   };
 
@@ -2251,11 +2734,18 @@ export default function AdminPage() {
       <div style={styles.container}>
         <div style={styles.topRow}>
           <div>
-            <h1 style={styles.title}>Admin – Kommandozentrale</h1>
-            <p style={styles.subtitle}>
-              Prüfe Business-QR-X, verwalte Verifizierungen und buche Credits bei Kulanz oder Erstattung.
-            </p>
+            <h1 style={styles.title}>{tAdmin("admin_title")}</h1>
+            <p style={styles.subtitle}>{tAdmin("admin_subtitle")}</p>
           </div>
+          <select
+            value={adminLanguage}
+            onChange={(event) => setAdminLanguage(event.target.value as AdminLanguage)}
+            style={styles.filterSelect}
+            aria-label="Admin language"
+          >
+            <option value="de">{tAdmin("language_de")}</option>
+            <option value="en">{tAdmin("language_en")}</option>
+          </select>
         </div>
 
         <div style={styles.tabsWrap}>
@@ -2264,10 +2754,10 @@ export default function AdminPage() {
               key={tab.key}
               type="button"
               onClick={() => setActiveAdminTab(tab.key)}
-              title={tab.hint}
+              title={tAdmin(tab.hintKey)}
               style={activeAdminTab === tab.key ? styles.tabButtonActive : styles.tabButton}
             >
-              {tab.label}
+              {tAdmin(tab.labelKey)}
             </button>
           ))}
         </div>
@@ -2288,7 +2778,7 @@ export default function AdminPage() {
             </div>
 
             <div style={styles.metricCard}>
-              <div style={styles.metricLabel}>Gemeldete QR-X</div>
+              <div style={styles.metricLabel}>{tAdmin("label_reported_qrx")}</div>
               <div style={styles.metricValue}>{reportedQrxLoading ? "…" : reportedQrxCount}</div>
               <div style={styles.metricHint}>
                 Davon gesperrt/auto-gesperrt: {reportedQrxLoading ? "…" : autoSuspendedQrxCount}
@@ -2369,7 +2859,7 @@ export default function AdminPage() {
                 {adminActionsLoading
                   ? "…"
                   : lastAdminAction
-                    ? formatAdminAction(lastAdminAction.action_type)
+                    ? formatAdminAction(lastAdminAction.action_type, tAdmin)
                     : "–"}
               </div>
               <div style={styles.metricHint}>
@@ -2441,7 +2931,7 @@ export default function AdminPage() {
             <label style={styles.filterWrap}>
               <span style={styles.filterLabel}>Quelle</span>
               <select value={financeProvider} onChange={(e) => setFinanceProvider(e.target.value)} style={styles.filterSelect}>
-                <option value="all">Alle</option>
+                <option value="all">{tAdmin("label_all")}</option>
                 <option value="stripe">Stripe Web</option>
                 <option value="apple">Apple App Store</option>
                 <option value="google">Google Play</option>
@@ -2564,7 +3054,7 @@ export default function AdminPage() {
                     <th style={styles.tableTh}>Gebühr</th>
                     <th style={styles.tableTh}>Refunds</th>
                     <th style={styles.tableTh}>Netto Auszahlung</th>
-                    <th style={styles.tableTh}>Status</th>
+                    <th style={styles.tableTh}>{tAdmin("table_status")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2603,9 +3093,9 @@ export default function AdminPage() {
               <thead>
                 <tr>
                   <th style={styles.tableTh}>Rechnung</th>
-                  <th style={styles.tableTh}>Datum</th>
+                  <th style={styles.tableTh}>{tAdmin("table_date")}</th>
                   <th style={styles.tableTh}>Quelle</th>
-                  <th style={styles.tableTh}>E-Mail</th>
+                  <th style={styles.tableTh}>{tAdmin("table_email")}</th>
                   <th style={styles.tableTh}>Land</th>
                   <th style={styles.tableTh}>Brutto</th>
                   <th style={styles.tableTh}>Netto</th>
@@ -2686,11 +3176,11 @@ export default function AdminPage() {
                   <div style={styles.infoValue}>{userLookupResult.userId || "–"}</div>
                 </div>
                 <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>E-Mail</div>
+                  <div style={styles.infoLabel}>{tAdmin("table_email")}</div>
                   <div style={styles.infoValue}>{userLookupResult.email || "–"}</div>
                 </div>
                 <div style={styles.infoRow}>
-                  <div style={styles.infoLabel}>Status</div>
+                  <div style={styles.infoLabel}>{tAdmin("table_status")}</div>
                   <div style={styles.infoValue}>
                     {userLookupResult.userBlocked ? "Gesperrt" : "Aktiv"}
                   </div>
@@ -2782,7 +3272,7 @@ export default function AdminPage() {
                   <div style={styles.lookupMiniValue}>{userLookupResult.verifiedBusinessQrxCount}</div>
                 </div>
                 <div style={styles.lookupMiniCard}>
-                  <div style={styles.lookupMiniLabel}>Offene Tickets</div>
+                  <div style={styles.lookupMiniLabel}>{tAdmin("label_open_tickets")}</div>
                   <div style={styles.lookupMiniValue}>{userLookupResult.openTicketsCount}</div>
                 </div>
                 <div style={styles.lookupMiniCard}>
@@ -2849,7 +3339,7 @@ export default function AdminPage() {
 
               {userLookupResult.recentQrx.length > 0 ? (
                 <div style={{ marginTop: 14 }}>
-                  <h3 style={styles.panelTitle}>Letzte QR-X</h3>
+                  <h3 style={styles.panelTitle}>{tAdmin("label_recent_qrx")}</h3>
                   <div style={styles.ticketList}>
                     {userLookupResult.recentQrx.map((qrx) => (
                       <div key={qrx.id} style={styles.ticketItem}>
@@ -2924,7 +3414,7 @@ export default function AdminPage() {
 
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
                 <div style={getModerationBadgeStyle(qrxAdminItem.moderation_status)}>
-                  {formatModerationStatus(qrxAdminItem.moderation_status)}
+                  {formatModerationStatus(qrxAdminItem.moderation_status, tAdmin)}
                 </div>
                 <div style={styles.counterBadge}>
                   Meldungen: {qrxAdminItem.report_count ?? 0}
@@ -3070,7 +3560,7 @@ export default function AdminPage() {
                   onChange={(e) => setWaitFilter(e.target.value as WaitFilter)}
                   style={styles.filterSelect}
                 >
-                  <option value="all">Alle</option>
+                  <option value="all">{tAdmin("label_all")}</option>
                   <option value="7">Ab 7 Tagen</option>
                   <option value="14">Ab 14 Tagen</option>
                 </select>
@@ -3301,7 +3791,7 @@ export default function AdminPage() {
                             <span>{new Date(entry.created_at).toLocaleString("de-DE")}</span>
                           </div>
                           <div style={styles.historyNote}>
-                            {entry.note || formatAdminAction(entry.action_type) || "Keine Notiz"}
+                            {entry.note || formatAdminAction(entry.action_type, tAdmin) || "Keine Notiz"}
                           </div>
                         </div>
                       ))
@@ -3315,7 +3805,7 @@ export default function AdminPage() {
         <div style={{ ...styles.commandPanel, marginBottom: 18, display: activeAdminTab === "reports" ? "block" : "none" }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <div>
-              <h2 style={styles.panelTitle}>Gemeldete QR-X</h2>
+              <h2 style={styles.panelTitle}>{tAdmin("label_reported_qrx")}</h2>
               <p style={{ ...styles.subtleText, marginTop: 0, marginBottom: 10 }}>
                 QR-X mit Meldungen oder automatischer Moderation. Hier kannst du direkt öffnen, sperren oder nach Prüfung zurücksetzen.
               </p>
@@ -3342,7 +3832,7 @@ export default function AdminPage() {
                       <div style={styles.ticketMeta}>QR-X: {qrx.id}</div>
                     </div>
                     <div style={getModerationBadgeStyle(qrx.moderation_status)}>
-                      {formatModerationStatus(qrx.moderation_status)}
+                      {formatModerationStatus(qrx.moderation_status, tAdmin)}
                     </div>
                   </div>
 
@@ -3494,11 +3984,11 @@ export default function AdminPage() {
                             {ticket.ticket_number || "Supportfall"} · {ticket.title}
                           </div>
                           <div style={styles.ticketMeta}>
-                            {formatProblemType(ticket.problem_type)} · {new Date(ticket.created_at).toLocaleString("de-DE")}
+                            {formatProblemType(ticket.problem_type, tAdmin)} · {new Date(ticket.created_at).toLocaleString("de-DE")}
                           </div>
                         </div>
                         <div style={getTicketStatusStyle(ticket.status)}>
-                          {formatTicketStatus(ticket.status)}
+                          {formatTicketStatus(ticket.status, tAdmin)}
                         </div>
                       </div>
 
@@ -3514,7 +4004,7 @@ export default function AdminPage() {
                       {ticket.qrx_id && qrxReportDetails[ticket.qrx_id] ? (
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
                           <div style={getModerationBadgeStyle(qrxReportDetails[ticket.qrx_id].moderation_status)}>
-                            {formatModerationStatus(qrxReportDetails[ticket.qrx_id].moderation_status)}
+                            {formatModerationStatus(qrxReportDetails[ticket.qrx_id].moderation_status, tAdmin)}
                           </div>
                           <div style={styles.counterBadge}>
                             Meldungen: {qrxReportDetails[ticket.qrx_id].report_count ?? 0}
@@ -3844,10 +4334,10 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
                 onChange={(e) => setAdminLogTypeFilter(e.target.value)}
                 style={styles.filterSelect}
               >
-                <option value="all">Alle Aktionen</option>
+                <option value="all">{tAdmin("label_all_actions")}</option>
                 {adminActionTypes.map((actionType) => (
                   <option key={actionType} value={actionType}>
-                    {formatAdminAction(actionType)}
+                    {formatAdminAction(actionType, tAdmin)}
                   </option>
                 ))}
               </select>
@@ -3880,7 +4370,7 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
                   <div style={styles.ticketTop}>
                     <div>
                       <div style={styles.ticketTitle}>
-                        {formatAdminAction(entry.action_type)}
+                        {formatAdminAction(entry.action_type, tAdmin)}
                         {entry.amount != null ? ` · ${entry.amount > 0 ? "+" : ""}${entry.amount} Credits` : ""}
                       </div>
                       <div style={styles.ticketMeta}>
@@ -3967,15 +4457,15 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
 
                         <div style={styles.infoGrid}>
                           <div style={styles.infoRow}>
-                            <div style={styles.infoLabel}>Titel</div>
+                            <div style={styles.infoLabel}>{tAdmin("table_title")}</div>
                             <div style={styles.infoValue}>{qrxTitle}</div>
                           </div>
                           <div style={styles.infoRow}>
-                            <div style={styles.infoLabel}>Firma</div>
+                            <div style={styles.infoLabel}>{tAdmin("table_company")}</div>
                             <div style={styles.infoValue}>{companyName}</div>
                           </div>
                           <div style={styles.infoRow}>
-                            <div style={styles.infoLabel}>Kategorie</div>
+                            <div style={styles.infoLabel}>{tAdmin("table_category")}</div>
                             <div style={styles.infoValue}>{formatCategory(item.category)}</div>
                           </div>
                           <div style={styles.infoRow}>
@@ -4008,7 +4498,7 @@ Bearbeite Credit-Pakete kontrolliert. Änderungen wirken direkt, sobald App/Web 
                       </div>
 
                       <div style={styles.panel}>
-                        <h2 style={styles.panelTitle}>Aktionen</h2>
+                        <h2 style={styles.panelTitle}>{tAdmin("table_actions")}</h2>
                         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                           {item.qrx_web_url ? (
                             <a
