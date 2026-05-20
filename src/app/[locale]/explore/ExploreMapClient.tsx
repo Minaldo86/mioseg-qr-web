@@ -20,20 +20,20 @@ type LeafletLatLng = unknown;
 
 type LeafletMarker = {
   addTo: (map: LeafletMap) => LeafletMarker;
-  bindPopup: (html: string) => LeafletMarker;
+  bindPopup: (html: string, options?: { maxWidth?: number; className?: string }) => LeafletMarker;
   openPopup: () => LeafletMarker;
   getLatLng: () => LeafletLatLng;
 };
 
 type LeafletMap = {
   setView: (center: [number, number] | LeafletLatLng, zoom: number, options?: { animate?: boolean }) => LeafletMap;
-  fitBounds: (bounds: [number, number][], options?: { padding?: [number, number] }) => LeafletMap;
+  fitBounds: (bounds: [number, number][], options?: { padding?: [number, number]; maxZoom?: number }) => LeafletMap;
   remove: () => void;
 };
 
 type LeafletApi = {
-  map: (element: HTMLElement) => LeafletMap;
-  tileLayer: (url: string) => { addTo: (map: LeafletMap) => unknown };
+  map: (element: HTMLElement, options?: { scrollWheelZoom?: boolean; zoomControl?: boolean }) => LeafletMap;
+  tileLayer: (url: string, options?: { attribution?: string; maxZoom?: number }) => { addTo: (map: LeafletMap) => unknown };
   divIcon: (options: {
     className: string;
     html: string;
@@ -58,25 +58,79 @@ function escapeHtml(value: string) {
     .replaceAll('"', "&quot;");
 }
 
+function escapeAttr(value: string) {
+  return escapeHtml(value).replaceAll("'", "&#39;");
+}
+
 async function ensureLeaflet(): Promise<LeafletApi | null> {
   if (typeof window === "undefined") return null;
   if (window.L) return window.L;
 
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-  document.head.appendChild(link);
+  if (!document.querySelector('link[data-mioseg-leaflet="true"]')) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    link.setAttribute("data-mioseg-leaflet", "true");
+    document.head.appendChild(link);
+  }
 
   await new Promise<void>((resolve, reject) => {
+    const existingScript = document.querySelector<HTMLScriptElement>('script[data-mioseg-leaflet="true"]');
+    if (existingScript) {
+      if (window.L) resolve();
+      existingScript.addEventListener("load", () => resolve(), { once: true });
+      existingScript.addEventListener("error", () => reject(new Error("Leaflet load failed")), { once: true });
+      return;
+    }
+
     const script = document.createElement("script");
     script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
     script.async = true;
+    script.setAttribute("data-mioseg-leaflet", "true");
     script.onload = () => resolve();
     script.onerror = () => reject(new Error("Leaflet load failed"));
     document.body.appendChild(script);
   });
 
   return window.L ?? null;
+}
+
+function buildPopup(point: MapPoint) {
+  const imageHtml = point.coverUrl
+    ? `<div style="height:118px;border-radius:18px;overflow:hidden;background:#eef4fb;margin-bottom:12px;"><img src="${escapeAttr(
+        point.coverUrl
+      )}" alt="${escapeAttr(point.title)}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>`
+    : `<div style="height:92px;border-radius:18px;background:linear-gradient(180deg,#edf3f9 0%,#dfe8f2 100%);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:12px;">${escapeHtml(
+        point.categoryIcon
+      )}</div>`;
+
+  return `
+    <div style="width:250px;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#0e1726;">
+      ${imageHtml}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <span style="display:inline-flex;align-items:center;gap:6px;border-radius:999px;background:#eef4fb;color:#28496f;font-size:11px;font-weight:800;padding:7px 9px;">
+          ${escapeHtml(point.categoryIcon)} ${escapeHtml(point.category)}
+        </span>
+        ${
+          point.verified
+            ? '<span style="display:inline-flex;align-items:center;border-radius:999px;background:#0d1726;color:#ffffff;font-size:11px;font-weight:900;padding:7px 9px;">✓ Verifiziert</span>'
+            : ""
+        }
+      </div>
+      <div style="font-weight:900;font-size:17px;line-height:1.25;margin-bottom:7px;">${escapeHtml(point.title)}</div>
+      <div style="color:#5d6b7d;font-size:13px;line-height:1.55;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(
+        point.description
+      )}</div>
+      ${
+        point.locationName
+          ? `<div style="color:#5d6b7d;font-size:12px;font-weight:700;margin-bottom:12px;">📍 ${escapeHtml(point.locationName)}</div>`
+          : ""
+      }
+      <a href="${escapeAttr(
+        point.href
+      )}" style="display:flex;align-items:center;justify-content:center;min-height:38px;border-radius:13px;background:linear-gradient(180deg,#0d1726 0%,#17304d 100%);color:#ffffff;text-decoration:none;font-weight:900;font-size:13px;box-shadow:0 10px 24px rgba(13,23,38,0.18);">QR-X öffnen →</a>
+    </div>
+  `;
 }
 
 export default function ExploreMapClient({
@@ -100,7 +154,7 @@ export default function ExploreMapClient({
     const boot = async () => {
       if (!mapElRef.current) return;
       const L = await ensureLeaflet();
-      if (!L || cancelled) return;
+      if (!L || cancelled || !mapElRef.current) return;
 
       const fallbackCenter: [number, number] =
         points.length > 0 ? [points[0].latitude, points[0].longitude] : [51.0, 9.0];
@@ -108,50 +162,84 @@ export default function ExploreMapClient({
       const center: [number, number] =
         hasUserLocation && userLat != null && userLng != null ? [userLat, userLng] : fallbackCenter;
 
-      const map = L.map(mapElRef.current).setView(center, hasUserLocation ? 11 : 6);
+      const map = L.map(mapElRef.current, { scrollWheelZoom: true, zoomControl: true }).setView(
+        center,
+        hasUserLocation ? 12 : 6
+      );
 
       mapRef.current = map;
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap",
+        maxZoom: 19,
+      }).addTo(map);
 
       const bounds: [number, number][] = [];
+
+      if (hasUserLocation && userLat != null && userLng != null) {
+        const userIcon = L.divIcon({
+          className: "",
+          html: `
+            <div style="
+              width:26px;
+              height:26px;
+              border-radius:999px;
+              background:#2563eb;
+              border:4px solid #ffffff;
+              box-shadow:0 0 0 8px rgba(37,99,235,0.16),0 12px 28px rgba(13,23,38,0.22);
+            "></div>
+          `,
+          iconSize: [26, 26],
+          iconAnchor: [13, 13],
+        });
+
+        L.marker([userLat, userLng], { icon: userIcon })
+          .addTo(map)
+          .bindPopup('<div style="font-weight:900;color:#0e1726;">Dein Standort</div>');
+
+        bounds.push([userLat, userLng]);
+      }
 
       points.forEach((point) => {
         const icon = L.divIcon({
           className: "",
           html: `
             <div style="
-              width:44px;
-              height:44px;
-              border-radius:16px;
+              position:relative;
+              width:48px;
+              height:48px;
+              border-radius:18px;
               background:linear-gradient(180deg,#0d1726 0%,#17304d 100%);
               display:flex;
               align-items:center;
               justify-content:center;
-              font-size:20px;
+              font-size:21px;
               border:2px solid #ffffff;
-              box-shadow:0 12px 30px rgba(0,0,0,0.25);
+              box-shadow:0 16px 34px rgba(0,0,0,0.26);
+              transform:translateY(-2px);
             ">
               ${escapeHtml(point.categoryIcon)}
+              ${
+                point.verified
+                  ? '<span style="position:absolute;right:-4px;top:-5px;width:18px;height:18px;border-radius:999px;background:#22c55e;border:2px solid #ffffff;color:#ffffff;font-size:11px;line-height:14px;text-align:center;font-weight:900;">✓</span>'
+                  : ""
+              }
             </div>
           `,
-          iconSize: [44, 44],
-          iconAnchor: [22, 22],
+          iconSize: [48, 48],
+          iconAnchor: [24, 24],
         });
 
         const marker = L.marker([point.latitude, point.longitude], { icon }).addTo(map);
 
         markersRef.current[point.id] = marker;
-
-        marker.bindPopup(`
-          <div style="font-weight:800;">${escapeHtml(point.title)}</div>
-        `);
+        marker.bindPopup(buildPopup(point), { maxWidth: 290, className: "miosegExplorePopup" });
 
         bounds.push([point.latitude, point.longitude]);
       });
 
       if (bounds.length > 1) {
-        map.fitBounds(bounds, { padding: [40, 40] });
+        map.fitBounds(bounds, { padding: [44, 44], maxZoom: 14 });
       }
 
       window.focusMarker = (id: string) => {
@@ -180,9 +268,10 @@ export default function ExploreMapClient({
     <div
       style={{
         width: "100%",
-        height: "560px",
-        borderRadius: "28px",
+        height: "clamp(420px, 58vw, 620px)",
+        borderRadius: "30px",
         overflow: "hidden",
+        background: "#edf3f9",
       }}
     >
       <div ref={mapElRef} style={{ width: "100%", height: "100%" }} />

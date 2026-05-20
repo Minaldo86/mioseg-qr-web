@@ -32,6 +32,7 @@ type ExploreEntry = {
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
+type RouteParams = { locale?: string };
 
 const CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string; icon: string }> = [
   { value: "praxis_gesundheit", label: "Praxis & Gesundheit", icon: "🩺" },
@@ -66,12 +67,12 @@ function getEntryText(entry: ExploreEntry) {
   return entry.description?.trim() || entry.location_name?.trim() || "Business QR-X auf mioseg qr";
 }
 
-function buildExploreHref(category: string, q: string) {
+function buildExploreHref(locale: string, category: string, q: string) {
   const params = new URLSearchParams();
   if (category && category !== "all") params.set("category", category);
   if (q.trim()) params.set("q", q.trim());
   const qs = params.toString();
-  return qs ? `/explore?${qs}` : "/explore";
+  return qs ? `/${locale}/explore?${qs}` : `/${locale}/explore`;
 }
 
 function parseNumberParam(value: string | string[] | undefined): number | null {
@@ -102,16 +103,30 @@ function formatDistance(km: number) {
   return `${km.toFixed(km < 10 ? 1 : 0)} km entfernt`;
 }
 
+function formatDate(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", year: "numeric" }).format(date);
+}
+
 export const dynamic = "force-dynamic";
 
 export default async function ExplorePage({
+  params,
   searchParams,
 }: {
+  params?: Promise<RouteParams>;
   searchParams?: Promise<SearchParams>;
 }) {
+  const routeParams = (await params) ?? {};
+  const locale = routeParams.locale || "de";
+  const explorePath = `/${locale}/explore`;
+
   const sp = (await searchParams) ?? {};
   const selectedCategory = getFirst(sp.category) || "all";
-  const query = getFirst(sp.q).trim().toLowerCase();
+  const queryRaw = getFirst(sp.q);
+  const query = queryRaw.trim().toLowerCase();
   const userLat = parseNumberParam(sp.lat);
   const userLng = parseNumberParam(sp.lng);
   const hasUserLocation = userLat != null && userLng != null;
@@ -158,6 +173,10 @@ export default async function ExplorePage({
     count: (data ?? []).filter((item) => item.category === option.value).length,
   }));
 
+  const activeCategoryCount = categoryCounts.filter((c) => c.count > 0).length;
+  const verifiedCount = (data ?? []).filter((entry) => entry.verified).length;
+  const entriesWithLocationCount = (data ?? []).filter((entry) => entry.location_lat != null && entry.location_lng != null).length;
+
   const mapPoints = items
     .filter((entry) => entry.location_lat != null && entry.location_lng != null)
     .map((entry) => ({
@@ -167,7 +186,7 @@ export default async function ExplorePage({
       category: getCategoryLabel(entry.category),
       categoryIcon: getCategoryIcon(entry.category),
       verified: !!entry.verified,
-      href: `/qrx/${entry.id}`,
+      href: `/${locale}/qrx/${entry.id}`,
       coverUrl: entry.cover_image_url || entry.logo_url || null,
       locationName: entry.location_name ?? null,
       latitude: entry.location_lat as number,
@@ -180,206 +199,281 @@ export default async function ExplorePage({
   ) => {
     const image = entry.cover_image_url || entry.logo_url || null;
     const key = `${opts?.keyPrefix ?? "card"}-${entry.id}`;
+    const createdLabel = formatDate(entry.created_at);
 
     return (
       <div
         key={key}
-        onClick={() => {
-          if (typeof window === "undefined") return;
-          const focusMarker = (window as Window & { focusMarker?: (id: string) => void }).focusMarker;
-          if (focusMarker) focusMarker(entry.id);
+        data-focus-marker={entry.id}
+        style={{
+          height: "100%",
+          cursor: entry.location_lat != null && entry.location_lng != null ? "pointer" : "default",
         }}
       >
-        <Link
-          href={`/qrx/${entry.id}`}
-          style={{ textDecoration: "none", color: "inherit" }}
-        >
-        <div
-          className={styles.valueCard}
-          style={{
-            height: "100%",
-            padding: "14px",
-            borderRadius: "28px",
-            boxShadow: "0 18px 40px rgba(14, 23, 38, 0.08)",
-            transition: "transform 160ms ease, box-shadow 160ms ease",
-          }}
-        >
-          <div
+        <Link href={`/${locale}/qrx/${entry.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+          <article
+            className={styles.valueCard}
             style={{
-              position: "relative",
-              width: "100%",
-              aspectRatio: "16 / 10",
-              borderRadius: "22px",
+              height: "100%",
+              padding: "12px",
+              borderRadius: "30px",
+              border: "1px solid rgba(218, 228, 240, 0.95)",
+              background: "linear-gradient(180deg, #ffffff 0%, #f9fbfe 100%)",
+              boxShadow: "0 18px 46px rgba(14, 23, 38, 0.08)",
+              transition: "transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease",
               overflow: "hidden",
-              background: "linear-gradient(180deg, #edf3f9 0%, #dfe8f2 100%)",
-              border: "1px solid #dde7f2",
-              marginBottom: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
             }}
           >
-            {image ? (
-              <img
-                src={image}
-                alt={getEntryTitle(entry)}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: "84px",
-                  height: "84px",
-                  borderRadius: "24px",
-                  background: "linear-gradient(180deg, #ffffff 0%, #eef4fb 100%)",
-                  border: "1px solid #d5e0ec",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "38px",
-                  boxShadow: "0 10px 24px rgba(14, 23, 38, 0.08)",
-                }}
-              >
-                {getCategoryIcon(entry.category)}
-              </div>
-            )}
-
             <div
               style={{
-                position: "absolute",
-                left: "14px",
-                top: "14px",
+                position: "relative",
+                width: "100%",
+                aspectRatio: "16 / 10",
+                borderRadius: "24px",
+                overflow: "hidden",
+                background: "radial-gradient(circle at 30% 20%, #ffffff 0%, #edf4fb 45%, #dce7f3 100%)",
+                border: "1px solid #dde7f2",
+                marginBottom: "18px",
                 display: "flex",
-                gap: "8px",
-                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
+              {image ? (
+                <img
+                  src={image}
+                  alt={getEntryTitle(entry)}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "92px",
+                    height: "92px",
+                    borderRadius: "28px",
+                    background: "linear-gradient(180deg, #ffffff 0%, #eef4fb 100%)",
+                    border: "1px solid #d5e0ec",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "42px",
+                    boxShadow: "0 16px 34px rgba(14, 23, 38, 0.12)",
+                  }}
+                >
+                  {getCategoryIcon(entry.category)}
+                </div>
+              )}
+
               <div
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
+                  position: "absolute",
+                  inset: 0,
+                  background: image
+                    ? "linear-gradient(180deg, rgba(6, 12, 21, 0.05) 0%, rgba(6, 12, 21, 0.55) 100%)"
+                    : "transparent",
+                  pointerEvents: "none",
+                }}
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  left: "14px",
+                  top: "14px",
+                  right: "14px",
+                  display: "flex",
                   gap: "8px",
-                  minHeight: "34px",
-                  padding: "0 12px",
-                  borderRadius: "999px",
-                  fontSize: "12px",
-                  fontWeight: 800,
-                  background: "rgba(255,255,255,0.9)",
-                  color: "#28496f",
-                  backdropFilter: "blur(10px)",
-                  border: "1px solid rgba(255,255,255,0.85)",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                 }}
               >
-                {getCategoryIcon(entry.category)} {getCategoryLabel(entry.category)}
-              </div>
-
-              {entry.verified ? (
                 <div
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
+                    gap: "8px",
                     minHeight: "34px",
                     padding: "0 12px",
                     borderRadius: "999px",
                     fontSize: "12px",
                     fontWeight: 900,
-                    background: "rgba(13,23,38,0.82)",
-                    color: "#ffffff",
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    backdropFilter: "blur(10px)",
+                    background: "rgba(255,255,255,0.92)",
+                    color: "#17304d",
+                    backdropFilter: "blur(12px)",
+                    border: "1px solid rgba(255,255,255,0.9)",
+                    boxShadow: "0 8px 20px rgba(14, 23, 38, 0.08)",
                   }}
                 >
-                  ✓ Verified
+                  <span>{getCategoryIcon(entry.category)}</span>
+                  <span>{getCategoryLabel(entry.category)}</span>
+                </div>
+
+                {entry.verified ? (
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      minHeight: "34px",
+                      padding: "0 12px",
+                      borderRadius: "999px",
+                      fontSize: "12px",
+                      fontWeight: 900,
+                      background: "rgba(13, 23, 38, 0.86)",
+                      color: "#ffffff",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                      backdropFilter: "blur(12px)",
+                      boxShadow: "0 10px 24px rgba(13, 23, 38, 0.18)",
+                    }}
+                  >
+                    <span>✓</span>
+                    <span>Verifiziert</span>
+                  </div>
+                ) : null}
+              </div>
+
+              {entry.location_name?.trim() ? (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: "14px",
+                    right: "14px",
+                    bottom: "14px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    width: "fit-content",
+                    maxWidth: "calc(100% - 28px)",
+                    minHeight: "34px",
+                    padding: "0 12px",
+                    borderRadius: "999px",
+                    color: "#ffffff",
+                    background: "rgba(13, 23, 38, 0.72)",
+                    border: "1px solid rgba(255, 255, 255, 0.18)",
+                    backdropFilter: "blur(12px)",
+                    fontSize: "12px",
+                    fontWeight: 800,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  📍 {entry.location_name.trim()}
                 </div>
               ) : null}
             </div>
-          </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div>
-              <h3
-                className={styles.featureTitle}
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px", padding: "0 6px 6px" }}>
+              <div>
+                <h3
+                  className={styles.featureTitle}
+                  style={{
+                    marginBottom: "10px",
+                    fontSize: "23px",
+                    lineHeight: 1.18,
+                    letterSpacing: "-0.45px",
+                  }}
+                >
+                  {getEntryTitle(entry)}
+                </h3>
+                <p
+                  className={styles.featureText}
+                  style={{
+                    fontSize: "15px",
+                    lineHeight: 1.72,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 3,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                    minHeight: "76px",
+                  }}
+                >
+                  {getEntryText(entry)}
+                </p>
+              </div>
+
+              <div
                 style={{
-                  marginBottom: "10px",
-                  fontSize: "24px",
-                  lineHeight: 1.2,
-                  letterSpacing: "-0.4px",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "8px",
+                  alignItems: "center",
                 }}
               >
-                {getEntryTitle(entry)}
-              </h3>
-              <p
-                className={styles.featureText}
-                style={{
-                  fontSize: "15px",
-                  lineHeight: 1.75,
-                  display: "-webkit-box",
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                  minHeight: "78px",
-                }}
-              >
-                {getEntryText(entry)}
-              </p>
-            </div>
-
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "10px",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginTop: "4px",
-              }}
-            >
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                {entry.location_name?.trim() ? (
-                  <div
-                    style={{
-                      color: "#5d6b7d",
-                      fontSize: "14px",
-                      fontWeight: 700,
-                    }}
-                  >
-                    📍 {entry.location_name.trim()}
-                  </div>
-                ) : null}
-
                 {opts?.distanceLabel ? (
-                  <div
+                  <span
                     style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      minHeight: "32px",
+                      padding: "0 10px",
+                      borderRadius: "999px",
+                      background: "#eef4fb",
                       color: "#28496f",
-                      fontSize: "13px",
-                      fontWeight: 800,
+                      fontSize: "12px",
+                      fontWeight: 900,
                     }}
                   >
                     {opts.distanceLabel}
-                  </div>
+                  </span>
+                ) : null}
+
+                {createdLabel ? (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      minHeight: "32px",
+                      padding: "0 10px",
+                      borderRadius: "999px",
+                      background: "#f4f7fb",
+                      color: "#5d6b7d",
+                      fontSize: "12px",
+                      fontWeight: 800,
+                    }}
+                  >
+                    Neu seit {createdLabel}
+                  </span>
                 ) : null}
               </div>
 
               <div
                 style={{
-                  display: "inline-flex",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "12px",
                   alignItems: "center",
-                  justifyContent: "center",
-                  minHeight: "42px",
-                  padding: "0 16px",
-                  borderRadius: "14px",
-                  background: "linear-gradient(180deg, #0d1726 0%, #17304d 100%)",
-                  color: "#ffffff",
-                  fontSize: "13px",
-                  fontWeight: 800,
-                  boxShadow: "0 10px 24px rgba(13, 23, 38, 0.16)",
+                  justifyContent: "space-between",
+                  borderTop: "1px solid #edf2f7",
+                  paddingTop: "14px",
+                  marginTop: "2px",
                 }}
               >
-                Ansehen →
+                <span style={{ color: "#6b788a", fontSize: "13px", fontWeight: 800 }}>
+                  {entry.location_lat != null && entry.location_lng != null ? "Auf der Karte verfügbar" : "Ohne Standortdaten"}
+                </span>
+
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "42px",
+                    padding: "0 16px",
+                    borderRadius: "14px",
+                    background: "linear-gradient(180deg, #0d1726 0%, #17304d 100%)",
+                    color: "#ffffff",
+                    fontSize: "13px",
+                    fontWeight: 900,
+                    boxShadow: "0 12px 26px rgba(13, 23, 38, 0.18)",
+                  }}
+                >
+                  QR-X öffnen →
+                </span>
               </div>
             </div>
-          </div>
-        </div>
+          </article>
         </Link>
       </div>
     );
@@ -395,27 +489,40 @@ export default async function ExplorePage({
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "8px",
-                  minHeight: "34px",
-                  padding: "0 14px",
+                  gap: "10px",
+                  minHeight: "38px",
+                  padding: "0 16px",
                   borderRadius: "999px",
-                  background: "rgba(255,255,255,0.08)",
-                  color: "#d9e8fb",
+                  background: "rgba(255,255,255,0.1)",
+                  color: "#e8f2ff",
                   fontSize: "12px",
-                  fontWeight: 800,
-                  letterSpacing: "0.04em",
+                  fontWeight: 900,
+                  letterSpacing: "0.06em",
                   textTransform: "uppercase",
+                  border: "1px solid rgba(255,255,255,0.14)",
+                  boxShadow: "0 12px 30px rgba(0,0,0,0.14)",
+                  backdropFilter: "blur(12px)",
                 }}
               >
-                🧭 Explore
+                <span>🧭</span>
+                <span>mioseg qr Explore</span>
               </span>
             </div>
 
-            <h1 className={styles.heroTitle}>Entdecke starke QR-X in deiner Nähe</h1>
+            <h1 className={styles.heroTitle}>Entdecke Business QR-X in deiner Nähe</h1>
             <p className={styles.heroText}>
-              Finde Restaurants, Praxen, Unternehmen, Dienstleistungen und besondere Orte.
-              Alle Einträge kommen direkt aus deinen echten Business QR-X Daten.
+              Finde Restaurants, Praxen, Unternehmen, Dienstleistungen und besondere Orte auf einer modernen öffentlichen
+              Karte. Jeder Eintrag führt direkt zur passenden QR-X Webansicht.
             </p>
+
+            <div className={styles.heroButtons} style={{ marginBottom: "24px" }}>
+              <Link href="#explore-results" className={styles.primaryButton}>
+                Einträge ansehen
+              </Link>
+              <Link href="#explore-map" className={styles.secondaryButton}>
+                Karte öffnen
+              </Link>
+            </div>
 
             <div className={styles.heroFacts}>
               <div className={styles.factCard}>
@@ -427,8 +534,12 @@ export default async function ExplorePage({
                 <div className={styles.factLabel}>sichtbare Treffer</div>
               </div>
               <div className={styles.factCard}>
-                <div className={styles.factNumber}>{categoryCounts.filter((c) => c.count > 0).length}</div>
+                <div className={styles.factNumber}>{activeCategoryCount}</div>
                 <div className={styles.factLabel}>aktive Kategorien</div>
+              </div>
+              <div className={styles.factCard}>
+                <div className={styles.factNumber}>{verifiedCount}</div>
+                <div className={styles.factLabel}>verifizierte Profile</div>
               </div>
             </div>
           </div>
@@ -437,25 +548,57 @@ export default async function ExplorePage({
             <div className={styles.visualStage}>
               <div className={styles.glowOne} />
               <div className={styles.glowTwo} />
-              <div className={styles.phoneMockup}>
+              <div className={styles.phoneMockup} style={{ maxWidth: "410px" }}>
                 <div className={styles.phoneHeader}>
                   <div className={styles.phoneDot} />
                   <div className={styles.phoneDot} />
                   <div className={styles.phoneDot} />
                 </div>
 
-                <div className={styles.phoneCardPrimary}>
+                <div
+                  className={styles.phoneCardPrimary}
+                  style={{
+                    background: "linear-gradient(180deg, #1b3351 0%, #28486e 62%, #355f8b 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+                  }}
+                >
                   <p className={styles.phoneOverline}>Live Explore</p>
-                  <h3 className={styles.phoneCardTitle}>Echte Business QR-X</h3>
+                  <h3 className={styles.phoneCardTitle}>Öffentliche Business-Karte</h3>
                   <p className={styles.phoneCardText}>
-                    Suche, filtere und öffne direkt die aktuell verfügbaren Einträge auf mioseg qr web.
+                    Suche, filtere und öffne echte Business QR-X direkt aus Supabase. Perfekt für Nutzer, die neue Orte
+                    und Angebote entdecken möchten.
                   </p>
+                </div>
+
+                <div style={{ display: "grid", gap: "10px", marginBottom: "14px" }}>
+                  {categoryCounts.slice(0, 4).map((item) => (
+                    <div
+                      key={item.value}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                        minHeight: "44px",
+                        padding: "0 14px",
+                        borderRadius: "16px",
+                        background: "rgba(255,255,255,0.06)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        color: "#ffffff",
+                      }}
+                    >
+                      <span style={{ fontSize: "13px", fontWeight: 800 }}>
+                        {item.icon} {item.label}
+                      </span>
+                      <span style={{ fontSize: "12px", color: "#b7c5d7", fontWeight: 900 }}>{item.count}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <div className={styles.phoneActionRow}>
                   <span className={styles.phoneActionChip}>Suche</span>
-                  <span className={styles.phoneActionChip}>Kategorien</span>
-                  <span className={styles.phoneActionChip}>Live Daten</span>
+                  <span className={styles.phoneActionChip}>Karte</span>
+                  <span className={styles.phoneActionChip}>Verifiziert</span>
                 </div>
               </div>
             </div>
@@ -464,83 +607,180 @@ export default async function ExplorePage({
       </section>
 
       <section className={styles.section}>
-        <div className={styles.sectionIntro}>
-          <span className={styles.sectionEyebrow}>Explore Filter</span>
-          <h2 className={styles.sectionTitle}>Suche und filtere echte Einträge</h2>
-          <p className={styles.sectionText}>
-            Suche nach Namen, Ort oder Kategorie. Alles basiert direkt auf deinen Business QR-X Daten.
-          </p>
-        </div>
-
-        <form action="/explore" method="get" style={{ display: "grid", gap: "14px", marginBottom: "22px" }}>
-          <input
-            type="text"
-            name="q"
-            defaultValue={getFirst(sp.q)}
-            placeholder="z. B. Restaurant, Praxis, Geilenkirchen ..."
-            style={{
-              width: "100%",
-              minHeight: "52px",
-              padding: "0 16px",
-              borderRadius: "16px",
-              border: "1px solid #d9e5f2",
-              background: "#ffffff",
-              color: "#0e1726",
-              fontSize: "15px",
-              fontWeight: 600,
-              outline: "none",
-            }}
-          />
-
-          <div className={styles.heroButtons}>
-            <button type="submit" className={styles.primaryButton}>
-              Suche starten
-            </button>
-            <button
-              type="button"
-              id="nearbyBtn"
-              className={styles.secondaryButtonDark}
-              data-query={getFirst(sp.q)}
-              data-category={selectedCategory}
-            >
-              {hasUserLocation ? "Standort aktiv" : "In meiner Nähe"}
-            </button>
-            <Link href="/explore" className={styles.secondaryButtonDark}>
-              Filter zurücksetzen
-            </Link>
+        <div
+          style={{
+            borderRadius: "32px",
+            padding: "26px",
+            background: "linear-gradient(180deg, #ffffff 0%, #f7fafc 100%)",
+            border: "1px solid #e5edf5",
+            boxShadow: "0 18px 46px rgba(14, 23, 38, 0.06)",
+          }}
+        >
+          <div className={styles.sectionIntro}>
+            <span className={styles.sectionEyebrow}>Explore Filter</span>
+            <h2 className={styles.sectionTitle}>Suche und filtere echte Einträge</h2>
+            <p className={styles.sectionText}>
+              Suche nach Namen, Ort oder Kategorie. Die Ergebnisse basieren direkt auf deinen Business QR-X Daten.
+            </p>
           </div>
-        </form>
 
-        <div className={styles.heroButtons}>
-          <Link
-            href={buildExploreHref("all", getFirst(sp.q))}
-            className={selectedCategory === "all" ? styles.primaryButton : styles.secondaryButtonDark}
-          >
-            Alle
-          </Link>
-
-          {categoryCounts.map((item) => (
-            <Link
-              key={item.value}
-              href={buildExploreHref(item.value, getFirst(sp.q))}
-              className={selectedCategory === item.value ? styles.primaryButton : styles.secondaryButtonDark}
+          <form action={explorePath} method="get" style={{ display: "grid", gap: "16px", marginBottom: "24px" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto auto",
+                gap: "12px",
+                alignItems: "center",
+              }}
             >
-              {item.icon} {item.label} ({item.count})
+              <input
+                type="text"
+                name="q"
+                defaultValue={queryRaw}
+                placeholder="z. B. Restaurant, Praxis, Geilenkirchen ..."
+                style={{
+                  width: "100%",
+                  minHeight: "56px",
+                  padding: "0 18px",
+                  borderRadius: "18px",
+                  border: "1px solid #d9e5f2",
+                  background: "#ffffff",
+                  color: "#0e1726",
+                  fontSize: "15px",
+                  fontWeight: 700,
+                  outline: "none",
+                  boxShadow: "inset 0 1px 0 rgba(14,23,38,0.02)",
+                }}
+              />
+
+              <button type="submit" className={styles.primaryButton} style={{ border: 0, cursor: "pointer" }}>
+                Suche starten
+              </button>
+
+              <button
+                type="button"
+                id="nearbyBtn"
+                className={styles.secondaryButtonDark}
+                data-query={queryRaw}
+                data-category={selectedCategory}
+                data-explore-path={explorePath}
+                style={{ color: "#0d1726", borderColor: "#d9e5f2", cursor: "pointer" }}
+              >
+                {hasUserLocation ? "Standort aktiv" : "In meiner Nähe"}
+              </button>
+            </div>
+
+            <div className={styles.heroButtons} style={{ marginBottom: 0 }}>
+              <Link href={explorePath} className={styles.secondaryButtonDark} style={{ color: "#0d1726", borderColor: "#d9e5f2" }}>
+                Filter zurücksetzen
+              </Link>
+              {query ? (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    minHeight: "48px",
+                    padding: "0 16px",
+                    borderRadius: "14px",
+                    background: "#eef4fb",
+                    color: "#28496f",
+                    fontSize: "14px",
+                    fontWeight: 900,
+                  }}
+                >
+                  Suche: „{queryRaw.trim()}“
+                </span>
+              ) : null}
+            </div>
+          </form>
+
+          <div className={styles.heroButtons} style={{ marginBottom: 0 }}>
+            <Link
+              href={buildExploreHref(locale, "all", queryRaw)}
+              className={selectedCategory === "all" ? styles.primaryButton : styles.secondaryButtonDark}
+              style={selectedCategory === "all" ? undefined : { color: "#0d1726", borderColor: "#d9e5f2" }}
+            >
+              Alle ({(data ?? []).length})
             </Link>
-          ))}
+
+            {categoryCounts.map((item) => (
+              <Link
+                key={item.value}
+                href={buildExploreHref(locale, item.value, queryRaw)}
+                className={selectedCategory === item.value ? styles.primaryButton : styles.secondaryButtonDark}
+                style={selectedCategory === item.value ? undefined : { color: "#0d1726", borderColor: "#d9e5f2" }}
+              >
+                {item.icon} {item.label} ({item.count})
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className={styles.sectionAlt}>
-        <div className={styles.sectionIntro}>
-          <span className={styles.sectionEyebrow}>Explore Map</span>
-          <h2 className={styles.sectionTitle}>Echte Karte mit deinen Business QR-X</h2>
-          <p className={styles.sectionText}>
-            Zoome, bewege die Karte und öffne Business QR-X direkt aus dem Marker-Popup.
-          </p>
+      <section id="explore-map" className={styles.sectionAlt} style={{ overflow: "hidden" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div className={styles.sectionIntro} style={{ marginBottom: "24px" }}>
+            <span className={styles.sectionEyebrow}>Explore Map</span>
+            <h2 className={styles.sectionTitle}>Business QR-X auf der Karte</h2>
+            <p className={styles.sectionText}>
+              Zoome, bewege die Karte und öffne Business QR-X direkt aus dem Marker-Popup.
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              flexWrap: "wrap",
+              marginBottom: "24px",
+            }}
+          >
+            <span
+              style={{
+                minHeight: "42px",
+                padding: "0 14px",
+                display: "inline-flex",
+                alignItems: "center",
+                borderRadius: "999px",
+                background: "#ffffff",
+                color: "#28496f",
+                border: "1px solid #e5edf5",
+                fontSize: "13px",
+                fontWeight: 900,
+              }}
+            >
+              🗺️ {entriesWithLocationCount} mit Standort
+            </span>
+            <span
+              style={{
+                minHeight: "42px",
+                padding: "0 14px",
+                display: "inline-flex",
+                alignItems: "center",
+                borderRadius: "999px",
+                background: "#ffffff",
+                color: "#28496f",
+                border: "1px solid #e5edf5",
+                fontSize: "13px",
+                fontWeight: 900,
+              }}
+            >
+              📌 {mapPoints.length} aktuell sichtbar
+            </span>
+          </div>
         </div>
 
-        <ExploreMapClient points={mapPoints} hasUserLocation={hasUserLocation} userLat={userLat} userLng={userLng} />
+        <div
+          style={{
+            borderRadius: "34px",
+            padding: "12px",
+            background: "linear-gradient(180deg, #ffffff 0%, #eef4fb 100%)",
+            border: "1px solid #dce8f4",
+            boxShadow: "0 22px 60px rgba(14, 23, 38, 0.1)",
+          }}
+        >
+          <ExploreMapClient points={mapPoints} hasUserLocation={hasUserLocation} userLat={userLat} userLng={userLng} />
+        </div>
       </section>
 
       {hasUserLocation && nearbyItems.length > 0 ? (
@@ -564,7 +804,7 @@ export default async function ExplorePage({
         </section>
       ) : null}
 
-      <section className={styles.sectionAlt}>
+      <section id="explore-results" className={styles.sectionAlt}>
         <div className={styles.sectionIntro}>
           <span className={styles.sectionEyebrow}>Neu auf Explore</span>
           <h2 className={styles.sectionTitle}>Direkt aus deiner Datenbank</h2>
@@ -574,16 +814,32 @@ export default async function ExplorePage({
         </div>
 
         {error ? (
-          <div className={styles.compareCardFeatured}>
+          <div className={styles.compareCardFeatured} style={{ borderRadius: "30px" }}>
+            <div className={styles.compareLabelFeatured}>Fehlerzustand</div>
             <h3 className={styles.compareTitleFeatured}>Fehler beim Laden</h3>
-            <p style={{ margin: 0, color: "#dbe7f6", lineHeight: 1.7 }}>{error.message}</p>
+            <p style={{ margin: 0, color: "#dbe7f6", lineHeight: 1.7 }}>
+              Die Explore-Einträge konnten gerade nicht geladen werden. Technische Meldung: {error.message}
+            </p>
           </div>
         ) : items.length === 0 ? (
-          <div className={styles.compareCard}>
-            <h3 className={styles.compareTitle}>Keine Treffer gefunden</h3>
-            <p className={styles.featureText}>
-              Es wurden aktuell keine Business QR-X gefunden, die zu deiner Suche passen.
+          <div
+            className={styles.compareCard}
+            style={{
+              borderRadius: "30px",
+              textAlign: "center",
+              padding: "42px 26px",
+              background: "linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%)",
+            }}
+          >
+            <div style={{ fontSize: "46px", marginBottom: "12px" }}>🔎</div>
+            <h3 className={styles.compareTitle}>Keine passenden Business QR-X gefunden</h3>
+            <p className={styles.featureText} style={{ maxWidth: "620px", margin: "0 auto 18px" }}>
+              Es gibt aktuell keine Einträge, die zu deiner Suche oder Kategorie passen. Entferne den Filter oder versuche
+              einen allgemeineren Suchbegriff.
             </p>
+            <Link href={explorePath} className={styles.primaryButton}>
+              Alle Einträge anzeigen
+            </Link>
           </div>
         ) : (
           <div className={styles.valueGrid}>{items.map((entry) => renderExploreCard(entry))}</div>
@@ -595,27 +851,37 @@ export default async function ExplorePage({
           __html: `
 (function(){
   var btn = document.getElementById("nearbyBtn");
-  if(!btn) return;
 
-  btn.addEventListener("click", function(){
-    if(!navigator.geolocation){
-      alert("Standort wird von diesem Browser nicht unterstützt.");
-      return;
-    }
+  if(btn){
+    btn.addEventListener("click", function(){
+      if(!navigator.geolocation){
+        alert("Standort wird von diesem Browser nicht unterstützt.");
+        return;
+      }
 
-    var query = btn.getAttribute("data-query") || "";
-    var category = btn.getAttribute("data-category") || "all";
+      var query = btn.getAttribute("data-query") || "";
+      var category = btn.getAttribute("data-category") || "all";
+      var explorePath = btn.getAttribute("data-explore-path") || window.location.pathname;
 
-    navigator.geolocation.getCurrentPosition(function(pos){
-      var params = new URLSearchParams(window.location.search);
-      if(query) params.set("q", query); else params.delete("q");
-      if(category && category !== "all") params.set("category", category); else params.delete("category");
-      params.set("lat", String(pos.coords.latitude));
-      params.set("lng", String(pos.coords.longitude));
-      window.location.href = "/explore?" + params.toString();
-    }, function(){
-      alert("Standort konnte nicht abgerufen werden.");
-    }, { enableHighAccuracy: true, timeout: 10000 });
+      navigator.geolocation.getCurrentPosition(function(pos){
+        var params = new URLSearchParams(window.location.search);
+        if(query) params.set("q", query); else params.delete("q");
+        if(category && category !== "all") params.set("category", category); else params.delete("category");
+        params.set("lat", String(pos.coords.latitude));
+        params.set("lng", String(pos.coords.longitude));
+        window.location.href = explorePath + "?" + params.toString();
+      }, function(){
+        alert("Standort konnte nicht abgerufen werden.");
+      }, { enableHighAccuracy: true, timeout: 10000 });
+    });
+  }
+
+  var cards = document.querySelectorAll("[data-focus-marker]");
+  cards.forEach(function(card){
+    card.addEventListener("mouseenter", function(){
+      var id = card.getAttribute("data-focus-marker");
+      if(id && window.focusMarker) window.focusMarker(id);
+    });
   });
 })();`.trim(),
         }}

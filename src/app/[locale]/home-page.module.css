@@ -889,3 +889,847 @@
     font-size: 26px;
   }
 }
+/* Explore Phase 1 */
+.exploreHeroSection {
+  padding: 72px 24px 34px;
+  color: #ffffff;
+}
+
+.exploreHeroShell,
+.exploreFilterPanel,
+.exploreMapSection,
+.exploreContentSection,
+.exploreResultsSection {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.exploreHeroShell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 38px;
+  padding: 34px;
+  background:
+    radial-gradient(circle at 78% 20%, rgba(78, 140, 255, 0.24) 0%, rgba(78, 140, 255, 0) 38%),
+    radial-gradient(circle at 12% 88%, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 34%),
+    linear-gradient(135deg, #08111d 0%, #10243c 54%, #17304d 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.26);
+}
+
+.exploreHeroContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  gap: 34px;
+  align-items: center;
+}
+
+.exploreHeroCopy {
+  max-width: 720px;
+}
+
+.exploreOverline {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #d9e8fb;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.exploreHeroTitle {
+  margin: 0 0 18px 0;
+  font-size: clamp(40px, 5vw, 66px);
+  line-height: 1.02;
+  font-weight: 950;
+  letter-spacing: -1.6px;
+  text-wrap: balance;
+}
+
+.exploreHeroText {
+  margin: 0;
+  max-width: 690px;
+  color: #bfd0e5;
+  font-size: 18px;
+  line-height: 1.78;
+}
+
+.exploreHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 28px 0;
+}
+
+.exploreStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.exploreStatCard {
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+.exploreStatCard strong {
+  display: block;
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 950;
+  margin-bottom: 5px;
+}
+
+.exploreStatCard span {
+  color: #bfd0e5;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.exploreHeroPreview {
+  position: relative;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.explorePreviewGlowOne,
+.explorePreviewGlowTwo {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(52px);
+}
+
+.explorePreviewGlowOne {
+  width: 260px;
+  height: 260px;
+  right: 12px;
+  top: 18px;
+  background: rgba(110, 168, 255, 0.24);
+}
+
+.explorePreviewGlowTwo {
+  width: 190px;
+  height: 190px;
+  left: 0;
+  bottom: 34px;
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.explorePreviewCard {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 430px;
+  padding: 18px;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(18px);
+}
+
+.explorePreviewHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+  color: #dbeafe;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.explorePreviewHeader strong {
+  color: #ffffff;
+  text-align: right;
+}
+
+.explorePreviewMap {
+  position: relative;
+  height: 220px;
+  border-radius: 26px;
+  overflow: hidden;
+  margin-bottom: 14px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    radial-gradient(circle at 30% 34%, rgba(125, 180, 255, 0.28), transparent 22%),
+    radial-gradient(circle at 72% 72%, rgba(255, 255, 255, 0.14), transparent 24%),
+    linear-gradient(180deg, #183556 0%, #102238 100%);
+  background-size: 36px 36px, 36px 36px, auto, auto, auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.explorePreviewPin {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4fb 100%);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+  font-size: 21px;
+}
+
+.explorePreviewPin:nth-child(1) {
+  left: 18%;
+  top: 26%;
+}
+
+.explorePreviewPin:nth-child(2) {
+  right: 18%;
+  top: 18%;
+}
+
+.explorePreviewPin:nth-child(3) {
+  left: 38%;
+  bottom: 18%;
+}
+
+.explorePreviewPin:nth-child(4) {
+  right: 28%;
+  bottom: 30%;
+}
+
+.explorePreviewBusiness {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.08));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.exploreMiniBadge {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.14);
+  color: #c8f8d7;
+  font-size: 11px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.explorePreviewBusiness h3 {
+  margin: 0 0 6px 0;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.explorePreviewBusiness p {
+  margin: 0;
+  color: #c7d8eb;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.explorePreviewButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #0d1726;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.exploreFilterSection,
+.exploreMapSection,
+.exploreContentSection,
+.exploreResultsSection {
+  padding: 34px 24px;
+}
+
+.exploreFilterPanel {
+  padding: 28px;
+  border-radius: 34px;
+  background: #ffffff;
+  border: 1px solid #e5edf5;
+  box-shadow: 0 18px 46px rgba(14, 23, 38, 0.07);
+}
+
+.exploreSearchForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.exploreSearchLabel {
+  display: grid;
+  gap: 8px;
+  color: #28496f;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.exploreSearchInput {
+  width: 100%;
+  min-height: 58px;
+  padding: 0 18px;
+  border-radius: 18px;
+  border: 1px solid #d9e5f2;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  color: #0e1726;
+  font-size: 16px;
+  font-weight: 700;
+  outline: none;
+  box-shadow: 0 10px 24px rgba(14, 23, 38, 0.04);
+}
+
+.exploreSearchInput:focus {
+  border-color: #91b5e6;
+  box-shadow: 0 0 0 4px rgba(53, 91, 141, 0.12);
+}
+
+.exploreSearchActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.exploreSearchButton,
+.exploreGhostButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 15px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.exploreSearchButton {
+  border: 0;
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(13, 23, 38, 0.16);
+}
+
+.exploreGhostButton {
+  border: 1px solid #d9e5f2;
+  background: #ffffff;
+  color: #28496f;
+}
+
+.exploreSearchButton:hover,
+.exploreGhostButton:hover {
+  transform: translateY(-1px);
+}
+
+.exploreCategoryScroller {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.exploreCategoryChip,
+.exploreCategoryChipActive {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 900;
+  border: 1px solid #dfe8f2;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.exploreCategoryChip {
+  background: #f8fbff;
+  color: #28496f;
+}
+
+.exploreCategoryChipActive {
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  color: #ffffff;
+  border-color: rgba(13, 23, 38, 0.18);
+  box-shadow: 0 12px 24px rgba(13, 23, 38, 0.14);
+}
+
+.exploreCategoryChip:hover,
+.exploreCategoryChipActive:hover {
+  transform: translateY(-1px);
+}
+
+.exploreCategoryChip strong,
+.exploreCategoryChipActive strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(53, 91, 141, 0.1);
+  font-size: 12px;
+}
+
+.exploreCategoryChipActive strong {
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.exploreMapSection,
+.exploreResultsSection {
+  margin-top: 10px;
+}
+
+.exploreMapSection {
+  border-radius: 38px;
+  background: #f7fafc;
+}
+
+.exploreSectionHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 22px;
+  margin-bottom: 22px;
+}
+
+.exploreMapMeta,
+.exploreResultPill {
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #e5edf5;
+  box-shadow: 0 12px 28px rgba(14, 23, 38, 0.05);
+  color: #5d6b7d;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.exploreMapMeta strong {
+  color: #0e1726;
+  font-size: 24px;
+  font-weight: 950;
+}
+
+.exploreMapFrame {
+  overflow: hidden;
+  border-radius: 34px;
+  border: 1px solid #dde7f2;
+  background: #edf3f9;
+  box-shadow: 0 24px 60px rgba(14, 23, 38, 0.1);
+}
+
+.exploreMapEmpty,
+.exploreStateCard,
+.exploreStateCardDark {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  padding: 34px;
+}
+
+.exploreMapEmpty span,
+.exploreStateCard span,
+.exploreStateCardDark span {
+  font-size: 42px;
+}
+
+.exploreMapEmpty h3,
+.exploreStateCard h3,
+.exploreStateCardDark h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 950;
+}
+
+.exploreMapEmpty p,
+.exploreStateCard p,
+.exploreStateCardDark p {
+  margin: 0;
+  max-width: 560px;
+  color: #5d6b7d;
+  line-height: 1.7;
+}
+
+.exploreResultsSection,
+.exploreContentSection {
+  padding-top: 58px;
+  padding-bottom: 66px;
+}
+
+.exploreCardGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.exploreCardLink {
+  display: block;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.exploreBusinessCard {
+  height: 100%;
+  overflow: hidden;
+  border-radius: 30px;
+  background: #ffffff;
+  border: 1px solid #e5edf5;
+  box-shadow: 0 16px 40px rgba(14, 23, 38, 0.06);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.exploreCardLink:hover .exploreBusinessCard {
+  transform: translateY(-4px);
+  border-color: #cddbeb;
+  box-shadow: 0 24px 60px rgba(14, 23, 38, 0.12);
+}
+
+.exploreCardMedia {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  margin: 14px 14px 0;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #edf3f9 0%, #dfe8f2 100%);
+  border: 1px solid #dde7f2;
+}
+
+.exploreCardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scale(1.01);
+  transition: transform 0.28s ease;
+}
+
+.exploreCardLink:hover .exploreCardImage {
+  transform: scale(1.05);
+}
+
+.exploreCardPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exploreCardPlaceholder span {
+  width: 86px;
+  height: 86px;
+  border-radius: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #ffffff 0%, #eef4fb 100%);
+  border: 1px solid #d5e0ec;
+  box-shadow: 0 12px 26px rgba(14, 23, 38, 0.08);
+  font-size: 38px;
+}
+
+.exploreCardBadgeRow {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.exploreCategoryBadge,
+.exploreVerifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 950;
+  backdrop-filter: blur(12px);
+}
+
+.exploreCategoryBadge {
+  background: rgba(255, 255, 255, 0.9);
+  color: #28496f;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+}
+
+.exploreVerifiedBadge {
+  background: rgba(13, 23, 38, 0.86);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.exploreCardBody {
+  padding: 18px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 245px;
+}
+
+.exploreCardTopline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  color: #6a7890;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.exploreCardTitle {
+  margin: 0 0 10px 0;
+  color: #0e1726;
+  font-size: 23px;
+  line-height: 1.18;
+  font-weight: 950;
+  letter-spacing: -0.45px;
+}
+
+.exploreCardText {
+  margin: 0;
+  color: #5d6b7d;
+  font-size: 15px;
+  line-height: 1.72;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.exploreCardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.exploreLocationText {
+  color: #5d6b7d;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 800;
+}
+
+.exploreCardCta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 950;
+  box-shadow: 0 10px 24px rgba(13, 23, 38, 0.14);
+}
+
+.exploreResultPill {
+  flex-direction: row;
+  align-items: center;
+  color: #28496f;
+  white-space: nowrap;
+}
+
+.exploreStateCard {
+  min-height: 360px;
+  border-radius: 30px;
+  background: #ffffff;
+  border: 1px solid #e5edf5;
+  box-shadow: 0 16px 40px rgba(14, 23, 38, 0.06);
+}
+
+.exploreStateCardDark {
+  min-height: 320px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 40px rgba(13, 23, 38, 0.18);
+}
+
+.exploreStateCardDark p {
+  color: #dbe7f6;
+}
+
+@media (max-width: 1100px) {
+  .exploreHeroContent,
+  .exploreCardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .exploreHeroPreview {
+    min-height: auto;
+  }
+
+  .explorePreviewCard {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .exploreHeroSection {
+    padding: 40px 16px 24px;
+  }
+
+  .exploreHeroShell {
+    padding: 24px;
+    border-radius: 28px;
+  }
+
+  .exploreHeroTitle {
+    font-size: 38px;
+    letter-spacing: -1px;
+  }
+
+  .exploreHeroText {
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  .exploreHeroActions,
+  .exploreSearchActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .exploreHeroActions .primaryButton,
+  .exploreHeroActions .secondaryButtonDark,
+  .exploreSearchButton,
+  .exploreGhostButton {
+    width: 100%;
+  }
+
+  .exploreStatsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .explorePreviewMap {
+    height: 190px;
+  }
+
+  .explorePreviewBusiness {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .explorePreviewButton {
+    width: 100%;
+  }
+
+  .exploreFilterSection,
+  .exploreMapSection,
+  .exploreContentSection,
+  .exploreResultsSection {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .exploreFilterPanel,
+  .exploreMapSection {
+    border-radius: 26px;
+  }
+
+  .exploreSectionHeaderRow {
+    flex-direction: column;
+  }
+
+  .exploreMapMeta,
+  .exploreResultPill {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .exploreCardFooter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .exploreCardCta {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .exploreHeroSection {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .exploreHeroShell {
+    padding: 20px;
+  }
+
+  .exploreHeroTitle {
+    font-size: 32px;
+  }
+
+  .exploreFilterSection,
+  .exploreMapSection,
+  .exploreContentSection,
+  .exploreResultsSection {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .exploreFilterPanel {
+    padding: 20px;
+  }
+
+  .exploreCardBody {
+    min-height: 230px;
+  }
+
+  .exploreCardTitle {
+    font-size: 21px;
+  }
+}
