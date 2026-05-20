@@ -578,6 +578,7 @@ export default async function ExplorePage({
                 </span>
 
                 <span
+                  data-qrx-open-button="true"
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -1247,6 +1248,29 @@ nav,
 
     var preferredActiveId = activeId || (visibleCards[0] ? visibleCards[0].getAttribute("data-visible-map-card") : null);
     if(preferredActiveId) setActiveMapQrx(preferredActiveId);
+  }
+
+  var visibleMapResults = document.getElementById("visibleMapResults");
+  if(visibleMapResults){
+    visibleMapResults.addEventListener("click", function(event){
+      var target = event.target;
+      if(!(target instanceof Element)) return;
+
+      var visibleCard = target.closest("[data-visible-map-card]");
+      if(!visibleCard) return;
+
+      var openButton = target.closest("[data-qrx-open-button]");
+      if(openButton) return;
+
+      var id = visibleCard.getAttribute("data-visible-map-card");
+      if(!id) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      setActiveMapQrx(id);
+      if(window.focusMarker) window.focusMarker(id);
+    }, true);
   }
 
   window.addEventListener("mioseg-visible-qrx", function(event){
