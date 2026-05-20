@@ -193,6 +193,8 @@ export default async function ExplorePage({
       longitude: entry.location_lng as number,
     }));
 
+  const mapVisibleEntries = items.filter((entry) => entry.location_lat != null && entry.location_lng != null);
+
   const renderExploreCard = (
     entry: ExploreEntry,
     opts?: { keyPrefix?: string; distanceLabel?: string | null }
@@ -717,7 +719,7 @@ export default async function ExplorePage({
         </div>
       </section>
 
-      <section id="explore-map" className={styles.sectionAlt} style={{ overflow: "hidden" }}>
+      <section id="explore-map" className={styles.sectionAlt} style={{ position: "relative", zIndex: 1, overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", alignItems: "flex-end" }}>
           <div className={styles.sectionIntro} style={{ marginBottom: "24px" }}>
             <span className={styles.sectionEyebrow}>Explore Map</span>
@@ -765,7 +767,7 @@ export default async function ExplorePage({
                 fontWeight: 900,
               }}
             >
-              📌 {mapPoints.length} aktuell sichtbar
+              📌 <span id="visibleMapCount">{mapPoints.length}</span> aktuell im Kartenausschnitt
             </span>
           </div>
         </div>
@@ -781,6 +783,39 @@ export default async function ExplorePage({
         >
           <ExploreMapClient points={mapPoints} hasUserLocation={hasUserLocation} userLat={userLat} userLng={userLng} />
         </div>
+
+        {mapVisibleEntries.length > 0 ? (
+          <div
+            style={{
+              marginTop: "30px",
+              borderTop: "1px solid #dce8f4",
+              paddingTop: "28px",
+            }}
+          >
+            <div className={styles.sectionIntro} style={{ marginBottom: "22px" }}>
+              <span className={styles.sectionEyebrow}>Im Kartenausschnitt</span>
+              <h2 className={styles.sectionTitle} style={{ fontSize: "30px" }}>QR-X, die du gerade auf der Karte siehst</h2>
+              <p className={styles.sectionText}>
+                Wenn du die Karte verschiebst oder zoomst, aktualisiert sich diese Auswahl automatisch.
+              </p>
+            </div>
+
+            <div id="visibleMapEmpty" className={styles.compareCard} style={{ display: "none", borderRadius: "28px" }}>
+              <h3 className={styles.compareTitle}>Keine QR-X im sichtbaren Bereich</h3>
+              <p className={styles.featureText}>
+                Verschiebe die Karte oder zoome heraus, um wieder Business QR-X im aktuellen Kartenausschnitt zu sehen.
+              </p>
+            </div>
+
+            <div id="visibleMapResults" className={styles.valueGrid}>
+              {mapVisibleEntries.map((entry) => (
+                <div key={`visible-wrap-${entry.id}`} data-visible-map-card={entry.id}>
+                  {renderExploreCard(entry, { keyPrefix: "map-visible" })}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       {hasUserLocation && nearbyItems.length > 0 ? (
@@ -846,6 +881,59 @@ export default async function ExplorePage({
         )}
       </section>
 
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+.mioseg-explore-map-shell,
+.mioseg-explore-map-shell .leaflet-container {
+  position: relative;
+  z-index: 0 !important;
+}
+
+.mioseg-explore-map-shell .leaflet-pane {
+  z-index: 1 !important;
+}
+
+.mioseg-explore-map-shell .leaflet-tile-pane {
+  z-index: 1 !important;
+}
+
+.mioseg-explore-map-shell .leaflet-overlay-pane {
+  z-index: 2 !important;
+}
+
+.mioseg-explore-map-shell .leaflet-shadow-pane {
+  z-index: 3 !important;
+}
+
+.mioseg-explore-map-shell .leaflet-marker-pane {
+  z-index: 4 !important;
+}
+
+.mioseg-explore-map-shell .leaflet-tooltip-pane {
+  z-index: 5 !important;
+}
+
+.mioseg-explore-map-shell .leaflet-popup-pane {
+  z-index: 6 !important;
+}
+
+.mioseg-explore-map-shell .leaflet-control-container {
+  position: relative;
+  z-index: 7 !important;
+}
+
+header,
+nav,
+[data-header],
+.site-header {
+  position: relative;
+  z-index: 50;
+}
+          `.trim(),
+        }}
+      />
+
       <script
         dangerouslySetInnerHTML={{
           __html: `
@@ -875,6 +963,37 @@ export default async function ExplorePage({
       }, { enableHighAccuracy: true, timeout: 10000 });
     });
   }
+
+  function updateVisibleMapCards(visibleIds){
+    var cards = document.querySelectorAll("[data-visible-map-card]");
+    var results = document.getElementById("visibleMapResults");
+    var empty = document.getElementById("visibleMapEmpty");
+    var count = document.getElementById("visibleMapCount");
+
+    if(!cards.length) return;
+
+    var visibleSet = new Set(Array.isArray(visibleIds) ? visibleIds : []);
+    var visibleCount = 0;
+
+    cards.forEach(function(card){
+      var id = card.getAttribute("data-visible-map-card");
+      var shouldShow = visibleSet.has(id);
+      card.style.display = shouldShow ? "" : "none";
+      if(shouldShow) visibleCount++;
+    });
+
+    if(count) count.textContent = String(visibleCount);
+
+    if(results && empty){
+      results.style.display = visibleCount > 0 ? "" : "none";
+      empty.style.display = visibleCount > 0 ? "none" : "";
+    }
+  }
+
+  window.addEventListener("mioseg-visible-qrx", function(event){
+    var detail = event.detail || {};
+    updateVisibleMapCards(detail.visibleIds || []);
+  });
 
   var cards = document.querySelectorAll("[data-focus-marker]");
   cards.forEach(function(card){

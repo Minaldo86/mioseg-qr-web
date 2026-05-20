@@ -25,9 +25,16 @@ type LeafletMarker = {
   getLatLng: () => LeafletLatLng;
 };
 
+type LeafletBounds = {
+  contains: (latLng: LeafletLatLng) => boolean;
+};
+
 type LeafletMap = {
   setView: (center: [number, number] | LeafletLatLng, zoom: number, options?: { animate?: boolean }) => LeafletMap;
   fitBounds: (bounds: [number, number][], options?: { padding?: [number, number]; maxZoom?: number }) => LeafletMap;
+  getBounds: () => LeafletBounds;
+  on: (eventName: string, handler: () => void) => LeafletMap;
+  off: (eventName: string, handler: () => void) => LeafletMap;
   remove: () => void;
 };
 
@@ -131,6 +138,20 @@ function buildPopup(point: MapPoint) {
       )}" style="display:flex;align-items:center;justify-content:center;min-height:38px;border-radius:13px;background:linear-gradient(180deg,#0d1726 0%,#17304d 100%);color:#ffffff;text-decoration:none;font-weight:900;font-size:13px;box-shadow:0 10px 24px rgba(13,23,38,0.18);">QR-X öffnen →</a>
     </div>
   `;
+}
+
+
+function dispatchVisibleMapPoints(map: LeafletMap, markers: Record<string, LeafletMarker>) {
+  const bounds = map.getBounds();
+  const visibleIds = Object.entries(markers)
+    .filter(([, marker]) => bounds.contains(marker.getLatLng()))
+    .map(([id]) => id);
+
+  window.dispatchEvent(
+    new CustomEvent("mioseg-visible-qrx", {
+      detail: { visibleIds },
+    })
+  );
 }
 
 export default function ExploreMapClient({
@@ -242,6 +263,14 @@ export default function ExploreMapClient({
         map.fitBounds(bounds, { padding: [44, 44], maxZoom: 14 });
       }
 
+      const updateVisiblePoints = () => {
+        dispatchVisibleMapPoints(map, markersRef.current);
+      };
+
+      map.on("moveend", updateVisiblePoints);
+      map.on("zoomend", updateVisiblePoints);
+      setTimeout(updateVisiblePoints, 250);
+
       window.focusMarker = (id: string) => {
         const marker = markersRef.current[id];
         if (!marker) return;
@@ -266,7 +295,11 @@ export default function ExploreMapClient({
 
   return (
     <div
+      className="mioseg-explore-map-shell"
       style={{
+        position: "relative",
+        zIndex: 0,
+        isolation: "isolate",
         width: "100%",
         height: "clamp(420px, 58vw, 620px)",
         borderRadius: "30px",
@@ -274,7 +307,7 @@ export default function ExploreMapClient({
         background: "#edf3f9",
       }}
     >
-      <div ref={mapElRef} style={{ width: "100%", height: "100%" }} />
+      <div ref={mapElRef} style={{ position: "relative", zIndex: 0, width: "100%", height: "100%" }} />
     </div>
   );
 }
