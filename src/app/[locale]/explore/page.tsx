@@ -1269,7 +1269,15 @@ nav,
       event.stopPropagation();
 
       setActiveMapQrx(id);
-      if(window.focusMarker) window.focusMarker(id);
+
+      var mapSection = document.getElementById("explore-map");
+      if(mapSection){
+        mapSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      window.setTimeout(function(){
+        if(window.focusMarker) window.focusMarker(id);
+      }, 260);
     }, true);
   }
 
@@ -1281,17 +1289,6 @@ nav,
   window.addEventListener("mioseg-active-qrx", function(event){
     var detail = event.detail || {};
     if(detail.activeId) setActiveMapQrx(detail.activeId);
-  });
-
-  var cards = document.querySelectorAll("[data-focus-marker]");
-  cards.forEach(function(card){
-    card.addEventListener("mouseenter", function(){
-      var id = card.getAttribute("data-focus-marker");
-      if(id) {
-        setActiveMapQrx(id);
-        if(window.focusMarker) window.focusMarker(id);
-      }
-    });
   });
 })();`.trim(),
         }}
