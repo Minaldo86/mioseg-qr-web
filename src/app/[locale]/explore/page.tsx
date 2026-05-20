@@ -30,6 +30,8 @@ type ExploreEntry = {
   location_lng: number | null;
   created_at: string | null;
   follower_count: number | null;
+  views_total: number | null;
+  views_unique_total: number | null;
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -110,20 +112,31 @@ function formatDate(value: string | null) {
   if (Number.isNaN(date.getTime())) return null;
   return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 }
-function formatFollowerCount(value: number | null | undefined) {
+function formatCompactMetric(value: number | null | undefined) {
   const count = Math.max(0, Number(value ?? 0));
-  if (count >= 1000000) return `${(count / 1000000).toFixed(count >= 10000000 ? 0 : 1).replace(".", ",")} Mio. Follower`;
-  if (count >= 1000) return `${(count / 1000).toFixed(count >= 10000 ? 0 : 1).replace(".", ",")} Tsd. Follower`;
-  return `${count} ${count === 1 ? "Follower" : "Follower"}`;
+  if (count >= 1000000) return `${(count / 1000000).toFixed(count >= 10000000 ? 0 : 1).replace(".", ",")} Mio.`;
+  if (count >= 1000) return `${(count / 1000).toFixed(count >= 10000 ? 0 : 1).replace(".", ",")} Tsd.`;
+  return String(count);
 }
 
-function getExploreRankScore(entry: ExploreEntry) {
-  const followers = Math.max(0, Number(entry.follower_count ?? 0));
+function formatFollowerCount(value: number | null | undefined) {
+  const count = Math.max(0, Number(value ?? 0));
+  return `${formatCompactMetric(count)} ${count === 1 ? "Follower" : "Follower"}`;
+}
+
+function formatViewCount(value: number | null | undefined) {
+  const count = Math.max(0, Number(value ?? 0));
+  return `${formatCompactMetric(count)} ${count === 1 ? "Aufruf" : "Aufrufe"}`;
+}
+
+function getExploreRankScore(entry: ExploreEntry, followerCount: number, viewCount: number) {
+  const followers = Math.max(0, Number(followerCount ?? 0));
+  const views = Math.max(0, Number(viewCount ?? 0));
   const verifiedBonus = entry.verified ? 250 : 0;
   const createdTime = entry.created_at ? new Date(entry.created_at).getTime() : 0;
   const daysOld = createdTime > 0 ? Math.max(0, (Date.now() - createdTime) / 86400000) : 365;
   const freshnessBonus = Math.max(0, 120 - Math.min(120, daysOld));
-  return Math.round(followers * 10 + verifiedBonus + freshnessBonus);
+  return Math.round(followers * 10 + views * 0.2 + verifiedBonus + freshnessBonus);
 }
 
 
@@ -153,12 +166,39 @@ export default async function ExplorePage({
   const { data, error } = await supabase
     .from("qr_x_entries")
     .select(
-      "id, title, description, company_name, category, type, verified, cover_image_url, logo_url, location_name, location_lat, location_lng, created_at, follower_count"
+      "id, title, description, company_name, category, type, verified, cover_image_url, logo_url, location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total"
     )
     .eq("type", "business")
     .order("created_at", { ascending: false })
     .limit(120)
     .returns<ExploreEntry[]>();
+
+  const qrxIds = (data ?? []).map((entry) => entry.id);
+  let saveRows: Array<{ qrx_id: string | null }> = [];
+
+  if (qrxIds.length > 0) {
+    const { data: qrxSaveRows } = await supabase
+      .from("qrx_saves")
+      .select("qrx_id")
+      .in("qrx_id", qrxIds)
+      .returns<Array<{ qrx_id: string | null }>>();
+
+    saveRows = qrxSaveRows ?? [];
+  }
+
+  const followerCountByQrxId = new Map<string, number>();
+
+  saveRows.forEach((row) => {
+    if (!row.qrx_id) return;
+    followerCountByQrxId.set(row.qrx_id, (followerCountByQrxId.get(row.qrx_id) ?? 0) + 1);
+  });
+
+  const getFollowerCountForEntry = (entry: ExploreEntry) =>
+    Math.max(0, Number(entry.follower_count ?? 0), followerCountByQrxId.get(entry.id) ?? 0);
+
+  const getViewTotalForEntry = (entry: ExploreEntry) => Math.max(0, Number(entry.views_total ?? 0));
+
+  const getUniqueViewCountForEntry = (entry: ExploreEntry) => Math.max(0, Number(entry.views_unique_total ?? 0));
 
   const items = (data ?? []).filter((item) => {
     const categoryOk = selectedCategory === "all" || item.category === selectedCategory;
@@ -193,7 +233,8 @@ export default async function ExplorePage({
   const activeCategoryCount = categoryCounts.filter((c) => c.count > 0).length;
   const verifiedCount = (data ?? []).filter((entry) => entry.verified).length;
   const entriesWithLocationCount = (data ?? []).filter((entry) => entry.location_lat != null && entry.location_lng != null).length;
-  const totalFollowerCount = (data ?? []).reduce((sum, entry) => sum + Math.max(0, Number(entry.follower_count ?? 0)), 0);
+  const totalFollowerCount = (data ?? []).reduce((sum, entry) => sum + getFollowerCountForEntry(entry), 0);
+  const totalViewCount = (data ?? []).reduce((sum, entry) => sum + getViewTotalForEntry(entry), 0);
 
   const mapPoints = items
     .filter((entry) => entry.location_lat != null && entry.location_lng != null)
@@ -204,7 +245,8 @@ export default async function ExplorePage({
       category: getCategoryLabel(entry.category),
       categoryIcon: getCategoryIcon(entry.category),
       verified: !!entry.verified,
-      followerCount: Math.max(0, Number(entry.follower_count ?? 0)),
+      followerCount: getFollowerCountForEntry(entry),
+      viewCount: getViewTotalForEntry(entry),
       href: `/qrx/${entry.id}`,
       coverUrl: entry.cover_image_url || entry.logo_url || null,
       locationName: entry.location_name ?? null,
@@ -214,7 +256,11 @@ export default async function ExplorePage({
 
   const mapVisibleEntries = items
     .filter((entry) => entry.location_lat != null && entry.location_lng != null)
-    .sort((a, b) => getExploreRankScore(b) - getExploreRankScore(a));
+    .sort(
+      (a, b) =>
+        getExploreRankScore(b, getFollowerCountForEntry(b), getViewTotalForEntry(b)) -
+        getExploreRankScore(a, getFollowerCountForEntry(a), getViewTotalForEntry(a))
+    );
 
   const renderExploreCard = (
     entry: ExploreEntry,
@@ -223,6 +269,9 @@ export default async function ExplorePage({
     const image = entry.cover_image_url || entry.logo_url || null;
     const key = `${opts?.keyPrefix ?? "card"}-${entry.id}`;
     const createdLabel = formatDate(entry.created_at);
+    const followerCount = getFollowerCountForEntry(entry);
+    const viewCount = getViewTotalForEntry(entry);
+    const uniqueViewCount = getUniqueViewCountForEntry(entry);
 
     return (
       <div
@@ -455,7 +504,24 @@ export default async function ExplorePage({
                     fontWeight: 900,
                   }}
                 >
-                  👥 {formatFollowerCount(entry.follower_count)}
+                  👥 {formatFollowerCount(followerCount)}
+                </span>
+
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    minHeight: "32px",
+                    padding: "0 10px",
+                    borderRadius: "999px",
+                    background: "#eef4ff",
+                    color: "#1d4ed8",
+                    fontSize: "12px",
+                    fontWeight: 900,
+                  }}
+                >
+                  👁️ {formatViewCount(viewCount)}
+                  {uniqueViewCount > 0 ? ` · ${formatCompactMetric(uniqueViewCount)} eindeutig` : ""}
                 </span>
 
                 {entry.verified ? (
@@ -601,6 +667,10 @@ export default async function ExplorePage({
               <div className={styles.factCard}>
                 <div className={styles.factNumber}>{formatFollowerCount(totalFollowerCount).replace(" Follower", "")}</div>
                 <div className={styles.factLabel}>Follower insgesamt</div>
+              </div>
+              <div className={styles.factCard}>
+                <div className={styles.factNumber}>{formatCompactMetric(totalViewCount)}</div>
+                <div className={styles.factLabel}>Aufrufe insgesamt</div>
               </div>
             </div>
           </div>
@@ -856,7 +926,7 @@ export default async function ExplorePage({
                 <span className={styles.sectionEyebrow}>Trending im Kartenausschnitt</span>
                 <h2 className={styles.sectionTitle} style={{ fontSize: "30px" }}>Beliebte QR-X, die du gerade auf der Karte siehst</h2>
                 <p className={styles.sectionText}>
-                  Die Reihenfolge basiert auf sichtbarem Kartenbereich, Followern, Verifizierung und Aktualität.
+                  Die Reihenfolge basiert auf sichtbarem Kartenbereich, Followern, Aufrufen, Verifizierung und Aktualität.
                 </p>
               </div>
 
@@ -910,9 +980,11 @@ export default async function ExplorePage({
                   data-visible-map-card={entry.id}
                   data-visible-title={getEntryTitle(entry)}
                   data-visible-category={getCategoryLabel(entry.category)}
-                  data-visible-followers={Math.max(0, Number(entry.follower_count ?? 0))}
-                  data-visible-followers-label={formatFollowerCount(entry.follower_count)}
-                  data-visible-score={getExploreRankScore(entry)}
+                  data-visible-followers={getFollowerCountForEntry(entry)}
+                  data-visible-followers-label={formatFollowerCount(getFollowerCountForEntry(entry))}
+                  data-visible-views={getViewTotalForEntry(entry)}
+                  data-visible-views-label={formatViewCount(getViewTotalForEntry(entry))}
+                  data-visible-score={getExploreRankScore(entry, getFollowerCountForEntry(entry), getViewTotalForEntry(entry))}
                   style={{ order: index }}
                 >
                   {index === 0 ? (
@@ -1097,7 +1169,8 @@ nav,
       id: id,
       title: card.getAttribute("data-visible-title") || "QR-X",
       category: card.getAttribute("data-visible-category") || "Business QR-X",
-      followersLabel: card.getAttribute("data-visible-followers-label") || "0 Follower"
+      followersLabel: card.getAttribute("data-visible-followers-label") || "0 Follower",
+      viewsLabel: card.getAttribute("data-visible-views-label") || "0 Aufrufe"
     };
   }
 
@@ -1118,7 +1191,7 @@ nav,
 
     active.style.display = "";
     title.textContent = meta.title;
-    text.textContent = meta.category + " · " + meta.followersLabel + " · Dieser QR-X ist gerade auf der Karte ausgewählt.";
+    text.textContent = meta.category + " · " + meta.followersLabel + " · " + meta.viewsLabel + " · Dieser QR-X ist gerade auf der Karte ausgewählt.";
   }
 
   function updateVisibleMapCards(visibleIds, activeId){
