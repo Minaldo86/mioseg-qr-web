@@ -9,6 +9,7 @@ type MapPoint = {
   category: string;
   categoryIcon: string;
   verified: boolean;
+  followerCount: number;
   href: string;
   coverUrl: string | null;
   locationName: string | null;
@@ -23,6 +24,7 @@ type LeafletMarker = {
   bindPopup: (html: string, options?: { maxWidth?: number; className?: string }) => LeafletMarker;
   openPopup: () => LeafletMarker;
   getLatLng: () => LeafletLatLng;
+  on: (eventName: string, handler: () => void) => LeafletMarker;
 };
 
 type LeafletBounds = {
@@ -123,6 +125,7 @@ function buildPopup(point: MapPoint) {
             ? '<span style="display:inline-flex;align-items:center;border-radius:999px;background:#0d1726;color:#ffffff;font-size:11px;font-weight:900;padding:7px 9px;">✓ Verifiziert</span>'
             : ""
         }
+        <span style="display:inline-flex;align-items:center;border-radius:999px;background:#fff7ed;color:#9a4f00;font-size:11px;font-weight:900;padding:7px 9px;">👥 ${escapeHtml(String(point.followerCount))}</span>
       </div>
       <div style="font-weight:900;font-size:17px;line-height:1.25;margin-bottom:7px;">${escapeHtml(point.title)}</div>
       <div style="color:#5d6b7d;font-size:13px;line-height:1.55;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(
@@ -141,7 +144,7 @@ function buildPopup(point: MapPoint) {
 }
 
 
-function dispatchVisibleMapPoints(map: LeafletMap, markers: Record<string, LeafletMarker>) {
+function dispatchVisibleMapPoints(map: LeafletMap, markers: Record<string, LeafletMarker>, activeId?: string) {
   const bounds = map.getBounds();
   const visibleIds = Object.entries(markers)
     .filter(([, marker]) => bounds.contains(marker.getLatLng()))
@@ -149,7 +152,15 @@ function dispatchVisibleMapPoints(map: LeafletMap, markers: Record<string, Leafl
 
   window.dispatchEvent(
     new CustomEvent("mioseg-visible-qrx", {
-      detail: { visibleIds },
+      detail: { visibleIds, activeId: activeId ?? null },
+    })
+  );
+}
+
+function dispatchActiveMapPoint(id: string) {
+  window.dispatchEvent(
+    new CustomEvent("mioseg-active-qrx", {
+      detail: { activeId: id },
     })
   );
 }
@@ -255,6 +266,10 @@ export default function ExploreMapClient({
 
         markersRef.current[point.id] = marker;
         marker.bindPopup(buildPopup(point), { maxWidth: 290, className: "miosegExplorePopup" });
+        marker.on("popupopen", () => {
+          dispatchActiveMapPoint(point.id);
+          dispatchVisibleMapPoints(map, markersRef.current, point.id);
+        });
 
         bounds.push([point.latitude, point.longitude]);
       });
@@ -276,6 +291,8 @@ export default function ExploreMapClient({
         if (!marker) return;
 
         marker.openPopup();
+        dispatchActiveMapPoint(id);
+        dispatchVisibleMapPoints(map, markersRef.current, id);
         map.setView(marker.getLatLng(), 15, { animate: true });
       };
     };

@@ -29,6 +29,7 @@ type ExploreEntry = {
   location_lat: number | null;
   location_lng: number | null;
   created_at: string | null;
+  follower_count: number | null;
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -109,6 +110,22 @@ function formatDate(value: string | null) {
   if (Number.isNaN(date.getTime())) return null;
   return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 }
+function formatFollowerCount(value: number | null | undefined) {
+  const count = Math.max(0, Number(value ?? 0));
+  if (count >= 1000000) return `${(count / 1000000).toFixed(count >= 10000000 ? 0 : 1).replace(".", ",")} Mio. Follower`;
+  if (count >= 1000) return `${(count / 1000).toFixed(count >= 10000 ? 0 : 1).replace(".", ",")} Tsd. Follower`;
+  return `${count} ${count === 1 ? "Follower" : "Follower"}`;
+}
+
+function getExploreRankScore(entry: ExploreEntry) {
+  const followers = Math.max(0, Number(entry.follower_count ?? 0));
+  const verifiedBonus = entry.verified ? 250 : 0;
+  const createdTime = entry.created_at ? new Date(entry.created_at).getTime() : 0;
+  const daysOld = createdTime > 0 ? Math.max(0, (Date.now() - createdTime) / 86400000) : 365;
+  const freshnessBonus = Math.max(0, 120 - Math.min(120, daysOld));
+  return Math.round(followers * 10 + verifiedBonus + freshnessBonus);
+}
+
 
 export const dynamic = "force-dynamic";
 
@@ -136,7 +153,7 @@ export default async function ExplorePage({
   const { data, error } = await supabase
     .from("qr_x_entries")
     .select(
-      "id, title, description, company_name, category, type, verified, cover_image_url, logo_url, location_name, location_lat, location_lng, created_at"
+      "id, title, description, company_name, category, type, verified, cover_image_url, logo_url, location_name, location_lat, location_lng, created_at, follower_count"
     )
     .eq("type", "business")
     .order("created_at", { ascending: false })
@@ -176,6 +193,7 @@ export default async function ExplorePage({
   const activeCategoryCount = categoryCounts.filter((c) => c.count > 0).length;
   const verifiedCount = (data ?? []).filter((entry) => entry.verified).length;
   const entriesWithLocationCount = (data ?? []).filter((entry) => entry.location_lat != null && entry.location_lng != null).length;
+  const totalFollowerCount = (data ?? []).reduce((sum, entry) => sum + Math.max(0, Number(entry.follower_count ?? 0)), 0);
 
   const mapPoints = items
     .filter((entry) => entry.location_lat != null && entry.location_lng != null)
@@ -186,6 +204,7 @@ export default async function ExplorePage({
       category: getCategoryLabel(entry.category),
       categoryIcon: getCategoryIcon(entry.category),
       verified: !!entry.verified,
+      followerCount: Math.max(0, Number(entry.follower_count ?? 0)),
       href: `/${locale}/qrx/${entry.id}`,
       coverUrl: entry.cover_image_url || entry.logo_url || null,
       locationName: entry.location_name ?? null,
@@ -193,7 +212,9 @@ export default async function ExplorePage({
       longitude: entry.location_lng as number,
     }));
 
-  const mapVisibleEntries = items.filter((entry) => entry.location_lat != null && entry.location_lng != null);
+  const mapVisibleEntries = items
+    .filter((entry) => entry.location_lat != null && entry.location_lng != null)
+    .sort((a, b) => getExploreRankScore(b) - getExploreRankScore(a));
 
   const renderExploreCard = (
     entry: ExploreEntry,
@@ -421,6 +442,40 @@ export default async function ExplorePage({
                   </span>
                 ) : null}
 
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    minHeight: "32px",
+                    padding: "0 10px",
+                    borderRadius: "999px",
+                    background: "#fff7ed",
+                    color: "#9a4f00",
+                    fontSize: "12px",
+                    fontWeight: 900,
+                  }}
+                >
+                  👥 {formatFollowerCount(entry.follower_count)}
+                </span>
+
+                {entry.verified ? (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      minHeight: "32px",
+                      padding: "0 10px",
+                      borderRadius: "999px",
+                      background: "#ecfdf3",
+                      color: "#166534",
+                      fontSize: "12px",
+                      fontWeight: 900,
+                    }}
+                  >
+                    ✓ Verifiziert
+                  </span>
+                ) : null}
+
                 {createdLabel ? (
                   <span
                     style={{
@@ -542,6 +597,10 @@ export default async function ExplorePage({
               <div className={styles.factCard}>
                 <div className={styles.factNumber}>{verifiedCount}</div>
                 <div className={styles.factLabel}>verifizierte Profile</div>
+              </div>
+              <div className={styles.factCard}>
+                <div className={styles.factNumber}>{formatFollowerCount(totalFollowerCount).replace(" Follower", "")}</div>
+                <div className={styles.factLabel}>Follower insgesamt</div>
               </div>
             </div>
           </div>
@@ -792,11 +851,48 @@ export default async function ExplorePage({
               paddingTop: "28px",
             }}
           >
-            <div className={styles.sectionIntro} style={{ marginBottom: "22px" }}>
-              <span className={styles.sectionEyebrow}>Im Kartenausschnitt</span>
-              <h2 className={styles.sectionTitle} style={{ fontSize: "30px" }}>QR-X, die du gerade auf der Karte siehst</h2>
-              <p className={styles.sectionText}>
-                Wenn du die Karte verschiebst oder zoomst, aktualisiert sich diese Auswahl automatisch.
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", alignItems: "flex-end", marginBottom: "22px" }}>
+              <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
+                <span className={styles.sectionEyebrow}>Trending im Kartenausschnitt</span>
+                <h2 className={styles.sectionTitle} style={{ fontSize: "30px" }}>Beliebte QR-X, die du gerade auf der Karte siehst</h2>
+                <p className={styles.sectionText}>
+                  Die Reihenfolge basiert auf sichtbarem Kartenbereich, Followern, Verifizierung und Aktualität.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  minHeight: "46px",
+                  padding: "0 16px",
+                  borderRadius: "999px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "#0d1726",
+                  color: "#ffffff",
+                  fontSize: "13px",
+                  fontWeight: 900,
+                  boxShadow: "0 14px 30px rgba(13, 23, 38, 0.18)",
+                }}
+              >
+                👑 Top QR-X zuerst
+              </div>
+            </div>
+
+            <div
+              id="activeMapQrx"
+              className={styles.compareCardFeatured}
+              style={{
+                display: "none",
+                borderRadius: "30px",
+                marginBottom: "20px",
+                background: "linear-gradient(180deg, #0d1726 0%, #17304d 100%)",
+              }}
+            >
+              <div className={styles.compareLabelFeatured}>Gerade ausgewählt</div>
+              <h3 id="activeMapQrxTitle" className={styles.compareTitleFeatured}>QR-X ausgewählt</h3>
+              <p id="activeMapQrxText" style={{ margin: 0, color: "#dbe7f6", lineHeight: 1.7 }}>
+                Öffne einen Marker oder fahre über eine Karte, um hier den aktuellen QR-X zu sehen.
               </p>
             </div>
 
@@ -808,8 +904,37 @@ export default async function ExplorePage({
             </div>
 
             <div id="visibleMapResults" className={styles.valueGrid}>
-              {mapVisibleEntries.map((entry) => (
-                <div key={`visible-wrap-${entry.id}`} data-visible-map-card={entry.id}>
+              {mapVisibleEntries.map((entry, index) => (
+                <div
+                  key={`visible-wrap-${entry.id}`}
+                  data-visible-map-card={entry.id}
+                  data-visible-title={getEntryTitle(entry)}
+                  data-visible-category={getCategoryLabel(entry.category)}
+                  data-visible-followers={Math.max(0, Number(entry.follower_count ?? 0))}
+                  data-visible-followers-label={formatFollowerCount(entry.follower_count)}
+                  data-visible-score={getExploreRankScore(entry)}
+                  style={{ order: index }}
+                >
+                  {index === 0 ? (
+                    <div
+                      style={{
+                        marginBottom: "12px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        minHeight: "34px",
+                        padding: "0 12px",
+                        borderRadius: "999px",
+                        background: "#fff7ed",
+                        color: "#9a4f00",
+                        fontSize: "12px",
+                        fontWeight: 900,
+                        border: "1px solid #fed7aa",
+                      }}
+                    >
+                      👑 Aktuell stärkstes Profil
+                    </div>
+                  ) : null}
                   {renderExploreCard(entry, { keyPrefix: "map-visible" })}
                 </div>
               ))}
@@ -964,8 +1089,40 @@ nav,
     });
   }
 
-  function updateVisibleMapCards(visibleIds){
-    var cards = document.querySelectorAll("[data-visible-map-card]");
+  function getVisibleCardMeta(id){
+    if(!id) return null;
+    var card = document.querySelector('[data-visible-map-card="' + CSS.escape(id) + '"]');
+    if(!card) return null;
+    return {
+      id: id,
+      title: card.getAttribute("data-visible-title") || "QR-X",
+      category: card.getAttribute("data-visible-category") || "Business QR-X",
+      followersLabel: card.getAttribute("data-visible-followers-label") || "0 Follower"
+    };
+  }
+
+  function setActiveMapQrx(id){
+    var active = document.getElementById("activeMapQrx");
+    var title = document.getElementById("activeMapQrxTitle");
+    var text = document.getElementById("activeMapQrxText");
+    var allCards = document.querySelectorAll("[data-visible-map-card]");
+
+    allCards.forEach(function(card){
+      var isActive = card.getAttribute("data-visible-map-card") === id;
+      card.style.outline = isActive ? "3px solid rgba(37, 99, 235, 0.55)" : "";
+      card.style.borderRadius = isActive ? "32px" : "";
+    });
+
+    var meta = getVisibleCardMeta(id);
+    if(!active || !title || !text || !meta) return;
+
+    active.style.display = "";
+    title.textContent = meta.title;
+    text.textContent = meta.category + " · " + meta.followersLabel + " · Dieser QR-X ist gerade auf der Karte ausgewählt.";
+  }
+
+  function updateVisibleMapCards(visibleIds, activeId){
+    var cards = Array.prototype.slice.call(document.querySelectorAll("[data-visible-map-card]"));
     var results = document.getElementById("visibleMapResults");
     var empty = document.getElementById("visibleMapEmpty");
     var count = document.getElementById("visibleMapCount");
@@ -973,33 +1130,70 @@ nav,
     if(!cards.length) return;
 
     var visibleSet = new Set(Array.isArray(visibleIds) ? visibleIds : []);
-    var visibleCount = 0;
+    var visibleCards = [];
 
     cards.forEach(function(card){
       var id = card.getAttribute("data-visible-map-card");
       var shouldShow = visibleSet.has(id);
       card.style.display = shouldShow ? "" : "none";
-      if(shouldShow) visibleCount++;
+      if(shouldShow) visibleCards.push(card);
     });
 
-    if(count) count.textContent = String(visibleCount);
+    visibleCards.sort(function(a, b){
+      var scoreA = Number(a.getAttribute("data-visible-score") || "0");
+      var scoreB = Number(b.getAttribute("data-visible-score") || "0");
+      return scoreB - scoreA;
+    });
+
+    visibleCards.forEach(function(card, index){
+      card.style.order = String(index);
+      card.setAttribute("data-visible-rank", String(index + 1));
+
+      var badge = card.querySelector("[data-dynamic-top-badge]");
+      if(index === 0){
+        if(!badge){
+          badge = document.createElement("div");
+          badge.setAttribute("data-dynamic-top-badge", "true");
+          badge.textContent = "👑 Platz 1 im aktuellen Kartenausschnitt";
+          badge.setAttribute("style", "margin-bottom:12px;display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:0 12px;border-radius:999px;background:#fff7ed;color:#9a4f00;font-size:12px;font-weight:900;border:1px solid #fed7aa;");
+          card.prepend(badge);
+        } else {
+          badge.textContent = "👑 Platz 1 im aktuellen Kartenausschnitt";
+        }
+      } else if(badge) {
+        badge.remove();
+      }
+    });
+
+    if(count) count.textContent = String(visibleCards.length);
 
     if(results && empty){
-      results.style.display = visibleCount > 0 ? "" : "none";
-      empty.style.display = visibleCount > 0 ? "none" : "";
+      results.style.display = visibleCards.length > 0 ? "" : "none";
+      empty.style.display = visibleCards.length > 0 ? "none" : "";
     }
+
+    var preferredActiveId = activeId || (visibleCards[0] ? visibleCards[0].getAttribute("data-visible-map-card") : null);
+    if(preferredActiveId) setActiveMapQrx(preferredActiveId);
   }
 
   window.addEventListener("mioseg-visible-qrx", function(event){
     var detail = event.detail || {};
-    updateVisibleMapCards(detail.visibleIds || []);
+    updateVisibleMapCards(detail.visibleIds || [], detail.activeId || null);
+  });
+
+  window.addEventListener("mioseg-active-qrx", function(event){
+    var detail = event.detail || {};
+    if(detail.activeId) setActiveMapQrx(detail.activeId);
   });
 
   var cards = document.querySelectorAll("[data-focus-marker]");
   cards.forEach(function(card){
     card.addEventListener("mouseenter", function(){
       var id = card.getAttribute("data-focus-marker");
-      if(id && window.focusMarker) window.focusMarker(id);
+      if(id) {
+        setActiveMapQrx(id);
+        if(window.focusMarker) window.focusMarker(id);
+      }
     });
   });
 })();`.trim(),
