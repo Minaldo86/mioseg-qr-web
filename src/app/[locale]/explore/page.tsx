@@ -205,7 +205,7 @@ export default async function ExplorePage({
       categoryIcon: getCategoryIcon(entry.category),
       verified: !!entry.verified,
       followerCount: Math.max(0, Number(entry.follower_count ?? 0)),
-      href: `/${locale}/qrx/${entry.id}`,
+      href: `/qrx/${entry.id}`,
       coverUrl: entry.cover_image_url || entry.logo_url || null,
       locationName: entry.location_name ?? null,
       latitude: entry.location_lat as number,
@@ -233,7 +233,7 @@ export default async function ExplorePage({
           cursor: entry.location_lat != null && entry.location_lng != null ? "pointer" : "default",
         }}
       >
-        <Link href={`/${locale}/qrx/${entry.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+        <Link href={`/qrx/${entry.id}`} style={{ textDecoration: "none", color: "inherit" }}>
           <article
             className={styles.valueCard}
             style={{
