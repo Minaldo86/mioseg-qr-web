@@ -1038,10 +1038,10 @@ export default async function ExplorePage({
 
       <section id="explore-results" className={styles.sectionAlt}>
         <div className={styles.sectionIntro}>
-          <span className={styles.sectionEyebrow}>Neu auf Explore</span>
-          <h2 className={styles.sectionTitle}>Direkt aus deiner Datenbank</h2>
+          <span className={styles.sectionEyebrow}>Neu auf mioseg qr</span>
+          <h2 className={styles.sectionTitle}>Die neue Art, Orte digital zu entdecken</h2>
           <p className={styles.sectionText}>
-            Diese Karten werden automatisch aus qr_x_entries geladen und auf /qrx/[id] verlinkt.
+            Öffne Business QR-X direkt über die Karte und entdecke Unternehmen, Veranstaltungen und besondere Orte in deiner Umgebung.
           </p>
         </div>
 
