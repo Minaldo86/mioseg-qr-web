@@ -891,6 +891,7 @@ export default async function ExplorePage({
 
           <form action={explorePath} method="get" style={{ display: "grid", gap: "16px", marginBottom: "24px" }}>
             <div
+              className="mioseg-search-grid"
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr auto auto",
@@ -1245,6 +1246,34 @@ export default async function ExplorePage({
 .mioseg-explore-page,
 .mioseg-explore-page * {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.mioseg-search-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .mioseg-search-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mioseg-search-grid > input {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .mioseg-search-grid > button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .mioseg-search-grid > button:nth-of-type(1),
+  .mioseg-search-grid > button:nth-of-type(2) {
+    min-height: 56px !important;
+  }
 }
 
 .mioseg-explore-map-shell,
