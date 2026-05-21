@@ -139,6 +139,57 @@ function getExploreRankScore(entry: ExploreEntry, followerCount: number, viewCou
   return Math.round(followers * 10 + views * 0.2 + verifiedBonus + freshnessBonus);
 }
 
+function getSocialProofBadges(entry: ExploreEntry, followerCount: number, viewCount: number, uniqueViewCount: number) {
+  const badges: Array<{ label: string; background: string; color: string; border: string }> = [];
+
+  if (followerCount >= 10) {
+    badges.push({
+      label: "🔥 Beliebt",
+      background: "#fff7ed",
+      color: "#9a4f00",
+      border: "#fed7aa",
+    });
+  }
+
+  if (viewCount >= 100) {
+    badges.push({
+      label: "📈 Starkes Interesse",
+      background: "#eef4ff",
+      color: "#1d4ed8",
+      border: "#bfdbfe",
+    });
+  }
+
+  if (uniqueViewCount >= 50) {
+    badges.push({
+      label: "👀 Viele Besucher",
+      background: "#f5f3ff",
+      color: "#5b21b6",
+      border: "#ddd6fe",
+    });
+  }
+
+  if (entry.verified && (followerCount >= 5 || viewCount >= 50)) {
+    badges.push({
+      label: "⭐ Vertrauensprofil",
+      background: "#ecfdf3",
+      color: "#166534",
+      border: "#bbf7d0",
+    });
+  }
+
+  if (viewCount >= 500 || followerCount >= 50) {
+    badges.unshift({
+      label: "🚀 Sehr gefragt",
+      background: "#0d1726",
+      color: "#ffffff",
+      border: "#17304d",
+    });
+  }
+
+  return badges.slice(0, 3);
+}
+
 
 export const dynamic = "force-dynamic";
 
@@ -272,6 +323,7 @@ export default async function ExplorePage({
     const followerCount = getFollowerCountForEntry(entry);
     const viewCount = getViewTotalForEntry(entry);
     const uniqueViewCount = getUniqueViewCountForEntry(entry);
+    const socialProofBadges = getSocialProofBadges(entry, followerCount, viewCount, uniqueViewCount);
 
     return (
       <div
@@ -560,6 +612,42 @@ export default async function ExplorePage({
                   </span>
                 ) : null}
               </div>
+
+              {socialProofBadges.length > 0 ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: "8px",
+                    alignItems: "center",
+                    padding: "10px 12px",
+                    borderRadius: "18px",
+                    background: "linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%)",
+                    border: "1px solid #edf2f7",
+                  }}
+                >
+                  {socialProofBadges.map((badge) => (
+                    <span
+                      key={badge.label}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        minHeight: "30px",
+                        padding: "0 10px",
+                        borderRadius: "999px",
+                        background: badge.background,
+                        color: badge.color,
+                        border: `1px solid ${badge.border}`,
+                        fontSize: "12px",
+                        fontWeight: 900,
+                        boxShadow: "0 8px 18px rgba(14, 23, 38, 0.04)",
+                      }}
+                    >
+                      {badge.label}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
 
               <div
                 style={{
@@ -985,6 +1073,14 @@ export default async function ExplorePage({
                   data-visible-followers-label={formatFollowerCount(getFollowerCountForEntry(entry))}
                   data-visible-views={getViewTotalForEntry(entry)}
                   data-visible-views-label={formatViewCount(getViewTotalForEntry(entry))}
+                  data-visible-social-label={
+                    getSocialProofBadges(
+                      entry,
+                      getFollowerCountForEntry(entry),
+                      getViewTotalForEntry(entry),
+                      getUniqueViewCountForEntry(entry)
+                    )[0]?.label ?? ""
+                  }
                   data-visible-score={getExploreRankScore(entry, getFollowerCountForEntry(entry), getViewTotalForEntry(entry))}
                   style={{ order: index }}
                 >
@@ -1171,7 +1267,8 @@ nav,
       title: card.getAttribute("data-visible-title") || "QR-X",
       category: card.getAttribute("data-visible-category") || "Business QR-X",
       followersLabel: card.getAttribute("data-visible-followers-label") || "0 Follower",
-      viewsLabel: card.getAttribute("data-visible-views-label") || "0 Aufrufe"
+      viewsLabel: card.getAttribute("data-visible-views-label") || "0 Aufrufe",
+      socialLabel: card.getAttribute("data-visible-social-label") || ""
     };
   }
 
@@ -1192,7 +1289,7 @@ nav,
 
     active.style.display = "";
     title.textContent = meta.title;
-    text.textContent = meta.category + " · " + meta.followersLabel + " · " + meta.viewsLabel + " · Dieser QR-X ist gerade auf der Karte ausgewählt.";
+    text.textContent = meta.category + " · " + meta.followersLabel + " · " + meta.viewsLabel + (meta.socialLabel ? " · " + meta.socialLabel : "") + " · Dieser QR-X ist gerade auf der Karte ausgewählt.";
   }
 
   function updateVisibleMapCards(visibleIds, activeId){
