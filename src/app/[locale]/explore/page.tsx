@@ -692,8 +692,34 @@ export default async function ExplorePage({
   };
 
   return (
-    <div className={styles.page}>
-      <section className={styles.heroSection}>
+    <div
+      className={`${styles.page} mioseg-explore-page`}
+      style={{
+        background:
+          "linear-gradient(180deg, #08111d 0%, #0d1726 18%, #13243a 32%, #eaf1f8 48%, #f7fafc 100%)",
+        fontFamily:
+          "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      }}
+    >
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          background:
+            "radial-gradient(circle at 82% 10%, rgba(77, 132, 201, 0.18) 0%, rgba(77, 132, 201, 0) 32%), radial-gradient(circle at 12% 42%, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 28%)",
+        }}
+      />
+      <section
+        className={styles.heroSection}
+        style={{
+          position: "relative",
+          zIndex: 2,
+          paddingBottom: "86px",
+        }}
+      >
         <div className={styles.heroContent}>
           <div className={styles.heroTextWrap}>
             <div className={styles.brandBadgeWrap}>
@@ -785,8 +811,8 @@ export default async function ExplorePage({
                   <p className={styles.phoneOverline}>Live Explore</p>
                   <h3 className={styles.phoneCardTitle}>Öffentliche Business-Karte</h3>
                   <p className={styles.phoneCardText}>
-                    Suche, filtere und öffne echte Business QR-X direkt aus Supabase. Perfekt für Nutzer, die neue Orte
-                    und Angebote entdecken möchten.
+                    Suche, filtere und öffne öffentliche Business QR-X direkt auf der Karte. Entdecke neue Orte,
+                    Unternehmen und Angebote in deiner Umgebung.
                   </p>
                 </div>
 
@@ -826,14 +852,33 @@ export default async function ExplorePage({
         </div>
       </section>
 
-      <section className={styles.section}>
+      <div
+        aria-hidden="true"
+        style={{
+          height: "84px",
+          marginTop: "-84px",
+          background:
+            "linear-gradient(180deg, rgba(13, 23, 38, 0) 0%, rgba(234, 241, 248, 0.82) 62%, rgba(247, 250, 252, 0.98) 100%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <section
+        className={styles.section}
+        style={{
+          position: "relative",
+          zIndex: 3,
+          marginTop: "-18px",
+        }}
+      >
         <div
           style={{
             borderRadius: "32px",
             padding: "26px",
-            background: "linear-gradient(180deg, #ffffff 0%, #f7fafc 100%)",
-            border: "1px solid #e5edf5",
-            boxShadow: "0 18px 46px rgba(14, 23, 38, 0.06)",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,251,254,0.96) 100%)",
+            border: "1px solid rgba(218, 228, 240, 0.92)",
+            boxShadow: "0 22px 60px rgba(14, 23, 38, 0.08)",
+            backdropFilter: "blur(18px)",
           }}
         >
           <div className={styles.sectionIntro}>
@@ -937,7 +982,18 @@ export default async function ExplorePage({
         </div>
       </section>
 
-      <section id="explore-map" className={styles.sectionAlt} style={{ position: "relative", zIndex: 1, overflow: "hidden" }}>
+      <section
+        id="explore-map"
+        className={styles.sectionAlt}
+        style={{
+          position: "relative",
+          zIndex: 1,
+          overflow: "hidden",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(241,246,251,0.96) 100%)",
+          border: "1px solid rgba(218, 228, 240, 0.9)",
+          boxShadow: "0 24px 70px rgba(14, 23, 38, 0.07)",
+        }}
+      >
         <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", alignItems: "flex-end" }}>
           <div className={styles.sectionIntro} style={{ marginBottom: "24px" }}>
             <span className={styles.sectionEyebrow}>Explore Map</span>
@@ -994,9 +1050,9 @@ export default async function ExplorePage({
           style={{
             borderRadius: "34px",
             padding: "12px",
-            background: "linear-gradient(180deg, #ffffff 0%, #eef4fb 100%)",
-            border: "1px solid #dce8f4",
-            boxShadow: "0 22px 60px rgba(14, 23, 38, 0.1)",
+            background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(232,240,249,0.98) 100%)",
+            border: "1px solid rgba(206, 220, 236, 0.96)",
+            boxShadow: "0 26px 74px rgba(14, 23, 38, 0.12)",
           }}
         >
           <ExploreMapClient points={mapPoints} hasUserLocation={hasUserLocation} userLat={userLat} userLng={userLng} />
@@ -1051,7 +1107,7 @@ export default async function ExplorePage({
               <div className={styles.compareLabelFeatured}>Gerade ausgewählt</div>
               <h3 id="activeMapQrxTitle" className={styles.compareTitleFeatured}>QR-X ausgewählt</h3>
               <p id="activeMapQrxText" style={{ margin: 0, color: "#dbe7f6", lineHeight: 1.7 }}>
-                Öffne einen Marker oder fahre über eine Karte, um hier den aktuellen QR-X zu sehen.
+                Wähle einen Marker oder tippe auf eine QR-X Karte, um den passenden Eintrag hier hervorzuheben.
               </p>
             </div>
 
@@ -1133,7 +1189,15 @@ export default async function ExplorePage({
         </section>
       ) : null}
 
-      <section id="explore-results" className={styles.sectionAlt}>
+      <section
+        id="explore-results"
+        className={styles.sectionAlt}
+        style={{
+          background: "linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(247,250,252,0.98) 100%)",
+          border: "1px solid rgba(218, 228, 240, 0.86)",
+          boxShadow: "0 22px 62px rgba(14, 23, 38, 0.055)",
+        }}
+      >
         <div className={styles.sectionIntro}>
           <span className={styles.sectionEyebrow}>Neu auf mioseg qr</span>
           <h2 className={styles.sectionTitle}>Die neue Art, Orte digital zu entdecken</h2>
@@ -1178,6 +1242,11 @@ export default async function ExplorePage({
       <style
         dangerouslySetInnerHTML={{
           __html: `
+.mioseg-explore-page,
+.mioseg-explore-page * {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 .mioseg-explore-map-shell,
 .mioseg-explore-map-shell .leaflet-container {
   position: relative;
