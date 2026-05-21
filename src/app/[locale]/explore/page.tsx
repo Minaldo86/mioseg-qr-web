@@ -855,10 +855,10 @@ export default async function ExplorePage({
       <div
         aria-hidden="true"
         style={{
-          height: "84px",
-          marginTop: "-84px",
+          height: "36px",
+          marginTop: "-36px",
           background:
-            "linear-gradient(180deg, rgba(13, 23, 38, 0) 0%, rgba(234, 241, 248, 0.82) 62%, rgba(247, 250, 252, 0.98) 100%)",
+  "linear-gradient(180deg, rgba(13, 23, 38, 0) 0%, rgba(13, 23, 38, 0.45) 52%, rgba(13, 23, 38, 0.72) 100%)",
           pointerEvents: "none",
         }}
       />
