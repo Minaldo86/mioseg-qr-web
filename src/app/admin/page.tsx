@@ -3658,7 +3658,7 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div style={styles.lookupMiniCard}>
-                    <div style={styles.lookupMiniLabel}>Anzeige Follower</div>
+                    <div style={styles.lookupMiniLabel}>Sichtbare Follower</div>
                     <div style={styles.lookupMiniValue}>
                       {Math.max(0, Number(qrxAdminItem.real_follower_count ?? qrxAdminItem.follower_count ?? 0)) +
                         Math.max(0, Number(qrxAdminItem.manual_follower_boost ?? 0))}
@@ -3677,7 +3677,7 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div style={styles.lookupMiniCard}>
-                    <div style={styles.lookupMiniLabel}>Anzeige Aufrufe</div>
+                    <div style={styles.lookupMiniLabel}>Sichtbare Aufrufe</div>
                     <div style={styles.lookupMiniValue}>
                       {Math.max(0, Number(qrxAdminItem.views_total ?? 0)) +
                         Math.max(0, Number(qrxAdminItem.manual_view_boost ?? 0))}
@@ -3696,7 +3696,7 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div style={styles.lookupMiniCard}>
-                    <div style={styles.lookupMiniLabel}>Anzeige Unique</div>
+                    <div style={styles.lookupMiniLabel}>Sichtbare Unique Views</div>
                     <div style={styles.lookupMiniValue}>
                       {Math.max(0, Number(qrxAdminItem.views_unique_total ?? 0)) +
                         Math.max(0, Number(qrxAdminItem.manual_unique_view_boost ?? 0))}
@@ -3705,27 +3705,90 @@ export default function AdminPage() {
                 </div>
 
                 <div style={{ ...styles.formGrid, marginTop: 14 }}>
-                  <input
-                    value={qrxStatsFollowerBoost}
-                    onChange={(e) => setQrxStatsFollowerBoost(e.target.value)}
-                    placeholder="Follower Boost, z. B. 100"
-                    inputMode="numeric"
-                    style={styles.input}
-                  />
-                  <input
-                    value={qrxStatsViewBoost}
-                    onChange={(e) => setQrxStatsViewBoost(e.target.value)}
-                    placeholder="Aufruf Boost, z. B. 500"
-                    inputMode="numeric"
-                    style={styles.input}
-                  />
-                  <input
-                    value={qrxStatsUniqueViewBoost}
-                    onChange={(e) => setQrxStatsUniqueViewBoost(e.target.value)}
-                    placeholder="Unique-View Boost, z. B. 200"
-                    inputMode="numeric"
-                    style={styles.input}
-                  />
+                  <div
+                    style={{
+                      borderRadius: 14,
+                      border: "1px solid #223146",
+                      background: "#111b31",
+                      padding: 12,
+                    }}
+                  >
+                    <div style={{ ...styles.lookupMiniLabel, marginBottom: 8 }}>
+                      Follower Boost
+                    </div>
+                    <input
+                      value={qrxStatsFollowerBoost}
+                      onChange={(e) => setQrxStatsFollowerBoost(e.target.value)}
+                      placeholder="z. B. 100"
+                      inputMode="numeric"
+                      style={styles.input}
+                    />
+                    <div style={{ ...styles.historyNote, marginTop: 8 }}>
+                      Wird zu den echten Followern addiert. Beispiel: 1 echter Follower + 100 Boost = 101 sichtbare Follower.
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      borderRadius: 14,
+                      border: "1px solid #223146",
+                      background: "#111b31",
+                      padding: 12,
+                    }}
+                  >
+                    <div style={{ ...styles.lookupMiniLabel, marginBottom: 8 }}>
+                      Aufruf Boost
+                    </div>
+                    <input
+                      value={qrxStatsViewBoost}
+                      onChange={(e) => setQrxStatsViewBoost(e.target.value)}
+                      placeholder="z. B. 500"
+                      inputMode="numeric"
+                      style={styles.input}
+                    />
+                    <div style={{ ...styles.historyNote, marginTop: 8 }}>
+                      Wird zu den echten Aufrufen addiert und beeinflusst Explore-Badges sowie Ranking.
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      borderRadius: 14,
+                      border: "1px solid #223146",
+                      background: "#111b31",
+                      padding: 12,
+                    }}
+                  >
+                    <div style={{ ...styles.lookupMiniLabel, marginBottom: 8 }}>
+                      Unique Aufruf Boost
+                    </div>
+                    <input
+                      value={qrxStatsUniqueViewBoost}
+                      onChange={(e) => setQrxStatsUniqueViewBoost(e.target.value)}
+                      placeholder="z. B. 300"
+                      inputMode="numeric"
+                      style={styles.input}
+                    />
+                    <div style={{ ...styles.historyNote, marginTop: 8 }}>
+                      Wird zu den eindeutigen Aufrufen addiert. Die echten Analytics bleiben unverändert.
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      borderRadius: 14,
+                      border: "1px solid #243044",
+                      background: "#0f172a",
+                      padding: 12,
+                    }}
+                  >
+                    <div style={{ ...styles.lookupMiniLabel, marginBottom: 8 }}>
+                      Vorschau nach dem Speichern
+                    </div>
+                    <div style={{ ...styles.historyNote, marginTop: 0 }}>
+                      Sichtbare Follower: {Math.max(0, Number(qrxAdminItem.real_follower_count ?? qrxAdminItem.follower_count ?? 0)) + Math.max(0, Number(qrxStatsFollowerBoost || 0))} · Sichtbare Aufrufe: {Math.max(0, Number(qrxAdminItem.views_total ?? 0)) + Math.max(0, Number(qrxStatsViewBoost || 0))} · Sichtbare Unique Views: {Math.max(0, Number(qrxAdminItem.views_unique_total ?? 0)) + Math.max(0, Number(qrxStatsUniqueViewBoost || 0))}
+                    </div>
+                  </div>
 
                   <div style={styles.bottomRow}>
                     <button
