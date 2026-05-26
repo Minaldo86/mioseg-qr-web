@@ -10,6 +10,7 @@ type MapPoint = {
   categoryIcon: string;
   verified: boolean;
   followerCount: number;
+  viewCount: number;
   href: string;
   coverUrl: string | null;
   locationName: string | null;
@@ -126,6 +127,7 @@ function buildPopup(point: MapPoint) {
             : ""
         }
         <span style="display:inline-flex;align-items:center;border-radius:999px;background:#fff7ed;color:#9a4f00;font-size:11px;font-weight:900;padding:7px 9px;">👥 ${escapeHtml(String(point.followerCount))}</span>
+        <span style="display:inline-flex;align-items:center;border-radius:999px;background:#eef4ff;color:#1d4ed8;font-size:11px;font-weight:900;padding:7px 9px;">👁️ ${escapeHtml(String(point.viewCount))}</span>
       </div>
       <div style="font-weight:900;font-size:17px;line-height:1.25;margin-bottom:7px;">${escapeHtml(point.title)}</div>
       <div style="color:#5d6b7d;font-size:13px;line-height:1.55;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(

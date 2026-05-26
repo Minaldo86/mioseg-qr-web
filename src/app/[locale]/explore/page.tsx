@@ -32,6 +32,9 @@ type ExploreEntry = {
   follower_count: number | null;
   views_total: number | null;
   views_unique_total: number | null;
+  manual_follower_boost: number | null;
+  manual_view_boost: number | null;
+  manual_unique_view_boost: number | null;
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -217,7 +220,7 @@ export default async function ExplorePage({
   const { data, error } = await supabase
     .from("qr_x_entries")
     .select(
-      "id, title, description, company_name, category, type, verified, cover_image_url, logo_url, location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total"
+      "id, title, description, company_name, category, type, verified, cover_image_url, logo_url, location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost"
     )
     .eq("type", "business")
     .order("created_at", { ascending: false })
@@ -244,12 +247,18 @@ export default async function ExplorePage({
     followerCountByQrxId.set(row.qrx_id, (followerCountByQrxId.get(row.qrx_id) ?? 0) + 1);
   });
 
-  const getFollowerCountForEntry = (entry: ExploreEntry) =>
+  const getRealFollowerCountForEntry = (entry: ExploreEntry) =>
     Math.max(0, Number(entry.follower_count ?? 0), followerCountByQrxId.get(entry.id) ?? 0);
 
-  const getViewTotalForEntry = (entry: ExploreEntry) => Math.max(0, Number(entry.views_total ?? 0));
+  const getFollowerCountForEntry = (entry: ExploreEntry) =>
+    Math.max(0, Number(entry.manual_follower_boost ?? 0)) + getRealFollowerCountForEntry(entry);
 
-  const getUniqueViewCountForEntry = (entry: ExploreEntry) => Math.max(0, Number(entry.views_unique_total ?? 0));
+  const getViewTotalForEntry = (entry: ExploreEntry) =>
+    Math.max(0, Number(entry.views_total ?? 0)) + Math.max(0, Number(entry.manual_view_boost ?? 0));
+
+  const getUniqueViewCountForEntry = (entry: ExploreEntry) =>
+    Math.max(0, Number(entry.views_unique_total ?? 0)) +
+    Math.max(0, Number(entry.manual_unique_view_boost ?? 0));
 
   const items = (data ?? []).filter((item) => {
     const categoryOk = selectedCategory === "all" || item.category === selectedCategory;

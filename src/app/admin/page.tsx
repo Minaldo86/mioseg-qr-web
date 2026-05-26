@@ -198,6 +198,13 @@ type QrxAdminItem = {
   deleted_at?: string | null;
   deleted_reason?: string | null;
   deleted_by_admin?: boolean | null;
+  follower_count?: number | null;
+  views_total?: number | null;
+  views_unique_total?: number | null;
+  manual_follower_boost?: number | null;
+  manual_view_boost?: number | null;
+  manual_unique_view_boost?: number | null;
+  real_follower_count?: number | null;
 };
 
 
@@ -1650,6 +1657,11 @@ export default function AdminPage() {
   const [qrxAdminItem, setQrxAdminItem] = useState<QrxAdminItem | null>(null);
   const [qrxSuspendReason, setQrxSuspendReason] = useState("");
   const [qrxActionWorking, setQrxActionWorking] = useState(false);
+  const [qrxStatsFollowerBoost, setQrxStatsFollowerBoost] = useState("0");
+  const [qrxStatsViewBoost, setQrxStatsViewBoost] = useState("0");
+  const [qrxStatsUniqueViewBoost, setQrxStatsUniqueViewBoost] = useState("0");
+  const [qrxStatsWorking, setQrxStatsWorking] = useState(false);
+  const [qrxStatsMessage, setQrxStatsMessage] = useState<string | null>(null);
   const [qrxReportDetails, setQrxReportDetails] = useState<Record<string, QrxAdminItem>>({});
   const [reportedQrx, setReportedQrx] = useState<QrxAdminItem[]>([]);
   const [reportedQrxLoading, setReportedQrxLoading] = useState(false);
@@ -1671,6 +1683,13 @@ export default function AdminPage() {
     });
   };
 
+
+  const syncQrxStatsDraft = (qrx: QrxAdminItem | null) => {
+    setQrxStatsFollowerBoost(String(Math.max(0, Number(qrx?.manual_follower_boost ?? 0))));
+    setQrxStatsViewBoost(String(Math.max(0, Number(qrx?.manual_view_boost ?? 0))));
+    setQrxStatsUniqueViewBoost(String(Math.max(0, Number(qrx?.manual_unique_view_boost ?? 0))));
+    setQrxStatsMessage(null);
+  };
 
   const todayIsoDate = new Date().toISOString().slice(0, 10);
   const monthStartIsoDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -2699,6 +2718,7 @@ export default function AdminPage() {
       }
 
       setQrxAdminItem(data.qrx);
+      syncQrxStatsDraft(data.qrx ?? null);
       setQrxLookupId(data.qrx?.id || qrxId);
       setQrxSuspendReason(data.qrx?.suspended_reason || "");
     } catch (error: unknown) {
@@ -2780,6 +2800,7 @@ export default function AdminPage() {
       }
 
       setQrxAdminItem(data.qrx);
+      syncQrxStatsDraft(data.qrx ?? null);
       setQrxSuspendReason(data.qrx?.suspended_reason || "");
       await fetchReportedQrx();
       await fetchAdminActions();
@@ -2835,6 +2856,7 @@ export default function AdminPage() {
       }
 
       setQrxAdminItem(data.qrx);
+      syncQrxStatsDraft(data.qrx ?? null);
       setQrxSuspendReason(data.qrx?.suspended_reason || data.qrx?.deleted_reason || "");
 
       await fetchReportedQrx();
@@ -2848,6 +2870,70 @@ export default function AdminPage() {
       setQrxActionWorking(false);
     }
   };
+
+
+  const handleSaveQrxStatsBoost = async () => {
+    try {
+      if (!qrxAdminItem?.id) {
+        throw new Error("Bitte zuerst einen QR-X laden.");
+      }
+
+      const manualFollowerBoost = Number(qrxStatsFollowerBoost);
+      const manualViewBoost = Number(qrxStatsViewBoost);
+      const manualUniqueViewBoost = Number(qrxStatsUniqueViewBoost);
+
+      if (
+        !Number.isInteger(manualFollowerBoost) ||
+        !Number.isInteger(manualViewBoost) ||
+        !Number.isInteger(manualUniqueViewBoost) ||
+        manualFollowerBoost < 0 ||
+        manualViewBoost < 0 ||
+        manualUniqueViewBoost < 0
+      ) {
+        throw new Error("Bitte nur ganze Zahlen ab 0 eintragen.");
+      }
+
+      const confirmed = window.confirm(
+        `Statistik-Boost für diesen QR-X speichern?\n\n+${manualFollowerBoost} Follower\n+${manualViewBoost} Aufrufe\n+${manualUniqueViewBoost} eindeutige Aufrufe`
+      );
+
+      if (!confirmed) return;
+
+      setQrxStatsWorking(true);
+      setQrxStatsMessage(null);
+
+      const res = await fetch("/api/admin/qrx-status", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          qrxId: qrxAdminItem.id,
+          statsAction: "update_boosts",
+          manualFollowerBoost,
+          manualViewBoost,
+          manualUniqueViewBoost,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "QR-X Statistik-Boost konnte nicht gespeichert werden.");
+      }
+
+      setQrxAdminItem(data.qrx);
+      syncQrxStatsDraft(data.qrx ?? null);
+      setQrxStatsMessage("Statistik-Boost wurde gespeichert.");
+      await fetchAdminActions();
+    } catch (error: unknown) {
+      console.error("handleSaveQrxStatsBoost error:", error);
+      alert(error instanceof Error ? error.message : "QR-X Statistik-Boost konnte nicht gespeichert werden.");
+    } finally {
+      setQrxStatsWorking(false);
+    }
+  };
+
 
   return (
     <main style={styles.page}>
@@ -3541,6 +3627,130 @@ export default function AdminPage() {
                 </div>
                 <div style={styles.counterBadge}>
                   Score: {qrxAdminItem.report_score ?? 0}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: 14,
+                  borderRadius: 16,
+                  border: "1px solid #223146",
+                  background: "#0b1324",
+                  padding: 16,
+                }}
+              >
+                <h3 style={{ ...styles.panelTitle, marginBottom: 6 }}>QR-X Statistik Boost</h3>
+                <p style={{ ...styles.subtleText, marginTop: 0 }}>
+                  Diese Werte werden nur addiert. Echte Saves, echte Views und Analytics bleiben unverändert.
+                </p>
+
+                <div style={styles.lookupGrid}>
+                  <div style={styles.lookupMiniCard}>
+                    <div style={styles.lookupMiniLabel}>Echte Follower</div>
+                    <div style={styles.lookupMiniValue}>
+                      {Math.max(0, Number(qrxAdminItem.real_follower_count ?? qrxAdminItem.follower_count ?? 0))}
+                    </div>
+                  </div>
+                  <div style={styles.lookupMiniCard}>
+                    <div style={styles.lookupMiniLabel}>Follower Boost</div>
+                    <div style={styles.lookupMiniValue}>
+                      +{Math.max(0, Number(qrxAdminItem.manual_follower_boost ?? 0))}
+                    </div>
+                  </div>
+                  <div style={styles.lookupMiniCard}>
+                    <div style={styles.lookupMiniLabel}>Anzeige Follower</div>
+                    <div style={styles.lookupMiniValue}>
+                      {Math.max(0, Number(qrxAdminItem.real_follower_count ?? qrxAdminItem.follower_count ?? 0)) +
+                        Math.max(0, Number(qrxAdminItem.manual_follower_boost ?? 0))}
+                    </div>
+                  </div>
+                  <div style={styles.lookupMiniCard}>
+                    <div style={styles.lookupMiniLabel}>Echte Aufrufe</div>
+                    <div style={styles.lookupMiniValue}>
+                      {Math.max(0, Number(qrxAdminItem.views_total ?? 0))}
+                    </div>
+                  </div>
+                  <div style={styles.lookupMiniCard}>
+                    <div style={styles.lookupMiniLabel}>Aufruf Boost</div>
+                    <div style={styles.lookupMiniValue}>
+                      +{Math.max(0, Number(qrxAdminItem.manual_view_boost ?? 0))}
+                    </div>
+                  </div>
+                  <div style={styles.lookupMiniCard}>
+                    <div style={styles.lookupMiniLabel}>Anzeige Aufrufe</div>
+                    <div style={styles.lookupMiniValue}>
+                      {Math.max(0, Number(qrxAdminItem.views_total ?? 0)) +
+                        Math.max(0, Number(qrxAdminItem.manual_view_boost ?? 0))}
+                    </div>
+                  </div>
+                  <div style={styles.lookupMiniCard}>
+                    <div style={styles.lookupMiniLabel}>Eindeutige Aufrufe</div>
+                    <div style={styles.lookupMiniValue}>
+                      {Math.max(0, Number(qrxAdminItem.views_unique_total ?? 0))}
+                    </div>
+                  </div>
+                  <div style={styles.lookupMiniCard}>
+                    <div style={styles.lookupMiniLabel}>Unique Boost</div>
+                    <div style={styles.lookupMiniValue}>
+                      +{Math.max(0, Number(qrxAdminItem.manual_unique_view_boost ?? 0))}
+                    </div>
+                  </div>
+                  <div style={styles.lookupMiniCard}>
+                    <div style={styles.lookupMiniLabel}>Anzeige Unique</div>
+                    <div style={styles.lookupMiniValue}>
+                      {Math.max(0, Number(qrxAdminItem.views_unique_total ?? 0)) +
+                        Math.max(0, Number(qrxAdminItem.manual_unique_view_boost ?? 0))}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ ...styles.formGrid, marginTop: 14 }}>
+                  <input
+                    value={qrxStatsFollowerBoost}
+                    onChange={(e) => setQrxStatsFollowerBoost(e.target.value)}
+                    placeholder="Follower Boost, z. B. 100"
+                    inputMode="numeric"
+                    style={styles.input}
+                  />
+                  <input
+                    value={qrxStatsViewBoost}
+                    onChange={(e) => setQrxStatsViewBoost(e.target.value)}
+                    placeholder="Aufruf Boost, z. B. 500"
+                    inputMode="numeric"
+                    style={styles.input}
+                  />
+                  <input
+                    value={qrxStatsUniqueViewBoost}
+                    onChange={(e) => setQrxStatsUniqueViewBoost(e.target.value)}
+                    placeholder="Unique-View Boost, z. B. 200"
+                    inputMode="numeric"
+                    style={styles.input}
+                  />
+
+                  <div style={styles.bottomRow}>
+                    <button
+                      type="button"
+                      onClick={handleSaveQrxStatsBoost}
+                      disabled={qrxStatsWorking}
+                      style={{ ...styles.creditButton, opacity: qrxStatsWorking ? 0.65 : 1 }}
+                    >
+                      {qrxStatsWorking ? "Speichere…" : "Statistik-Boost speichern"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQrxStatsFollowerBoost("0");
+                        setQrxStatsViewBoost("0");
+                        setQrxStatsUniqueViewBoost("0");
+                      }}
+                      disabled={qrxStatsWorking}
+                      style={styles.secondaryLink}
+                    >
+                      Boost auf 0 setzen
+                    </button>
+                  </div>
+
+                  {qrxStatsMessage ? <div style={styles.resultBox}>{qrxStatsMessage}</div> : null}
                 </div>
               </div>
 

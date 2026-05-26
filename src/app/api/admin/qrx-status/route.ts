@@ -6,10 +6,14 @@ type QrxStatusBody = {
   suspended?: unknown;
   reason?: unknown;
   deleteAction?: unknown;
+  statsAction?: unknown;
+  manualFollowerBoost?: unknown;
+  manualViewBoost?: unknown;
+  manualUniqueViewBoost?: unknown;
 };
 
 const QRX_SELECT =
-  "id, owner_user_id, title, type, verified, company_name, category, created_at, updated_at, suspended, suspended_reason, suspended_at, report_count, report_score, moderation_status, moderation_flagged_at, auto_suspended_at, deleted_at, deleted_reason, deleted_by_admin";
+  "id, owner_user_id, title, type, verified, company_name, category, created_at, updated_at, suspended, suspended_reason, suspended_at, report_count, report_score, moderation_status, moderation_flagged_at, auto_suspended_at, deleted_at, deleted_reason, deleted_by_admin, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost";
 
 function unauthorized() {
   return Response.json({ error: "Unauthorized" }, { status: 401 });
@@ -68,7 +72,22 @@ async function fetchQrx(qrxId: string) {
     return { data: null, error };
   }
 
-  return { data, error: null };
+  const { count: realFollowerCount, error: followerError } = await supabaseAdmin
+    .from("qrx_saves")
+    .select("qrx_id", { count: "exact", head: true })
+    .eq("qrx_id", qrxId);
+
+  if (followerError) {
+    console.warn("qrx_saves count failed:", followerError.message);
+  }
+
+  return {
+    data: {
+      ...data,
+      real_follower_count: realFollowerCount ?? 0,
+    },
+    error: null,
+  };
 }
 
 export async function GET(req: Request) {
@@ -144,6 +163,11 @@ export async function PATCH(req: Request) {
         ? body.deleteAction
         : null;
 
+    const statsAction =
+      typeof body?.statsAction === "string"
+        ? body.statsAction
+        : null;
+
     if (!qrxId) {
       return Response.json({ error: "QR-X-ID fehlt" }, { status: 400 });
     }
@@ -158,6 +182,59 @@ export async function PATCH(req: Request) {
     }
 
     const nowIso = new Date().toISOString();
+
+    if (statsAction === "update_boosts") {
+      const manualFollowerBoost = Number(body?.manualFollowerBoost ?? 0);
+      const manualViewBoost = Number(body?.manualViewBoost ?? 0);
+      const manualUniqueViewBoost = Number(body?.manualUniqueViewBoost ?? 0);
+
+      if (
+        !Number.isInteger(manualFollowerBoost) ||
+        !Number.isInteger(manualViewBoost) ||
+        !Number.isInteger(manualUniqueViewBoost) ||
+        manualFollowerBoost < 0 ||
+        manualViewBoost < 0 ||
+        manualUniqueViewBoost < 0
+      ) {
+        return Response.json(
+          { error: "Boost-Werte müssen ganze Zahlen ab 0 sein" },
+          { status: 400 }
+        );
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("qr_x_entries")
+        .update({
+          manual_follower_boost: manualFollowerBoost,
+          manual_view_boost: manualViewBoost,
+          manual_unique_view_boost: manualUniqueViewBoost,
+          updated_at: nowIso,
+        })
+        .eq("id", qrxId)
+        .select(QRX_SELECT)
+        .single();
+
+      if (error) {
+        return Response.json(
+          { error: "QR-X Statistik-Boost konnte nicht gespeichert werden", details: error.message },
+          { status: 500 }
+        );
+      }
+
+      await writeAdminLog({
+        actionType: "qrx_stats_boost_updated",
+        targetUserId: data.owner_user_id,
+        qrxId: data.id,
+        note: `Boost aktualisiert: +${manualFollowerBoost} Follower, +${manualViewBoost} Aufrufe, +${manualUniqueViewBoost} eindeutige Aufrufe.`,
+      });
+
+      const refreshed = await fetchQrx(qrxId);
+
+      return Response.json({
+        ok: true,
+        qrx: refreshed.data ?? data,
+      });
+    }
 
     if (moderationAction === "mark_reviewed") {
       const { data, error } = await supabaseAdmin
