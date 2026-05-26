@@ -468,7 +468,7 @@ export default async function Home({ params }: Props) {
         </div>
 
         <div className="miosegUseCaseGrid">
-          {realLifeUseCases.map((item, index) => (
+          {realLifeUseCases.slice(0, 4).map((item, index) => (
             <article
               key={item.label}
               className="miosegUseCaseCard"
@@ -707,15 +707,16 @@ export default async function Home({ params }: Props) {
         <div className="miosegExploreFocusGrid">
           <div className="miosegExploreFocusText">
             <span className={styles.sectionEyebrow}>Explore</span>
+            <div className="miosegPreviewNote">{locale === "de" ? "Später mit echten Bildern, Orten und Community-Inhalten." : "Later enhanced with real images, places and community content."}</div>
             <h2>
               {locale === "de"
-                ? "Entdecke QR-X nicht nur zufällig – sondern direkt auf der Karte."
-                : "Don’t just find QR-X by chance — discover them directly on the map."}
+                ? "Entdecke, was um dich herum passiert."
+                : "Discover what is happening around you."}
             </h2>
             <p>
               {locale === "de"
-                ? "Explore macht Mioseg qr zu einer öffentlichen Entdeckungsplattform: Unternehmen, Orte, Events, Immobilien und besondere QR-X werden sichtbar, filterbar und direkt erreichbar."
-                : "Explore turns Mioseg qr into a public discovery platform: businesses, places, events, real estate and special QR-X become visible, filterable and instantly accessible."}
+                ? "Explore verbindet Menschen, Unternehmen, Orte und Events auf einer interaktiven Karte. Entdecke neue Möglichkeiten in deiner Nähe oder mache das sichtbar, was du liebst."
+                : "Explore connects people, businesses, places and events on an interactive map. Discover new possibilities nearby or make what you love visible."}
             </p>
 
             <div className="miosegExploreBenefits">
@@ -799,14 +800,7 @@ export default async function Home({ params }: Props) {
                 ? "Mioseg qr wird dann unverzichtbar, wenn ein QR-Code nicht nur einmal geöffnet, sondern später wieder gebraucht wird – mit Ort, Ordner, Updates und QR-X Detailbereich."
                 : "Mioseg qr becomes essential when a QR code is not just opened once, but needed again later — with location, folders, updates and QR-X details."}
             </p>
-
-            <div className="miosegTrustPills">
-              {trustPoints.map((point) => (
-                <span key={point}>✓ {point}</span>
-              ))}
-            </div>
-
-            <div className="miosegConversionActions">
+<div className="miosegConversionActions">
               <Link href="/get-app" className={styles.primaryButton}>
                 {t.home.download.ctaPrimary}
               </Link>
@@ -817,7 +811,7 @@ export default async function Home({ params }: Props) {
           </div>
 
           <div className="miosegConversionReasons">
-            {conversionReasons.map((item, index) => (
+            {conversionReasons.slice(0, 3).map((item, index) => (
               <article
                 key={item.title}
                 className="miosegConversionReason"
@@ -838,8 +832,8 @@ export default async function Home({ params }: Props) {
             </span>
             <h2>
               {locale === "de"
-                ? "Baue dir dein eigenes digitales QR-Gedächtnis."
-                : "Build your own digital QR memory."}
+                ? "Ein QR-Code kann mehr als nur einen Link öffnen."
+                : "A QR code can do more than open a link."}
             </h2>
             <p>
               {locale === "de"
@@ -1598,6 +1592,25 @@ export default async function Home({ params }: Props) {
 }
 
 
+
+
+.miosegPreviewNote {
+  width: fit-content;
+  margin-top: 12px;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: rgba(77,132,201,0.10);
+  border: 1px solid rgba(77,132,201,0.16);
+  color: #4d84c9;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.miosegConversionText h2,
+.miosegExploreFocusText h2,
+.miosegStoryText h3 {
+  text-wrap: balance;
+}
 
 .miosegExploreFocusSection {
   padding: 96px 20px;
