@@ -215,6 +215,19 @@ export default async function Home({ params }: Props) {
       ? ["Keine Abo-Pflicht", "Credits statt monatlicher Kosten", "Für Alltag und Business", "Dynamische QR-X mit Updates"]
       : ["No subscription required", "Credits instead of monthly fees", "For everyday and business use", "Dynamic QR-X with updates"];
 
+  const explorePreviewItems =
+    locale === "de"
+      ? [
+          { icon: "🍽️", title: "Café am Markt", category: "Gastronomie", meta: "248 Aufrufe · 36 Follower", badge: "Beliebt" },
+          { icon: "🏠", title: "Wohnung Stadtpark", category: "Immobilien", meta: "Exposé · Dateien · Kontakt", badge: "QR-X" },
+          { icon: "🩺", title: "Praxis Gesund", category: "Praxis & Gesundheit", meta: "Verifiziert · Route · Kontakt", badge: "Verifiziert" },
+        ]
+      : [
+          { icon: "🍽️", title: "Market Café", category: "Restaurant", meta: "248 views · 36 followers", badge: "Popular" },
+          { icon: "🏠", title: "Park Apartment", category: "Real estate", meta: "Exposé · Files · Contact", badge: "QR-X" },
+          { icon: "🩺", title: "Health Practice", category: "Health", meta: "Verified · Route · Contact", badge: "Verified" },
+        ];
+
 
   return (
     <main className={styles.page}>
@@ -686,6 +699,84 @@ export default async function Home({ params }: Props) {
               <li>{t.home.pricing.benefits2}</li>
               <li>{t.home.pricing.benefits3}</li>
             </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="miosegExploreFocusSection">
+        <div className="miosegExploreFocusGrid">
+          <div className="miosegExploreFocusText">
+            <span className={styles.sectionEyebrow}>Explore</span>
+            <h2>
+              {locale === "de"
+                ? "Entdecke QR-X nicht nur zufällig – sondern direkt auf der Karte."
+                : "Don’t just find QR-X by chance — discover them directly on the map."}
+            </h2>
+            <p>
+              {locale === "de"
+                ? "Explore macht Mioseg qr zu einer öffentlichen Entdeckungsplattform: Unternehmen, Orte, Events, Immobilien und besondere QR-X werden sichtbar, filterbar und direkt erreichbar."
+                : "Explore turns Mioseg qr into a public discovery platform: businesses, places, events, real estate and special QR-X become visible, filterable and instantly accessible."}
+            </p>
+
+            <div className="miosegExploreBenefits">
+              <div>
+                <strong>🗺️ {locale === "de" ? "Karte statt Liste" : "Map instead of list"}</strong>
+                <span>{locale === "de" ? "QR-X erscheinen dort, wo sie relevant sind." : "QR-X appear where they are relevant."}</span>
+              </div>
+              <div>
+                <strong>🏷️ {locale === "de" ? "Kategorien & Filter" : "Categories & filters"}</strong>
+                <span>{locale === "de" ? "Restaurants, Praxen, Events, Unternehmen und mehr." : "Restaurants, health, events, businesses and more."}</span>
+              </div>
+              <div>
+                <strong>🔥 {locale === "de" ? "Beliebte Profile zuerst" : "Popular profiles first"}</strong>
+                <span>{locale === "de" ? "Follower, Aufrufe und Verifizierung schaffen Vertrauen." : "Followers, views and verification build trust."}</span>
+              </div>
+            </div>
+
+            <div className="miosegConversionActions">
+              <Link href={`/${locale}/explore`} className={styles.primaryButton}>
+                {locale === "de" ? "Explore öffnen" : "Open Explore"}
+              </Link>
+              <Link href="/get-app" className={styles.secondaryButton}>
+                {t.home.hero.ctaPrimary}
+              </Link>
+            </div>
+          </div>
+
+          <div className="miosegExploreMapMock">
+            <div className="miosegExploreMapTop">
+              <div>
+                <span>mioseg qr</span>
+                <strong>Explore Map</strong>
+              </div>
+              <small>{locale === "de" ? "Live Vorschau" : "Live preview"}</small>
+            </div>
+
+            <div className="miosegMapCanvas">
+              <div className="miosegMapRoad miosegMapRoadOne" />
+              <div className="miosegMapRoad miosegMapRoadTwo" />
+              <div className="miosegMapRoad miosegMapRoadThree" />
+
+              <div className="miosegMapPin miosegPinOne">🍽️</div>
+              <div className="miosegMapPin miosegPinTwo">🏠</div>
+              <div className="miosegMapPin miosegPinThree">🩺</div>
+              <div className="miosegMapPin miosegPinFour">🎉</div>
+
+              <div className="miosegMapUserPulse" />
+            </div>
+
+            <div className="miosegExplorePreviewList">
+              {explorePreviewItems.map((item) => (
+                <article key={item.title} className="miosegExplorePreviewCard">
+                  <div className="miosegExplorePreviewIcon">{item.icon}</div>
+                  <div>
+                    <div className="miosegExplorePreviewBadge">{item.badge}</div>
+                    <strong>{item.title}</strong>
+                    <span>{item.category} · {item.meta}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -1506,6 +1597,285 @@ export default async function Home({ params }: Props) {
   50% { transform: translate(-10px, -6px); }
 }
 
+
+
+.miosegExploreFocusSection {
+  padding: 96px 20px;
+  background:
+    radial-gradient(circle at 80% 12%, rgba(77, 132, 201, 0.12), transparent 28%),
+    linear-gradient(180deg, #eef4fb 0%, #f7fafc 100%);
+}
+
+.miosegExploreFocusGrid {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 540px);
+  gap: 32px;
+  align-items: center;
+}
+
+.miosegExploreFocusText h2 {
+  margin: 12px 0 16px;
+  color: #0d1726;
+  font-size: clamp(36px, 5vw, 68px);
+  line-height: 0.98;
+  letter-spacing: -1.7px;
+}
+
+.miosegExploreFocusText p {
+  max-width: 680px;
+  color: #5d6b7d;
+  font-size: 18px;
+  line-height: 1.75;
+  margin: 0 0 24px;
+}
+
+.miosegExploreBenefits {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.miosegExploreBenefits div {
+  border-radius: 22px;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(218, 228, 240, 0.95);
+  box-shadow: 0 14px 34px rgba(14, 23, 38, 0.06);
+}
+
+.miosegExploreBenefits strong {
+  display: block;
+  color: #0d1726;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.miosegExploreBenefits span {
+  color: #6b788a;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.miosegExploreMapMock {
+  position: relative;
+  border-radius: 38px;
+  padding: 18px;
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 32px 90px rgba(13, 23, 38, 0.22);
+  overflow: hidden;
+}
+
+.miosegExploreMapMock::before {
+  content: "";
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  right: -120px;
+  top: -150px;
+  background: radial-gradient(circle, rgba(117, 210, 255, 0.22), transparent 64%);
+  pointer-events: none;
+}
+
+.miosegExploreMapTop {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.miosegExploreMapTop span,
+.miosegExploreMapTop small {
+  display: block;
+  color: #9fb8d5;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.miosegExploreMapTop strong {
+  color: #ffffff;
+  font-size: 24px;
+  letter-spacing: -0.45px;
+}
+
+.miosegMapCanvas {
+  position: relative;
+  z-index: 1;
+  height: 330px;
+  border-radius: 30px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(117, 210, 255, 0.22), transparent 22%),
+    linear-gradient(135deg, #e9f2fb 0%, #dbe8f5 48%, #c9d9e9 100%);
+  border: 1px solid rgba(255,255,255,0.16);
+}
+
+.miosegMapRoad {
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 0 0 1px rgba(13,23,38,0.04);
+}
+
+.miosegMapRoadOne {
+  width: 520px;
+  height: 26px;
+  left: -90px;
+  top: 105px;
+  transform: rotate(-22deg);
+}
+
+.miosegMapRoadTwo {
+  width: 480px;
+  height: 22px;
+  right: -120px;
+  bottom: 86px;
+  transform: rotate(18deg);
+}
+
+.miosegMapRoadThree {
+  width: 26px;
+  height: 420px;
+  left: 48%;
+  top: -56px;
+  transform: rotate(10deg);
+}
+
+.miosegMapPin {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  border: 3px solid #ffffff;
+  box-shadow: 0 18px 38px rgba(13, 23, 38, 0.28);
+  font-size: 23px;
+  animation: miosegPinBounce 3.2s ease-in-out infinite;
+}
+
+.miosegPinOne { left: 58px; top: 78px; animation-delay: 0ms; }
+.miosegPinTwo { right: 86px; top: 116px; animation-delay: 260ms; }
+.miosegPinThree { left: 43%; bottom: 70px; animation-delay: 520ms; }
+.miosegPinFour { right: 38px; bottom: 34px; animation-delay: 780ms; }
+
+.miosegMapUserPulse {
+  position: absolute;
+  left: 46%;
+  top: 42%;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #2563eb;
+  border: 4px solid #ffffff;
+  box-shadow: 0 0 0 10px rgba(37,99,235,0.16);
+  animation: miosegUserPulse 2.6s ease-in-out infinite;
+}
+
+.miosegExplorePreviewList {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 10px;
+  margin-top: -38px;
+  padding: 0 14px 4px;
+}
+
+.miosegExplorePreviewCard {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+  align-items: center;
+  border-radius: 22px;
+  padding: 12px;
+  background: rgba(255,255,255,0.94);
+  border: 1px solid rgba(255,255,255,0.9);
+  box-shadow: 0 18px 40px rgba(13,23,38,0.14);
+  backdrop-filter: blur(16px);
+  transition: transform 220ms ease;
+}
+
+.miosegExplorePreviewCard:hover {
+  transform: translateY(-4px) scale(1.01);
+}
+
+.miosegExplorePreviewIcon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: #eef4fb;
+  font-size: 25px;
+}
+
+.miosegExplorePreviewBadge {
+  width: fit-content;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: #0d1726;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 950;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.miosegExplorePreviewCard strong {
+  display: block;
+  color: #0d1726;
+  font-size: 15px;
+  line-height: 1.22;
+}
+
+.miosegExplorePreviewCard span {
+  display: block;
+  margin-top: 3px;
+  color: #6b788a;
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+@keyframes miosegPinBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+
+@keyframes miosegUserPulse {
+  0%, 100% { box-shadow: 0 0 0 8px rgba(37,99,235,0.15); }
+  50% { box-shadow: 0 0 0 20px rgba(37,99,235,0); }
+}
+
+@media (max-width: 980px) {
+  .miosegExploreFocusGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .miosegExploreFocusSection {
+    padding: 68px 16px;
+  }
+
+  .miosegExploreMapMock {
+    border-radius: 30px;
+    padding: 14px;
+  }
+
+  .miosegMapCanvas {
+    height: 300px;
+  }
+}
 
 .miosegConversionSection {
   padding: 96px 20px;
