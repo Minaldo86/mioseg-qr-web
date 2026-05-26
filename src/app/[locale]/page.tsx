@@ -73,7 +73,7 @@ export default async function Home({ params }: Props) {
             label: "Gastronomie",
             title: "Speisekarte, Reservierung und Updates",
             text: "Restaurants können Speisekarten, Aktionen, Öffnungszeiten und Reservierungslinks über einen dynamischen QR-X aktuell halten.",
-            chips: ["Speisekarte", "Reservieren", "Öffnungszeiten"],
+            chips: ["Speisekarte", "Reservierungslink", "Öffnungszeiten"],
           },
           {
             icon: "🚗",
@@ -103,6 +103,13 @@ export default async function Home({ params }: Props) {
             text: "Nutzer verlieren interessante QR-Codes nicht mehr. Sie speichern sie in Ordnern und sehen später auf der Karte, wo sie gescannt wurden.",
             chips: ["Ordner", "Karte", "Verlauf"],
           },
+          {
+            icon: "🔐",
+            label: "Privat teilen",
+            title: "QR-X optional mit Passwort schützen",
+            text: "Sensible Inhalte wie Exposés, interne Dateien oder private Eventinfos können nur für Personen sichtbar sein, die das Passwort kennen.",
+            chips: ["Passwort", "Privat", "Kontrollierter Zugriff"],
+          },
         ]
       : [
           {
@@ -117,7 +124,7 @@ export default async function Home({ params }: Props) {
             label: "Restaurants",
             title: "Menu, booking and updates",
             text: "Restaurants can keep menus, offers, opening hours and booking links up to date through one dynamic QR-X.",
-            chips: ["Menu", "Booking", "Hours"],
+            chips: ["Menu", "Booking link", "Hours"],
           },
           {
             icon: "🚗",
@@ -146,6 +153,13 @@ export default async function Home({ params }: Props) {
             title: "Scan, save, find again",
             text: "Users no longer lose interesting QR codes. They save them in folders and later see where they scanned them on the map.",
             chips: ["Folders", "Map", "History"],
+          },
+          {
+            icon: "🔐",
+            label: "Private sharing",
+            title: "Protect QR-X with an optional password",
+            text: "Sensitive content such as exposés, internal files or private event information can be visible only to people who know the password.",
+            chips: ["Password", "Private", "Controlled access"],
           },
         ];
 
@@ -435,6 +449,7 @@ export default async function Home({ params }: Props) {
               <span>📄 {locale === "de" ? "Dokumente" : "Documents"}</span>
               <span>📍 {locale === "de" ? "Scan-Standort" : "Scan location"}</span>
               <span>📁 {locale === "de" ? "Ordner gespeichert" : "Saved to folder"}</span>
+              <span>🔐 {locale === "de" ? "Optional passwortgeschützt" : "Optional password protection"}</span>
             </div>
           </div>
 
@@ -480,6 +495,88 @@ export default async function Home({ params }: Props) {
           <div className={styles.valueCard}>
             <h3 className={styles.featureTitle}>{t.home.target.card3Title}</h3>
             <p className={styles.featureText}>{t.home.target.card3Text}</p>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.section}>
+        <div className={styles.sectionIntro}>
+          <span className={styles.sectionEyebrow}>
+            {locale === "de" ? "So fühlt sich Mioseg qr an" : "How Mioseg qr feels"}
+          </span>
+          <h2 className={`${styles.sectionTitle} ${styles.sectionTitleLight}`}>
+            {locale === "de"
+              ? "Ein Scan wird zu einem digitalen Erlebnis."
+              : "A scan becomes a digital experience."}
+          </h2>
+          <p className={styles.sectionText}>
+            {locale === "de"
+              ? "Mioseg qr verbindet QR-Code, Detailansicht, Ordner, Karte, Updates und optionalen Passwortschutz zu einem Ablauf, den Nutzer sofort verstehen."
+              : "Mioseg qr connects QR code, detail view, folders, map, updates and optional password protection into one flow users understand instantly."}
+          </p>
+        </div>
+
+        <div className="miosegMotionBoard">
+          <div className="miosegMotionTrack">
+            <div className="miosegMotionStep">
+              <span>1</span>
+              <strong>{locale === "de" ? "QR-Code scannen" : "Scan QR code"}</strong>
+              <p>{locale === "de" ? "Kamera öffnen und QR-X erkennen." : "Open camera and detect QR-X."}</p>
+            </div>
+
+            <div className="miosegMotionConnector" />
+
+            <div className="miosegMotionStep">
+              <span>2</span>
+              <strong>{locale === "de" ? "Detailbereich öffnen" : "Open detail view"}</strong>
+              <p>{locale === "de" ? "Bilder, Dateien, Kontakt und CTA sehen." : "View images, files, contact and CTA."}</p>
+            </div>
+
+            <div className="miosegMotionConnector" />
+
+            <div className="miosegMotionStep">
+              <span>3</span>
+              <strong>{locale === "de" ? "Speichern & wiederfinden" : "Save & find again"}</strong>
+              <p>{locale === "de" ? "Ordner, Karte, Updates und Passwortschutz." : "Folders, map, updates and password protection."}</p>
+            </div>
+          </div>
+
+          <div className="miosegAnimatedProduct">
+            <div className="miosegFloatingQr">
+              <div className="miosegQrVisual" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+              <div className="miosegPulseRing" />
+            </div>
+
+            <div className="miosegProductPanel miosegPanelDetail">
+              <div className="miosegMiniLabel">{locale === "de" ? "QR-X geöffnet" : "QR-X opened"}</div>
+              <strong>{locale === "de" ? "Wohnung am Park" : "Apartment at the park"}</strong>
+              <span>🏠 {locale === "de" ? "Exposé · Dateien · Kontakt" : "Exposé · Files · Contact"}</span>
+            </div>
+
+            <div className="miosegProductPanel miosegPanelFolder">
+              <div className="miosegMiniLabel">{locale === "de" ? "Automatisch organisiert" : "Automatically organized"}</div>
+              <strong>📁 {locale === "de" ? "Ordner Wohnungen" : "Folder Apartments"}</strong>
+            </div>
+
+            <div className="miosegProductPanel miosegPanelMap">
+              <div className="miosegMiniLabel">{locale === "de" ? "Standort sichtbar" : "Location visible"}</div>
+              <strong>📍 {locale === "de" ? "Scan auf Karte" : "Scan on map"}</strong>
+            </div>
+
+            <div className="miosegProductPanel miosegPanelLock">
+              <div className="miosegMiniLabel">{locale === "de" ? "Privater QR-X" : "Private QR-X"}</div>
+              <strong>🔐 {locale === "de" ? "Passwort aktiv" : "Password active"}</strong>
+            </div>
           </div>
         </div>
       </section>
@@ -1045,6 +1142,304 @@ export default async function Home({ params }: Props) {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+
+.miosegUseCaseCard,
+.miosegStoryPhone,
+.miosegMotionStep,
+.miosegProductPanel {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.miosegMotionBoard {
+  max-width: 1180px;
+  margin: 0 auto;
+  border-radius: 36px;
+  padding: 28px;
+  background: linear-gradient(135deg, rgba(13, 23, 38, 0.96) 0%, rgba(23, 48, 77, 0.96) 58%, rgba(37, 76, 118, 0.96) 100%);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 30px 86px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  position: relative;
+}
+
+.miosegMotionBoard::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(117, 210, 255, 0.18), transparent 28%),
+    radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.12), transparent 24%);
+  animation: miosegBoardGlow 8s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.miosegMotionTrack {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 56px 1fr 56px 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.miosegMotionStep {
+  border-radius: 26px;
+  min-height: 160px;
+  padding: 20px;
+  background: rgba(255,255,255,0.085);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(16px);
+}
+
+.miosegMotionStep:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 22px 48px rgba(0,0,0,0.18);
+  border-color: rgba(143, 199, 255, 0.42);
+}
+
+.miosegMotionStep span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #07101f;
+  background: linear-gradient(180deg, #ffffff, #dbeafe);
+  font-weight: 950;
+  margin-bottom: 14px;
+}
+
+.miosegMotionStep strong {
+  display: block;
+  color: #ffffff;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.35px;
+  margin-bottom: 8px;
+}
+
+.miosegMotionStep p {
+  margin: 0;
+  color: #c8d8ea;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.miosegMotionConnector {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(117, 210, 255, 0.18), rgba(117, 210, 255, 0.9), rgba(117, 210, 255, 0.18));
+  box-shadow: 0 0 20px rgba(117, 210, 255, 0.52);
+  animation: miosegConnector 2.8s ease-in-out infinite;
+}
+
+.miosegAnimatedProduct {
+  position: relative;
+  z-index: 1;
+  min-height: 440px;
+  border-radius: 32px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035)),
+    radial-gradient(circle at 50% 48%, rgba(117, 210, 255, 0.16), transparent 34%);
+  border: 1px solid rgba(255,255,255,0.10);
+  overflow: hidden;
+}
+
+.miosegAnimatedProduct::before {
+  content: "";
+  position: absolute;
+  inset: 36px;
+  border-radius: 32px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.42;
+  mask-image: radial-gradient(circle at center, black 0%, transparent 70%);
+}
+
+.miosegFloatingQr {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  transform: translate(-50%, -50%);
+  width: 132px;
+  height: 132px;
+  display: grid;
+  place-items: center;
+  border-radius: 34px;
+  animation: miosegCenterFloat 4.6s ease-in-out infinite;
+}
+
+.miosegFloatingQr .miosegQrVisual {
+  width: 118px;
+  height: 118px;
+  z-index: 2;
+}
+
+.miosegPulseRing {
+  position: absolute;
+  inset: -18px;
+  border-radius: 42px;
+  border: 2px solid rgba(117, 210, 255, 0.52);
+  box-shadow: 0 0 44px rgba(117, 210, 255, 0.28);
+  animation: miosegPulse 2.6s ease-in-out infinite;
+}
+
+.miosegProductPanel {
+  position: absolute;
+  border-radius: 24px;
+  padding: 16px;
+  min-width: 210px;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 22px 56px rgba(0,0,0,0.22);
+}
+
+.miosegProductPanel strong {
+  display: block;
+  color: #ffffff;
+  font-size: 17px;
+  line-height: 1.25;
+  margin-top: 5px;
+}
+
+.miosegProductPanel span {
+  display: block;
+  color: #c9d9eb;
+  font-size: 13px;
+  line-height: 1.45;
+  margin-top: 8px;
+}
+
+.miosegPanelDetail {
+  left: 44px;
+  top: 50px;
+  animation: miosegOrbitA 6.2s ease-in-out infinite;
+}
+
+.miosegPanelFolder {
+  right: 56px;
+  top: 76px;
+  animation: miosegOrbitB 5.8s ease-in-out infinite;
+}
+
+.miosegPanelMap {
+  left: 82px;
+  bottom: 66px;
+  animation: miosegOrbitC 6.5s ease-in-out infinite;
+}
+
+.miosegPanelLock {
+  right: 86px;
+  bottom: 52px;
+  animation: miosegOrbitD 6s ease-in-out infinite;
+}
+
+@keyframes miosegConnector {
+  0%, 100% { opacity: 0.35; transform: scaleX(0.76); }
+  50% { opacity: 1; transform: scaleX(1); }
+}
+
+@keyframes miosegBoardGlow {
+  from { transform: rotate(0deg) scale(1); }
+  to { transform: rotate(8deg) scale(1.04); }
+}
+
+@keyframes miosegCenterFloat {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0) rotate(-1deg); }
+  50% { transform: translate(-50%, -50%) translateY(-10px) rotate(1deg); }
+}
+
+@keyframes miosegPulse {
+  0%, 100% { transform: scale(0.92); opacity: 0.35; }
+  50% { transform: scale(1.08); opacity: 0.85; }
+}
+
+@keyframes miosegOrbitA {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(10px, -8px); }
+}
+
+@keyframes miosegOrbitB {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-8px, 10px); }
+}
+
+@keyframes miosegOrbitC {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(9px, 9px); }
+}
+
+@keyframes miosegOrbitD {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-10px, -6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .miosegScanBeam,
+  .miosegQrCard,
+  .miosegDetailCard,
+  .miosegUseCaseCard,
+  .miosegMotionConnector,
+  .miosegMotionBoard::before,
+  .miosegFloatingQr,
+  .miosegPulseRing,
+  .miosegPanelDetail,
+  .miosegPanelFolder,
+  .miosegPanelMap,
+  .miosegPanelLock {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .miosegMotionTrack {
+    grid-template-columns: 1fr;
+  }
+
+  .miosegMotionConnector {
+    width: 3px;
+    height: 34px;
+    margin: 0 auto;
+  }
+
+  .miosegAnimatedProduct {
+    min-height: 620px;
+  }
+
+  .miosegFloatingQr {
+    top: 45%;
+  }
+
+  .miosegPanelDetail,
+  .miosegPanelFolder,
+  .miosegPanelMap,
+  .miosegPanelLock {
+    left: 18px;
+    right: 18px;
+    min-width: auto;
+  }
+
+  .miosegPanelDetail { top: 24px; }
+  .miosegPanelFolder { top: 138px; }
+  .miosegPanelMap { bottom: 138px; }
+  .miosegPanelLock { bottom: 24px; }
+}
+
+@media (max-width: 640px) {
+  .miosegMotionBoard {
+    padding: 18px;
+    border-radius: 28px;
+  }
+
+  .miosegAnimatedProduct {
+    min-height: 650px;
   }
 }
 
