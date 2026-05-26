@@ -20,12 +20,16 @@ export default async function Home({ params }: Props) {
 
   const t = getDictionary(locale);
   const landingImages = {
-    heroScan: "/landing/hero-scan.jpg",
+    heroScan: "/landing/hero-scan.png",
     heroPhone: "/landing/hero-phone-map.png",
-    realEstate: "/landing/usecase-real-estate.jpg",
-    restaurant: "/landing/usecase-restaurant.jpg",
-    business: "/landing/usecase-business.jpg",
-    event: "/landing/usecase-event.jpg",
+    realEstate: "/landing/usecase-real-estate.png",
+    restaurant: "/landing/usecase-restaurant.png",
+    business: "/landing/usecase-business.png",
+    event: "/landing/usecase-event.png",
+    school: "/landing/usecase-school.png",
+    fitness: "/landing/usecase-fitness.png",
+    creator: "/landing/usecase-creator.png",
+    tourism: "/landing/usecase-tourism.png",
   };
 
   const heroCopy =
@@ -92,6 +96,30 @@ export default async function Home({ params }: Props) {
             text: "Tickets, Infos und Updates – alles an einem Ort.",
             image: landingImages.event,
           },
+          {
+            icon: "🎓",
+            title: "Schule & Campus",
+            text: "Pläne, Räume, AGs und Infos schnell digital finden.",
+            image: landingImages.school,
+          },
+          {
+            icon: "🏋️",
+            title: "Fitness & Vereine",
+            text: "Kurse, Trainingszeiten und Community-Infos teilen.",
+            image: landingImages.fitness,
+          },
+          {
+            icon: "🎬",
+            title: "Creator & Shops",
+            text: "Profile, Produkte, Videos und Aktionen sichtbar machen.",
+            image: landingImages.creator,
+          },
+          {
+            icon: "📸",
+            title: "Tourismus",
+            text: "Sehenswürdigkeiten, Routen und lokale Tipps entdecken.",
+            image: landingImages.tourism,
+          },
         ]
       : [
           {
@@ -117,6 +145,30 @@ export default async function Home({ params }: Props) {
             title: "Events",
             text: "Tickets, information and updates — all in one place.",
             image: landingImages.event,
+          },
+          {
+            icon: "🎓",
+            title: "School & campus",
+            text: "Plans, rooms, clubs and info quickly available digitally.",
+            image: landingImages.school,
+          },
+          {
+            icon: "🏋️",
+            title: "Fitness & clubs",
+            text: "Share classes, training times and community updates.",
+            image: landingImages.fitness,
+          },
+          {
+            icon: "🎬",
+            title: "Creators & shops",
+            text: "Make profiles, products, videos and campaigns visible.",
+            image: landingImages.creator,
+          },
+          {
+            icon: "📸",
+            title: "Tourism",
+            text: "Discover sights, routes and local tips.",
+            image: landingImages.tourism,
           },
         ];
 
@@ -1432,7 +1484,7 @@ export default async function Home({ params }: Props) {
   height: 92px;
   background:
     linear-gradient(135deg, rgba(13,23,38,0.08), rgba(37,99,235,0.10)),
-    url("/landing/explore-card.jpg");
+    url("/landing/explore-card.png");
   background-size: cover;
   background-position: center;
 }
