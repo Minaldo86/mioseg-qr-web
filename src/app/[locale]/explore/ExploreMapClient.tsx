@@ -198,7 +198,7 @@ export default function ExploreMapClient({
 
       const map = L.map(mapElRef.current, { scrollWheelZoom: true, zoomControl: true }).setView(
         center,
-        hasUserLocation ? 12 : 6
+        hasUserLocation ? 14 : 6
       );
 
       mapRef.current = map;
@@ -276,7 +276,9 @@ export default function ExploreMapClient({
         bounds.push([point.latitude, point.longitude]);
       });
 
-      if (bounds.length > 1) {
+      if (hasUserLocation && userLat != null && userLng != null) {
+        map.setView([userLat, userLng], 14, { animate: true });
+      } else if (bounds.length > 1) {
         map.fitBounds(bounds, { padding: [44, 44], maxZoom: 14 });
       }
 

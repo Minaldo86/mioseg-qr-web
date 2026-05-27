@@ -314,6 +314,8 @@ export default async function ExplorePage({
       longitude: entry.location_lng as number,
     }));
 
+  const INITIAL_VISIBLE_QRX = 12;
+
   const mapVisibleEntries = items
     .filter((entry) => entry.location_lat != null && entry.location_lng != null)
     .sort(
@@ -1129,7 +1131,7 @@ export default async function ExplorePage({
             </div>
 
             <div id="visibleMapResults" className={styles.valueGrid}>
-              {mapVisibleEntries.map((entry, index) => (
+              {mapVisibleEntries.slice(0, INITIAL_VISIBLE_QRX).map((entry, index) => (
                 <div
                   key={`visible-wrap-${entry.id}`}
                   data-visible-map-card={entry.id}
@@ -1174,6 +1176,19 @@ export default async function ExplorePage({
                 </div>
               ))}
             </div>
+
+            {mapVisibleEntries.length > INITIAL_VISIBLE_QRX ? (
+              <div style={{ display: "flex", justifyContent: "center", marginTop: "28px" }}>
+                <button
+                  type="button"
+                  id="showMoreVisibleQrx"
+                  className={styles.primaryButton}
+                  style={{ border: 0, cursor: "pointer" }}
+                >
+                  Mehr anzeigen ({mapVisibleEntries.length - INITIAL_VISIBLE_QRX}+)
+                </button>
+              </div>
+            ) : null}
           </div>
         ) : null}
       </section>
@@ -1245,8 +1260,38 @@ export default async function ExplorePage({
             </Link>
           </div>
         ) : (
-          <div className={styles.valueGrid}>{items.map((entry) => renderExploreCard(entry))}</div>
-        )}
+  <>
+    <div id="newQrxGrid" className={styles.valueGrid}>
+      {items.map((entry, index) => (
+        <div
+          key={entry.id}
+          style={{ display: index < INITIAL_VISIBLE_QRX ? "" : "none" }}
+        >
+          {renderExploreCard(entry)}
+        </div>
+      ))}
+    </div>
+
+    {items.length > INITIAL_VISIBLE_QRX ? (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          marginTop: "30px",
+        }}
+      >
+        <button
+          type="button"
+          id="showMoreNewQrx"
+          className={styles.primaryButton}
+          style={{ border: 0, cursor: "pointer" }}
+        >
+          Mehr anzeigen ({items.length - INITIAL_VISIBLE_QRX}+)
+        </button>
+      </div>
+    ) : null}
+  </>
+)}
       </section>
 
       <style
@@ -1358,7 +1403,7 @@ nav,
         if(category && category !== "all") params.set("category", category); else params.delete("category");
         params.set("lat", String(pos.coords.latitude));
         params.set("lng", String(pos.coords.longitude));
-        window.location.href = explorePath + "?" + params.toString();
+        window.location.href = explorePath + "?" + params.toString() + "#explore-map";
       }, function(){
         alert("Standort konnte nicht abgerufen werden.");
       }, { enableHighAccuracy: true, timeout: 10000 });
@@ -1494,6 +1539,44 @@ nav,
     var detail = event.detail || {};
     if(detail.activeId) setActiveMapQrx(detail.activeId);
   });
+
+  var visibleLimit = 12;
+  var newLimit = 12;
+
+  var showMoreVisibleBtn = document.getElementById("showMoreVisibleQrx");
+  if(showMoreVisibleBtn){
+    showMoreVisibleBtn.addEventListener("click", function(){
+      visibleLimit += 12;
+      var cards = Array.prototype.slice.call(document.querySelectorAll("[data-visible-map-card]"));
+      cards.forEach(function(card, index){
+        if(index < visibleLimit){
+          card.style.display = "";
+        }
+      });
+
+      if(cards.length <= visibleLimit){
+        showMoreVisibleBtn.style.display = "none";
+      }
+    });
+  }
+
+  var showMoreNewBtn = document.getElementById("showMoreNewQrx");
+  if(showMoreNewBtn){
+    showMoreNewBtn.addEventListener("click", function(){
+      newLimit += 12;
+      var cards = Array.prototype.slice.call(document.querySelectorAll("#newQrxGrid > div"));
+      cards.forEach(function(card, index){
+        if(index < newLimit){
+          card.style.display = "";
+        }
+      });
+
+      if(cards.length <= newLimit){
+        showMoreNewBtn.style.display = "none";
+      }
+    });
+  }
+
 })();`.trim(),
         }}
       />
