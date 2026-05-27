@@ -875,126 +875,6 @@ export default async function ExplorePage({
       />
 
       <section
-        className={styles.section}
-        style={{
-          position: "relative",
-          zIndex: 3,
-          marginTop: "-18px",
-        }}
-      >
-        <div
-          style={{
-            borderRadius: "32px",
-            padding: "26px",
-            background: "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(248,251,254,0.96) 100%)",
-            border: "1px solid rgba(218, 228, 240, 0.92)",
-            boxShadow: "0 22px 60px rgba(14, 23, 38, 0.08)",
-            backdropFilter: "blur(18px)",
-          }}
-        >
-          <div className={styles.sectionIntro}>
-            <span className={styles.sectionEyebrow}>Explore Filter</span>
-            <h2 className={styles.sectionTitle}>Suche und filtere echte Einträge</h2>
-            <p className={styles.sectionText}>
-              Suche nach Namen, Ort oder Kategorie. Die Ergebnisse basieren direkt auf deinen Business QR-X Daten.
-            </p>
-          </div>
-
-          <form action={explorePath} method="get" style={{ display: "grid", gap: "16px", marginBottom: "24px" }}>
-            <div
-              className="mioseg-search-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr auto auto",
-                gap: "12px",
-                alignItems: "center",
-              }}
-            >
-              <input
-                type="text"
-                name="q"
-                defaultValue={queryRaw}
-                placeholder="z. B. Restaurant, Praxis, Geilenkirchen ..."
-                style={{
-                  width: "100%",
-                  minHeight: "56px",
-                  padding: "0 18px",
-                  borderRadius: "18px",
-                  border: "1px solid #d9e5f2",
-                  background: "#ffffff",
-                  color: "#0e1726",
-                  fontSize: "15px",
-                  fontWeight: 700,
-                  outline: "none",
-                  boxShadow: "inset 0 1px 0 rgba(14,23,38,0.02)",
-                }}
-              />
-
-              <button type="submit" className={styles.primaryButton} style={{ border: 0, cursor: "pointer" }}>
-                Suche starten
-              </button>
-
-              <button
-                type="button"
-                id="nearbyBtn"
-                className={styles.secondaryButtonDark}
-                data-query={queryRaw}
-                data-category={selectedCategory}
-                data-explore-path={explorePath}
-                style={{ color: "#0d1726", borderColor: "#d9e5f2", cursor: "pointer" }}
-              >
-                {hasUserLocation ? "Standort aktiv" : "In meiner Nähe"}
-              </button>
-            </div>
-
-            <div className={styles.heroButtons} style={{ marginBottom: 0 }}>
-              <Link href={explorePath} className={styles.secondaryButtonDark} style={{ color: "#0d1726", borderColor: "#d9e5f2" }}>
-                Filter zurücksetzen
-              </Link>
-              {query ? (
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    minHeight: "48px",
-                    padding: "0 16px",
-                    borderRadius: "14px",
-                    background: "#eef4fb",
-                    color: "#28496f",
-                    fontSize: "14px",
-                    fontWeight: 900,
-                  }}
-                >
-                  Suche: „{queryRaw.trim()}“
-                </span>
-              ) : null}
-            </div>
-          </form>
-
-          <div className={styles.heroButtons} style={{ marginBottom: 0 }}>
-            <Link
-              href={buildExploreHref(locale, "all", queryRaw)}
-              className={selectedCategory === "all" ? styles.primaryButton : styles.secondaryButtonDark}
-              style={selectedCategory === "all" ? undefined : { color: "#0d1726", borderColor: "#d9e5f2" }}
-            >
-              Alle ({(data ?? []).length})
-            </Link>
-
-            {categoryCounts.map((item) => (
-              <Link
-                key={item.value}
-                href={buildExploreHref(locale, item.value, queryRaw)}
-                className={selectedCategory === item.value ? styles.primaryButton : styles.secondaryButtonDark}
-                style={selectedCategory === item.value ? undefined : { color: "#0d1726", borderColor: "#d9e5f2" }}
-              >
-                {item.icon} {item.label} ({item.count})
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section
         id="explore-map"
         className={styles.sectionAlt}
         style={{
@@ -1011,8 +891,184 @@ export default async function ExplorePage({
             <span className={styles.sectionEyebrow}>Explore Map</span>
             <h2 className={styles.sectionTitle}>Business QR-X auf der Karte</h2>
             <p className={styles.sectionText}>
-              Zoome, bewege die Karte und öffne Business QR-X direkt aus dem Marker-Popup.
+              Zoome, bewege die Karte oder suche direkt nach echten vorhandenen QR-X wie Namen, Vereinen,
+              Sehenswürdigkeiten, Unternehmen oder Kategorien.
             </p>
+
+            <div
+              style={{
+                marginTop: "22px",
+                borderRadius: "26px",
+                padding: "16px",
+                background: "linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%)",
+                border: "1px solid #dce8f4",
+                boxShadow: "0 18px 44px rgba(14, 23, 38, 0.07)",
+              }}
+            >
+              <form action={explorePath} method="get" className="mioseg-map-search-form">
+                <div className="mioseg-map-search-row">
+                  <div style={{ position: "relative", minWidth: 0 }}>
+                    <input
+                      id="exploreMapSearchInput"
+                      type="text"
+                      name="q"
+                      defaultValue={queryRaw}
+                      autoComplete="off"
+                      placeholder="Name, Verein, Sehenswürdigkeit, Unternehmen oder Kategorie suchen ..."
+                      style={{
+                        width: "100%",
+                        minHeight: "56px",
+                        padding: "0 18px",
+                        borderRadius: "18px",
+                        border: "1px solid #d9e5f2",
+                        background: "#ffffff",
+                        color: "#0e1726",
+                        fontSize: "15px",
+                        fontWeight: 800,
+                        outline: "none",
+                        boxShadow: "inset 0 1px 0 rgba(14,23,38,0.02)",
+                      }}
+                    />
+
+                    <div
+                      id="exploreMapSuggestions"
+                      style={{
+                        display: "none",
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        top: "calc(100% + 10px)",
+                        zIndex: 20,
+                        borderRadius: "22px",
+                        padding: "10px",
+                        background: "#ffffff",
+                        border: "1px solid #dce8f4",
+                        boxShadow: "0 24px 60px rgba(14,23,38,0.16)",
+                      }}
+                    >
+                      {(data ?? [])
+                        .filter((entry) => entry.location_lat != null && entry.location_lng != null)
+                        .slice(0, 120)
+                        .map((entry) => (
+                          <button
+                            key={`suggest-${entry.id}`}
+                            type="button"
+                            className="mioseg-qrx-suggestion"
+                            data-suggest-id={entry.id}
+                            data-suggest-title={getEntryTitle(entry)}
+                            data-suggest-search={[
+                              getEntryTitle(entry),
+                              getEntryText(entry),
+                              getCategoryLabel(entry.category),
+                              entry.location_name ?? "",
+                            ]
+                              .join(" ")
+                              .toLowerCase()}
+                            style={{
+                              width: "100%",
+                              border: 0,
+                              cursor: "pointer",
+                              display: "none",
+                              textAlign: "left",
+                              gap: "12px",
+                              alignItems: "center",
+                              padding: "10px",
+                              borderRadius: "16px",
+                              background: "transparent",
+                              color: "#0e1726",
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: "42px",
+                                height: "42px",
+                                borderRadius: "15px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: "#eef4fb",
+                                fontSize: "20px",
+                                flex: "0 0 auto",
+                              }}
+                            >
+                              {getCategoryIcon(entry.category)}
+                            </span>
+                            <span style={{ display: "grid", gap: "2px", minWidth: 0 }}>
+                              <strong style={{ fontSize: "14px", lineHeight: 1.2, color: "#0e1726" }}>
+                                {getEntryTitle(entry)}
+                              </strong>
+                              <span style={{ fontSize: "12px", color: "#64748b", fontWeight: 800 }}>
+                                {getCategoryLabel(entry.category)}
+                                {entry.location_name?.trim() ? ` · ${entry.location_name.trim()}` : ""}
+                              </span>
+                            </span>
+                          </button>
+                        ))}
+
+                      <div
+                        id="exploreMapSuggestionsEmpty"
+                        style={{
+                          display: "none",
+                          padding: "14px",
+                          color: "#64748b",
+                          fontSize: "13px",
+                          fontWeight: 800,
+                        }}
+                      >
+                        Keine passenden QR-X gefunden.
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" className={styles.primaryButton} style={{ border: 0, cursor: "pointer" }}>
+                    Suche starten
+                  </button>
+
+                  <button
+                    type="button"
+                    id="nearbyBtn"
+                    className={styles.secondaryButtonDark}
+                    data-query={queryRaw}
+                    data-category={selectedCategory}
+                    data-explore-path={explorePath}
+                    style={{ color: "#0d1726", borderColor: "#d9e5f2", cursor: "pointer" }}
+                  >
+                    {hasUserLocation ? "Standort aktiv" : "In meiner Nähe"}
+                  </button>
+                </div>
+              </form>
+
+              <div className="mioseg-map-category-row">
+                <Link
+                  href={buildExploreHref(locale, "all", queryRaw)}
+                  className={selectedCategory === "all" ? styles.primaryButton : styles.secondaryButtonDark}
+                  style={selectedCategory === "all" ? undefined : { color: "#0d1726", borderColor: "#d9e5f2" }}
+                >
+                  Alle ({(data ?? []).length})
+                </Link>
+
+                {categoryCounts.map((item) => (
+                  <Link
+                    key={item.value}
+                    href={buildExploreHref(locale, item.value, queryRaw)}
+                    className={selectedCategory === item.value ? styles.primaryButton : styles.secondaryButtonDark}
+                    style={selectedCategory === item.value ? undefined : { color: "#0d1726", borderColor: "#d9e5f2" }}
+                  >
+                    {item.icon} {item.label} ({item.count})
+                  </Link>
+                ))}
+
+                {(query || selectedCategory !== "all" || hasUserLocation) ? (
+                  <Link
+                    href={explorePath}
+                    className={styles.secondaryButtonDark}
+                    style={{ color: "#0d1726", borderColor: "#d9e5f2" }}
+                  >
+                    Filter zurücksetzen
+                  </Link>
+                ) : null}
+              </div>
+            </div>
           </div>
 
           <div
@@ -1302,6 +1358,53 @@ export default async function ExplorePage({
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+.mioseg-map-search-form {
+  display: grid;
+  gap: 14px;
+}
+
+.mioseg-map-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.mioseg-map-category-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.mioseg-qrx-suggestion:hover {
+  background: #f4f8fd !important;
+}
+
+.mioseg-qrx-suggestion.is-visible {
+  display: flex !important;
+}
+
+@media (max-width: 768px) {
+  .mioseg-map-search-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mioseg-map-search-row > button {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 56px !important;
+  }
+
+  #exploreMapSuggestions {
+    position: relative !important;
+    top: auto !important;
+    margin-top: 10px !important;
+  }
+}
+
+
 .mioseg-search-grid {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -1498,6 +1601,87 @@ nav,
     var preferredActiveId = activeId || (visibleCards[0] ? visibleCards[0].getAttribute("data-visible-map-card") : null);
     if(preferredActiveId) setActiveMapQrx(preferredActiveId);
   }
+
+  var exploreMapSearchInput = document.getElementById("exploreMapSearchInput");
+  var exploreMapSuggestions = document.getElementById("exploreMapSuggestions");
+  var exploreMapSuggestionsEmpty = document.getElementById("exploreMapSuggestionsEmpty");
+
+  function updateExploreMapSuggestions(){
+    if(!exploreMapSearchInput || !exploreMapSuggestions) return;
+
+    var raw = String(exploreMapSearchInput.value || "").trim().toLowerCase();
+    var suggestions = Array.prototype.slice.call(document.querySelectorAll(".mioseg-qrx-suggestion"));
+
+    if(!raw){
+      exploreMapSuggestions.style.display = "none";
+      suggestions.forEach(function(item){
+        item.classList.remove("is-visible");
+      });
+      if(exploreMapSuggestionsEmpty) exploreMapSuggestionsEmpty.style.display = "none";
+      return;
+    }
+
+    var visibleCount = 0;
+    suggestions.forEach(function(item){
+      var haystack = item.getAttribute("data-suggest-search") || "";
+      var isMatch = haystack.indexOf(raw) !== -1;
+      var shouldShow = isMatch && visibleCount < 8;
+
+      if(shouldShow){
+        visibleCount += 1;
+        item.classList.add("is-visible");
+      } else {
+        item.classList.remove("is-visible");
+      }
+    });
+
+    exploreMapSuggestions.style.display = "block";
+    if(exploreMapSuggestionsEmpty){
+      exploreMapSuggestionsEmpty.style.display = visibleCount > 0 ? "none" : "block";
+    }
+  }
+
+  if(exploreMapSearchInput){
+    exploreMapSearchInput.addEventListener("input", updateExploreMapSuggestions);
+    exploreMapSearchInput.addEventListener("focus", updateExploreMapSuggestions);
+  }
+
+  if(exploreMapSuggestions){
+    exploreMapSuggestions.addEventListener("click", function(event){
+      var target = event.target;
+      if(!(target instanceof Element)) return;
+
+      var item = target.closest(".mioseg-qrx-suggestion");
+      if(!item) return;
+
+      var id = item.getAttribute("data-suggest-id");
+      var title = item.getAttribute("data-suggest-title") || "";
+
+      if(exploreMapSearchInput) exploreMapSearchInput.value = title;
+      exploreMapSuggestions.style.display = "none";
+
+      if(id){
+        var mapSection = document.getElementById("explore-map");
+        if(mapSection){
+          mapSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        window.setTimeout(function(){
+          setActiveMapQrx(id);
+          if(window.focusMarker) window.focusMarker(id);
+        }, 260);
+      }
+    });
+  }
+
+  document.addEventListener("click", function(event){
+    if(!exploreMapSuggestions || !exploreMapSearchInput) return;
+    var target = event.target;
+    if(!(target instanceof Element)) return;
+    if(target === exploreMapSearchInput || target.closest("#exploreMapSuggestions")) return;
+    exploreMapSuggestions.style.display = "none";
+  });
+
 
   var visibleMapResults = document.getElementById("visibleMapResults");
   if(visibleMapResults){
