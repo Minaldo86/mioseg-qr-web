@@ -887,9 +887,6 @@ export default async function ExplorePage({
           position: "relative",
           zIndex: 1,
           overflow: "hidden",
-          width: "100%",
-          maxWidth: "100%",
-          boxSizing: "border-box",
           background: "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(241,246,251,0.98) 100%)",
           border: "1px solid rgba(218, 228, 240, 0.9)",
           boxShadow: "0 24px 70px rgba(14, 23, 38, 0.07)",
@@ -916,10 +913,6 @@ export default async function ExplorePage({
                 background: "linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%)",
                 border: "1px solid #dce8f4",
                 boxShadow: "0 16px 38px rgba(14, 23, 38, 0.06)",
-                width: "100%",
-                maxWidth: "100%",
-                overflow: "hidden",
-                boxSizing: "border-box",
               }}
             >
               <form action={explorePath} method="get" className="mioseg-map-search-form">
@@ -931,7 +924,7 @@ export default async function ExplorePage({
                       name="q"
                       defaultValue={queryRaw}
                       autoComplete="off"
-                      placeholder="QR-X suchen ..."
+                      placeholder="Name, Verein, Sehenswürdigkeit, Unternehmen oder Kategorie suchen ..."
                       style={{
                         width: "100%",
                         minHeight: "56px",
@@ -1971,108 +1964,6 @@ nav,
 
   #explore-map p {
     max-width: 100% !important;
-  }
-}
-
-
-/* HARD FIX: Explore mobile-safe toolbar, also works if mobile browser uses a wide layout viewport */
-#explore-map,
-#explore-map * {
-  box-sizing: border-box;
-}
-
-#explore-map .mioseg-map-search-form {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-}
-
-#explore-map .mioseg-map-search-row {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 10px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-}
-
-#explore-map .mioseg-map-search-row > div,
-#explore-map .mioseg-map-search-row input,
-#explore-map .mioseg-map-search-row button {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-}
-
-#explore-map .mioseg-map-search-row button {
-  min-height: 50px !important;
-  justify-content: center !important;
-  text-align: center !important;
-}
-
-#exploreMapSearchInput {
-  min-height: 52px !important;
-  padding-left: 14px !important;
-  padding-right: 14px !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-#explore-map .mioseg-map-category-row {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  gap: 8px !important;
-  padding: 2px 2px 10px !important;
-  -webkit-overflow-scrolling: touch !important;
-  scrollbar-width: none !important;
-}
-
-#explore-map .mioseg-map-category-row::-webkit-scrollbar {
-  display: none !important;
-}
-
-#explore-map .mioseg-category-chip {
-  flex: 0 0 auto !important;
-  max-width: 82vw !important;
-  min-height: 40px !important;
-  white-space: nowrap !important;
-}
-
-#explore-map .mioseg-map-status-pills {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  justify-content: flex-start !important;
-  padding-bottom: 8px !important;
-  -webkit-overflow-scrolling: touch !important;
-  scrollbar-width: none !important;
-}
-
-#explore-map .mioseg-map-status-pills::-webkit-scrollbar {
-  display: none !important;
-}
-
-#explore-map .mioseg-map-status-pills span {
-  flex: 0 0 auto !important;
-}
-
-@media (min-width: 900px) {
-  #explore-map .mioseg-map-search-row {
-    grid-template-columns: minmax(0, 1fr) auto auto !important;
-  }
-
-  #explore-map .mioseg-map-search-row button {
-    width: auto !important;
-    min-width: 138px !important;
   }
 }
 
