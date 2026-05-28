@@ -369,154 +369,6 @@ export default async function QrxPage({
         }}
       />
 
-      <section
-        style={{
-          margin: "22px 0",
-          borderRadius: 28,
-          padding: 22,
-          background: "linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.045))",
-          border: "1px solid rgba(255,255,255,0.16)",
-          boxShadow: "0 18px 46px rgba(0,0,0,0.20)",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 1fr) minmax(150px, 190px)",
-            gap: 20,
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <p
-              style={{
-                margin: "0 0 8px",
-                color: "#7DD3FC",
-                fontSize: 12,
-                fontWeight: 900,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              In der App speichern
-            </p>
-
-            <h2
-              style={{
-                margin: "0 0 10px",
-                color: "#F8FAFC",
-                fontSize: 24,
-                lineHeight: 1.1,
-                fontWeight: 900,
-              }}
-            >
-              QR-X mit der mioseg qr App scannen
-            </h2>
-
-            <p
-              style={{
-                margin: 0,
-                color: "#B8C4D3",
-                fontSize: 15,
-                lineHeight: 1.6,
-                fontWeight: 650,
-              }}
-            >
-              Öffne auf deinem Handy die mioseg qr App, tippe auf „Scannen“ und scanne diesen QR-Code.
-              Danach kannst du den QR-X speichern, in Ordner ablegen und später wiederfinden.
-            </p>
-
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
-              <a
-                href={deepLink}
-                data-fallback={fallbackUrl}
-                id="openAppBtnSecondary"
-                style={{
-                  minHeight: 44,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 999,
-                  padding: "0 18px",
-                  background: "#5BE36D",
-                  color: "#08110A",
-                  textDecoration: "none",
-                  fontWeight: 900,
-                }}
-              >
-                In App öffnen
-              </a>
-
-              <a
-                href={fallbackUrl}
-                style={{
-                  minHeight: 44,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 999,
-                  padding: "0 18px",
-                  background: "rgba(255,255,255,0.08)",
-                  color: "#F8FAFC",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  textDecoration: "none",
-                  fontWeight: 900,
-                }}
-              >
-                App herunterladen
-              </a>
-            </div>
-          </div>
-
-          <div
-            style={{
-              width: "100%",
-              borderRadius: 24,
-              padding: 12,
-              background: "#FFFFFF",
-              boxShadow: "0 18px 44px rgba(0,0,0,0.28)",
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={appScanQrUrl}
-              alt="QR-X Code zum Scannen mit der mioseg qr App"
-              style={{
-                display: "block",
-                width: "100%",
-                height: "auto",
-                borderRadius: 16,
-              }}
-            />
-          </div>
-        </div>
-      </section>
-
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-(function(){
-  var btn = document.getElementById("openAppBtnSecondary");
-  if(!btn) return;
-
-  btn.addEventListener("click", function(e){
-    var href = btn.getAttribute("href");
-    var fallback = btn.getAttribute("data-fallback");
-    if(!href) return;
-
-    try { window.location.href = href; } catch(e){}
-
-    setTimeout(function(){
-      try { window.location.href = fallback; } catch(e){}
-    }, 1200);
-
-    e.preventDefault();
-  });
-})();`.trim(),
-        }}
-      />
-
-
       {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
 
       {!isBusiness && entry.logo_url && (
@@ -608,6 +460,74 @@ export default async function QrxPage({
           </div>
         )}
       </section>
+
+      <section
+        className={styles.section}
+        style={{
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 14,
+        }}
+      >
+        <h2 className={styles.h2}>QR-X in der App speichern</h2>
+
+        <p className={styles.muted} style={{ maxWidth: 520, margin: 0 }}>
+          Öffne die mioseg qr App und scanne diesen QR-Code, um den QR-X auf deinem Handy zu speichern.
+        </p>
+
+        <div
+          style={{
+            width: 210,
+            maxWidth: "100%",
+            borderRadius: 24,
+            padding: 12,
+            background: "#FFFFFF",
+            boxShadow: "0 18px 44px rgba(0,0,0,0.22)",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={appScanQrUrl}
+            alt="QR-X Code zum Scannen mit der mioseg qr App"
+            style={{
+              display: "block",
+              width: "100%",
+              height: "auto",
+              borderRadius: 16,
+            }}
+          />
+        </div>
+
+        <a className={isBusiness ? styles.businessOpenBtn : styles.openBtn} href={deepLink} data-fallback={fallbackUrl} id="openAppBtnSecondary">
+          In App öffnen
+        </a>
+      </section>
+
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+(function(){
+  var btn = document.getElementById("openAppBtnSecondary");
+  if(!btn) return;
+
+  btn.addEventListener("click", function(e){
+    var href = btn.getAttribute("href");
+    var fallback = btn.getAttribute("data-fallback");
+    if(!href) return;
+
+    try { window.location.href = href; } catch(e){}
+
+    setTimeout(function(){
+      try { window.location.href = fallback; } catch(e){}
+    }, 1200);
+
+    e.preventDefault();
+  });
+})();`.trim(),
+        }}
+      />
 
     <section className={styles.section}>
   <QrxReportForm qrxId={qrxId} />
