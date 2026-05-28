@@ -673,7 +673,7 @@ export default async function ExplorePage({
                 }}
               >
                 <span style={{ color: "#6b788a", fontSize: "13px", fontWeight: 800 }}>
-                  {entry.location_lat != null && entry.location_lng != null ? "Auf der Karte verfügbar" : "Ohne Standortdaten"}
+                  {entry.location_lat != null && entry.location_lng != null ? "Tippen zeigt Marker" : "Ohne Standortdaten"}
                 </span>
 
                 <span
@@ -2113,36 +2113,39 @@ nav,
   });
 
 
-  var visibleMapResults = document.getElementById("visibleMapResults");
-  if(visibleMapResults){
-    visibleMapResults.addEventListener("click", function(event){
-      var target = event.target;
-      if(!(target instanceof Element)) return;
+  function focusQrxCardOnMap(id){
+    if(!id) return;
 
-      var visibleCard = target.closest("[data-visible-map-card]");
-      if(!visibleCard) return;
+    setActiveMapQrx(id);
 
-      var openButton = target.closest("[data-qrx-open-button]");
-      if(openButton) return;
+    var mapSection = document.getElementById("explore-map");
+    if(mapSection){
+      mapSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
 
-      var id = visibleCard.getAttribute("data-visible-map-card");
-      if(!id) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      setActiveMapQrx(id);
-
-      var mapSection = document.getElementById("explore-map");
-      if(mapSection){
-        mapSection.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-
-      window.setTimeout(function(){
-        if(window.focusMarker) window.focusMarker(id);
-      }, 260);
-    }, true);
+    window.setTimeout(function(){
+      if(window.focusMarker) window.focusMarker(id);
+    }, 260);
   }
+
+  document.addEventListener("click", function(event){
+    var target = event.target;
+    if(!(target instanceof Element)) return;
+
+    var openButton = target.closest("[data-qrx-open-button]");
+    if(openButton) return;
+
+    var card = target.closest("[data-focus-marker]");
+    if(!card) return;
+
+    var id = card.getAttribute("data-focus-marker");
+    if(!id) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    focusQrxCardOnMap(id);
+  }, true);
 
   window.addEventListener("mioseg-visible-qrx", function(event){
     var detail = event.detail || {};
