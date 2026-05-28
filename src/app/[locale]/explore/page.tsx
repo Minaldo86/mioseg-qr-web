@@ -1160,7 +1160,7 @@ export default async function ExplorePage({
             </div>
 
             <div id="visibleMapResults" className={styles.valueGrid}>
-              {mapVisibleEntries.slice(0, INITIAL_VISIBLE_QRX).map((entry, index) => (
+              {mapVisibleEntries.map((entry, index) => (
                 <div
                   key={`visible-wrap-${entry.id}`}
                   data-visible-map-card={entry.id}
@@ -1179,7 +1179,7 @@ export default async function ExplorePage({
                     )[0]?.label ?? ""
                   }
                   data-visible-score={getExploreRankScore(entry, getFollowerCountForEntry(entry), getViewTotalForEntry(entry))}
-                  style={{ order: index }}
+                  style={{ order: index, display: index < INITIAL_VISIBLE_QRX ? "" : "none" }}
                 >
                   {index === 0 ? (
                     <div
@@ -1982,20 +1982,37 @@ nav,
     var results = document.getElementById("visibleMapResults");
     var empty = document.getElementById("visibleMapEmpty");
     var count = document.getElementById("visibleMapCount");
+    var showMoreVisibleBtn = document.getElementById("showMoreVisibleQrx");
 
     if(!cards.length) return;
 
     var visibleSet = new Set(Array.isArray(visibleIds) ? visibleIds : []);
+    if(activeId) visibleSet.add(activeId);
+
     var visibleCards = [];
+    var activeCard = null;
 
     cards.forEach(function(card){
       var id = card.getAttribute("data-visible-map-card");
       var shouldShow = visibleSet.has(id);
-      card.style.display = shouldShow ? "" : "none";
-      if(shouldShow) visibleCards.push(card);
+
+      if(shouldShow){
+        visibleCards.push(card);
+        if(activeId && id === activeId) activeCard = card;
+      }
+
+      card.style.display = "none";
+      card.removeAttribute("data-visible-rank");
     });
 
     visibleCards.sort(function(a, b){
+      if(activeId){
+        var aActive = a.getAttribute("data-visible-map-card") === activeId;
+        var bActive = b.getAttribute("data-visible-map-card") === activeId;
+        if(aActive && !bActive) return -1;
+        if(!aActive && bActive) return 1;
+      }
+
       var scoreA = Number(a.getAttribute("data-visible-score") || "0");
       var scoreB = Number(b.getAttribute("data-visible-score") || "0");
       return scoreB - scoreA;
@@ -2006,19 +2023,21 @@ nav,
       card.setAttribute("data-visible-rank", String(index + 1));
 
       var badge = card.querySelector("[data-dynamic-top-badge]");
+      var isActive = activeId && card.getAttribute("data-visible-map-card") === activeId;
+
       if(index === 0){
         if(!badge){
           badge = document.createElement("div");
           badge.setAttribute("data-dynamic-top-badge", "true");
-          badge.textContent = "👑 Platz 1 im aktuellen Kartenausschnitt";
           badge.setAttribute("style", "margin-bottom:12px;display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:0 12px;border-radius:999px;background:#fff7ed;color:#9a4f00;font-size:12px;font-weight:900;border:1px solid #fed7aa;");
           card.prepend(badge);
-        } else {
-          badge.textContent = "👑 Platz 1 im aktuellen Kartenausschnitt";
         }
+        badge.textContent = isActive ? "📍 Ausgewählter QR-X" : "👑 Platz 1 im aktuellen Kartenausschnitt";
       } else if(badge) {
         badge.remove();
       }
+
+      card.style.display = index < visibleLimit ? "" : "none";
     });
 
     if(count) count.textContent = String(visibleCards.length);
@@ -2026,6 +2045,15 @@ nav,
     if(results && empty){
       results.style.display = visibleCards.length > 0 ? "" : "none";
       empty.style.display = visibleCards.length > 0 ? "none" : "";
+    }
+
+    if(showMoreVisibleBtn){
+      if(visibleCards.length > visibleLimit){
+        showMoreVisibleBtn.style.display = "";
+        showMoreVisibleBtn.textContent = "Mehr anzeigen (" + (visibleCards.length - visibleLimit) + "+)";
+      } else {
+        showMoreVisibleBtn.style.display = "none";
+      }
     }
 
     var preferredActiveId = activeId || (visibleCards[0] ? visibleCards[0].getAttribute("data-visible-map-card") : null);
@@ -2172,15 +2200,19 @@ nav,
   if(showMoreVisibleBtn){
     showMoreVisibleBtn.addEventListener("click", function(){
       visibleLimit += 12;
-      var cards = Array.prototype.slice.call(document.querySelectorAll("[data-visible-map-card]"));
+      var cards = Array.prototype.slice.call(document.querySelectorAll("[data-visible-map-card][data-visible-rank]"))
+        .sort(function(a, b){
+          return Number(a.getAttribute("data-visible-rank") || "9999") - Number(b.getAttribute("data-visible-rank") || "9999");
+        });
+
       cards.forEach(function(card, index){
-        if(index < visibleLimit){
-          card.style.display = "";
-        }
+        card.style.display = index < visibleLimit ? "" : "none";
       });
 
       if(cards.length <= visibleLimit){
         showMoreVisibleBtn.style.display = "none";
+      } else {
+        showMoreVisibleBtn.textContent = "Mehr anzeigen (" + (cards.length - visibleLimit) + "+)";
       }
     });
   }
