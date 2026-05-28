@@ -874,18 +874,29 @@ export default async function ExplorePage({
         }}
       />
 
+      <nav className="mioseg-explore-section-nav" aria-label="Explore Bereiche">
+        <a href="#explore-map">🗺️ Karte</a>
+        <a href="#visibleMapResults">🔥 Beliebt</a>
+        <a href="#explore-results">🆕 Neu</a>
+      </nav>
+
       <section
         id="explore-map"
-        className={styles.sectionAlt}
+        className={`${styles.sectionAlt} mioseg-discover-section mioseg-map-section`}
         style={{
           position: "relative",
           zIndex: 1,
           overflow: "hidden",
-          background: "linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(241,246,251,0.96) 100%)",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(241,246,251,0.98) 100%)",
           border: "1px solid rgba(218, 228, 240, 0.9)",
           boxShadow: "0 24px 70px rgba(14, 23, 38, 0.07)",
         }}
       >
+        <div className="mioseg-section-topline">
+          <span>01</span>
+          <strong>Karte</strong>
+          <em>Suche, bewege und entdecke QR-X live</em>
+        </div>
         <div className="mioseg-explore-compact-head">
           <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
             <span className={styles.sectionEyebrow}>Explore Map</span>
@@ -1084,13 +1095,13 @@ export default async function ExplorePage({
         </div>
 
         {mapVisibleEntries.length > 0 ? (
-          <div
-            style={{
-              marginTop: "30px",
-              borderTop: "1px solid #dce8f4",
-              paddingTop: "28px",
-            }}
-          >
+          <div className="mioseg-discover-subsection mioseg-trending-subsection">
+            <div className="mioseg-section-topline mioseg-subsection-topline">
+              <span>02</span>
+              <strong>Beliebt</strong>
+              <em>Ranking im sichtbaren Kartenausschnitt</em>
+            </div>
+
             <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", alignItems: "flex-end", marginBottom: "22px" }}>
               <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
                 <span className="mioseg-section-anchor">🔥 Beliebt im Kartenausschnitt</span>
@@ -1207,7 +1218,12 @@ export default async function ExplorePage({
       </section>
 
       {hasUserLocation && nearbyItems.length > 0 ? (
-        <section className={styles.section}>
+        <section className={`${styles.section} mioseg-discover-section mioseg-nearby-section`}>
+          <div className="mioseg-section-topline">
+            <span>03</span>
+            <strong>In deiner Nähe</strong>
+            <em>Nach Entfernung sortiert</em>
+          </div>
           <div className={styles.sectionIntro}>
             <span className={styles.sectionEyebrow}>In deiner Nähe</span>
             <h2 className={styles.sectionTitle}>Die nächsten Business QR-X</h2>
@@ -1229,13 +1245,18 @@ export default async function ExplorePage({
 
       <section
         id="explore-results"
-        className={styles.sectionAlt}
+        className={`${styles.sectionAlt} mioseg-discover-section mioseg-new-section`}
         style={{
-          background: "linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(247,250,252,0.98) 100%)",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(247,250,252,0.99) 100%)",
           border: "1px solid rgba(218, 228, 240, 0.86)",
           boxShadow: "0 22px 62px rgba(14, 23, 38, 0.055)",
         }}
       >
+        <div className="mioseg-section-topline">
+          <span>04</span>
+          <strong>Neu</strong>
+          <em>Automatisch aus dem aktuellen Kartenausschnitt</em>
+        </div>
         <div className="mioseg-live-section-head">
           <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
             <span className="mioseg-section-anchor">🆕 Neu im Kartenausschnitt</span>
@@ -1426,6 +1447,169 @@ export default async function ExplorePage({
 
 .mioseg-reset-chip {
   color: #6b7280;
+}
+
+
+
+.mioseg-explore-section-nav {
+  position: sticky;
+  top: 12px;
+  z-index: 35;
+  max-width: 1180px;
+  margin: -10px auto 18px;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(218, 228, 240, 0.85);
+  box-shadow: 0 18px 46px rgba(14, 23, 38, 0.10);
+  backdrop-filter: blur(18px);
+}
+
+.mioseg-explore-section-nav a {
+  min-height: 38px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  color: #17304d;
+  background: transparent;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.mioseg-explore-section-nav a:hover {
+  background: #eef4fb;
+}
+
+.mioseg-discover-section {
+  scroll-margin-top: 92px;
+}
+
+.mioseg-map-section::before,
+.mioseg-new-section::before,
+.mioseg-nearby-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 7% 8%, rgba(77,132,201,0.09), transparent 24%),
+    radial-gradient(circle at 92% 14%, rgba(13,23,38,0.05), transparent 22%);
+}
+
+.mioseg-section-topline {
+  position: relative;
+  z-index: 2;
+  min-height: 44px;
+  margin: 0 0 20px;
+  padding: 9px 12px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(180deg, rgba(13,23,38,0.96) 0%, rgba(23,48,77,0.96) 100%);
+  color: #ffffff;
+  box-shadow: 0 16px 38px rgba(13,23,38,0.14);
+}
+
+.mioseg-section-topline span {
+  min-width: 34px;
+  height: 28px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.14);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.mioseg-section-topline strong {
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mioseg-section-topline em {
+  font-style: normal;
+  color: rgba(255,255,255,0.72);
+  font-size: 12px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mioseg-subsection-topline {
+  margin-top: 4px;
+  margin-bottom: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+  color: #0d1726;
+  border: 1px solid #dce8f4;
+  box-shadow: 0 12px 30px rgba(14,23,38,0.07);
+}
+
+.mioseg-subsection-topline span {
+  background: #fff7ed;
+  color: #9a4f00;
+}
+
+.mioseg-subsection-topline em {
+  color: #64748b;
+}
+
+.mioseg-discover-subsection {
+  margin-top: 30px;
+  border-radius: 32px;
+  padding: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.82) 0%, rgba(248,251,254,0.94) 100%);
+  border: 1px solid rgba(218, 228, 240, 0.86);
+  box-shadow: 0 20px 54px rgba(14,23,38,0.07);
+}
+
+.mioseg-trending-subsection {
+  border-top: 0 !important;
+}
+
+.mioseg-new-section {
+  scroll-margin-top: 92px;
+}
+
+@media (max-width: 768px) {
+  .mioseg-explore-section-nav {
+    justify-content: flex-start;
+    overflow-x: auto;
+    width: auto;
+    max-width: calc(100% - 22px);
+    margin-left: 11px;
+    margin-right: 11px;
+  }
+
+  .mioseg-section-topline {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .mioseg-section-topline em {
+    width: 100%;
+    white-space: normal;
+    padding-left: 44px;
+  }
+
+  .mioseg-discover-subsection {
+    padding: 16px;
+    border-radius: 26px;
+  }
 }
 
 
