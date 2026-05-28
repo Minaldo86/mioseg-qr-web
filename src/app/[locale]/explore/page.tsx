@@ -1846,6 +1846,127 @@ nav,
   position: relative;
   z-index: 50;
 }
+
+/* Mobile Explore compact fix */
+@media (max-width: 640px) {
+  #explore-map {
+    overflow: hidden !important;
+  }
+
+  #explore-map .mioseg-explore-compact-head {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  #explore-map .mioseg-map-search-form {
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #explore-map .mioseg-map-search-row {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 10px !important;
+  }
+
+  #explore-map .mioseg-map-search-row > div,
+  #explore-map .mioseg-map-search-row input,
+  #explore-map .mioseg-map-search-row button,
+  #explore-map .mioseg-map-search-row a {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  #explore-map .mioseg-map-search-row button {
+    justify-content: center !important;
+    min-height: 52px !important;
+    white-space: normal !important;
+    text-align: center !important;
+  }
+
+  #exploreMapSearchInput {
+    min-height: 54px !important;
+    font-size: 14px !important;
+    padding: 0 14px !important;
+    text-overflow: ellipsis !important;
+  }
+
+  #exploreMapSuggestions {
+    position: relative !important;
+    top: auto !important;
+    margin-top: 10px !important;
+    max-height: 280px !important;
+    overflow-y: auto !important;
+  }
+
+  #explore-map .mioseg-map-category-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 2px 2px 10px !important;
+    gap: 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  #explore-map .mioseg-map-category-row::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  #explore-map .mioseg-category-chip {
+    flex: 0 0 auto !important;
+    max-width: 78vw !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+  }
+
+  #explore-map .mioseg-map-status-pills {
+    width: 100% !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    padding-bottom: 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  #explore-map .mioseg-map-status-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  #explore-map .mioseg-map-status-pills span {
+    flex: 0 0 auto !important;
+    min-height: 38px !important;
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  #explore-map {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  #explore-map h2 {
+    font-size: clamp(30px, 9vw, 44px) !important;
+    line-height: 1.05 !important;
+  }
+
+  #explore-map p {
+    max-width: 100% !important;
+  }
+}
+
           `.trim(),
         }}
       />
