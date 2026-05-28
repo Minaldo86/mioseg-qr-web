@@ -886,23 +886,22 @@ export default async function ExplorePage({
           boxShadow: "0 24px 70px rgba(14, 23, 38, 0.07)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", alignItems: "flex-end" }}>
-          <div className={styles.sectionIntro} style={{ marginBottom: "24px" }}>
+        <div className="mioseg-explore-compact-head">
+          <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
             <span className={styles.sectionEyebrow}>Explore Map</span>
             <h2 className={styles.sectionTitle}>Business QR-X auf der Karte</h2>
             <p className={styles.sectionText}>
-              Zoome, bewege die Karte oder suche direkt nach echten vorhandenen QR-X wie Namen, Vereinen,
-              Sehenswürdigkeiten, Unternehmen oder Kategorien.
+              Suche echte QR-X, springe zu deinem Standort oder bewege die Karte – die Ergebnisse darunter reagieren live auf den Kartenausschnitt.
             </p>
 
             <div
               style={{
-                marginTop: "22px",
-                borderRadius: "26px",
-                padding: "16px",
+                marginTop: "16px",
+                borderRadius: "24px",
+                padding: "12px",
                 background: "linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%)",
                 border: "1px solid #dce8f4",
-                boxShadow: "0 18px 44px rgba(14, 23, 38, 0.07)",
+                boxShadow: "0 16px 38px rgba(14, 23, 38, 0.06)",
               }}
             >
               <form action={explorePath} method="get" className="mioseg-map-search-form">
@@ -1038,86 +1037,44 @@ export default async function ExplorePage({
                 </div>
               </form>
 
-              <div className="mioseg-map-category-row">
+              <div className="mioseg-map-category-row" aria-label="Explore Kategorien">
                 <Link
                   href={buildExploreHref(locale, "all", queryRaw)}
-                  className={selectedCategory === "all" ? styles.primaryButton : styles.secondaryButtonDark}
-                  style={selectedCategory === "all" ? undefined : { color: "#0d1726", borderColor: "#d9e5f2" }}
+                  className={`mioseg-category-chip ${selectedCategory === "all" ? "is-active" : ""}`}
                 >
-                  Alle ({(data ?? []).length})
+                  Alle <span>{(data ?? []).length}</span>
                 </Link>
 
                 {categoryCounts.map((item) => (
                   <Link
                     key={item.value}
                     href={buildExploreHref(locale, item.value, queryRaw)}
-                    className={selectedCategory === item.value ? styles.primaryButton : styles.secondaryButtonDark}
-                    style={selectedCategory === item.value ? undefined : { color: "#0d1726", borderColor: "#d9e5f2" }}
+                    className={`mioseg-category-chip ${selectedCategory === item.value ? "is-active" : ""}`}
                   >
-                    {item.icon} {item.label} ({item.count})
+                    {item.icon} {item.label} <span>{item.count}</span>
                   </Link>
                 ))}
 
                 {(query || selectedCategory !== "all" || hasUserLocation) ? (
-                  <Link
-                    href={explorePath}
-                    className={styles.secondaryButtonDark}
-                    style={{ color: "#0d1726", borderColor: "#d9e5f2" }}
-                  >
-                    Filter zurücksetzen
+                  <Link href={explorePath} className="mioseg-category-chip mioseg-reset-chip">
+                    Zurücksetzen
                   </Link>
                 ) : null}
               </div>
             </div>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              flexWrap: "wrap",
-              marginBottom: "24px",
-            }}
-          >
-            <span
-              style={{
-                minHeight: "42px",
-                padding: "0 14px",
-                display: "inline-flex",
-                alignItems: "center",
-                borderRadius: "999px",
-                background: "#ffffff",
-                color: "#28496f",
-                border: "1px solid #e5edf5",
-                fontSize: "13px",
-                fontWeight: 900,
-              }}
-            >
-              🗺️ {entriesWithLocationCount} mit Standort
-            </span>
-            <span
-              style={{
-                minHeight: "42px",
-                padding: "0 14px",
-                display: "inline-flex",
-                alignItems: "center",
-                borderRadius: "999px",
-                background: "#ffffff",
-                color: "#28496f",
-                border: "1px solid #e5edf5",
-                fontSize: "13px",
-                fontWeight: 900,
-              }}
-            >
-              📌 <span id="visibleMapCount">{mapPoints.length}</span> aktuell im Kartenausschnitt
-            </span>
+          <div className="mioseg-map-status-pills">
+            <span>🗺️ {entriesWithLocationCount} mit Standort</span>
+            <span>📌 <strong id="visibleMapCount">{mapPoints.length}</strong> sichtbar</span>
+            <span>🔥 Top zuerst</span>
           </div>
         </div>
 
         <div
           style={{
-            borderRadius: "34px",
-            padding: "12px",
+            borderRadius: "32px",
+            padding: "8px",
             background: "linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(232,240,249,0.98) 100%)",
             border: "1px solid rgba(206, 220, 236, 0.96)",
             boxShadow: "0 26px 74px rgba(14, 23, 38, 0.12)",
@@ -1136,7 +1093,7 @@ export default async function ExplorePage({
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", alignItems: "flex-end", marginBottom: "22px" }}>
               <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
-                <span className={styles.sectionEyebrow}>Trending im Kartenausschnitt</span>
+                <span className="mioseg-section-anchor">🔥 Beliebt im Kartenausschnitt</span>
                 <h2 className={styles.sectionTitle} style={{ fontSize: "30px" }}>Beliebte QR-X, die du gerade auf der Karte siehst</h2>
                 <p className={styles.sectionText}>
                   Die Reihenfolge basiert auf sichtbarem Kartenbereich, Followern, Aufrufen, Verifizierung und Aktualität.
@@ -1280,7 +1237,7 @@ export default async function ExplorePage({
         }}
       >
         <div className={styles.sectionIntro}>
-          <span className={styles.sectionEyebrow}>Neu auf mioseg qr</span>
+          <span className="mioseg-section-anchor">🆕 Neu auf mioseg qr</span>
           <h2 className={styles.sectionTitle}>Die neue Art, Orte digital zu entdecken</h2>
           <p className={styles.sectionText}>
             Öffne Business QR-X direkt über die Karte und entdecke Unternehmen, Veranstaltungen und besondere Orte in deiner Umgebung.
@@ -1356,6 +1313,140 @@ export default async function ExplorePage({
 .mioseg-explore-page,
 .mioseg-explore-page * {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+
+.mioseg-explore-compact-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.mioseg-map-status-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.mioseg-map-status-pills span {
+  min-height: 36px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #28496f;
+  border: 1px solid #e5edf5;
+  font-size: 12px;
+  font-weight: 950;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px rgba(14, 23, 38, 0.045);
+}
+
+.mioseg-map-search-form {
+  gap: 10px !important;
+}
+
+.mioseg-map-search-row {
+  grid-template-columns: minmax(0, 1fr) auto auto !important;
+  gap: 10px !important;
+}
+
+.mioseg-map-search-row button {
+  min-height: 50px !important;
+  border-radius: 16px !important;
+}
+
+.mioseg-map-category-row {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  align-items: center !important;
+  margin-top: 10px !important;
+  overflow-x: auto !important;
+  padding: 2px 2px 8px !important;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+}
+
+.mioseg-category-chip {
+  scroll-snap-align: start;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #ffffff;
+  color: #0d1726;
+  border: 1px solid #d9e5f2;
+  font-size: 12px;
+  font-weight: 950;
+  text-decoration: none;
+  box-shadow: 0 8px 18px rgba(14, 23, 38, 0.04);
+}
+
+.mioseg-category-chip span {
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #eef4fb;
+  color: #28496f;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.mioseg-category-chip.is-active {
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  border-color: #17304d;
+  color: #ffffff;
+}
+
+.mioseg-category-chip.is-active span {
+  background: rgba(255,255,255,0.16);
+  color: #ffffff;
+}
+
+.mioseg-reset-chip {
+  color: #6b7280;
+}
+
+.mioseg-section-anchor {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #0d1726;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 950;
+  box-shadow: 0 12px 28px rgba(13, 23, 38, 0.16);
+}
+
+@media (max-width: 900px) {
+  .mioseg-explore-compact-head {
+    grid-template-columns: 1fr;
+  }
+
+  .mioseg-map-status-pills {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .mioseg-map-search-row {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 .mioseg-map-search-form {

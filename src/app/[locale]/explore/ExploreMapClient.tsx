@@ -322,7 +322,7 @@ export default function ExploreMapClient({
         zIndex: 0,
         isolation: "isolate",
         width: "100%",
-        height: "clamp(420px, 58vw, 620px)",
+        height: "clamp(460px, 64vw, 700px)",
         borderRadius: "30px",
         overflow: "hidden",
         background: "#edf3f9",
