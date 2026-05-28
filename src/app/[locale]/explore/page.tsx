@@ -1075,10 +1075,15 @@ export default async function ExplorePage({
             </div>
           </div>
 
-          <div className="mioseg-map-status-pills">
-            <span>🗺️ {entriesWithLocationCount} mit Standort</span>
-            <span>📌 <strong id="visibleMapCount">{mapPoints.length}</strong> sichtbar</span>
-            <span>🔥 Top zuerst</span>
+          <div>
+            <div className="mioseg-map-status-pills">
+              <span>🗺️ {entriesWithLocationCount} mit Standort</span>
+              <span>📌 <strong id="visibleMapCount">{mapPoints.length}</strong> sichtbar</span>
+              <span>🔥 Top zuerst</span>
+            </div>
+            <div id="mapMovingNotice" className="mioseg-map-moving-notice">
+              Karte wird aktualisiert …
+            </div>
           </div>
         </div>
 
@@ -1360,6 +1365,26 @@ export default async function ExplorePage({
   flex-wrap: wrap;
   justify-content: flex-end;
   margin-bottom: 6px;
+}
+
+.mioseg-map-moving-notice {
+  display: none;
+  width: fit-content;
+  margin: 8px 0 0 auto;
+  min-height: 34px;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 12px;
+  background: #eef4ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-size: 12px;
+  font-weight: 950;
+  box-shadow: 0 10px 24px rgba(37,99,235,0.08);
+}
+
+.mioseg-map-moving-notice.is-visible {
+  display: inline-flex;
 }
 
 .mioseg-map-status-pills span {
@@ -2128,6 +2153,13 @@ nav,
   window.addEventListener("mioseg-active-qrx", function(event){
     var detail = event.detail || {};
     if(detail.activeId) setActiveMapQrx(detail.activeId);
+  });
+
+  window.addEventListener("mioseg-map-moving", function(event){
+    var notice = document.getElementById("mapMovingNotice");
+    if(!notice) return;
+    var detail = event.detail || {};
+    notice.classList.toggle("is-visible", !!detail.isMoving);
   });
 
   var visibleLimit = 12;
