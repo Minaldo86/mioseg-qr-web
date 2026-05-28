@@ -1236,12 +1236,19 @@ export default async function ExplorePage({
           boxShadow: "0 22px 62px rgba(14, 23, 38, 0.055)",
         }}
       >
-        <div className={styles.sectionIntro}>
-          <span className="mioseg-section-anchor">🆕 Neu auf mioseg qr</span>
-          <h2 className={styles.sectionTitle}>Die neue Art, Orte digital zu entdecken</h2>
-          <p className={styles.sectionText}>
-            Öffne Business QR-X direkt über die Karte und entdecke Unternehmen, Veranstaltungen und besondere Orte in deiner Umgebung.
-          </p>
+        <div className="mioseg-live-section-head">
+          <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
+            <span className="mioseg-section-anchor">🆕 Neu im Kartenausschnitt</span>
+            <h2 className={styles.sectionTitle}>Was gerade in diesem Bereich neu ist</h2>
+            <p className={styles.sectionText}>
+              Bewege oder zoome die Karte. Diese Liste zeigt automatisch die neuesten QR-X aus dem aktuell sichtbaren Bereich.
+            </p>
+          </div>
+
+          <div className="mioseg-live-section-pills">
+            <span><strong id="newMapCount">{items.length}</strong> neue Treffer</span>
+            <span id="newMapScopeLabel">Aktueller Kartenausschnitt</span>
+          </div>
         </div>
 
         {error ? (
@@ -1278,6 +1285,8 @@ export default async function ExplorePage({
       {items.map((entry, index) => (
         <div
           key={entry.id}
+          data-new-qrx-card={entry.id}
+          data-new-created={entry.created_at ? new Date(entry.created_at).getTime() : 0}
           style={{ display: index < INITIAL_VISIBLE_QRX ? "" : "none" }}
         >
           {renderExploreCard(entry)}
@@ -1417,6 +1426,64 @@ export default async function ExplorePage({
 
 .mioseg-reset-chip {
   color: #6b7280;
+}
+
+
+.mioseg-live-section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: end;
+  margin-bottom: 24px;
+}
+
+.mioseg-live-section-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mioseg-live-section-pills span {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 13px;
+  background: #ffffff;
+  color: #28496f;
+  border: 1px solid #e5edf5;
+  font-size: 12px;
+  font-weight: 950;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px rgba(14, 23, 38, 0.045);
+}
+
+.mioseg-live-section-pills strong {
+  margin-right: 4px;
+}
+
+.mioseg-new-hidden-by-map {
+  display: none !important;
+}
+
+.mioseg-new-map-empty {
+  border-radius: 30px;
+  text-align: center;
+  padding: 42px 26px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+  border: 1px solid #dce8f4;
+  box-shadow: 0 18px 46px rgba(14, 23, 38, 0.06);
+}
+
+@media (max-width: 900px) {
+  .mioseg-live-section-head {
+    grid-template-columns: 1fr;
+  }
+
+  .mioseg-live-section-pills {
+    justify-content: flex-start;
+  }
 }
 
 .mioseg-section-anchor {
@@ -1638,6 +1705,69 @@ nav,
     text.textContent = meta.category + " · " + meta.followersLabel + " · " + meta.viewsLabel + (meta.socialLabel ? " · " + meta.socialLabel : "") + " · Dieser QR-X ist gerade auf der Karte ausgewählt.";
   }
 
+
+  function updateNewQrxCardsForMap(visibleIds){
+    var grid = document.getElementById("newQrxGrid");
+    var count = document.getElementById("newMapCount");
+    var scopeLabel = document.getElementById("newMapScopeLabel");
+    var showMoreNewBtn = document.getElementById("showMoreNewQrx");
+
+    if(!grid) return;
+
+    var cards = Array.prototype.slice.call(document.querySelectorAll("[data-new-qrx-card]"));
+    var visibleSet = new Set(Array.isArray(visibleIds) ? visibleIds : []);
+    var filteredCards = [];
+
+    cards.forEach(function(card){
+      var id = card.getAttribute("data-new-qrx-card");
+      var shouldShow = visibleSet.size === 0 ? true : visibleSet.has(id);
+      card.classList.toggle("mioseg-new-hidden-by-map", !shouldShow);
+      if(shouldShow) filteredCards.push(card);
+    });
+
+    filteredCards.sort(function(a, b){
+      var createdA = Number(a.getAttribute("data-new-created") || "0");
+      var createdB = Number(b.getAttribute("data-new-created") || "0");
+      return createdB - createdA;
+    });
+
+    filteredCards.forEach(function(card, index){
+      card.style.order = String(index);
+      card.style.display = index < newLimit ? "" : "none";
+    });
+
+    if(count) count.textContent = String(filteredCards.length);
+
+    if(scopeLabel){
+      scopeLabel.textContent = visibleSet.size > 0 ? "Aktueller Kartenausschnitt" : "Alle sichtbaren QR-X";
+    }
+
+    if(showMoreNewBtn){
+      showMoreNewBtn.style.display = filteredCards.length > newLimit ? "" : "none";
+      showMoreNewBtn.textContent = filteredCards.length > newLimit
+        ? "Mehr anzeigen (" + (filteredCards.length - newLimit) + "+)"
+        : "Mehr anzeigen";
+    }
+
+    if(filteredCards.length === 0){
+      grid.style.display = "none";
+      var empty = document.getElementById("newQrxMapEmpty");
+      if(!empty){
+        empty = document.createElement("div");
+        empty.id = "newQrxMapEmpty";
+        empty.className = "mioseg-new-map-empty";
+        empty.innerHTML = '<div style="font-size:42px;margin-bottom:10px;">🗺️</div><h3 style="margin:0 0 8px;color:#0d1726;font-size:24px;">Keine neuen QR-X in diesem Kartenausschnitt</h3><p style="margin:0;color:#64748b;font-weight:800;line-height:1.6;">Bewege die Karte oder zoome heraus, um neue Business QR-X in einem anderen Bereich zu entdecken.</p>';
+        grid.parentNode.insertBefore(empty, grid);
+      }
+      empty.style.display = "";
+    } else {
+      grid.style.display = "";
+      var existingEmpty = document.getElementById("newQrxMapEmpty");
+      if(existingEmpty) existingEmpty.style.display = "none";
+    }
+  }
+
+
   function updateVisibleMapCards(visibleIds, activeId){
     var cards = Array.prototype.slice.call(document.querySelectorAll("[data-visible-map-card]"));
     var results = document.getElementById("visibleMapResults");
@@ -1808,6 +1938,7 @@ nav,
   window.addEventListener("mioseg-visible-qrx", function(event){
     var detail = event.detail || {};
     updateVisibleMapCards(detail.visibleIds || [], detail.activeId || null);
+    updateNewQrxCardsForMap(detail.visibleIds || []);
   });
 
   window.addEventListener("mioseg-active-qrx", function(event){
@@ -1839,18 +1970,22 @@ nav,
   if(showMoreNewBtn){
     showMoreNewBtn.addEventListener("click", function(){
       newLimit += 12;
-      var cards = Array.prototype.slice.call(document.querySelectorAll("#newQrxGrid > div"));
+      var cards = Array.prototype.slice.call(document.querySelectorAll("[data-new-qrx-card]"))
+        .filter(function(card){ return !card.classList.contains("mioseg-new-hidden-by-map"); });
+
       cards.forEach(function(card, index){
-        if(index < newLimit){
-          card.style.display = "";
-        }
+        card.style.display = index < newLimit ? "" : "none";
       });
 
       if(cards.length <= newLimit){
         showMoreNewBtn.style.display = "none";
+      } else {
+        showMoreNewBtn.textContent = "Mehr anzeigen (" + (cards.length - newLimit) + "+)";
       }
     });
   }
+
+  updateNewQrxCardsForMap([]);
 
 })();`.trim(),
         }}
