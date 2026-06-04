@@ -903,7 +903,7 @@ export default async function ExplorePage({
         <div className="mioseg-explore-compact-head">
           <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
             <span className={styles.sectionEyebrow}>Explore Map</span>
-            <h2 className={styles.sectionTitle}>Business QR-X auf der Karte</h2>
+            <h2 className={styles.sectionTitle}>QR-X Karte</h2>
             <p className={styles.sectionText}>
               Suche echte QR-X, springe zu deinem Standort oder bewege die Karte – die Ergebnisse darunter reagieren live auf den Kartenausschnitt.
             </p>
@@ -931,7 +931,7 @@ export default async function ExplorePage({
                       name="q"
                       defaultValue={queryRaw}
                       autoComplete="off"
-                      placeholder="QR-X suchen ..."
+                      placeholder="QR-X suchen"
                       style={{
                         width: "100%",
                         minHeight: "56px",
@@ -2073,6 +2073,233 @@ nav,
   #explore-map .mioseg-map-search-row button {
     width: auto !important;
     min-width: 138px !important;
+  }
+}
+
+
+/* MOBILE DISCOVER MODE: Karte in den Fokus, kein seitliches Überlaufen */
+@media (max-width: 820px) {
+  html,
+  body {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .mioseg-explore-page {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .mioseg-explore-section-nav {
+    display: none !important;
+  }
+
+  #explore-map {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: 50% !important;
+    transform: translateX(-50%) !important;
+    padding: 16px 12px 18px !important;
+    border-radius: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #explore-map,
+  #explore-map * {
+    box-sizing: border-box !important;
+  }
+
+  #explore-map > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #explore-map .mioseg-section-topline {
+    min-height: 34px !important;
+    margin-bottom: 10px !important;
+    padding: 7px 9px !important;
+    border-radius: 14px !important;
+  }
+
+  #explore-map .mioseg-section-topline span {
+    min-width: 28px !important;
+    height: 24px !important;
+    font-size: 10px !important;
+  }
+
+  #explore-map .mioseg-section-topline strong {
+    font-size: 11px !important;
+  }
+
+  #explore-map .mioseg-section-topline em {
+    display: none !important;
+  }
+
+  #explore-map .mioseg-explore-compact-head {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 10px !important;
+  }
+
+  #explore-map .mioseg-explore-compact-head h2 {
+    max-width: 100% !important;
+    margin-bottom: 8px !important;
+    font-size: 30px !important;
+    line-height: 1.04 !important;
+    letter-spacing: -0.04em !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #explore-map .mioseg-explore-compact-head p {
+    max-width: 100% !important;
+    margin-bottom: 12px !important;
+    font-size: 14px !important;
+    line-height: 1.45 !important;
+  }
+
+  #explore-map .mioseg-map-search-form {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #explore-map .mioseg-map-search-row {
+    display: grid !important;
+    grid-template-columns: 1fr 48px !important;
+    grid-template-areas:
+      "search near"
+      "submit submit" !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #explore-map .mioseg-map-search-row > div {
+    grid-area: search !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #explore-map .mioseg-map-search-row button[type="submit"] {
+    grid-area: submit !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 44px !important;
+  }
+
+  #nearbyBtn {
+    grid-area: near !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    color: transparent !important;
+    font-size: 0 !important;
+    border-radius: 16px !important;
+    position: relative !important;
+  }
+
+  #nearbyBtn::after {
+    content: "📍";
+    color: #0d1726;
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  #exploreMapSearchInput {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+    padding: 0 13px !important;
+    font-size: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  #explore-map .mioseg-map-category-row {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 4px 0 8px !important;
+    margin-top: 9px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  #explore-map .mioseg-map-category-row::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  #explore-map .mioseg-category-chip {
+    flex: 0 0 auto !important;
+    max-width: 72vw !important;
+    min-height: 36px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+  }
+
+  #explore-map .mioseg-category-chip span {
+    min-width: 19px !important;
+    min-height: 19px !important;
+    font-size: 10px !important;
+    padding: 0 6px !important;
+  }
+
+  #explore-map .mioseg-map-status-pills {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 7px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    justify-content: flex-start !important;
+    padding: 0 0 8px !important;
+    margin: 4px 0 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  #explore-map .mioseg-map-status-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  #explore-map .mioseg-map-status-pills span {
+    flex: 0 0 auto !important;
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+  }
+
+  #explore-map .mioseg-map-moving-notice {
+    display: none !important;
+  }
+
+  #explore-map .mioseg-explore-map-shell,
+  #explore-map [class*="map"] {
+    max-width: 100% !important;
+  }
+
+  #explore-map .mioseg-discover-subsection {
+    margin-top: 16px !important;
+    padding: 14px !important;
+    border-radius: 20px !important;
   }
 }
 
