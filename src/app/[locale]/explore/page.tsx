@@ -1601,6 +1601,8 @@ export default async function ExplorePage({
 }
 
 .mioseg-discover-subsection {
+  width: 100%;
+  max-width: 100%;
   margin-top: 30px;
   border-radius: 32px;
   padding: 22px;
@@ -2303,6 +2305,48 @@ nav,
   }
 }
 
+
+/* Mobile Explore interaction fixes */
+@media (max-width: 820px) {
+  #explore-map .mioseg-map-category-row,
+  #explore-map .mioseg-map-status-pills {
+    touch-action: pan-x !important;
+    overscroll-behavior-x: contain !important;
+    cursor: grab !important;
+  }
+
+  #explore-map .mioseg-map-category-row > *,
+  #explore-map .mioseg-map-status-pills > * {
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  #explore-map .mioseg-category-chip {
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  #explore-map .mioseg-category-chip span {
+    width: auto !important;
+  }
+
+  #explore-map .mioseg-map-search-row > button:not(#nearbyBtn) {
+    width: 100% !important;
+  }
+}
+
+/* Desktop/tablet: both result sections stay the same visual width */
+#visibleMapResults,
+#newQrxGrid {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+#visibleMapResults > *,
+#newQrxGrid > * {
+  max-width: 100% !important;
+}
+
           `.trim(),
         }}
       />
@@ -2694,6 +2738,40 @@ nav,
   }
 
   updateNewQrxCardsForMap([]);
+
+
+  var nearbyBtn = document.getElementById("nearbyBtn");
+  if(nearbyBtn && !nearbyBtn.dataset.miosegNearbyBound){
+    nearbyBtn.dataset.miosegNearbyBound = "1";
+    nearbyBtn.addEventListener("click", function(){
+      if(!navigator.geolocation){
+        window.location.href = nearbyBtn.getAttribute("data-fallback") || "/de/explore";
+        return;
+      }
+
+      nearbyBtn.disabled = true;
+      var oldText = nearbyBtn.textContent;
+      nearbyBtn.textContent = "Standort ...";
+
+      navigator.geolocation.getCurrentPosition(function(position){
+        var lat = position.coords.latitude;
+        var lng = position.coords.longitude;
+        var url = new URL(window.location.href);
+        url.searchParams.set("lat", String(lat));
+        url.searchParams.set("lng", String(lng));
+        url.searchParams.set("near", "1");
+        window.location.href = url.toString();
+      }, function(){
+        nearbyBtn.disabled = false;
+        nearbyBtn.textContent = oldText || "In meiner Nähe";
+        alert("Standort konnte nicht abgerufen werden. Bitte Standortfreigabe im Browser erlauben.");
+      }, {
+        enableHighAccuracy: true,
+        timeout: 9000,
+        maximumAge: 30000
+      });
+    });
+  }
 
 })();`.trim(),
         }}
