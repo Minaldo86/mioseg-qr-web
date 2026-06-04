@@ -2598,6 +2598,19 @@ nav,
   }
 }
 
+
+/* Strong search suggestion visibility */
+#exploreMapSuggestions.is-visible {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+#exploreMapSuggestions .mioseg-qrx-suggestion.is-visible {
+  display: flex !important;
+}
+
           `.trim(),
         }}
       />
@@ -3208,6 +3221,112 @@ nav,
   bindMiosegSearchSuggestionsStable();
   document.addEventListener("DOMContentLoaded", bindMiosegSearchSuggestionsStable);
   window.addEventListener("pageshow", bindMiosegSearchSuggestionsStable);
+
+
+  function bindMiosegSearchSuggestionsStrong(){
+    var input = document.getElementById("exploreMapSearchInput");
+    var box = document.getElementById("exploreMapSuggestions");
+    var empty = document.getElementById("exploreMapSuggestionsEmpty");
+    if(!input || !box || input.dataset.miosegSuggestionsStrong === "1") return;
+
+    input.dataset.miosegSuggestionsStrong = "1";
+
+    function normalize(value){
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+
+    function setBoxVisible(visible){
+      box.classList.toggle("is-visible", visible);
+      box.style.display = visible ? "block" : "none";
+      box.style.visibility = visible ? "visible" : "hidden";
+      box.style.opacity = visible ? "1" : "0";
+      box.style.pointerEvents = visible ? "auto" : "none";
+    }
+
+    function update(){
+      var raw = normalize(input.value);
+      var items = Array.prototype.slice.call(document.querySelectorAll(".mioseg-qrx-suggestion"));
+
+      if(!raw){
+        setBoxVisible(false);
+        items.forEach(function(item){
+          item.classList.remove("is-visible");
+          item.style.display = "none";
+        });
+        if(empty) empty.style.display = "none";
+        return;
+      }
+
+      var visibleCount = 0;
+
+      items.forEach(function(item){
+        var haystack = normalize(item.getAttribute("data-suggest-search") || "");
+        var title = normalize(item.getAttribute("data-suggest-title") || "");
+        var isMatch = haystack.indexOf(raw) !== -1 || title.indexOf(raw) !== -1;
+        var shouldShow = isMatch && visibleCount < 8;
+
+        if(shouldShow){
+          visibleCount += 1;
+          item.classList.add("is-visible");
+          item.style.display = "flex";
+        } else {
+          item.classList.remove("is-visible");
+          item.style.display = "none";
+        }
+      });
+
+      setBoxVisible(true);
+      if(empty) empty.style.display = visibleCount > 0 ? "none" : "block";
+    }
+
+    input.addEventListener("input", update);
+    input.addEventListener("keyup", update);
+    input.addEventListener("focus", update);
+    input.addEventListener("change", update);
+
+    box.addEventListener("click", function(event){
+      var target = event.target;
+      if(!(target instanceof Element)) return;
+
+      var item = target.closest(".mioseg-qrx-suggestion");
+      if(!item) return;
+
+      var id = item.getAttribute("data-suggest-id");
+      var title = item.getAttribute("data-suggest-title") || "";
+
+      input.value = title;
+      setBoxVisible(false);
+
+      if(id){
+        var mapSection = document.getElementById("explore-map");
+        if(mapSection){
+          mapSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        window.setTimeout(function(){
+          if(window.setActiveMapQrx) window.setActiveMapQrx(id);
+          if(window.focusMarker) window.focusMarker(id);
+        }, 260);
+      }
+    }, true);
+
+    document.addEventListener("click", function(event){
+      var target = event.target;
+      if(!(target instanceof Element)) return;
+      if(target === input || box.contains(target)) return;
+      setBoxVisible(false);
+    });
+
+    update();
+  }
+
+  bindMiosegSearchSuggestionsStrong();
+  document.addEventListener("DOMContentLoaded", bindMiosegSearchSuggestionsStrong);
+  window.addEventListener("pageshow", bindMiosegSearchSuggestionsStrong);
 
 })();`.trim(),
         }}
