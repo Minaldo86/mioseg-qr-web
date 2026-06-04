@@ -1107,7 +1107,7 @@ export default async function ExplorePage({
         </div>
 
         {mapVisibleEntries.length > 0 ? (
-          <div className="mioseg-discover-subsection mioseg-trending-subsection">
+          <div className="mioseg-discover-subsection mioseg-trending-subsection mioseg-equal-result-section">
             <div className="mioseg-section-topline mioseg-subsection-topline">
               <span>02</span>
               <strong>Beliebt</strong>
@@ -1257,7 +1257,7 @@ export default async function ExplorePage({
 
       <section
         id="explore-results"
-        className={`${styles.sectionAlt} mioseg-discover-section mioseg-new-section`}
+        className={`${styles.sectionAlt} mioseg-discover-section mioseg-new-section mioseg-equal-result-section`}
         style={{
           background: "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(247,250,252,0.99) 100%)",
           border: "1px solid rgba(218, 228, 240, 0.86)",
@@ -2347,6 +2347,71 @@ nav,
   max-width: 100% !important;
 }
 
+
+/* Final Explore interaction/layout fix */
+#explore-map .mioseg-map-category-row,
+#explore-map .mioseg-map-status-pills {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: smooth !important;
+  scrollbar-width: thin !important;
+  touch-action: pan-x !important;
+  overscroll-behavior-x: contain !important;
+}
+
+#explore-map .mioseg-map-category-row {
+  cursor: grab !important;
+  user-select: none !important;
+  padding-bottom: 12px !important;
+}
+
+#explore-map .mioseg-map-category-row.is-dragging {
+  cursor: grabbing !important;
+}
+
+#explore-map .mioseg-map-category-row > a,
+#explore-map .mioseg-map-status-pills > span {
+  flex: 0 0 auto !important;
+  width: auto !important;
+}
+
+#explore-map .mioseg-category-chip {
+  width: auto !important;
+  max-width: none !important;
+}
+
+.mioseg-equal-result-section,
+.mioseg-trending-subsection,
+.mioseg-new-section {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#visibleMapResults,
+#newQrxGrid,
+#visibleMapResults > *,
+#newQrxGrid > * {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 820px) {
+  #explore-map .mioseg-map-category-row {
+    scrollbar-width: none !important;
+  }
+
+  #explore-map .mioseg-map-category-row::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  #explore-map .mioseg-category-chip {
+    max-width: 72vw !important;
+  }
+}
+
           `.trim(),
         }}
       />
@@ -2772,6 +2837,103 @@ nav,
       });
     });
   }
+
+
+  function bindMiosegExploreInteractions(){
+    var nearby = document.getElementById("nearbyBtn");
+
+    if(nearby && !nearby.dataset.miosegNearbyReady){
+      nearby.dataset.miosegNearbyReady = "1";
+      nearby.addEventListener("click", function(event){
+        event.preventDefault();
+        event.stopPropagation();
+
+        if(!navigator.geolocation){
+          alert("Standort wird von diesem Browser nicht unterstützt.");
+          return;
+        }
+
+        var oldText = nearby.textContent || "In meiner Nähe";
+        nearby.disabled = true;
+        nearby.textContent = "Standort wird geladen ...";
+
+        navigator.geolocation.getCurrentPosition(function(pos){
+          var url = new URL(window.location.href);
+          url.searchParams.set("lat", String(pos.coords.latitude));
+          url.searchParams.set("lng", String(pos.coords.longitude));
+          url.searchParams.set("near", "1");
+
+          var query = nearby.getAttribute("data-query") || "";
+          var category = nearby.getAttribute("data-category") || "all";
+
+          if(query) url.searchParams.set("q", query);
+          if(category && category !== "all") url.searchParams.set("category", category);
+
+          url.hash = "explore-map";
+          window.location.href = url.toString();
+        }, function(error){
+          nearby.disabled = false;
+          nearby.textContent = oldText;
+          alert("Standort konnte nicht abgerufen werden. Bitte erlaube den Standortzugriff im Browser.");
+          console.warn("mioseg nearby geolocation error", error);
+        }, {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 15000
+        });
+      }, true);
+    }
+
+    var rows = document.querySelectorAll(".mioseg-map-category-row");
+    rows.forEach(function(row){
+      if(row.dataset.miosegDragReady) return;
+      row.dataset.miosegDragReady = "1";
+
+      row.addEventListener("wheel", function(event){
+        if(Math.abs(event.deltaY) > Math.abs(event.deltaX)){
+          row.scrollLeft += event.deltaY;
+          event.preventDefault();
+        }
+      }, { passive: false });
+
+      var isDown = false;
+      var startX = 0;
+      var startLeft = 0;
+      var moved = false;
+
+      row.addEventListener("pointerdown", function(event){
+        isDown = true;
+        moved = false;
+        startX = event.clientX;
+        startLeft = row.scrollLeft;
+        row.classList.add("is-dragging");
+      });
+
+      row.addEventListener("pointermove", function(event){
+        if(!isDown) return;
+        var dx = event.clientX - startX;
+        if(Math.abs(dx) > 4) moved = true;
+        row.scrollLeft = startLeft - dx;
+      });
+
+      function endDrag(){
+        isDown = false;
+        row.classList.remove("is-dragging");
+      }
+
+      row.addEventListener("pointerup", endDrag);
+      row.addEventListener("pointerleave", endDrag);
+      row.addEventListener("click", function(event){
+        if(moved){
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }, true);
+    });
+  }
+
+  bindMiosegExploreInteractions();
+  window.addEventListener("pageshow", bindMiosegExploreInteractions);
 
 })();`.trim(),
         }}
