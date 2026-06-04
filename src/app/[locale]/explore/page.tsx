@@ -2523,41 +2523,39 @@ nav,
 }
 
 
-/* Match 02 Beliebt + 04 Neu to the slimmer 03 In deiner Nähe width */
-.mioseg-trending-subsection {
-  width: min(100%, 1180px) !important;
-  max-width: 1180px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  box-sizing: border-box !important;
-}
-
-.mioseg-new-section {
-  width: min(100%, 1180px) !important;
-  max-width: 1180px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  box-sizing: border-box !important;
-}
-
-.mioseg-new-section .mioseg-live-section-head,
-.mioseg-new-section #newQrxGrid,
-.mioseg-new-section #newQrxMapEmpty,
-.mioseg-trending-subsection #visibleMapResults,
-.mioseg-trending-subsection #visibleMapEmpty {
-  width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-}
-
+/* Fix mobile scroll trap above map + restore search suggestions */
 @media (max-width: 820px) {
-  .mioseg-trending-subsection,
-  .mioseg-new-section {
-    width: calc(100vw - 24px) !important;
-    max-width: calc(100vw - 24px) !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    border-radius: 20px !important;
+  #explore-map .mioseg-map-status-pills {
+    touch-action: pan-y pinch-zoom !important;
+    pointer-events: auto !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    flex-wrap: wrap !important;
+    padding-bottom: 4px !important;
+  }
+
+  #explore-map .mioseg-map-status-pills span {
+    flex: 0 0 auto !important;
+  }
+
+  #explore-map .mioseg-map-category-row {
+    touch-action: pan-x pan-y pinch-zoom !important;
+  }
+
+  #exploreMapSuggestions {
+    display: none;
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: calc(100% + 8px) !important;
+    z-index: 80 !important;
+    max-height: 260px !important;
+    overflow-y: auto !important;
+    border-radius: 18px !important;
+  }
+
+  #exploreMapSuggestions.is-visible {
+    display: block !important;
   }
 }
 
@@ -3132,6 +3130,41 @@ nav,
   miosegBindNearbyButtonFinal();
   document.addEventListener("DOMContentLoaded", miosegBindNearbyButtonFinal);
   window.addEventListener("pageshow", miosegBindNearbyButtonFinal);
+
+
+  function bindMiosegSearchSuggestionsFinal(){
+    var input = document.getElementById("exploreMapSearchInput");
+    var suggestions = document.getElementById("exploreMapSuggestions");
+    if(!input || !suggestions || input.dataset.miosegSuggestReady === "1") return;
+
+    input.dataset.miosegSuggestReady = "1";
+
+    function syncSuggestions(){
+      var value = (input.value || "").trim();
+      if(value.length > 0){
+        suggestions.classList.add("is-visible");
+      } else {
+        suggestions.classList.remove("is-visible");
+      }
+    }
+
+    input.addEventListener("input", syncSuggestions);
+    input.addEventListener("focus", syncSuggestions);
+    input.addEventListener("keydown", syncSuggestions);
+
+    document.addEventListener("click", function(event){
+      var target = event.target;
+      if(!(target instanceof Element)) return;
+      if(target === input || suggestions.contains(target)) return;
+      suggestions.classList.remove("is-visible");
+    });
+
+    syncSuggestions();
+  }
+
+  bindMiosegSearchSuggestionsFinal();
+  document.addEventListener("DOMContentLoaded", bindMiosegSearchSuggestionsFinal);
+  window.addEventListener("pageshow", bindMiosegSearchSuggestionsFinal);
 
 })();`.trim(),
         }}
