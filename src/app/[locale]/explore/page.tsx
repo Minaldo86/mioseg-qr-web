@@ -2522,6 +2522,45 @@ nav,
   }
 }
 
+
+/* Match 02 Beliebt + 04 Neu to the slimmer 03 In deiner Nähe width */
+.mioseg-trending-subsection {
+  width: min(100%, 1180px) !important;
+  max-width: 1180px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+.mioseg-new-section {
+  width: min(100%, 1180px) !important;
+  max-width: 1180px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box !important;
+}
+
+.mioseg-new-section .mioseg-live-section-head,
+.mioseg-new-section #newQrxGrid,
+.mioseg-new-section #newQrxMapEmpty,
+.mioseg-trending-subsection #visibleMapResults,
+.mioseg-trending-subsection #visibleMapEmpty {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 820px) {
+  .mioseg-trending-subsection,
+  .mioseg-new-section {
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    border-radius: 20px !important;
+  }
+}
+
           `.trim(),
         }}
       />
