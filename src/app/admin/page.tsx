@@ -2511,9 +2511,12 @@ export default function AdminPage() {
         );
       }
 
-      await fetchTickets();
-      await fetchAdminActions();
-      await handleFetchCreditHistory();
+     await fetchTickets();
+await fetchAdminActions();
+
+if (refundAmount && refundAmount > 0) {
+  await handleFetchCreditHistory();
+}
     } catch (error: unknown) {
       console.error("handleUpdateTicketStatus error:", error);
       alert(error instanceof Error ? error.message : tAdmin("ticket_update_failed"));
