@@ -5,13 +5,10 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
-import { defaultLocale, isValidLocale } from "../../../i18n/config";
 import styles from "../auth/auth.module.css";
 
 type Props = {
-  params: Promise<{
-    locale: string;
-  }>;
+  locale: string;
 };
 
 function getRegisterErrorMessage(message: string, locale: string) {
@@ -33,11 +30,8 @@ function getRegisterErrorMessage(message: string, locale: string) {
     ? "Registrierung fehlgeschlagen. Bitte versuche es erneut."
     : "Registration failed. Please try again.";
 }
-export default async function RegisterPage({ params }: Props) {
-  const resolvedParams = await params;
-  const locale = isValidLocale(resolvedParams.locale)
-    ? resolvedParams.locale
-    : defaultLocale;
+
+export default function RegisterClient({ locale }: Props) {
   const router = useRouter();
 
   const [email, setEmail] = useState("");

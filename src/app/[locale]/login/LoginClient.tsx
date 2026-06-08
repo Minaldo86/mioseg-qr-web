@@ -5,13 +5,10 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
-import { defaultLocale, isValidLocale } from "../../../i18n/config";
 import styles from "../auth/auth.module.css";
 
 type Props = {
-  params: Promise<{
-    locale: string;
-  }>;
+  locale: string;
 };
 
 function getAuthErrorMessage(message: string, locale: string) {
@@ -34,11 +31,7 @@ function getAuthErrorMessage(message: string, locale: string) {
     : "Login failed. Please try again.";
 }
 
-export default async function LoginPage({ params }: Props) {
-  const resolvedParams = await params;
-  const locale = isValidLocale(resolvedParams.locale)
-    ? resolvedParams.locale
-    : defaultLocale;
+export default function LoginClient({ locale }: Props) {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
