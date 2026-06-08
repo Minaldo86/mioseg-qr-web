@@ -6,7 +6,7 @@ import { FormEvent, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 import { defaultLocale, isValidLocale } from "../../../i18n/config";
-import styles from "../auth.module.css";
+import styles from "../auth/auth.module.css";
 
 type Props = {
   params: {
