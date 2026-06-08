@@ -1,3 +1,3 @@
-export default function DashboardAccountPage() {
-  return <main>Konto</main>;
+export default function Page() {
+  return <main>In Bearbeitung</main>;
 }
