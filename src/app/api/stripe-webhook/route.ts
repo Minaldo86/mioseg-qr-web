@@ -14,6 +14,27 @@ function getStripe() {
   return new Stripe(key);
 }
 
+function clean(value: unknown) {
+  return String(value ?? "").trim();
+}
+
+function getPaymentIntentId(session: Stripe.Checkout.Session) {
+  return typeof session.payment_intent === "string" ? session.payment_intent : null;
+}
+
+function getBillingDetails(session: Stripe.Checkout.Session) {
+  const address = session.customer_details?.address;
+
+  return {
+    customerName: session.customer_details?.name || "Kunde",
+    customerEmail: session.customer_details?.email || session.customer_email || null,
+    customerStreet: [address?.line1, address?.line2].filter(Boolean).join(" "),
+    customerPostalCode: address?.postal_code || "",
+    customerCity: address?.city || "",
+    customerCountry: address?.country || "",
+  };
+}
+
 async function wasSessionAlreadyProcessed(sessionId: string) {
   const { data, error } = await supabaseAdmin
     .from("admin_action_log")
@@ -46,6 +67,132 @@ async function writeAdminLog(input: {
   }
 }
 
+async function getOrCreatePurchase(input: {
+  userId: string;
+  packId: string;
+  credits: number;
+  amountCents: number;
+  currency: string;
+  sessionId: string;
+  paymentIntentId: string | null;
+}) {
+  if (input.paymentIntentId) {
+    const { data, error } = await supabaseAdmin
+      .from("qrx_credit_purchases")
+      .select("id,status")
+      .eq("stripe_payment_intent_id", input.paymentIntentId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("qrx_credit_purchases lookup by payment intent failed:", error.message);
+    }
+
+    if (data) return data as { id: string; status: string | null };
+  }
+
+  const { data: bySession, error: sessionLookupError } = await supabaseAdmin
+    .from("qrx_credit_purchases")
+    .select("id,status")
+    .eq("provider_transaction_id", input.sessionId)
+    .maybeSingle();
+
+  if (sessionLookupError) {
+    console.warn("qrx_credit_purchases lookup by session failed:", sessionLookupError.message);
+  }
+
+  if (bySession) return bySession as { id: string; status: string | null };
+
+  const { data: inserted, error: insertError } = await supabaseAdmin
+    .from("qrx_credit_purchases")
+    .insert({
+      user_id: input.userId,
+      pack_id: input.packId,
+      credits: input.credits,
+      amount_cents: input.amountCents,
+      stripe_payment_intent_id: input.paymentIntentId,
+      payment_provider: "stripe",
+      provider_transaction_id: input.sessionId,
+      currency: input.currency,
+      status: "created",
+    })
+    .select("id,status")
+    .single();
+
+  if (insertError) {
+    throw new Error(`qrx_credit_purchases insert failed: ${insertError.message}`);
+  }
+
+  return inserted as { id: string; status: string | null };
+}
+
+async function createInvoiceRow(input: {
+  userId: string;
+  purchaseId: string;
+  sessionId: string;
+  paymentIntentId: string | null;
+  amountCents: number;
+  netCents: number;
+  taxCents: number;
+  currency: string;
+  billingEmail: string | null;
+  billingDetails: ReturnType<typeof getBillingDetails>;
+}) {
+  if (input.paymentIntentId) {
+    const { data: existingInvoice, error: existingError } = await supabaseAdmin
+      .from("qrx_invoices")
+      .select("id")
+      .eq("stripe_payment_intent_id", input.paymentIntentId)
+      .eq("invoice_type", "invoice")
+      .maybeSingle();
+
+    if (existingError) {
+      console.warn("qrx_invoices lookup failed:", existingError.message);
+    }
+
+    if (existingInvoice) return;
+  }
+
+  const invoiceNumber = `WEB-${Date.now()}`;
+
+  const { error: invoiceError } = await supabaseAdmin
+    .from("qrx_invoices")
+    .insert({
+      invoice_number: invoiceNumber,
+      user_id: input.userId,
+      purchase_id: input.purchaseId,
+      stripe_payment_intent_id: input.paymentIntentId,
+      payment_provider: "stripe",
+      provider_transaction_id: input.sessionId,
+
+      amount_cents: input.amountCents,
+      net_cents: input.netCents,
+      tax_cents: input.taxCents,
+      net_amount_cents: input.netCents,
+      tax_amount_cents: input.taxCents,
+      gross_amount_cents: input.amountCents,
+      currency: input.currency,
+
+      billing_email: input.billingEmail,
+      billing_details: {
+        customerName: input.billingDetails.customerName,
+        customerEmail: input.billingDetails.customerEmail,
+        customerStreet: input.billingDetails.customerStreet,
+        customerPostalCode: input.billingDetails.customerPostalCode,
+        customerCity: input.billingDetails.customerCity,
+        customerCountry: input.billingDetails.customerCountry,
+      },
+
+      customer_country: input.billingDetails.customerCountry || null,
+      invoice_type: "invoice",
+      status: "created",
+      storage_bucket: "invoices",
+    });
+
+  if (invoiceError) {
+    console.warn("qrx_invoices insert failed:", invoiceError.message);
+  }
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (session.payment_status !== "paid") {
     return;
@@ -57,23 +204,20 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return;
   }
 
-  const userId = String(session.metadata?.userId || "").trim();
-  const packId = String(session.metadata?.packId || "").trim();
+  const userId = clean(session.metadata?.userId);
+  const packId = clean(session.metadata?.packId);
   const credits = Number(session.metadata?.credits || 0);
-  const amountCents = Number(session.metadata?.amountCents || 0);
-
-  const billingEmail =
-    session.customer_details?.email ||
-    session.customer_email ||
-    null;
-
-  const billingCountry =
-    session.customer_details?.address?.country || null;
-
+  const amountCents = Number(session.metadata?.amountCents || session.amount_total || 0);
+  const paymentIntentId = getPaymentIntentId(session);
+  const billingDetails = getBillingDetails(session);
   const currency = (session.currency || "eur").toUpperCase();
 
   if (!userId) {
     throw new Error(`Stripe Session ${sessionId}: userId fehlt.`);
+  }
+
+  if (!packId) {
+    throw new Error(`Stripe Session ${sessionId}: packId fehlt.`);
   }
 
   if (!Number.isInteger(credits) || credits <= 0) {
@@ -87,65 +231,58 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const netCents = Math.max(0, amountCents - taxCents);
 
-  const { data: newCredits, error } = await supabaseAdmin.rpc("add_credits_admin", {
-    p_user_id: userId,
-    p_amount: credits,
+  const purchase = await getOrCreatePurchase({
+    userId,
+    packId,
+    credits,
+    amountCents,
+    currency,
+    sessionId,
+    paymentIntentId,
   });
 
-  if (error) {
-    throw new Error(`Credits konnten nicht gutgeschrieben werden: ${error.message}`);
-  }
-
-  const { error: purchaseError } = await supabaseAdmin
-    .from("qrx_credit_purchases")
-    .insert({
-      user_id: userId,
-      credits,
-      amount_cents: amountCents,
-      stripe_payment_intent_id:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : null,
-      payment_provider: "stripe",
-      provider_transaction_id: sessionId,
-      currency,
-      status: "succeeded",
+  if (purchase.status !== "succeeded") {
+    const { data: newCredits, error } = await supabaseAdmin.rpc("add_credits_admin", {
+      p_user_id: userId,
+      p_amount: credits,
     });
 
-  if (purchaseError) {
-    console.warn("qrx_credit_purchases insert failed:", purchaseError.message);
-  }
+    if (error) {
+      throw new Error(`Credits konnten nicht gutgeschrieben werden: ${error.message}`);
+    }
 
-  const invoiceNumber = `QRX-${Date.now()}`;
+    const { error: updateError } = await supabaseAdmin
+      .from("qrx_credit_purchases")
+      .update({
+        status: "succeeded",
+        stripe_payment_intent_id: paymentIntentId,
+        provider_transaction_id: sessionId,
+        payment_provider: "stripe",
+      })
+      .eq("id", purchase.id);
 
-  const { error: invoiceError } = await supabaseAdmin
-    .from("qrx_invoices")
-    .insert({
-      invoice_number: invoiceNumber,
-      user_id: userId,
-      stripe_payment_intent_id:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : null,
-      payment_provider: "stripe",
-      provider_transaction_id: sessionId,
-      amount_cents: amountCents,
-      total_cents: amountCents,
-      net_cents: netCents,
-      tax_cents: taxCents,
-      currency,
-      billing_email: billingEmail,
-      billing_country_code: billingCountry,
+    if (updateError) {
+      throw new Error(`qrx_credit_purchases update failed: ${updateError.message}`);
+    }
+
+    await writeAdminLog({
+      userId,
+      amount: credits,
+      note: `Stripe Web-Kauf erfolgreich. Session: ${sessionId}, Paket: ${packId}, Betrag: ${amountCents} Cent, neuer Stand: ${newCredits}`,
     });
-
-  if (invoiceError) {
-    console.warn("qrx_invoices insert failed:", invoiceError.message);
   }
 
-  await writeAdminLog({
+  await createInvoiceRow({
     userId,
-    amount: credits,
-    note: `Stripe Web-Kauf erfolgreich. Session: ${sessionId}, Paket: ${packId}, Betrag: ${amountCents} Cent, neuer Stand: ${newCredits}`,
+    purchaseId: purchase.id,
+    sessionId,
+    paymentIntentId,
+    amountCents,
+    netCents,
+    taxCents,
+    currency,
+    billingEmail: billingDetails.customerEmail,
+    billingDetails,
   });
 }
 
