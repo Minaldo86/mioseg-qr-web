@@ -168,8 +168,8 @@ export default function DashboardQrxPage() {
           <span className={styles.kicker}>Meine QR-X</span>
           <h1>Meine QR-X</h1>
           <p>
-            Verwalte deine erstellten QR-X bequem im Browser. Öffnen und Teilen funktioniert bereits,
-            Bearbeiten bereiten wir als nächsten Schritt vor.
+            Verwalte deine erstellten QR-X bequem im Browser. Öffnen, Teilen und Bearbeiten
+            funktionieren jetzt als erste schlanke Web-Version.
           </p>
         </div>
 
@@ -290,6 +290,7 @@ export default function DashboardQrxPage() {
               const image = entry.cover_image_url?.trim() || entry.logo_url?.trim() || null;
               const isBusiness = entry.type === "business";
               const openHref = `/${locale}/qrx/${entry.id}`;
+              const editHref = `/${locale}/dashboard/qrx/${entry.id}/edit`;
 
               return (
                 <article
@@ -522,15 +523,13 @@ export default function DashboardQrxPage() {
                         {copiedId === entry.id ? "Kopiert" : "Teilen"}
                       </button>
 
-                      <button
-                        type="button"
-                        disabled
+                      <Link
+                        href={editHref}
                         className={styles.secondaryButton}
-                        style={{ cursor: "not-allowed", opacity: 0.55, gridColumn: "1 / -1" }}
-                        title="Bearbeiten-Seite wird im nächsten Schritt erstellt."
+                        style={{ gridColumn: "1 / -1" }}
                       >
-                        Bearbeiten demnächst
-                      </button>
+                        Bearbeiten
+                      </Link>
                     </div>
                   </div>
                 </article>
