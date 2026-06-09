@@ -146,6 +146,13 @@ const session = await stripe.checkout.sessions.create({
 
   client_reference_id: userId,
 
+  metadata: {
+    userId,
+    packId: pack.id,
+    credits: String(pack.credits),
+    amountCents: String(amount),
+  },
+
   // 🔥 WICHTIG für Rechnung
   billing_address_collection: "required",
   customer_creation: "always",
