@@ -1,9 +1,10 @@
-import DashboardClient from "./DashboardClient";
 import Link from "next/link";
 import styles from "./dashboard.module.css";
 
 import { defaultLocale, isValidLocale } from "../../../i18n/config";
 import { getDictionary } from "../../../i18n/get-dictionary";
+import DashboardClient from "./DashboardClient";
+import DashboardMapClient from "./DashboardMapClient";
 
 type Props = {
   params: Promise<{
@@ -31,16 +32,14 @@ export default async function DashboardPage({ params }: Props) {
           savedQr: "Gespeicherte QR-Codes",
           mapTitle: "Deine QR-X Karte",
           mapHint:
-            "Hier erscheint später die Leaflet-Karte mit deinen erstellten QR-X, gespeicherten QR-X und normalen QR-Codes mit Standort.",
+            "Hier siehst du deine eigenen QR-X, gespeicherte QR-X und normale Scans mit Standort.",
           qrxButton: "Meine QR-X",
           scansButton: "Meine Scans",
           creditsButton: "Credits",
           supportButton: "Support",
           createButton: "QR-X erstellen",
           buyCreditsButton: "Credits kaufen",
-          emptyLabel: "Phase 1",
-          emptyText:
-            "Diese Startseite ist zunächst als Dashboard-Grundstruktur angelegt. Im nächsten Schritt binden wir Supabase-Daten und danach die Karte an.",
+          mapLabel: "Live",
           navHome: "Startseite",
           navExplore: "Explore",
         }
@@ -54,16 +53,14 @@ export default async function DashboardPage({ params }: Props) {
           savedQr: "Saved QR codes",
           mapTitle: "Your QR-X map",
           mapHint:
-            "This area will later show the Leaflet map with your created QR-X, saved QR-X and normal QR codes with location.",
+            "Here you can see your own QR-X, saved QR-X and normal scans with location.",
           qrxButton: "My QR-X",
           scansButton: "My scans",
           creditsButton: "Credits",
           supportButton: "Support",
           createButton: "Create QR-X",
           buyCreditsButton: "Buy credits",
-          emptyLabel: "Phase 1",
-          emptyText:
-            "This page is the initial dashboard structure. Next we connect Supabase data, then the map.",
+          mapLabel: "Live",
           navHome: "Home",
           navExplore: "Explore",
         };
@@ -98,14 +95,14 @@ export default async function DashboardPage({ params }: Props) {
         </div>
       </section>
 
-      <section className={styles.statsGrid}>
-  <DashboardClient
-    creditsLabel={copy.credits}
-    createdQrxLabel={copy.createdQrx}
-    savedQrxLabel={copy.savedQrx}
-    savedQrLabel={copy.savedQr}
-  />
-</section>
+      <section className={styles.statsGrid} aria-label="Dashboard Kennzahlen">
+        <DashboardClient
+          creditsLabel={copy.credits}
+          createdQrxLabel={copy.createdQrx}
+          savedQrxLabel={copy.savedQrx}
+          savedQrLabel={copy.savedQr}
+        />
+      </section>
 
       <section className={styles.dashboardGrid}>
         <article className={styles.mapCard}>
@@ -114,19 +111,10 @@ export default async function DashboardPage({ params }: Props) {
               <h2>{copy.mapTitle}</h2>
               <p>{copy.mapHint}</p>
             </div>
-            <span>{copy.emptyLabel}</span>
+            <span>{copy.mapLabel}</span>
           </div>
 
-          <div className={styles.mapPlaceholder}>
-            <div className={`${styles.mapPin} ${styles.pinOne}`}>▣</div>
-            <div className={`${styles.mapPin} ${styles.pinTwo}`}>⌗</div>
-            <div className={`${styles.mapPin} ${styles.pinThree}`}>🔖</div>
-            <div className={styles.userPoint} />
-            <div className={styles.mapNotice}>
-              <strong>Leaflet Map</strong>
-              <p>{copy.emptyText}</p>
-            </div>
-          </div>
+          <DashboardMapClient locale={locale} />
         </article>
 
         <aside className={styles.sidePanel}>
