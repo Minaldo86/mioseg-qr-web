@@ -138,36 +138,47 @@ export default function InvoicesPage() {
     setLoading(false);
   }
 
-  async function downloadInvoice(invoice: InvoiceRow) {
-    if (!invoice.pdf_path) {
-      alert("Für diese Rechnung ist noch kein PDF hinterlegt.");
-      return;
-    }
-
-    setDownloadingId(invoice.id);
-
-    try {
-      const bucket = invoice.storage_bucket || "qrx-invoices";
-
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .createSignedUrl(invoice.pdf_path, 60);
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data?.signedUrl) {
-        throw new Error("Download-Link konnte nicht erstellt werden.");
-      }
-
-      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-    } catch (error) {
-      alert(error instanceof Error ? error.message : "Rechnung konnte nicht geöffnet werden.");
-    } finally {
-      setDownloadingId(null);
-    }
+async function downloadInvoice(invoice: InvoiceRow) {
+  if (!invoice.pdf_path) {
+    alert("Für diese Rechnung ist noch kein PDF hinterlegt.");
+    return;
   }
+
+  setDownloadingId(invoice.id);
+
+  try {
+    const bucket = invoice.storage_bucket || "invoices";
+
+    console.log("Bucket:", bucket);
+    console.log("PDF Path:", invoice.pdf_path);
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(invoice.pdf_path, 300);
+
+    console.log("Signed URL Response:", data);
+    console.log("Signed URL Error:", error);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.signedUrl) {
+      throw new Error("Download-Link konnte nicht erstellt werden.");
+    }
+
+    window.open(data.signedUrl, "_blank");
+  } catch (error) {
+    console.error(error);
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Rechnung konnte nicht geöffnet werden."
+    );
+  } finally {
+    setDownloadingId(null);
+  }
+}
 
   const stats = useMemo(() => {
     const total = invoices.length;
