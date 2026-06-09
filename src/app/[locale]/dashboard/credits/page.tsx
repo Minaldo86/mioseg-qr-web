@@ -49,10 +49,10 @@ function formatDate(value: string | null) {
 }
 
 const PACKAGES = [
-  { credits: 10, price: 9.99, label: "Starter" },
-  { credits: 25, price: 19.99, label: "Beliebt" },
-  { credits: 50, price: 34.99, label: "Pro" },
-  { credits: 100, price: 59.99, label: "Best Value" },
+  { credits: 10, price: 5.99, regularPrice: 9.99, label: "Launch" },
+  { credits: 25, price: 12.99, regularPrice: 19.99, label: "Beliebt" },
+  { credits: 50, price: 22.99, regularPrice: 34.99, label: "Pro" },
+  { credits: 100, price: 39.99, regularPrice: 59.99, label: "Best Value" },
 ];
 
 export default function CreditsPage() {
@@ -260,21 +260,39 @@ export default function CreditsPage() {
                   boxShadow: "0 18px 46px rgba(0,0,0,0.14)",
                 }}
               >
-                <div
-                  style={{
-                    display: "inline-flex",
-                    minHeight: 30,
-                    alignItems: "center",
-                    borderRadius: 999,
-                    padding: "0 10px",
-                    background: item.credits === 25 ? "#fff7ed" : "rgba(255,255,255,0.06)",
-                    color: item.credits === 25 ? "#9a4f00" : "#cbd5e1",
-                    fontSize: 12,
-                    fontWeight: 950,
-                    marginBottom: 12,
-                  }}
-                >
-                  {item.label}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      minHeight: 30,
+                      alignItems: "center",
+                      borderRadius: 999,
+                      padding: "0 10px",
+                      background: "rgba(37, 99, 235, 0.18)",
+                      color: "#dbeafe",
+                      fontSize: 12,
+                      fontWeight: 950,
+                    }}
+                  >
+                    Launch
+                  </span>
+                  {item.label !== "Launch" ? (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        minHeight: 30,
+                        alignItems: "center",
+                        borderRadius: 999,
+                        padding: "0 10px",
+                        background: item.credits === 25 ? "#fff7ed" : "rgba(255,255,255,0.06)",
+                        color: item.credits === 25 ? "#9a4f00" : "#cbd5e1",
+                        fontSize: 12,
+                        fontWeight: 950,
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  ) : null}
                 </div>
 
                 <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 30, fontWeight: 950 }}>
@@ -282,7 +300,12 @@ export default function CreditsPage() {
                 </h3>
 
                 <p style={{ margin: "0 0 16px", color: "#94a3b8", lineHeight: 1.55 }}>
-                  {item.price} € inkl. späterer Rechnung für deine Unterlagen.
+                  <strong style={{ color: "#ffffff", fontSize: 22 }}>{item.price.toFixed(2).replace(".", ",")} €</strong>{" "}
+                  <span style={{ textDecoration: "line-through", opacity: 0.65 }}>
+                    {item.regularPrice.toFixed(2).replace(".", ",")} €
+                  </span>
+                  <br />
+                  inkl. späterer Rechnung für deine Unterlagen.
                 </p>
 
                 <button

@@ -78,18 +78,17 @@ export default function AccountPage() {
     setEmail(user.email ?? "");
     setCreatedAt(user.created_at ?? null);
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .maybeSingle()
-      .returns<ProfileRow>();
+ const { data, error } = await supabase
+  .from("profiles")
+  .select("*")
+  .eq("id", user.id)
+  .single();
 
     if (error) {
       console.warn("Profile konnte nicht geladen werden:", error.message);
     }
 
-    setProfile(data ?? null);
+   setProfile(data as ProfileRow);
     setLoading(false);
   }
 
