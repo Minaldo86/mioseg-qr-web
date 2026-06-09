@@ -13,6 +13,15 @@ type ProfileRow = {
   display_name?: string | null;
   full_name?: string | null;
   created_at?: string | null;
+
+  billing_email?: string | null;
+  billing_company?: string | null;
+  billing_name?: string | null;
+  billing_street?: string | null;
+  billing_postal_code?: string | null;
+  billing_city?: string | null;
+  billing_country_code?: string | null;
+  billing_vat_id?: string | null;
 };
 
 function getParam(value: string | string[] | undefined, fallback: string) {
@@ -48,6 +57,17 @@ export default function AccountPage() {
   const [email, setEmail] = useState("");
   const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [billingEmail, setBillingEmail] = useState("");
+const [billingCompany, setBillingCompany] = useState("");
+const [billingName, setBillingName] = useState("");
+const [billingStreet, setBillingStreet] = useState("");
+const [billingPostalCode, setBillingPostalCode] = useState("");
+const [billingCity, setBillingCity] = useState("");
+const [billingCountryCode, setBillingCountryCode] = useState("DE");
+const [billingVatId, setBillingVatId] = useState("");
+
+const [savingBilling, setSavingBilling] = useState(false);
+const [billingMessage, setBillingMessage] = useState("");
 
   useEffect(() => {
     void loadAccount();
@@ -88,11 +108,23 @@ export default function AccountPage() {
       console.warn("Profile konnte nicht geladen werden:", error.message);
     }
 
-   setProfile(data as ProfileRow);
+   const profileData = data as ProfileRow;
+
+setProfile(profileData);
+
+setBillingEmail(profileData.billing_email ?? "");
+setBillingCompany(profileData.billing_company ?? "");
+setBillingName(profileData.billing_name ?? "");
+setBillingStreet(profileData.billing_street ?? "");
+setBillingPostalCode(profileData.billing_postal_code ?? "");
+setBillingCity(profileData.billing_city ?? "");
+setBillingCountryCode(profileData.billing_country_code ?? "DE");
+setBillingVatId(profileData.billing_vat_id ?? "");
     setLoading(false);
   }
 
-  async function handleSignOut() {
+  async function handleSignOut()
+   {
     setSigningOut(true);
     setErrorText(null);
 
@@ -106,6 +138,35 @@ export default function AccountPage() {
 
     router.push(`/${locale}/login`);
   }
+
+  async function saveBillingData() {
+  if (!userId) return;
+
+  setSavingBilling(true);
+  setBillingMessage("");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      billing_email: billingEmail,
+      billing_company: billingCompany,
+      billing_name: billingName,
+      billing_street: billingStreet,
+      billing_postal_code: billingPostalCode,
+      billing_city: billingCity,
+      billing_country_code: billingCountryCode,
+      billing_vat_id: billingVatId,
+    })
+    .eq("id", userId);
+
+  if (error) {
+    setBillingMessage(`Fehler: ${error.message}`);
+  } else {
+    setBillingMessage("Rechnungsdaten gespeichert.");
+  }
+
+  setSavingBilling(false);
+}
 
   const displayName =
     profile?.display_name?.trim() ||
