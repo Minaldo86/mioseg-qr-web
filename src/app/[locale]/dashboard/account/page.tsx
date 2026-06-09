@@ -43,6 +43,10 @@ function formatDate(value: string | null | undefined) {
   }).format(date);
 }
 
+function normalizeCountryCode(value: string) {
+  return value.trim().toUpperCase().slice(0, 2) || "DE";
+}
+
 export default function AccountPage() {
   const params = useParams();
   const router = useRouter();
@@ -57,17 +61,18 @@ export default function AccountPage() {
   const [email, setEmail] = useState("");
   const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
-  const [billingEmail, setBillingEmail] = useState("");
-const [billingCompany, setBillingCompany] = useState("");
-const [billingName, setBillingName] = useState("");
-const [billingStreet, setBillingStreet] = useState("");
-const [billingPostalCode, setBillingPostalCode] = useState("");
-const [billingCity, setBillingCity] = useState("");
-const [billingCountryCode, setBillingCountryCode] = useState("DE");
-const [billingVatId, setBillingVatId] = useState("");
 
-const [savingBilling, setSavingBilling] = useState(false);
-const [billingMessage, setBillingMessage] = useState("");
+  const [billingEmail, setBillingEmail] = useState("");
+  const [billingCompany, setBillingCompany] = useState("");
+  const [billingName, setBillingName] = useState("");
+  const [billingStreet, setBillingStreet] = useState("");
+  const [billingPostalCode, setBillingPostalCode] = useState("");
+  const [billingCity, setBillingCity] = useState("");
+  const [billingCountryCode, setBillingCountryCode] = useState("DE");
+  const [billingVatId, setBillingVatId] = useState("");
+
+  const [savingBilling, setSavingBilling] = useState(false);
+  const [billingMessage, setBillingMessage] = useState("");
 
   useEffect(() => {
     void loadAccount();
@@ -76,6 +81,7 @@ const [billingMessage, setBillingMessage] = useState("");
   async function loadAccount() {
     setLoading(true);
     setErrorText(null);
+    setBillingMessage("");
 
     const {
       data: { user },
@@ -98,33 +104,34 @@ const [billingMessage, setBillingMessage] = useState("");
     setEmail(user.email ?? "");
     setCreatedAt(user.created_at ?? null);
 
- const { data, error } = await supabase
-  .from("profiles")
-  .select("*")
-  .eq("id", user.id)
-  .single();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
 
     if (error) {
       console.warn("Profile konnte nicht geladen werden:", error.message);
+      setProfile(null);
+      setLoading(false);
+      return;
     }
 
-   const profileData = data as ProfileRow;
+    const profileData = data as ProfileRow;
 
-setProfile(profileData);
-
-setBillingEmail(profileData.billing_email ?? "");
-setBillingCompany(profileData.billing_company ?? "");
-setBillingName(profileData.billing_name ?? "");
-setBillingStreet(profileData.billing_street ?? "");
-setBillingPostalCode(profileData.billing_postal_code ?? "");
-setBillingCity(profileData.billing_city ?? "");
-setBillingCountryCode(profileData.billing_country_code ?? "DE");
-setBillingVatId(profileData.billing_vat_id ?? "");
+    setProfile(profileData);
+    setBillingEmail(profileData.billing_email ?? user.email ?? "");
+    setBillingCompany(profileData.billing_company ?? "");
+    setBillingName(profileData.billing_name ?? "");
+    setBillingStreet(profileData.billing_street ?? "");
+    setBillingPostalCode(profileData.billing_postal_code ?? "");
+    setBillingCity(profileData.billing_city ?? "");
+    setBillingCountryCode(profileData.billing_country_code ?? "DE");
+    setBillingVatId(profileData.billing_vat_id ?? "");
     setLoading(false);
   }
 
-  async function handleSignOut()
-   {
+  async function handleSignOut() {
     setSigningOut(true);
     setErrorText(null);
 
@@ -140,37 +147,39 @@ setBillingVatId(profileData.billing_vat_id ?? "");
   }
 
   async function saveBillingData() {
-  if (!userId) return;
+    if (!userId) return;
 
-  setSavingBilling(true);
-  setBillingMessage("");
+    setSavingBilling(true);
+    setBillingMessage("");
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      billing_email: billingEmail,
-      billing_company: billingCompany,
-      billing_name: billingName,
-      billing_street: billingStreet,
-      billing_postal_code: billingPostalCode,
-      billing_city: billingCity,
-      billing_country_code: billingCountryCode,
-      billing_vat_id: billingVatId,
-    })
-    .eq("id", userId);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        billing_email: billingEmail.trim() || null,
+        billing_company: billingCompany.trim() || null,
+        billing_name: billingName.trim() || null,
+        billing_street: billingStreet.trim() || null,
+        billing_postal_code: billingPostalCode.trim() || null,
+        billing_city: billingCity.trim() || null,
+        billing_country_code: normalizeCountryCode(billingCountryCode),
+        billing_vat_id: billingVatId.trim() || null,
+      })
+      .eq("id", userId);
 
-  if (error) {
-    setBillingMessage(`Fehler: ${error.message}`);
-  } else {
-    setBillingMessage("Rechnungsdaten gespeichert.");
+    if (error) {
+      setBillingMessage(`Fehler: ${error.message}`);
+    } else {
+      setBillingMessage("Rechnungsdaten gespeichert.");
+      await loadAccount();
+    }
+
+    setSavingBilling(false);
   }
-
-  setSavingBilling(false);
-}
 
   const displayName =
     profile?.display_name?.trim() ||
     profile?.full_name?.trim() ||
+    billingName.trim() ||
     email ||
     "Mioseg qr Nutzer";
 
@@ -193,8 +202,8 @@ setBillingVatId(profileData.billing_vat_id ?? "");
           <span className={styles.kicker}>Konto</span>
           <h1>Dein Konto</h1>
           <p>
-            Hier siehst du deine wichtigsten Kontodaten. Profilbearbeitung, Rechnungen und Sicherheit
-            erweitern wir im nächsten Schritt.
+            Hier verwaltest du deine Kontodaten und Rechnungsadresse für Credit-Käufe,
+            Rechnungen und den automatischen E-Mail-Versand.
           </p>
         </div>
 
@@ -234,7 +243,7 @@ setBillingVatId(profileData.billing_vat_id ?? "");
         <article className={styles.statCard}>
           <div className={styles.statIcon}>🧾</div>
           <div>
-            <div className={styles.statValue}>Bald</div>
+            <div className={styles.statValue}>PDF</div>
             <div className={styles.statLabel}>Rechnungen</div>
           </div>
         </article>
@@ -289,6 +298,138 @@ setBillingVatId(profileData.billing_vat_id ?? "");
               <InfoRow label="Registriert seit" value={formatDate(createdAt)} />
             </div>
           ) : null}
+        </article>
+
+        <article style={panelStyle}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2>Rechnungsdaten</h2>
+              <p>
+                Diese Daten werden für Rechnungen, PDF-Erstellung und den automatischen
+                E-Mail-Versand nach Credit-Käufen verwendet.
+              </p>
+            </div>
+            <span>Rechnung</span>
+          </div>
+
+          <div style={{ display: "grid", gap: 12 }}>
+            <label style={labelStyle}>
+              Firma
+              <input
+                value={billingCompany}
+                onChange={(event) => setBillingCompany(event.target.value)}
+                placeholder="Firma"
+                style={inputStyle}
+              />
+            </label>
+
+            <label style={labelStyle}>
+              Ansprechpartner / Name
+              <input
+                value={billingName}
+                onChange={(event) => setBillingName(event.target.value)}
+                placeholder="Max Mustermann"
+                style={inputStyle}
+              />
+            </label>
+
+            <label style={labelStyle}>
+              Rechnungs-E-Mail
+              <input
+                value={billingEmail}
+                onChange={(event) => setBillingEmail(event.target.value)}
+                placeholder="rechnung@example.com"
+                style={inputStyle}
+                type="email"
+              />
+            </label>
+
+            <label style={labelStyle}>
+              Straße und Hausnummer
+              <input
+                value={billingStreet}
+                onChange={(event) => setBillingStreet(event.target.value)}
+                placeholder="Musterstraße 1"
+                style={inputStyle}
+              />
+            </label>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 12 }}>
+              <label style={labelStyle}>
+                PLZ
+                <input
+                  value={billingPostalCode}
+                  onChange={(event) => setBillingPostalCode(event.target.value)}
+                  placeholder="52511"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Ort
+                <input
+                  value={billingCity}
+                  onChange={(event) => setBillingCity(event.target.value)}
+                  placeholder="Geilenkirchen"
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+
+            <label style={labelStyle}>
+              Land
+              <input
+                value={billingCountryCode}
+                onChange={(event) => setBillingCountryCode(normalizeCountryCode(event.target.value))}
+                placeholder="DE"
+                maxLength={2}
+                style={inputStyle}
+              />
+            </label>
+
+            <label style={labelStyle}>
+              USt.-ID
+              <input
+                value={billingVatId}
+                onChange={(event) => setBillingVatId(event.target.value)}
+                placeholder="Optional, z. B. DE123456789"
+                style={inputStyle}
+              />
+            </label>
+
+            {billingMessage ? (
+              <div
+                style={{
+                  borderRadius: 16,
+                  padding: "12px 14px",
+                  background: billingMessage.startsWith("Fehler")
+                    ? "rgba(239, 68, 68, 0.14)"
+                    : "rgba(34, 197, 94, 0.14)",
+                  border: billingMessage.startsWith("Fehler")
+                    ? "1px solid rgba(252, 165, 165, 0.22)"
+                    : "1px solid rgba(134, 239, 172, 0.22)",
+                  color: billingMessage.startsWith("Fehler") ? "#fecaca" : "#bbf7d0",
+                  fontWeight: 850,
+                }}
+              >
+                {billingMessage}
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => void saveBillingData()}
+              disabled={savingBilling}
+              className={styles.primaryButton}
+              style={{
+                border: 0,
+                cursor: savingBilling ? "not-allowed" : "pointer",
+                opacity: savingBilling ? 0.72 : 1,
+              }}
+            >
+              {savingBilling ? "Speichert …" : "Rechnungsdaten speichern"}
+            </button>
+          </div>
         </article>
 
         <article style={panelStyle}>
@@ -387,6 +528,28 @@ const panelStyle: React.CSSProperties = {
   border: "1px solid rgba(148, 163, 184, 0.16)",
   boxShadow: "0 22px 62px rgba(0, 0, 0, 0.17)",
   padding: 22,
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 8,
+  color: "#cbd5e1",
+  fontSize: 13,
+  fontWeight: 900,
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  minHeight: 50,
+  borderRadius: 14,
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(255,255,255,0.05)",
+  color: "#fff",
+  padding: "12px 14px",
+  fontSize: 14,
+  fontWeight: 750,
+  outline: "none",
+  boxSizing: "border-box",
 };
 
 const errorStyle: React.CSSProperties = {
