@@ -11,16 +11,19 @@ type QrxEntry = {
   id: string;
   title: string | null;
   company_name: string | null;
-  description: string | null;
-  type: "normal" | "business" | null;
-  location_name: string | null;
-  location_lat: number | null;
-  location_lng: number | null;
-  cta_phone: string | null;
-  cta_website: string | null;
-  cta_email: string | null;
-  cta_navigation: string | null;
+  cover_image_url: string | null;
+  logo_url: string | null;
   owner_user_id: string | null;
+};
+
+type QrxMedia = {
+  id: string;
+  qrx_id: string;
+  type: "image" | "file" | string;
+  url: string;
+  filename: string;
+  bytes: number | null;
+  created_at?: string | null;
 };
 
 function getParam(value: string | string[] | undefined, fallback: string) {
@@ -34,7 +37,12 @@ function toNullable(value: string) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-export default function EditQrxPage() {
+function getTitle(entry: QrxEntry | null) {
+  if (!entry) return "QR-X Medien";
+  return entry.company_name?.trim() || entry.title?.trim() || "QR-X Medien";
+}
+
+export default function QrxMediaPage() {
   const router = useRouter();
   const params = useParams();
 
@@ -42,28 +50,27 @@ export default function EditQrxPage() {
   const qrxId = getParam(params?.id as string | string[] | undefined, "");
 
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [savingBase, setSavingBase] = useState(false);
+  const [addingImage, setAddingImage] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const [entry, setEntry] = useState<QrxEntry | null>(null);
+  const [media, setMedia] = useState<QrxMedia[]>([]);
+
+  const [coverUrl, setCoverUrl] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageFilename, setImageFilename] = useState("");
+
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
-  const [entry, setEntry] = useState<QrxEntry | null>(null);
-
-  const [title, setTitle] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [description, setDescription] = useState("");
-  const [locationName, setLocationName] = useState("");
-  const [locationLat, setLocationLat] = useState("");
-  const [locationLng, setLocationLng] = useState("");
-  const [ctaPhone, setCtaPhone] = useState("");
-  const [ctaWebsite, setCtaWebsite] = useState("");
-  const [ctaEmail, setCtaEmail] = useState("");
-  const [ctaNavigation, setCtaNavigation] = useState("");
 
   useEffect(() => {
-    void loadQrx();
+    void loadMediaPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qrxId]);
 
-  async function loadQrx() {
+  async function loadMediaPage() {
     setLoading(true);
     setErrorText(null);
     setSuccessText(null);
@@ -91,117 +98,138 @@ export default function EditQrxPage() {
       return;
     }
 
-    const { data, error } = await supabase
+    const { data: entryData, error: entryError } = await supabase
       .from("qr_x_entries")
-      .select(
-        "id,title,company_name,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,owner_user_id"
-      )
+      .select("id,title,company_name,cover_image_url,logo_url,owner_user_id")
       .eq("id", qrxId)
       .maybeSingle()
       .returns<QrxEntry>();
 
-    if (error) {
-      setErrorText(error.message);
+    if (entryError) {
+      setErrorText(entryError.message);
       setLoading(false);
       return;
     }
 
-    if (!data) {
+    if (!entryData) {
       setErrorText("QR-X wurde nicht gefunden.");
       setLoading(false);
       return;
     }
 
-    if (data.owner_user_id !== user.id) {
+    if (entryData.owner_user_id !== user.id) {
       setErrorText("Du darfst diesen QR-X nicht bearbeiten.");
       setLoading(false);
       return;
     }
 
-    setEntry(data);
-    setTitle(data.title ?? "");
-    setCompanyName(data.company_name ?? "");
-    setDescription(data.description ?? "");
-    setLocationName(data.location_name ?? "");
-    setLocationLat(data.location_lat != null ? String(data.location_lat) : "");
-    setLocationLng(data.location_lng != null ? String(data.location_lng) : "");
-    setCtaPhone(data.cta_phone ?? "");
-    setCtaWebsite(data.cta_website ?? "");
-    setCtaEmail(data.cta_email ?? "");
-    setCtaNavigation(data.cta_navigation ?? "");
+    const { data: mediaData, error: mediaError } = await supabase
+      .from("qr_x_media")
+      .select("id,qrx_id,type,url,filename,bytes,created_at")
+      .eq("qrx_id", qrxId)
+      .eq("type", "image")
+      .order("created_at", { ascending: false })
+      .returns<QrxMedia[]>();
+
+    if (mediaError) {
+      setErrorText(mediaError.message);
+      setLoading(false);
+      return;
+    }
+
+    setEntry(entryData);
+    setCoverUrl(entryData.cover_image_url ?? "");
+    setLogoUrl(entryData.logo_url ?? "");
+    setMedia(mediaData ?? []);
     setLoading(false);
   }
 
-  function parseOptionalNumber(value: string) {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-
-    const normalized = trimmed.replace(",", ".");
-    const numberValue = Number(normalized);
-
-    if (!Number.isFinite(numberValue)) {
-      throw new Error("Breiten- und Längengrad müssen gültige Zahlen sein.");
-    }
-
-    return numberValue;
-  }
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSaveBaseImages(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSaving(true);
+    setSavingBase(true);
     setErrorText(null);
     setSuccessText(null);
 
     try {
-      if (!entry) {
-        throw new Error("QR-X konnte nicht geladen werden.");
-      }
-
-      const nextTitle = title.trim();
-
-      if (!nextTitle) {
-        throw new Error("Bitte gib einen Titel ein.");
-      }
-
-      const lat = parseOptionalNumber(locationLat);
-      const lng = parseOptionalNumber(locationLng);
+      if (!entry) throw new Error("QR-X konnte nicht geladen werden.");
 
       const { error } = await supabase
         .from("qr_x_entries")
         .update({
-          title: nextTitle,
-          company_name: entry.type === "business" ? toNullable(companyName) : null,
-          description: toNullable(description),
-          location_name: toNullable(locationName),
-          location_lat: lat,
-          location_lng: lng,
-          cta_phone: entry.type === "business" ? toNullable(ctaPhone) : null,
-          cta_website: entry.type === "business" ? toNullable(ctaWebsite) : null,
-          cta_email: entry.type === "business" ? toNullable(ctaEmail) : null,
-          cta_navigation: entry.type === "business" ? toNullable(ctaNavigation) : null,
+          cover_image_url: toNullable(coverUrl),
+          logo_url: toNullable(logoUrl),
           updated_at: new Date().toISOString(),
         })
         .eq("id", entry.id)
         .eq("owner_user_id", entry.owner_user_id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      setSuccessText("QR-X wurde gespeichert.");
+      setSuccessText("Coverbild und Logo wurden gespeichert.");
       router.refresh();
-
-      window.setTimeout(() => {
-        router.push(`/${locale}/dashboard/qrx`);
-      }, 800);
+      await loadMediaPage();
     } catch (error) {
-      setErrorText(error instanceof Error ? error.message : "QR-X konnte nicht gespeichert werden.");
+      setErrorText(error instanceof Error ? error.message : "Medien konnten nicht gespeichert werden.");
     } finally {
-      setSaving(false);
+      setSavingBase(false);
     }
   }
 
-  const isBusiness = entry?.type === "business";
+  async function handleAddImage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setAddingImage(true);
+    setErrorText(null);
+    setSuccessText(null);
+
+    try {
+      if (!entry) throw new Error("QR-X konnte nicht geladen werden.");
+
+      const url = imageUrl.trim();
+      if (!url) throw new Error("Bitte gib eine Bild-URL ein.");
+
+      const filename = imageFilename.trim() || `bild-${Date.now()}.jpg`;
+
+      const { error } = await supabase.from("qr_x_media").insert({
+        qrx_id: entry.id,
+        type: "image",
+        url,
+        filename,
+        bytes: null,
+      });
+
+      if (error) throw error;
+
+      setImageUrl("");
+      setImageFilename("");
+      setSuccessText("Bild wurde hinzugefügt.");
+      await loadMediaPage();
+    } catch (error) {
+      setErrorText(error instanceof Error ? error.message : "Bild konnte nicht hinzugefügt werden.");
+    } finally {
+      setAddingImage(false);
+    }
+  }
+
+  async function handleDeleteImage(mediaId: string) {
+    const confirmed = window.confirm("Dieses Bild aus der Galerie entfernen?");
+    if (!confirmed) return;
+
+    setDeletingId(mediaId);
+    setErrorText(null);
+    setSuccessText(null);
+
+    try {
+      const { error } = await supabase.from("qr_x_media").delete().eq("id", mediaId);
+      if (error) throw error;
+
+      setSuccessText("Bild wurde entfernt.");
+      await loadMediaPage();
+    } catch (error) {
+      setErrorText(error instanceof Error ? error.message : "Bild konnte nicht entfernt werden.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <main className={styles.page}>
@@ -210,7 +238,7 @@ export default function EditQrxPage() {
           <img src="/logo-white.png" alt="Mioseg qr Logo" />
         </Link>
 
-        <nav className={styles.nav} aria-label="QR-X bearbeiten Navigation">
+        <nav className={styles.nav} aria-label="QR-X Medien Navigation">
           <Link href={`/${locale}/dashboard`}>Dashboard</Link>
           <Link href={`/${locale}/dashboard/qrx`}>Meine QR-X</Link>
         </nav>
@@ -218,217 +246,254 @@ export default function EditQrxPage() {
 
       <section className={styles.hero}>
         <div>
-          <span className={styles.kicker}>QR-X bearbeiten</span>
-          <h1>QR-X bearbeiten</h1>
+          <span className={styles.kicker}>Bilder & Medien</span>
+          <h1>{getTitle(entry)}</h1>
           <p>
-            Schlanke Bearbeitung für die wichtigsten QR-X Daten. Bilder, Dateien und erweiterte Inhalte ergänzen wir später.
+            Ergänze Coverbild, Logo und Galerie-Bilder per URL. Upload über Storage bauen wir danach sauber mit Credits.
           </p>
         </div>
 
         <div className={styles.heroActions}>
+          <Link href={`/${locale}/dashboard/qrx/${qrxId}/edit`} className={styles.secondaryButton}>
+            Basisdaten bearbeiten
+          </Link>
           <Link href={`/${locale}/qrx/${qrxId}`} className={styles.secondaryButton}>
             QR-X öffnen
-          </Link>
-          <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
-            Zurück
           </Link>
         </div>
       </section>
 
       <section
         style={{
-          maxWidth: 880,
+          maxWidth: 1100,
           margin: "0 auto",
-          borderRadius: 30,
-          background: "rgba(15, 23, 42, 0.82)",
-          border: "1px solid rgba(148, 163, 184, 0.16)",
-          boxShadow: "0 22px 62px rgba(0, 0, 0, 0.17)",
-          padding: 22,
+          display: "grid",
+          gap: 18,
         }}
       >
-        <div className={styles.cardHeader}>
-          <div>
-            <h2>Basisdaten</h2>
-            <p>Titel, Beschreibung, Standort und Kontaktangaben bearbeiten.</p>
-          </div>
-          <span>{isBusiness ? "Business QR-X" : "Normaler QR-X"}</span>
-        </div>
-
         {loading ? (
-          <div
-            style={{
-              minHeight: 240,
-              display: "grid",
-              placeItems: "center",
-              color: "#cbd5e1",
-              fontWeight: 950,
-            }}
-          >
-            QR-X wird geladen …
+          <div style={panelStyle}>
+            <div style={{ minHeight: 220, display: "grid", placeItems: "center", color: "#cbd5e1", fontWeight: 950 }}>
+              Medien werden geladen …
+            </div>
           </div>
         ) : null}
 
         {errorText ? (
-          <div
-            style={{
-              borderRadius: 22,
-              padding: 16,
-              marginBottom: 16,
-              background: "rgba(239, 68, 68, 0.14)",
-              border: "1px solid rgba(252, 165, 165, 0.22)",
-              color: "#fecaca",
-              fontWeight: 850,
-              lineHeight: 1.55,
-            }}
-          >
-            {errorText}
-          </div>
+          <div style={errorStyle}>{errorText}</div>
         ) : null}
 
         {successText ? (
-          <div
-            style={{
-              borderRadius: 22,
-              padding: 16,
-              marginBottom: 16,
-              background: "rgba(34, 197, 94, 0.14)",
-              border: "1px solid rgba(134, 239, 172, 0.22)",
-              color: "#bbf7d0",
-              fontWeight: 850,
-              lineHeight: 1.55,
-            }}
-          >
-            {successText}
-          </div>
+          <div style={successStyle}>{successText}</div>
         ) : null}
 
         {!loading && entry ? (
-          <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
-            <label style={labelStyle}>
-              Titel *
-              <input value={title} onChange={(event) => setTitle(event.target.value)} style={inputStyle} required />
-            </label>
-
-            {isBusiness ? (
-              <label style={labelStyle}>
-                Firmenname
-                <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} style={inputStyle} />
-              </label>
-            ) : null}
-
-            <label style={labelStyle}>
-              Beschreibung
-              <textarea
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                style={{ ...inputStyle, minHeight: 140, paddingTop: 14, resize: "vertical" }}
-              />
-            </label>
-
-            <label style={labelStyle}>
-              Standortname
-              <input value={locationName} onChange={(event) => setLocationName(event.target.value)} style={inputStyle} />
-            </label>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <label style={labelStyle}>
-                Breitengrad
-                <input
-                  value={locationLat}
-                  onChange={(event) => setLocationLat(event.target.value)}
-                  style={inputStyle}
-                  placeholder="z. B. 50.9375"
-                />
-              </label>
-
-              <label style={labelStyle}>
-                Längengrad
-                <input
-                  value={locationLng}
-                  onChange={(event) => setLocationLng(event.target.value)}
-                  style={inputStyle}
-                  placeholder="z. B. 6.9603"
-                />
-              </label>
-            </div>
-
-            {isBusiness ? (
-              <>
-                <div
-                  style={{
-                    height: 1,
-                    background: "rgba(255,255,255,0.09)",
-                    margin: "4px 0",
-                  }}
-                />
-
+          <>
+            <form onSubmit={handleSaveBaseImages} style={panelStyle}>
+              <div className={styles.cardHeader}>
                 <div>
-                  <h3 style={{ margin: "0 0 10px", color: "#ffffff", fontSize: 18 }}>Kontakt & Aktionen</h3>
-                  <p style={{ margin: "0 0 14px", color: "#94a3b8", lineHeight: 1.55 }}>
-                    Diese Angaben erscheinen später als Buttons in der QR-X Webansicht.
-                  </p>
+                  <h2>Coverbild & Logo</h2>
+                  <p>Diese URLs werden direkt in der QR-X Webansicht verwendet.</p>
                 </div>
+                <span>Basis</span>
+              </div>
 
+              <div style={{ display: "grid", gap: 16 }}>
                 <label style={labelStyle}>
-                  Telefon
-                  <input value={ctaPhone} onChange={(event) => setCtaPhone(event.target.value)} style={inputStyle} />
-                </label>
-
-                <label style={labelStyle}>
-                  Webseite
+                  Coverbild-URL
                   <input
-                    value={ctaWebsite}
-                    onChange={(event) => setCtaWebsite(event.target.value)}
+                    value={coverUrl}
+                    onChange={(event) => setCoverUrl(event.target.value)}
                     style={inputStyle}
                     placeholder="https://..."
                   />
                 </label>
 
-                <label style={labelStyle}>
-                  E-Mail
-                  <input value={ctaEmail} onChange={(event) => setCtaEmail(event.target.value)} style={inputStyle} />
-                </label>
+                {coverUrl.trim() ? (
+                  <PreviewImage url={coverUrl} label="Coverbild Vorschau" />
+                ) : null}
 
                 <label style={labelStyle}>
-                  Navigation
+                  Logo-URL
                   <input
-                    value={ctaNavigation}
-                    onChange={(event) => setCtaNavigation(event.target.value)}
+                    value={logoUrl}
+                    onChange={(event) => setLogoUrl(event.target.value)}
                     style={inputStyle}
-                    placeholder="Adresse oder Google-Maps-Link"
+                    placeholder="https://..."
                   />
                 </label>
-              </>
-            ) : null}
 
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "flex-end",
-                gap: 12,
-                marginTop: 8,
-              }}
-            >
-              <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
-                Abbrechen
-              </Link>
+                {logoUrl.trim() ? (
+                  <PreviewImage url={logoUrl} label="Logo Vorschau" compact />
+                ) : null}
 
-              <button
-                type="submit"
-                disabled={saving}
-                className={styles.primaryButton}
-                style={{ border: 0, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.72 : 1 }}
-              >
-                {saving ? "Speichert …" : "Speichern"}
-              </button>
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    type="submit"
+                    disabled={savingBase}
+                    className={styles.primaryButton}
+                    style={{ border: 0, cursor: savingBase ? "not-allowed" : "pointer", opacity: savingBase ? 0.72 : 1 }}
+                  >
+                    {savingBase ? "Speichert …" : "Cover & Logo speichern"}
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <form onSubmit={handleAddImage} style={panelStyle}>
+              <div className={styles.cardHeader}>
+                <div>
+                  <h2>Galerie-Bild hinzufügen</h2>
+                  <p>Füge zusätzliche Bilder hinzu, die unter „Bilder“ in der QR-X Webansicht erscheinen.</p>
+                </div>
+                <span>{media.length} Bilder</span>
+              </div>
+
+              <div style={{ display: "grid", gap: 16 }}>
+                <label style={labelStyle}>
+                  Bild-URL *
+                  <input
+                    value={imageUrl}
+                    onChange={(event) => setImageUrl(event.target.value)}
+                    style={inputStyle}
+                    placeholder="https://..."
+                    required
+                  />
+                </label>
+
+                <label style={labelStyle}>
+                  Dateiname / Bezeichnung
+                  <input
+                    value={imageFilename}
+                    onChange={(event) => setImageFilename(event.target.value)}
+                    style={inputStyle}
+                    placeholder="restaurant-innen.jpg"
+                  />
+                </label>
+
+                {imageUrl.trim() ? <PreviewImage url={imageUrl} label="Neues Bild Vorschau" /> : null}
+
+                <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    type="submit"
+                    disabled={addingImage}
+                    className={styles.primaryButton}
+                    style={{ border: 0, cursor: addingImage ? "not-allowed" : "pointer", opacity: addingImage ? 0.72 : 1 }}
+                  >
+                    {addingImage ? "Fügt hinzu …" : "Bild hinzufügen"}
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <div style={panelStyle}>
+              <div className={styles.cardHeader}>
+                <div>
+                  <h2>Galerie</h2>
+                  <p>Diese Bilder sind aktuell mit deinem QR-X verknüpft.</p>
+                </div>
+                <span>{media.length} Einträge</span>
+              </div>
+
+              {media.length === 0 ? (
+                <div
+                  style={{
+                    minHeight: 180,
+                    display: "grid",
+                    placeItems: "center",
+                    color: "#94a3b8",
+                    textAlign: "center",
+                    borderRadius: 22,
+                    background: "rgba(255,255,255,0.045)",
+                    border: "1px solid rgba(255,255,255,0.075)",
+                    fontWeight: 850,
+                  }}
+                >
+                  Noch keine Galerie-Bilder vorhanden.
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+                  {media.map((item) => (
+                    <article
+                      key={item.id}
+                      style={{
+                        overflow: "hidden",
+                        borderRadius: 22,
+                        background: "rgba(255,255,255,0.055)",
+                        border: "1px solid rgba(255,255,255,0.085)",
+                      }}
+                    >
+                      <div style={{ height: 150, background: "#e2e8f0", overflow: "hidden" }}>
+                        <img
+                          src={item.url}
+                          alt={item.filename}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        />
+                      </div>
+
+                      <div style={{ padding: 12, display: "grid", gap: 10 }}>
+                        <strong style={{ color: "#ffffff", fontSize: 14, wordBreak: "break-word" }}>{item.filename}</strong>
+                        <a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontSize: 12, fontWeight: 900 }}>
+                          Bild öffnen
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteImage(item.id)}
+                          disabled={deletingId === item.id}
+                          style={{
+                            minHeight: 38,
+                            borderRadius: 12,
+                            border: "1px solid rgba(252,165,165,0.22)",
+                            background: "rgba(239,68,68,0.14)",
+                            color: "#fecaca",
+                            fontWeight: 950,
+                            cursor: deletingId === item.id ? "not-allowed" : "pointer",
+                          }}
+                        >
+                          {deletingId === item.id ? "Entfernt …" : "Entfernen"}
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
-          </form>
+          </>
         ) : null}
       </section>
     </main>
   );
 }
+
+function PreviewImage({ url, label, compact }: { url: string; label: string; compact?: boolean }) {
+  return (
+    <div
+      style={{
+        borderRadius: 22,
+        padding: 12,
+        background: "rgba(255,255,255,0.045)",
+        border: "1px solid rgba(255,255,255,0.075)",
+      }}
+    >
+      <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 900, marginBottom: 8 }}>{label}</div>
+      <div style={{ height: compact ? 110 : 210, borderRadius: 16, overflow: "hidden", background: "#e2e8f0" }}>
+        <img
+          src={url}
+          alt={label}
+          style={{ width: "100%", height: "100%", objectFit: compact ? "contain" : "cover", display: "block" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+const panelStyle: React.CSSProperties = {
+  borderRadius: 30,
+  background: "rgba(15, 23, 42, 0.82)",
+  border: "1px solid rgba(148, 163, 184, 0.16)",
+  boxShadow: "0 22px 62px rgba(0, 0, 0, 0.17)",
+  padding: 22,
+};
 
 const labelStyle: React.CSSProperties = {
   display: "grid",
@@ -450,4 +515,24 @@ const inputStyle: React.CSSProperties = {
   fontWeight: 800,
   outline: "none",
   boxSizing: "border-box",
+};
+
+const errorStyle: React.CSSProperties = {
+  borderRadius: 22,
+  padding: 16,
+  background: "rgba(239, 68, 68, 0.14)",
+  border: "1px solid rgba(252, 165, 165, 0.22)",
+  color: "#fecaca",
+  fontWeight: 850,
+  lineHeight: 1.55,
+};
+
+const successStyle: React.CSSProperties = {
+  borderRadius: 22,
+  padding: 16,
+  background: "rgba(34, 197, 94, 0.14)",
+  border: "1px solid rgba(134, 239, 172, 0.22)",
+  color: "#bbf7d0",
+  fontWeight: 850,
+  lineHeight: 1.55,
 };
