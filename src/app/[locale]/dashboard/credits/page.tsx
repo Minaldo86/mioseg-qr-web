@@ -63,6 +63,7 @@ export default function CreditsPage() {
   const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<number | null>(null);
 
   useEffect(() => {
     void loadCredits();
@@ -131,10 +132,59 @@ export default function CreditsPage() {
     [credits]
   );
 
-  function handleStripeSoon(creditAmount: number) {
-    alert(
-      `Stripe Checkout wird im nächsten Schritt angebunden. Gewähltes Paket: ${creditAmount} Credits.`
-    );
+  async function handleStripeCheckout(creditAmount: number) {
+    try {
+      setCheckoutLoading(creditAmount);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        alert("Bitte zuerst anmelden.");
+        return;
+      }
+
+      const packMap: Record<number, string> = {
+        5: "starter",
+        10: "standard",
+        25: "beliebt",
+        50: "business",
+      };
+
+      const packId = packMap[creditAmount];
+
+      if (!packId) {
+        throw new Error("Dieses Credit-Paket ist nicht bekannt.");
+      }
+
+      const response = await fetch("/api/credits", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          packId,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Checkout konnte nicht gestartet werden.");
+      }
+
+      if (!result.url) {
+        throw new Error("Stripe Checkout URL fehlt.");
+      }
+
+      window.location.href = result.url;
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Checkout konnte nicht gestartet werden.");
+    } finally {
+      setCheckoutLoading(null);
+    }
   }
 
   return (
@@ -237,11 +287,12 @@ export default function CreditsPage() {
 
                 <button
                   type="button"
-                  onClick={() => handleStripeSoon(item.credits)}
+                  onClick={() => void handleStripeCheckout(item.credits)}
+                  disabled={checkoutLoading === item.credits}
                   className={styles.primaryButton}
-                  style={{ width: "100%", border: 0, cursor: "pointer" }}
+                  style={{ width: "100%", border: 0, cursor: checkoutLoading === item.credits ? "not-allowed" : "pointer", opacity: checkoutLoading === item.credits ? 0.72 : 1 }}
                 >
-                  Kaufen vorbereiten
+                  {checkoutLoading === item.credits ? "Weiter zu Stripe..." : "Credits kaufen"}
                 </button>
               </div>
             ))}
