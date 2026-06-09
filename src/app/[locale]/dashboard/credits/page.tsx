@@ -157,8 +157,7 @@ export default function CreditsPage() {
       if (!packId) {
         throw new Error("Dieses Credit-Paket ist nicht bekannt.");
       }
-
-      const response = await fetch("/api/credits", {
+const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
