@@ -49,10 +49,10 @@ function formatDate(value: string | null) {
 }
 
 const PACKAGES = [
-  { credits: 5, price: 5, label: "Starter" },
-  { credits: 10, price: 10, label: "Standard" },
-  { credits: 25, price: 25, label: "Beliebt" },
-  { credits: 50, price: 50, label: "Business" },
+  { credits: 10, price: 9.99, label: "Starter" },
+  { credits: 25, price: 19.99, label: "Beliebt" },
+  { credits: 50, price: 34.99, label: "Pro" },
+  { credits: 100, price: 59.99, label: "Best Value" },
 ];
 
 export default function CreditsPage() {
@@ -146,10 +146,10 @@ export default function CreditsPage() {
       }
 
       const packMap: Record<number, string> = {
-        5: "starter",
-        10: "standard",
-        25: "beliebt",
-        50: "business",
+        10: "p10",
+        25: "p25",
+        50: "p50",
+        100: "p100",
       };
 
       const packId = packMap[creditAmount];
@@ -205,7 +205,7 @@ export default function CreditsPage() {
           <span className={styles.kicker}>Credits</span>
           <h1>Credits verwalten</h1>
           <p>
-            Behalte dein Guthaben im Blick und kaufe später neue Credits direkt über Stripe.
+            Behalte dein Guthaben im Blick und kaufe neue Credits direkt über Stripe.
             1 Credit entspricht 1 Euro.
           </p>
         </div>
@@ -243,7 +243,7 @@ export default function CreditsPage() {
           <div className={styles.cardHeader}>
             <div>
               <h2>Credit-Pakete</h2>
-              <p>Stripe wird im nächsten Schritt angebunden. Die Pakete sind schon vorbereitet.</p>
+              <p>Wähle ein Paket und starte den sicheren Checkout über Stripe.</p>
             </div>
             <span>Pay-per-Use</span>
           </div>
