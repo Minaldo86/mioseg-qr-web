@@ -74,11 +74,9 @@ type LeafletApi = {
   marker: (latLng: [number, number], options?: { icon?: unknown }) => LeafletMarker;
 };
 
-declare global {
-  interface Window {
-    L?: LeafletApi;
-  }
-}
+type WindowWithLeaflet = Window & {
+  L?: LeafletApi;
+};
 
 const LEGEND: Array<{ kind: MarkerKind; label: string; color: string }> = [
   { kind: "own_business", label: "Gold = Mein Business QR-X", color: "#f2b705" },
@@ -87,6 +85,10 @@ const LEGEND: Array<{ kind: MarkerKind; label: string; color: string }> = [
   { kind: "saved_normal", label: "Lila = Gespeicherter QR-X", color: "#8b5cf6" },
   { kind: "scan", label: "Blau = Normaler Scan", color: "#2563eb" },
 ];
+
+function getLeafletWindow() {
+  return window as WindowWithLeaflet;
+}
 
 function escapeHtml(value: string) {
   return value
@@ -122,7 +124,10 @@ function isValidCoordinate(lat: unknown, lng: unknown): lat is number {
 
 async function ensureLeaflet(): Promise<LeafletApi | null> {
   if (typeof window === "undefined") return null;
-  if (window.L) return window.L;
+
+  const leafletWindow = getLeafletWindow();
+
+  if (leafletWindow.L) return leafletWindow.L;
 
   if (!document.querySelector('link[data-mioseg-dashboard-leaflet="true"]')) {
     const link = document.createElement("link");
@@ -135,7 +140,7 @@ async function ensureLeaflet(): Promise<LeafletApi | null> {
   await new Promise<void>((resolve, reject) => {
     const existingScript = document.querySelector<HTMLScriptElement>('script[data-mioseg-dashboard-leaflet="true"]');
     if (existingScript) {
-      if (window.L) resolve();
+      if (leafletWindow.L) resolve();
       existingScript.addEventListener("load", () => resolve(), { once: true });
       existingScript.addEventListener("error", () => reject(new Error("Leaflet load failed")), { once: true });
       return;
@@ -150,7 +155,7 @@ async function ensureLeaflet(): Promise<LeafletApi | null> {
     document.body.appendChild(script);
   });
 
-  return window.L ?? null;
+  return leafletWindow.L ?? null;
 }
 
 function buildPopup(point: MapPoint) {
@@ -197,8 +202,109 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   const [legendOpen, setLegendOpen] = useState(true);
 
   useEffect(() => {
+    async function loadMapPoints() {
+      setLoading(true);
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) console.warn("Dashboard map user error:", userError.message);
+
+      if (!user) {
+        setPoints([]);
+        setLoading(false);
+        return;
+      }
+
+      const userId = user.id;
+
+      const [ownQrxRes, savesRes, scansRes] = await Promise.all([
+        supabase
+          .from("qr_x_entries")
+          .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng")
+          .eq("owner_user_id", userId)
+          .returns<QrxEntry[]>(),
+
+        supabase
+          .from("qrx_saves")
+          .select("qrx_id")
+          .eq("user_id", userId)
+          .returns<SaveRow[]>(),
+
+        supabase
+          .from("user_scans")
+          .select("id,name,title,url,kind,latitude,longitude")
+          .eq("user_id", userId)
+          .returns<UserScan[]>(),
+      ]);
+
+      if (ownQrxRes.error) console.warn("Dashboard map own QR-X error:", ownQrxRes.error.message);
+      if (savesRes.error) console.warn("Dashboard map saves error:", savesRes.error.message);
+      if (scansRes.error) console.warn("Dashboard map scans error:", scansRes.error.message);
+
+      const savedQrxIds = Array.from(new Set((savesRes.data ?? []).map((row) => row.qrx_id).filter(Boolean))) as string[];
+
+      let savedQrx: QrxEntry[] = [];
+
+      if (savedQrxIds.length > 0) {
+        const { data, error } = await supabase
+          .from("qr_x_entries")
+          .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng")
+          .in("id", savedQrxIds)
+          .returns<QrxEntry[]>();
+
+        if (error) console.warn("Dashboard map saved QR-X details error:", error.message);
+        savedQrx = data ?? [];
+      }
+
+      const ownPoints: MapPoint[] = (ownQrxRes.data ?? [])
+        .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
+        .map((entry) => ({
+          id: `own-${entry.id}`,
+          title: getQrxTitle(entry),
+          description: getQrxDescription(entry),
+          href: `/${locale}/qrx/${entry.id}`,
+          latitude: entry.location_lat as number,
+          longitude: entry.location_lng as number,
+          kind: entry.type === "business" ? "own_business" : "own_normal",
+          locationName: entry.location_name,
+        }));
+
+      const savedPoints: MapPoint[] = savedQrx
+        .filter((entry) => entry.owner_user_id !== userId)
+        .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
+        .map((entry) => ({
+          id: `saved-${entry.id}`,
+          title: getQrxTitle(entry),
+          description: getQrxDescription(entry),
+          href: `/${locale}/qrx/${entry.id}`,
+          latitude: entry.location_lat as number,
+          longitude: entry.location_lng as number,
+          kind: entry.type === "business" ? "saved_business" : "saved_normal",
+          locationName: entry.location_name,
+        }));
+
+      const scanPoints: MapPoint[] = (scansRes.data ?? [])
+        .filter((scan) => isValidCoordinate(scan.latitude, scan.longitude))
+        .map((scan) => ({
+          id: `scan-${scan.id}`,
+          title: scan.name?.trim() || scan.title?.trim() || "Normaler Scan",
+          description: scan.url?.trim() || scan.kind?.trim() || "Gespeicherter QR-Code",
+          href: null,
+          latitude: scan.latitude as number,
+          longitude: scan.longitude as number,
+          kind: "scan",
+          locationName: null,
+        }));
+
+      setPoints([...ownPoints, ...savedPoints, ...scanPoints]);
+      setLoading(false);
+    }
+
     void loadMapPoints();
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     if (loading) return;
@@ -255,109 +361,12 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
     return () => {
       cancelled = true;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
     };
   }, [loading, points]);
-
-  async function loadMapPoints() {
-    setLoading(true);
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError) console.warn("Dashboard map user error:", userError.message);
-
-    if (!user) {
-      setPoints([]);
-      setLoading(false);
-      return;
-    }
-
-    const userId = user.id;
-
-    const [ownQrxRes, savesRes, scansRes] = await Promise.all([
-      supabase
-        .from("qr_x_entries")
-        .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng")
-        .eq("owner_user_id", userId)
-        .returns<QrxEntry[]>(),
-
-      supabase
-        .from("qrx_saves")
-        .select("qrx_id")
-        .eq("user_id", userId)
-        .returns<SaveRow[]>(),
-
-      supabase
-        .from("user_scans")
-        .select("id,name,title,url,kind,latitude,longitude")
-        .eq("user_id", userId)
-        .returns<UserScan[]>(),
-    ]);
-
-    if (ownQrxRes.error) console.warn("Dashboard map own QR-X error:", ownQrxRes.error.message);
-    if (savesRes.error) console.warn("Dashboard map saves error:", savesRes.error.message);
-    if (scansRes.error) console.warn("Dashboard map scans error:", scansRes.error.message);
-
-    const savedQrxIds = Array.from(new Set((savesRes.data ?? []).map((row) => row.qrx_id).filter(Boolean))) as string[];
-
-    let savedQrx: QrxEntry[] = [];
-
-    if (savedQrxIds.length > 0) {
-      const { data, error } = await supabase
-        .from("qr_x_entries")
-        .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng")
-        .in("id", savedQrxIds)
-        .returns<QrxEntry[]>();
-
-      if (error) console.warn("Dashboard map saved QR-X details error:", error.message);
-      savedQrx = data ?? [];
-    }
-
-    const ownPoints: MapPoint[] = (ownQrxRes.data ?? [])
-      .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
-      .map((entry) => ({
-        id: `own-${entry.id}`,
-        title: getQrxTitle(entry),
-        description: getQrxDescription(entry),
-        href: `/${locale}/qrx/${entry.id}`,
-        latitude: entry.location_lat as number,
-        longitude: entry.location_lng as number,
-        kind: entry.type === "business" ? "own_business" : "own_normal",
-        locationName: entry.location_name,
-      }));
-
-    const savedPoints: MapPoint[] = savedQrx
-      .filter((entry) => entry.owner_user_id !== userId)
-      .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
-      .map((entry) => ({
-        id: `saved-${entry.id}`,
-        title: getQrxTitle(entry),
-        description: getQrxDescription(entry),
-        href: `/${locale}/qrx/${entry.id}`,
-        latitude: entry.location_lat as number,
-        longitude: entry.location_lng as number,
-        kind: entry.type === "business" ? "saved_business" : "saved_normal",
-        locationName: entry.location_name,
-      }));
-
-    const scanPoints: MapPoint[] = (scansRes.data ?? [])
-      .filter((scan) => isValidCoordinate(scan.latitude, scan.longitude))
-      .map((scan) => ({
-        id: `scan-${scan.id}`,
-        title: scan.name?.trim() || scan.title?.trim() || "Normaler Scan",
-        description: scan.url?.trim() || scan.kind?.trim() || "Gespeicherter QR-Code",
-        href: null,
-        latitude: scan.latitude as number,
-        longitude: scan.longitude as number,
-        kind: "scan",
-        locationName: null,
-      }));
-
-    setPoints([...ownPoints, ...savedPoints, ...scanPoints]);
-    setLoading(false);
-  }
 
   const countByKind = points.reduce<Record<MarkerKind, number>>(
     (acc, point) => {
