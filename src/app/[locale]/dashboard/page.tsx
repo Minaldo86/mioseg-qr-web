@@ -1,3 +1,4 @@
+import DashboardClient from "./DashboardClient";
 import Link from "next/link";
 import styles from "./dashboard.module.css";
 
@@ -67,13 +68,6 @@ export default async function DashboardPage({ params }: Props) {
           navExplore: "Explore",
         };
 
-  const stats = [
-    { label: copy.credits, value: "–", icon: "💳" },
-    { label: copy.createdQrx, value: "–", icon: "▣" },
-    { label: copy.savedQrx, value: "–", icon: "🔖" },
-    { label: copy.savedQr, value: "–", icon: "⌗" },
-  ];
-
   return (
     <main className={styles.page}>
       <header className={styles.topbar}>
@@ -104,17 +98,14 @@ export default async function DashboardPage({ params }: Props) {
         </div>
       </section>
 
-      <section className={styles.statsGrid} aria-label="Dashboard Kennzahlen">
-        {stats.map((item) => (
-          <article key={item.label} className={styles.statCard}>
-            <div className={styles.statIcon}>{item.icon}</div>
-            <div>
-              <div className={styles.statValue}>{item.value}</div>
-              <div className={styles.statLabel}>{item.label}</div>
-            </div>
-          </article>
-        ))}
-      </section>
+      <section className={styles.statsGrid}>
+  <DashboardClient
+    creditsLabel={copy.credits}
+    createdQrxLabel={copy.createdQrx}
+    savedQrxLabel={copy.savedQrx}
+    savedQrLabel={copy.savedQr}
+  />
+</section>
 
       <section className={styles.dashboardGrid}>
         <article className={styles.mapCard}>
