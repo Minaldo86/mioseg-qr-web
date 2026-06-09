@@ -1,3 +1,341 @@
-export default function Page() {
-  return <main>In Bearbeitung</main>;
+"use client";
+
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+import { supabase } from "@/lib/supabase";
+import styles from "../dashboard.module.css";
+
+type ProfileRow = {
+  id: string;
+  email: string | null;
+  display_name?: string | null;
+  full_name?: string | null;
+  created_at?: string | null;
+};
+
+function getParam(value: string | string[] | undefined, fallback: string) {
+  if (typeof value === "string" && value.trim()) return value;
+  if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim()) return value[0];
+  return fallback;
 }
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "–";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "–";
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+export default function AccountPage() {
+  const params = useParams();
+  const router = useRouter();
+
+  const locale = getParam(params?.locale as string | string[] | undefined, "de");
+
+  const [loading, setLoading] = useState(true);
+  const [signingOut, setSigningOut] = useState(false);
+  const [errorText, setErrorText] = useState<string | null>(null);
+
+  const [userId, setUserId] = useState("");
+  const [email, setEmail] = useState("");
+  const [createdAt, setCreatedAt] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+
+  useEffect(() => {
+    void loadAccount();
+  }, []);
+
+  async function loadAccount() {
+    setLoading(true);
+    setErrorText(null);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) {
+      setErrorText(userError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!user) {
+      setErrorText("Bitte melde dich zuerst an.");
+      setLoading(false);
+      return;
+    }
+
+    setUserId(user.id);
+    setEmail(user.email ?? "");
+    setCreatedAt(user.created_at ?? null);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle()
+      .returns<ProfileRow>();
+
+    if (error) {
+      console.warn("Profile konnte nicht geladen werden:", error.message);
+    }
+
+    setProfile(data ?? null);
+    setLoading(false);
+  }
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    setErrorText(null);
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      setErrorText(error.message);
+      setSigningOut(false);
+      return;
+    }
+
+    router.push(`/${locale}/login`);
+  }
+
+  const displayName =
+    profile?.display_name?.trim() ||
+    profile?.full_name?.trim() ||
+    email ||
+    "Mioseg qr Nutzer";
+
+  return (
+    <main className={styles.page}>
+      <header className={styles.topbar}>
+        <Link href={`/${locale}/dashboard`} className={styles.brand}>
+          <img src="/logo-white.png" alt="Mioseg qr Logo" />
+        </Link>
+
+        <nav className={styles.nav} aria-label="Konto Navigation">
+          <Link href={`/${locale}/dashboard`}>Dashboard</Link>
+          <Link href={`/${locale}/dashboard/qrx`}>Meine QR-X</Link>
+          <Link href={`/${locale}/dashboard/credits`}>Credits</Link>
+        </nav>
+      </header>
+
+      <section className={styles.hero}>
+        <div>
+          <span className={styles.kicker}>Konto</span>
+          <h1>Dein Konto</h1>
+          <p>
+            Hier siehst du deine wichtigsten Kontodaten. Profilbearbeitung, Rechnungen und Sicherheit
+            erweitern wir im nächsten Schritt.
+          </p>
+        </div>
+
+        <div className={styles.heroActions}>
+          <Link href={`/${locale}/dashboard`} className={styles.secondaryButton}>
+            Zurück zum Dashboard
+          </Link>
+          <button
+            type="button"
+            onClick={() => void handleSignOut()}
+            disabled={signingOut}
+            className={styles.primaryButton}
+            style={{ border: 0, cursor: signingOut ? "not-allowed" : "pointer", opacity: signingOut ? 0.72 : 1 }}
+          >
+            {signingOut ? "Meldet ab …" : "Abmelden"}
+          </button>
+        </div>
+      </section>
+
+      <section className={styles.statsGrid} aria-label="Konto Übersicht">
+        <article className={styles.statCard}>
+          <div className={styles.statIcon}>👤</div>
+          <div>
+            <div className={styles.statValue}>{loading ? "…" : "Aktiv"}</div>
+            <div className={styles.statLabel}>Konto-Status</div>
+          </div>
+        </article>
+
+        <article className={styles.statCard}>
+          <div className={styles.statIcon}>💳</div>
+          <div>
+            <div className={styles.statValue}>Pay</div>
+            <div className={styles.statLabel}>Credit-System</div>
+          </div>
+        </article>
+
+        <article className={styles.statCard}>
+          <div className={styles.statIcon}>🧾</div>
+          <div>
+            <div className={styles.statValue}>Bald</div>
+            <div className={styles.statLabel}>Rechnungen</div>
+          </div>
+        </article>
+
+        <article className={styles.statCard}>
+          <div className={styles.statIcon}>🔐</div>
+          <div>
+            <div className={styles.statValue}>Auth</div>
+            <div className={styles.statLabel}>Supabase Login</div>
+          </div>
+        </article>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 980,
+          margin: "0 auto",
+          display: "grid",
+          gap: 18,
+        }}
+      >
+        <article style={panelStyle}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2>Kontodaten</h2>
+              <p>Diese Daten kommen direkt aus deiner Supabase-Anmeldung und dem Profil.</p>
+            </div>
+            <span>{loading ? "Lädt" : "Live"}</span>
+          </div>
+
+          {errorText ? <div style={errorStyle}>{errorText}</div> : null}
+
+          {loading ? (
+            <div
+              style={{
+                minHeight: 220,
+                display: "grid",
+                placeItems: "center",
+                color: "#cbd5e1",
+                fontWeight: 950,
+              }}
+            >
+              Konto wird geladen …
+            </div>
+          ) : null}
+
+          {!loading && !errorText ? (
+            <div style={{ display: "grid", gap: 12 }}>
+              <InfoRow label="Name / Anzeige" value={displayName} />
+              <InfoRow label="E-Mail" value={email || "–"} />
+              <InfoRow label="User-ID" value={userId || "–"} monospace />
+              <InfoRow label="Registriert seit" value={formatDate(createdAt)} />
+            </div>
+          ) : null}
+        </article>
+
+        <article style={panelStyle}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2>Nächste Konto-Funktionen</h2>
+              <p>Diese Bereiche bauen wir nach Stripe und Rechnungserstellung aus.</p>
+            </div>
+            <span>Roadmap</span>
+          </div>
+
+          <div style={{ display: "grid", gap: 10 }}>
+            <RoadmapItem icon="🧾" title="Rechnungen herunterladen" text="Nach Stripe-Kauf sollen Rechnungen im Konto abrufbar sein." />
+            <RoadmapItem icon="🏢" title="Rechnungsadresse" text="Firma, Name, Straße, PLZ, Ort und Land für korrekte Rechnungen." />
+            <RoadmapItem icon="🔐" title="Sicherheit" text="Passwort ändern, Sitzung prüfen und später Account löschen." />
+            <RoadmapItem icon="🛟" title="Support" text="Kontakt & Hilfe direkt mit deinem Nutzerkonto verbinden." />
+          </div>
+        </article>
+      </section>
+    </main>
+  );
+}
+
+function InfoRow({ label, value, monospace }: { label: string; value: string; monospace?: boolean }) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "180px 1fr",
+        gap: 12,
+        alignItems: "center",
+        borderRadius: 18,
+        padding: 14,
+        background: "rgba(255,255,255,0.045)",
+        border: "1px solid rgba(255,255,255,0.075)",
+      }}
+    >
+      <div style={{ color: "#94a3b8", fontSize: 13, fontWeight: 900 }}>{label}</div>
+      <div
+        style={{
+          color: "#ffffff",
+          fontSize: 14,
+          fontWeight: 850,
+          wordBreak: "break-word",
+          fontFamily: monospace ? "ui-monospace, SFMono-Regular, Menlo, monospace" : undefined,
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function RoadmapItem({ icon, title, text }: { icon: string; title: string; text: string }) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "48px 1fr",
+        gap: 12,
+        alignItems: "center",
+        borderRadius: 18,
+        padding: 14,
+        background: "rgba(255,255,255,0.045)",
+        border: "1px solid rgba(255,255,255,0.075)",
+      }}
+    >
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          display: "grid",
+          placeItems: "center",
+          borderRadius: 18,
+          color: "#07101f",
+          background: "linear-gradient(180deg, #ffffff, #dbeafe)",
+          fontSize: 21,
+          fontWeight: 950,
+        }}
+      >
+        {icon}
+      </div>
+      <div>
+        <strong style={{ display: "block", color: "#ffffff", fontSize: 15, fontWeight: 950 }}>{title}</strong>
+        <p style={{ margin: "4px 0 0", color: "#94a3b8", fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
+          {text}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const panelStyle: React.CSSProperties = {
+  borderRadius: 30,
+  background: "rgba(15, 23, 42, 0.82)",
+  border: "1px solid rgba(148, 163, 184, 0.16)",
+  boxShadow: "0 22px 62px rgba(0, 0, 0, 0.17)",
+  padding: 22,
+};
+
+const errorStyle: React.CSSProperties = {
+  borderRadius: 22,
+  padding: 16,
+  marginBottom: 16,
+  background: "rgba(239, 68, 68, 0.14)",
+  border: "1px solid rgba(252, 165, 165, 0.22)",
+  color: "#fecaca",
+  fontWeight: 850,
+  lineHeight: 1.55,
+};
