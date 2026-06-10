@@ -32,6 +32,9 @@ type BillingProfile = {
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
+  console.warn("STRIPE MODE CHECK", {
+  keyPrefix: key?.slice(0, 8),
+});
   if (!key) throw new Error("STRIPE_SECRET_KEY fehlt.");
   return new Stripe(key);
 }
