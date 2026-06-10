@@ -487,8 +487,21 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (!packId) throw new Error(`Stripe Session ${sessionId}: packId fehlt.`);
   if (!Number.isInteger(credits) || credits <= 0) throw new Error(`Stripe Session ${sessionId}: credits ungültig.`);
 
-  const taxCents = typeof session.total_details?.amount_tax === "number" ? session.total_details.amount_tax : Math.round(amountCents - amountCents / 1.19);
-  const netCents = Math.max(0, amountCents - taxCents);
+ const stripeTax =
+  typeof session.total_details?.amount_tax === "number"
+    ? session.total_details.amount_tax
+    : 0;
+
+let taxCents: number;
+let netCents: number;
+
+if (stripeTax > 0) {
+  taxCents = stripeTax;
+  netCents = amountCents - taxCents;
+} else {
+  netCents = Math.round(amountCents / 1.19);
+  taxCents = amountCents - netCents;
+}
 
   const purchase = await getOrCreatePurchase({ userId, packId, credits, amountCents, currency, sessionId, paymentIntentId });
 
