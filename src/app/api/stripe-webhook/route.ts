@@ -5,6 +5,8 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type PdfPage = ReturnType<PDFDocument["addPage"]>;
+
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY fehlt.");
@@ -89,7 +91,7 @@ async function fetchBytes(url: string): Promise<Uint8Array> {
   return new Uint8Array(ab);
 }
 
-async function drawLogo(params: { pdf: PDFDocument; page: any; x: number; topY: number }) {
+async function drawLogo(params: { pdf: PDFDocument; page: PdfPage; x: number; topY: number }) {
   try {
     const logoBytes = await fetchBytes(LOGO_URL);
     const logo = await params.pdf.embedPng(logoBytes);
