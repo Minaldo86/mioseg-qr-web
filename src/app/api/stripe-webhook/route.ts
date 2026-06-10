@@ -539,6 +539,11 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
     if (event.type === "checkout.session.completed") await handleCheckoutCompleted(event.data.object);
+    if (event.type === "charge.refunded") {
+  console.warn("Refund event received, but credit note generation is not implemented yet.", {
+    eventId: event.id,
+  });
+}
     return Response.json({ received: true });
   } catch (e: unknown) {
     console.error("stripe webhook error:", e);
