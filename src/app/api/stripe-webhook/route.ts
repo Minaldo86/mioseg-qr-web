@@ -241,14 +241,22 @@ async function sendInvoiceEmailResend(params: {
   if (!resendApiKey) throw new Error("RESEND_API_KEY fehlt.");
   if (!fromEmail) throw new Error("INVOICE_FROM_EMAIL fehlt.");
 
-  const payload: any = {
-    from: fromEmail,
-    to: [params.toEmail],
-    subject: params.subject,
-    text: params.text,
-    attachments: [{ filename: params.filename, content: uint8ToBase64(params.pdfBytes) }],
-  };
-  if (bccEmail) payload.bcc = [bccEmail];
+const payload: {
+  from: string;
+  to: string[];
+  subject: string;
+  text: string;
+  attachments: { filename: string; content: string }[];
+  bcc?: string[];
+} = {
+  from: fromEmail,
+  to: [params.toEmail],
+  subject: params.subject,
+  text: params.text,
+  attachments: [{ filename: params.filename, content: uint8ToBase64(params.pdfBytes) }],
+};
+
+if (bccEmail) payload.bcc = [bccEmail];
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
