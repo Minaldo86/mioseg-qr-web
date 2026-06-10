@@ -11,13 +11,20 @@ type CreditRow = {
   credits: number | null;
 };
 
-type PurchaseRow = {
+type InvoiceRow = {
   id: string;
-  credits: number | null;
-  amount_cents: number | null;
+  invoice_number: string | null;
   currency: string | null;
+  amount_cents: number | null;
+  gross_amount_cents: number | null;
   status: string | null;
   created_at: string | null;
+  sent_at: string | null;
+  pdf_path: string | null;
+  storage_bucket: string | null;
+  invoice_type: "invoice" | "credit_note" | string | null;
+  original_invoice_number: string | null;
+  billing_details: unknown;
 };
 
 function getParam(value: string | string[] | undefined, fallback: string) {
@@ -48,6 +55,91 @@ function formatDate(value: string | null) {
   }).format(date);
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function getBillingNumber(invoice: InvoiceRow, key: string) {
+  const details = asRecord(invoice.billing_details);
+  const value = details[key];
+
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) {
+    return Number(value);
+  }
+
+  return 0;
+}
+
+function getBillingText(invoice: InvoiceRow, key: string, fallback = "") {
+  const details = asRecord(invoice.billing_details);
+  const value = details[key];
+
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function getDocumentAmount(invoice: InvoiceRow) {
+  return invoice.gross_amount_cents ?? invoice.amount_cents ?? 0;
+}
+
+function getDocumentTypeLabel(invoice: InvoiceRow) {
+  if (invoice.invoice_type === "credit_note") return "Gutschrift";
+  return "Rechnung";
+}
+
+function getStatusLabel(status: string | null) {
+  switch (status) {
+    case "sent":
+      return "Versendet";
+    case "created":
+      return "Erstellt";
+    case "creating":
+      return "Wird erstellt";
+    case "failed":
+      return "Fehlgeschlagen";
+    case "refunded":
+      return "Erstattet";
+    case "partially_refunded":
+      return "Teilweise erstattet";
+    default:
+      return status || "Unbekannt";
+  }
+}
+
+function getStatusStyle(status: string | null): React.CSSProperties {
+  if (status === "sent") {
+    return {
+      background: "rgba(34,197,94,0.16)",
+      color: "#bbf7d0",
+      border: "1px solid rgba(34,197,94,0.22)",
+    };
+  }
+
+  if (status === "refunded" || status === "partially_refunded") {
+    return {
+      background: "rgba(251,146,60,0.16)",
+      color: "#fed7aa",
+      border: "1px solid rgba(251,146,60,0.22)",
+    };
+  }
+
+  if (status === "failed") {
+    return {
+      background: "rgba(239,68,68,0.16)",
+      color: "#fecaca",
+      border: "1px solid rgba(239,68,68,0.22)",
+    };
+  }
+
+  return {
+    background: "rgba(255,255,255,0.06)",
+    color: "#cbd5e1",
+    border: "1px solid rgba(255,255,255,0.08)",
+  };
+}
+
 const PACKAGES = [
   { credits: 10, price: 5.99, regularPrice: 9.99, label: "Launch" },
   { credits: 25, price: 12.99, regularPrice: 19.99, label: "Beliebt" },
@@ -60,10 +152,11 @@ export default function CreditsPage() {
   const locale = getParam(params?.locale as string | string[] | undefined, "de");
 
   const [credits, setCredits] = useState<number | "…">("…");
-  const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<number | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     void loadCredits();
@@ -92,7 +185,7 @@ export default function CreditsPage() {
       return;
     }
 
-    const [creditsRes, purchasesRes] = await Promise.all([
+    const [creditsRes, invoicesRes] = await Promise.all([
       supabase
         .from("qrx_credits")
         .select("credits")
@@ -101,24 +194,27 @@ export default function CreditsPage() {
         .returns<CreditRow>(),
 
       supabase
-        .from("qrx_credit_purchases")
-        .select("id,credits,amount_cents,currency,status,created_at")
+        .from("qrx_invoices")
+        .select(
+          "id,invoice_number,currency,amount_cents,gross_amount_cents,status,created_at,sent_at,pdf_path,storage_bucket,invoice_type,original_invoice_number,billing_details"
+        )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(10)
-        .returns<PurchaseRow[]>(),
+        .returns<InvoiceRow[]>(),
     ]);
 
     if (creditsRes.error) {
       console.warn("Credits load error:", creditsRes.error.message);
     }
 
-    if (purchasesRes.error) {
-      console.warn("Purchases load error:", purchasesRes.error.message);
+    if (invoicesRes.error) {
+      console.warn("Invoices load error:", invoicesRes.error.message);
+      setErrorText(invoicesRes.error.message);
     }
 
     setCredits(Number(creditsRes.data?.credits ?? 0));
-    setPurchases(purchasesRes.data ?? []);
+    setInvoices(invoicesRes.data ?? []);
     setLoading(false);
   }
 
@@ -157,7 +253,8 @@ export default function CreditsPage() {
       if (!packId) {
         throw new Error("Dieses Credit-Paket ist nicht bekannt.");
       }
-const response = await fetch("/api/create-checkout-session", {
+
+      const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -186,6 +283,32 @@ const response = await fetch("/api/create-checkout-session", {
     }
   }
 
+  async function openInvoicePdf(invoice: InvoiceRow) {
+    if (!invoice.pdf_path) {
+      alert("Für diesen Beleg ist noch kein PDF hinterlegt.");
+      return;
+    }
+
+    setDownloadingId(invoice.id);
+
+    try {
+      const bucket = invoice.storage_bucket || "invoices";
+      const pdfPath = invoice.pdf_path.replace(/^\/+/, "");
+
+      const { data } = supabase.storage.from(bucket).getPublicUrl(pdfPath);
+
+      if (!data?.publicUrl) {
+        throw new Error("Download-Link konnte nicht erstellt werden.");
+      }
+
+      window.open(data.publicUrl, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "PDF konnte nicht geöffnet werden.");
+    } finally {
+      setDownloadingId(null);
+    }
+  }
+
   return (
     <main className={styles.page}>
       <header className={styles.topbar}>
@@ -196,6 +319,7 @@ const response = await fetch("/api/create-checkout-session", {
         <nav className={styles.nav} aria-label="Credits Navigation">
           <Link href={`/${locale}/dashboard`}>Dashboard</Link>
           <Link href={`/${locale}/dashboard/qrx`}>Meine QR-X</Link>
+          <Link href={`/${locale}/dashboard/invoices`}>Rechnungen</Link>
         </nav>
       </header>
 
@@ -210,6 +334,9 @@ const response = await fetch("/api/create-checkout-session", {
         </div>
 
         <div className={styles.heroActions}>
+          <Link href={`/${locale}/dashboard/invoices`} className={styles.primaryButton}>
+            Rechnungen öffnen
+          </Link>
           <Link href={`/${locale}/dashboard`} className={styles.secondaryButton}>
             Zurück zum Dashboard
           </Link>
@@ -233,7 +360,7 @@ const response = await fetch("/api/create-checkout-session", {
           maxWidth: 1240,
           margin: "0 auto",
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 380px)",
+          gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 420px)",
           gap: 18,
           alignItems: "start",
         }}
@@ -304,7 +431,7 @@ const response = await fetch("/api/create-checkout-session", {
                     {item.regularPrice.toFixed(2).replace(".", ",")} €
                   </span>
                   <br />
-                  inkl. späterer Rechnung für deine Unterlagen.
+                  inkl. Rechnung für deine Unterlagen.
                 </p>
 
                 <button
@@ -312,7 +439,12 @@ const response = await fetch("/api/create-checkout-session", {
                   onClick={() => void handleStripeCheckout(item.credits)}
                   disabled={checkoutLoading === item.credits}
                   className={styles.primaryButton}
-                  style={{ width: "100%", border: 0, cursor: checkoutLoading === item.credits ? "not-allowed" : "pointer", opacity: checkoutLoading === item.credits ? 0.72 : 1 }}
+                  style={{
+                    width: "100%",
+                    border: 0,
+                    cursor: checkoutLoading === item.credits ? "not-allowed" : "pointer",
+                    opacity: checkoutLoading === item.credits ? 0.72 : 1,
+                  }}
                 >
                   {checkoutLoading === item.credits ? "Weiter zu Stripe..." : "Credits kaufen"}
                 </button>
@@ -325,67 +457,93 @@ const response = await fetch("/api/create-checkout-session", {
           <div className={styles.cardHeader}>
             <div>
               <h2>Kaufhistorie</h2>
-              <p>Die letzten Käufe erscheinen hier, sobald Stripe aktiv ist.</p>
+              <p>Deine letzten Rechnungen und Gutschriften zu Credit-Käufen.</p>
             </div>
-            <span>{loading ? "Lädt" : purchases.length}</span>
+            <span>{loading ? "Lädt" : invoices.length}</span>
           </div>
 
           {errorText ? <div style={errorStyle}>{errorText}</div> : null}
 
-          {!loading && purchases.length === 0 ? (
-            <div
-              style={{
-                minHeight: 180,
-                display: "grid",
-                placeItems: "center",
-                borderRadius: 22,
-                padding: 18,
-                textAlign: "center",
-                background: "rgba(255,255,255,0.045)",
-                border: "1px solid rgba(255,255,255,0.075)",
-                color: "#94a3b8",
-                fontWeight: 850,
-                lineHeight: 1.55,
-              }}
-            >
-              Noch keine Käufe vorhanden.
+          {!loading && invoices.length === 0 ? (
+            <div style={emptyStateStyle}>
+              Noch keine Käufe vorhanden. Nach deinem ersten Credit-Kauf erscheint der Beleg hier.
             </div>
           ) : null}
 
-          {loading ? (
-            <div
-              style={{
-                minHeight: 180,
-                display: "grid",
-                placeItems: "center",
-                color: "#cbd5e1",
-                fontWeight: 950,
-              }}
-            >
-              Käufe werden geladen …
-            </div>
-          ) : null}
+          {loading ? <div style={loadingStyle}>Belege werden geladen …</div> : null}
 
-          {!loading && purchases.length > 0 ? (
+          {!loading && invoices.length > 0 ? (
             <div style={{ display: "grid", gap: 10 }}>
-              {purchases.map((item) => (
-                <div
-                  key={item.id}
-                  style={{
-                    borderRadius: 18,
-                    padding: 14,
-                    background: "rgba(255,255,255,0.045)",
-                    border: "1px solid rgba(255,255,255,0.075)",
-                  }}
-                >
-                  <strong style={{ display: "block", color: "#ffffff", marginBottom: 6 }}>
-                    {item.credits ?? 0} Credits · {formatEuro(item.amount_cents, item.currency ?? "EUR")}
-                  </strong>
-                  <span style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850 }}>
-                    {formatDate(item.created_at)} · {item.status ?? "unbekannt"}
-                  </span>
-                </div>
-              ))}
+              {invoices.map((invoice) => {
+                const isCreditNote = invoice.invoice_type === "credit_note";
+                const creditsFromBilling = getBillingNumber(invoice, "credits");
+                const packId = getBillingText(invoice, "pack_id", isCreditNote ? "Gutschrift" : "Paket");
+                const amount = getDocumentAmount(invoice);
+                const statusLabel = getStatusLabel(invoice.status);
+
+                return (
+                  <div key={invoice.id} style={invoiceHistoryCardStyle}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                      <span
+                        style={{
+                          ...documentBadgeStyle,
+                          background: isCreditNote ? "rgba(251,146,60,0.16)" : "rgba(37,99,235,0.18)",
+                          color: isCreditNote ? "#fed7aa" : "#dbeafe",
+                        }}
+                      >
+                        {getDocumentTypeLabel(invoice)}
+                      </span>
+
+                      <span style={{ ...documentBadgeStyle, ...getStatusStyle(invoice.status) }}>
+                        {statusLabel}
+                      </span>
+                    </div>
+
+                    <strong style={{ display: "block", color: "#ffffff", marginTop: 8, marginBottom: 4 }}>
+                      {invoice.invoice_number || "Ohne Belegnummer"}
+                    </strong>
+
+                    <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850, lineHeight: 1.55 }}>
+                      {creditsFromBilling > 0 ? `${creditsFromBilling} Credits` : packId}
+                      {" · "}
+                      {formatEuro(amount, invoice.currency ?? "EUR")}
+                      <br />
+                      {formatDate(invoice.created_at)}
+                      {invoice.sent_at ? ` · versendet ${formatDate(invoice.sent_at)}` : ""}
+                      {invoice.original_invoice_number ? (
+                        <>
+                          <br />
+                          Bezug: {invoice.original_invoice_number}
+                        </>
+                      ) : null}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => void openInvoicePdf(invoice)}
+                      disabled={downloadingId === invoice.id || !invoice.pdf_path}
+                      className={styles.primaryButton}
+                      style={{
+                        width: "100%",
+                        marginTop: 10,
+                        border: 0,
+                        cursor: downloadingId === invoice.id || !invoice.pdf_path ? "not-allowed" : "pointer",
+                        opacity: downloadingId === invoice.id || !invoice.pdf_path ? 0.62 : 1,
+                      }}
+                    >
+                      {downloadingId === invoice.id ? "Öffnet …" : isCreditNote ? "Gutschrift öffnen" : "Rechnung öffnen"}
+                    </button>
+                  </div>
+                );
+              })}
+
+              <Link
+                href={`/${locale}/dashboard/invoices`}
+                className={styles.secondaryButton}
+                style={{ textAlign: "center", justifyContent: "center" }}
+              >
+                Alle Rechnungen anzeigen
+              </Link>
             </div>
           ) : null}
         </aside>
@@ -411,4 +569,43 @@ const errorStyle: React.CSSProperties = {
   color: "#fecaca",
   fontWeight: 850,
   lineHeight: 1.55,
+};
+
+const emptyStateStyle: React.CSSProperties = {
+  minHeight: 180,
+  display: "grid",
+  placeItems: "center",
+  borderRadius: 22,
+  padding: 18,
+  textAlign: "center",
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.075)",
+  color: "#94a3b8",
+  fontWeight: 850,
+  lineHeight: 1.55,
+};
+
+const loadingStyle: React.CSSProperties = {
+  minHeight: 180,
+  display: "grid",
+  placeItems: "center",
+  color: "#cbd5e1",
+  fontWeight: 950,
+};
+
+const invoiceHistoryCardStyle: React.CSSProperties = {
+  borderRadius: 18,
+  padding: 14,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.075)",
+};
+
+const documentBadgeStyle: React.CSSProperties = {
+  display: "inline-flex",
+  minHeight: 28,
+  alignItems: "center",
+  borderRadius: 999,
+  padding: "0 10px",
+  fontSize: 12,
+  fontWeight: 950,
 };
