@@ -123,6 +123,15 @@ async function createInvoicePdfBytes(params: {
   grossAmountCents: number;
   taxRate: number | null;
   currency: string;
+  documentTitle?: string;
+  numberLabel?: string;
+  recipientLabel?: string;
+  positionTitle?: string;
+  positionDescription?: string;
+  totalLabel?: string;
+  originalInvoiceNumber?: string | null;
+  refundId?: string | null;
+  extraHintLines?: string[];
 }) {
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([595.28, 841.89]);
@@ -149,7 +158,7 @@ async function createInvoicePdfBytes(params: {
   const topY = pageH - 36;
   const titleY = await drawLogo({ pdf, page, x: marginL, topY });
 
-  page.drawText("Rechnung", { x: marginL, y: titleY, size: 18, font: bold, color: colorText });
+  page.drawText(params.documentTitle || "Rechnung", { x: marginL, y: titleY, size: 18, font: bold, color: colorText });
 
   const sellerLines = [
     SELLER.name,
@@ -186,13 +195,15 @@ async function createInvoicePdfBytes(params: {
     y -= size + 6;
   };
 
-  drawLeft(`Rechnungsnummer: ${params.invoiceNumber}`, 11, true);
-  drawLeft(`Rechnungsdatum: ${params.dateISO}`, 11);
+  drawLeft(`${params.numberLabel || "Rechnungsnummer"}: ${params.invoiceNumber}`, 11, true);
+  drawLeft(`Datum: ${params.dateISO}`, 11);
   drawLeft(`Leistungsdatum: ${params.dateISO} (Bereitstellung digitaler Nutzungscredits)`, 11);
+  if (params.originalInvoiceNumber) drawLeft(`Bezug auf Rechnung: ${params.originalInvoiceNumber}`, 9, false, true);
   if (params.paymentIntentId) drawLeft(`Zahlungsreferenz (Stripe): ${params.paymentIntentId}`, 9, false, true);
+  if (params.refundId) drawLeft(`Rückerstattungsreferenz (Stripe): ${params.refundId}`, 9, false, true);
   y -= 8;
 
-  drawLeft("Rechnung an:", 11, true);
+  drawLeft(params.recipientLabel || "Rechnung an:", 11, true);
   drawLeft(params.customerName || "-", 11);
   drawLeft(params.customerStreet || "-", 11);
   drawLeft([params.customerPostalCode, params.customerCity].filter(Boolean).join(" ") || "-", 11);
@@ -200,8 +211,8 @@ async function createInvoicePdfBytes(params: {
   drawLeft(params.customerEmail || "-", 11);
   y -= 10;
 
-  drawLeft("Leistungsposition", 11, true);
-  drawLeft("Erwerb digitaler Nutzungscredits (QR-X Credits)", 11);
+  drawLeft(params.positionTitle || "Leistungsposition", 11, true);
+  drawLeft(params.positionDescription || "Erwerb digitaler Nutzungscredits (QR-X Credits)", 11);
   drawLeft(`Paket: ${params.packId}`, 11);
   drawLeft(`Menge: ${params.credits} Credits`, 11);
   y -= 8;
@@ -210,12 +221,18 @@ async function createInvoicePdfBytes(params: {
   drawLeft(`Netto: ${formatMoney(params.netAmountCents, params.currency)}`, 11);
   const rateText = params.taxRate !== null && params.taxRate !== undefined ? ` (${Math.round(params.taxRate * 100)} %)` : "";
   drawLeft(`Umsatzsteuer${rateText}: ${formatMoney(params.taxAmountCents, params.currency)}`, 11);
-  drawLeft(`Gesamtbetrag: ${formatMoney(params.grossAmountCents, params.currency)}`, 12, true);
+  drawLeft(`${params.totalLabel || "Gesamtbetrag"}: ${formatMoney(params.grossAmountCents, params.currency)}`, 12, true);
   drawRule(y + 4);
   y -= 10;
   drawLeft("Hinweis:", 11, true);
-  drawLeft("Der ausgewiesene Betrag enthält die gesetzliche Umsatzsteuer, soweit ausgewiesen.", 10, false, true);
-  drawLeft("Die Leistung wird als digitale Bereitstellung von Nutzungscredits erbracht.", 10, false, true);
+  const hintLines =
+    params.extraHintLines && params.extraHintLines.length > 0
+      ? params.extraHintLines
+      : [
+          "Der ausgewiesene Betrag enthält die gesetzliche Umsatzsteuer, soweit ausgewiesen.",
+          "Die Leistung wird als digitale Bereitstellung von Nutzungscredits erbracht.",
+        ];
+  hintLines.forEach((line) => drawLeft(line, 10, false, true));
 
   const footerY = 34;
   drawRule(footerY + 16);
@@ -472,6 +489,365 @@ async function finalizeInvoice(input: {
   if (updateError) throw new Error(`Invoice status update failed: ${updateError.message}`);
 }
 
+type InvoiceLookupRow = {
+  id: string;
+  user_id: string;
+  purchase_id: string | null;
+  invoice_number: string | null;
+  stripe_payment_intent_id: string | null;
+  provider_transaction_id: string | null;
+  amount_cents: number | null;
+  gross_amount_cents: number | null;
+  net_amount_cents: number | null;
+  tax_amount_cents: number | null;
+  currency: string | null;
+  billing_email: string | null;
+  billing_details: unknown;
+  status: string | null;
+};
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function stringFromRecord(record: Record<string, unknown>, key: string, fallback = "") {
+  const value = record[key];
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function numberFromRecord(record: Record<string, unknown>, key: string, fallback = 0) {
+  const value = record[key];
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() && Number.isFinite(Number(value))) return Number(value);
+  return fallback;
+}
+
+function billingFromInvoice(invoice: InvoiceLookupRow) {
+  const details = asRecord(invoice.billing_details);
+
+  return {
+    customerName: stringFromRecord(details, "billing_name", "Kunde"),
+    customerEmail: stringFromRecord(details, "billing_email") || invoice.billing_email || null,
+    customerStreet: stringFromRecord(details, "billing_street"),
+    customerPostalCode: stringFromRecord(details, "billing_postal_code"),
+    customerCity: stringFromRecord(details, "billing_city"),
+    customerCountry: stringFromRecord(details, "billing_country_code", "DE").toUpperCase(),
+    customerVatId: stringFromRecord(details, "billing_vat_id") || null,
+    packId: stringFromRecord(details, "pack_id", "refund"),
+    credits: numberFromRecord(details, "credits", 0),
+  };
+}
+
+function getPaymentIntentIdFromCharge(charge: Stripe.Charge) {
+  if (typeof charge.payment_intent === "string") return charge.payment_intent;
+  if (charge.payment_intent && typeof charge.payment_intent === "object") return charge.payment_intent.id;
+  return null;
+}
+
+function getLatestRefundFromCharge(charge: Stripe.Charge) {
+  const refunds = charge.refunds?.data ?? [];
+  const usableRefunds = refunds.filter((refund) => refund.status !== "failed" && refund.status !== "canceled");
+  const latest = usableRefunds.sort((a, b) => (b.created || 0) - (a.created || 0))[0];
+
+  return {
+    refundId: latest?.id || null,
+    refundAmountCents:
+      typeof latest?.amount === "number" && latest.amount > 0
+        ? latest.amount
+        : typeof charge.amount_refunded === "number" && charge.amount_refunded > 0
+          ? charge.amount_refunded
+          : 0,
+  };
+}
+
+async function nextCreditNoteNumber() {
+  const year = new Date().getFullYear();
+  const prefix = `CN-${year}-`;
+
+  const { data, error } = await supabaseAdmin
+    .from("qrx_invoices")
+    .select("invoice_number")
+    .eq("invoice_type", "credit_note")
+    .like("invoice_number", `${prefix}%`)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.warn("credit note number lookup failed:", error.message);
+    return `${prefix}${Date.now()}`;
+  }
+
+  const maxNumber = (data ?? []).reduce((max, row: { invoice_number: string | null }) => {
+    const raw = clean(row.invoice_number);
+    const suffix = raw.startsWith(prefix) ? Number(raw.slice(prefix.length)) : 0;
+    return Number.isFinite(suffix) && suffix > max ? suffix : max;
+  }, 0);
+
+  return `${prefix}${String(maxNumber + 1).padStart(6, "0")}`;
+}
+
+async function findOriginalInvoiceByPaymentIntent(paymentIntentId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("qrx_invoices")
+    .select(
+      "id,user_id,purchase_id,invoice_number,stripe_payment_intent_id,provider_transaction_id,amount_cents,gross_amount_cents,net_amount_cents,tax_amount_cents,currency,billing_email,billing_details,status"
+    )
+    .eq("stripe_payment_intent_id", paymentIntentId)
+    .eq("invoice_type", "invoice")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle<InvoiceLookupRow>();
+
+  if (error) throw new Error(`Originalrechnung konnte nicht geladen werden: ${error.message}`);
+  return data;
+}
+
+async function existingCreditNote(refundId: string | null, originalInvoiceId: string) {
+  let query = supabaseAdmin
+    .from("qrx_invoices")
+    .select("id,invoice_number,pdf_path,status")
+    .eq("invoice_type", "credit_note")
+    .eq("original_invoice_id", originalInvoiceId)
+    .limit(1);
+
+  if (refundId) query = query.eq("stripe_refund_id", refundId);
+
+  const { data, error } = await query.maybeSingle<{
+    id: string;
+    invoice_number: string | null;
+    pdf_path: string | null;
+    status: string | null;
+  }>();
+
+  if (error) {
+    console.warn("credit note lookup failed:", error.message);
+    return null;
+  }
+
+  return data;
+}
+
+function calculateRefundTax(input: {
+  refundAmountCents: number;
+  originalGrossCents: number;
+  originalTaxCents: number;
+}) {
+  if (input.originalTaxCents <= 0) {
+    return { netCents: input.refundAmountCents, taxCents: 0 };
+  }
+
+  if (input.originalGrossCents > 0 && input.refundAmountCents !== input.originalGrossCents) {
+    const taxCents = Math.round((input.originalTaxCents * input.refundAmountCents) / input.originalGrossCents);
+    return { netCents: input.refundAmountCents - taxCents, taxCents };
+  }
+
+  const netCents = Math.round(input.refundAmountCents / 1.19);
+  return { netCents, taxCents: input.refundAmountCents - netCents };
+}
+
+async function createCreditNoteForRefund(input: {
+  charge: Stripe.Charge;
+  paymentIntentId: string;
+  refundId: string | null;
+  refundAmountCents: number;
+}) {
+  const originalInvoice = await findOriginalInvoiceByPaymentIntent(input.paymentIntentId);
+
+  if (!originalInvoice?.id) {
+    console.warn("No original invoice found for refund.", {
+      paymentIntentId: input.paymentIntentId,
+      refundId: input.refundId,
+    });
+    return;
+  }
+
+  const existing = await existingCreditNote(input.refundId, originalInvoice.id);
+  if (existing?.status === "sent" && existing.pdf_path) return;
+
+  const billing = billingFromInvoice(originalInvoice);
+  if (!billing.customerEmail) throw new Error("E-Mail für Gutschrift fehlt.");
+
+  const originalGrossCents = originalInvoice.gross_amount_cents ?? originalInvoice.amount_cents ?? input.refundAmountCents;
+  const originalTaxCents = originalInvoice.tax_amount_cents ?? 0;
+  const { netCents, taxCents } = calculateRefundTax({
+    refundAmountCents: input.refundAmountCents,
+    originalGrossCents,
+    originalTaxCents,
+  });
+
+  const currency = (originalInvoice.currency || input.charge.currency || "eur").toUpperCase();
+  const creditNoteNumber = existing?.invoice_number || (await nextCreditNoteNumber());
+  const pdfPath = `${originalInvoice.user_id}/${creditNoteNumber}.pdf`;
+  const nowIso = new Date().toISOString();
+  const dateISO = nowIso.slice(0, 10);
+  let creditNoteId = existing?.id ?? "";
+
+  if (!creditNoteId) {
+    const { data: inserted, error: insertError } = await supabaseAdmin
+      .from("qrx_invoices")
+      .insert({
+        invoice_number: creditNoteNumber,
+        user_id: originalInvoice.user_id,
+        purchase_id: originalInvoice.purchase_id,
+        stripe_payment_intent_id: input.paymentIntentId,
+        payment_provider: "stripe",
+        provider_transaction_id: originalInvoice.provider_transaction_id,
+        amount_cents: input.refundAmountCents,
+        net_cents: netCents,
+        tax_cents: taxCents,
+        net_amount_cents: netCents,
+        tax_amount_cents: taxCents,
+        gross_amount_cents: input.refundAmountCents,
+        tax_rate: taxCents > 0 ? 0.19 : 0,
+        tax_jurisdiction: billing.customerCountry || "DE",
+        customer_country: billing.customerCountry || "DE",
+        customer_type: billing.customerVatId ? "b2b" : "b2c",
+        customer_vat_id: billing.customerVatId,
+        reverse_charge: false,
+        tax_behavior: "inclusive",
+        currency,
+        billing_email: billing.customerEmail,
+        billing_details: {
+          billing_name: billing.customerName,
+          billing_street: billing.customerStreet,
+          billing_postal_code: billing.customerPostalCode,
+          billing_city: billing.customerCity,
+          billing_country_code: billing.customerCountry,
+          billing_vat_id: billing.customerVatId,
+          pack_id: billing.packId,
+          credits: billing.credits,
+        },
+        invoice_type: "credit_note",
+        original_invoice_id: originalInvoice.id,
+        original_invoice_number: originalInvoice.invoice_number,
+        credit_note_reason: "Rückerstattung über Stripe",
+        stripe_refund_id: input.refundId,
+        refunded_at: nowIso,
+        status: "creating",
+        pdf_path: pdfPath,
+        storage_bucket: "invoices",
+      })
+      .select("id")
+      .single();
+
+    if (insertError) throw new Error(`Gutschrift konnte nicht angelegt werden: ${insertError.message}`);
+    creditNoteId = inserted.id;
+  }
+
+  const pdfBytes = await createInvoicePdfBytes({
+    invoiceNumber: creditNoteNumber,
+    dateISO,
+    paymentIntentId: input.paymentIntentId,
+    customerName: billing.customerName,
+    customerStreet: billing.customerStreet,
+    customerPostalCode: billing.customerPostalCode,
+    customerCity: billing.customerCity,
+    customerCountry: billing.customerCountry,
+    customerEmail: billing.customerEmail,
+    packId: billing.packId,
+    credits: billing.credits,
+    netAmountCents: netCents,
+    taxAmountCents: taxCents,
+    grossAmountCents: input.refundAmountCents,
+    taxRate: taxCents > 0 ? 0.19 : 0,
+    currency,
+    documentTitle: "Gutschrift",
+    numberLabel: "Gutschriftsnummer",
+    recipientLabel: "Gutschrift an:",
+    positionTitle: "Gutschriftsposition",
+    positionDescription: "Gutschrift zur Rückerstattung digitaler Nutzungscredits (QR-X Credits)",
+    totalLabel: "Gutschriftbetrag",
+    originalInvoiceNumber: originalInvoice.invoice_number,
+    refundId: input.refundId,
+    extraHintLines: [
+      "Diese Gutschrift bezieht sich auf die oben genannte Originalrechnung.",
+      "Der ausgewiesene Betrag korrigiert die ursprüngliche Bereitstellung digitaler Nutzungscredits.",
+    ],
+  });
+
+  const upload = await supabaseAdmin.storage.from("invoices").upload(pdfPath, pdfBytes, {
+    contentType: "application/pdf",
+    upsert: true,
+  });
+
+  if (upload.error) {
+    await supabaseAdmin.from("qrx_invoices").update({ status: "failed" }).eq("id", creditNoteId);
+    throw new Error(`Gutschrift-Upload fehlgeschlagen: ${upload.error.message}`);
+  }
+
+  const emailText =
+    `Hallo,\n\n` +
+    `zu deiner Rechnung ${originalInvoice.invoice_number || "-"} wurde eine Gutschrift erstellt.\n\n` +
+    `Im Anhang findest du deine Gutschrift ${creditNoteNumber}.\n` +
+    `Betrag: ${formatMoney(input.refundAmountCents, currency)}.\n\n` +
+    `Bei Fragen antworte einfach auf diese E-Mail oder kontaktiere uns unter ${SELLER.email}.\n\n` +
+    `Freundliche Grüße\n` +
+    `${SELLER.name}\n`;
+
+  await sendInvoiceEmailResend({
+    toEmail: billing.customerEmail,
+    subject: `Gutschrift ${creditNoteNumber} – mioseg qr`,
+    text: emailText,
+    filename: `${creditNoteNumber}.pdf`,
+    pdfBytes,
+  });
+
+  const sentAt = new Date().toISOString();
+
+  const { error: creditNoteUpdateError } = await supabaseAdmin
+    .from("qrx_invoices")
+    .update({
+      status: "sent",
+      sent_at: sentAt,
+      pdf_path: pdfPath,
+      storage_bucket: "invoices",
+      refunded_at: sentAt,
+      stripe_refund_id: input.refundId,
+    })
+    .eq("id", creditNoteId);
+
+  if (creditNoteUpdateError) {
+    throw new Error(`Gutschriftstatus konnte nicht aktualisiert werden: ${creditNoteUpdateError.message}`);
+  }
+
+  const { error: originalUpdateError } = await supabaseAdmin
+    .from("qrx_invoices")
+    .update({
+      status: "refunded",
+      refunded_at: sentAt,
+      stripe_refund_id: input.refundId,
+    })
+    .eq("id", originalInvoice.id);
+
+  if (originalUpdateError) {
+    console.warn("Originalrechnung konnte nicht als erstattet markiert werden:", originalUpdateError.message);
+  }
+}
+
+async function handleChargeRefunded(charge: Stripe.Charge) {
+  const paymentIntentId = getPaymentIntentIdFromCharge(charge);
+  if (!paymentIntentId) {
+    console.warn("Refund ignored: payment_intent missing on charge.", { chargeId: charge.id });
+    return;
+  }
+
+  const { refundId, refundAmountCents } = getLatestRefundFromCharge(charge);
+
+  if (refundAmountCents <= 0) {
+    console.warn("Refund ignored: refund amount missing.", { chargeId: charge.id, refundId });
+    return;
+  }
+
+  await createCreditNoteForRefund({
+    charge,
+    paymentIntentId,
+    refundId,
+    refundAmountCents,
+  });
+}
+
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (session.payment_status !== "paid") return;
   const sessionId = session.id;
@@ -539,11 +915,7 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
     if (event.type === "checkout.session.completed") await handleCheckoutCompleted(event.data.object);
-    if (event.type === "charge.refunded") {
-  console.warn("Refund event received, but credit note generation is not implemented yet.", {
-    eventId: event.id,
-  });
-}
+    if (event.type === "charge.refunded") await handleChargeRefunded(event.data.object);
     return Response.json({ received: true });
   } catch (e: unknown) {
     console.error("stripe webhook error:", e);

@@ -294,6 +294,7 @@ export async function POST(req: Request) {
           purchase_id: purchase.id,
           user_id: purchase.user_id,
           credits_revoked: String(creditsToRevoke),
+          refund_note: note,
           source: "admin_refund",
         },
       });
@@ -381,6 +382,7 @@ export async function POST(req: Request) {
       revokedCredits: creditsToRevoke,
       refundedCents: refundAmount,
       newCredits,
+      creditNote: "Die Gutschrift-PDF und die Gutschrift-E-Mail werden über den Stripe Webhook charge.refunded erzeugt.",
     });
   } catch (e: unknown) {
     return Response.json(
