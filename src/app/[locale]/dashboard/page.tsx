@@ -59,7 +59,7 @@ export default async function DashboardPage({ params }: Props) {
           scansButton: "My scans",
           creditsButton: "Credits",
           supportButton: "Support",
-          accountButton: "Konto",
+          accountButton: "Account",
           createButton: "Create QR-X",
           buyCreditsButton: "Buy credits",
           mapLabel: "Live",
@@ -94,6 +94,9 @@ export default async function DashboardPage({ params }: Props) {
           </Link>
           <Link href={`/${locale}/dashboard/credits`} className={styles.secondaryButton}>
             {copy.buyCreditsButton}
+          </Link>
+          <Link href={`/${locale}/dashboard/account`} className={styles.secondaryButton}>
+            👤 {copy.accountButton}
           </Link>
         </div>
       </section>
