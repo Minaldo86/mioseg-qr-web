@@ -51,10 +51,47 @@ export default function NewQrxPage() {
   const [ctaWebsite, setCtaWebsite] = useState("");
   const [ctaEmail, setCtaEmail] = useState("");
   const [ctaNavigation, setCtaNavigation] = useState("");
+  const [passwordProtected, setPasswordProtected] = useState(false);
+  const [qrxPassword, setQrxPassword] = useState("");
+  const [qrxPasswordRepeat, setQrxPasswordRepeat] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
+
+  async function saveQrxPasswordProtection(args: {
+    qrxId: string;
+    enabled: boolean;
+    password: string;
+  }) {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+    const token = session?.access_token;
+
+    if (!token) {
+      throw new Error("Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.");
+    }
+
+    const { error } = await supabase.functions.invoke("set-qrx-password", {
+      body: {
+        qrxId: args.qrxId,
+        enabled: args.enabled,
+        password: args.enabled ? args.password : "",
+      },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (error) {
+      throw error;
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -67,6 +104,17 @@ export default function NewQrxPage() {
 
       if (!nextTitle) {
         throw new Error("Bitte gib einen Titel ein.");
+      }
+
+      const nextPassword = qrxPassword.trim();
+      const nextPasswordRepeat = qrxPasswordRepeat.trim();
+
+      if (passwordProtected && nextPassword.length < 4) {
+        throw new Error("Das Passwort muss mindestens 4 Zeichen lang sein.");
+      }
+
+      if (passwordProtected && nextPassword !== nextPasswordRepeat) {
+        throw new Error("Die beiden Passwörter stimmen nicht überein.");
       }
 
       const lat = parseOptionalNumber(locationLat, "Breitengrad");
@@ -111,9 +159,17 @@ export default function NewQrxPage() {
         throw error;
       }
 
-      setSuccessText("QR-X wurde erstellt.");
-
       const newId = data?.id;
+
+      if (passwordProtected && newId) {
+        await saveQrxPasswordProtection({
+          qrxId: newId,
+          enabled: true,
+          password: nextPassword,
+        });
+      }
+
+      setSuccessText(passwordProtected ? "QR-X wurde erstellt und mit Passwort geschützt." : "QR-X wurde erstellt.");
 
       window.setTimeout(() => {
         if (newId) {
@@ -345,6 +401,78 @@ export default function NewQrxPage() {
               </label>
             </>
           ) : null}
+
+          <div
+            style={{
+              borderRadius: 22,
+              padding: 16,
+              background: passwordProtected ? "rgba(59,130,246,0.14)" : "rgba(255,255,255,0.045)",
+              border: passwordProtected ? "1px solid rgba(147,197,253,0.28)" : "1px solid rgba(255,255,255,0.08)",
+              display: "grid",
+              gap: 12,
+            }}
+          >
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 14,
+                color: "#ffffff",
+                fontWeight: 950,
+                cursor: "pointer",
+              }}
+            >
+              <span>QR-X mit Passwort schützen</span>
+              <input
+                type="checkbox"
+                checked={passwordProtected}
+                onChange={(event) => {
+                  const checked = event.target.checked;
+                  setPasswordProtected(checked);
+                  if (!checked) {
+                    setQrxPassword("");
+                    setQrxPasswordRepeat("");
+                  }
+                }}
+                style={{ width: 20, height: 20, accentColor: "#60a5fa" }}
+              />
+            </label>
+
+            <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55, fontSize: 13 }}>
+              Wenn aktiviert, müssen Besucher vor dem Öffnen dieses QR-X ein Passwort eingeben.
+            </p>
+
+            {passwordProtected ? (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <label style={labelStyle}>
+                  Passwort *
+                  <input
+                    type="password"
+                    value={qrxPassword}
+                    onChange={(event) => setQrxPassword(event.target.value)}
+                    style={inputStyle}
+                    minLength={4}
+                    required={passwordProtected}
+                    autoComplete="new-password"
+                  />
+                </label>
+
+                <label style={labelStyle}>
+                  Passwort wiederholen *
+                  <input
+                    type="password"
+                    value={qrxPasswordRepeat}
+                    onChange={(event) => setQrxPasswordRepeat(event.target.value)}
+                    style={inputStyle}
+                    minLength={4}
+                    required={passwordProtected}
+                    autoComplete="new-password"
+                  />
+                </label>
+              </div>
+            ) : null}
+          </div>
 
           <div
             style={{
