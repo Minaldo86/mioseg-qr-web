@@ -37,6 +37,7 @@ export default async function DashboardPage({ params }: Props) {
           scansButton: "Meine Scans",
           creditsButton: "Credits",
           supportButton: "Support",
+          accountButton: "Konto",
           createButton: "QR-X erstellen",
           buyCreditsButton: "Credits kaufen",
           mapLabel: "Live",
@@ -58,6 +59,7 @@ export default async function DashboardPage({ params }: Props) {
           scansButton: "My scans",
           creditsButton: "Credits",
           supportButton: "Support",
+          accountButton: "Konto",
           createButton: "Create QR-X",
           buyCreditsButton: "Buy credits",
           mapLabel: "Live",
@@ -75,6 +77,7 @@ export default async function DashboardPage({ params }: Props) {
         <nav className={styles.nav} aria-label="Dashboard Navigation">
           <Link href={`/${locale}`}>{copy.navHome}</Link>
           <Link href={`/${locale}/explore`}>{copy.navExplore}</Link>
+          <Link href={`/${locale}/dashboard/account`}>{copy.accountButton}</Link>
         </nav>
       </header>
 
@@ -139,6 +142,16 @@ export default async function DashboardPage({ params }: Props) {
             <div>
               <strong>{copy.creditsButton}</strong>
               <p>Credit-Stand anzeigen und später Credits kaufen.</p>
+            </div>
+          </Link>
+
+
+
+          <Link href={`/${locale}/dashboard/account`} className={styles.sideLink}>
+            <span>👤</span>
+            <div>
+              <strong>{copy.accountButton}</strong>
+              <p>Konto- und Rechnungsdaten verwalten.</p>
             </div>
           </Link>
 
