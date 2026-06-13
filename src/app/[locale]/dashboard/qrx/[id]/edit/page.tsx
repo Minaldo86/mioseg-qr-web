@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -7,23 +8,25 @@ import { FormEvent, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import styles from "../../../dashboard.module.css";
 
+type QrxType = "normal" | "business";
+
 type QrxEntry = {
   id: string;
+  owner_user_id: string | null;
   title: string | null;
   company_name: string | null;
-  cover_image_url: string | null;
-  logo_url: string | null;
-  owner_user_id: string | null;
-};
-
-type QrxMedia = {
-  id: string;
-  qrx_id: string;
-  type: "image" | "file" | string;
-  url: string;
-  filename: string;
-  bytes: number | null;
-  created_at?: string | null;
+  description: string | null;
+  type: QrxType | string | null;
+  location_name: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  cta_phone: string | null;
+  cta_website: string | null;
+  cta_email: string | null;
+  cta_navigation: string | null;
+  verified: boolean | null;
+  suspended: boolean | null;
+  password_protected: boolean | null;
 };
 
 function getParam(value: string | string[] | undefined, fallback: string) {
@@ -37,12 +40,30 @@ function toNullable(value: string) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function getTitle(entry: QrxEntry | null) {
-  if (!entry) return "QR-X Medien";
-  return entry.company_name?.trim() || entry.title?.trim() || "QR-X Medien";
+function parseOptionalNumber(value: string, label: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const normalized = trimmed.replace(",", ".");
+  const numberValue = Number(normalized);
+
+  if (!Number.isFinite(numberValue)) {
+    throw new Error(`${label} muss eine gültige Zahl sein.`);
+  }
+
+  return numberValue;
 }
 
-export default function QrxMediaPage() {
+function formatOptionalNumber(value: number | null | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "";
+  return String(value);
+}
+
+function getSafeQrxType(value: string | null | undefined): QrxType {
+  return value === "business" ? "business" : "normal";
+}
+
+export default function EditQrxPage() {
   const router = useRouter();
   const params = useParams();
 
@@ -50,186 +71,208 @@ export default function QrxMediaPage() {
   const qrxId = getParam(params?.id as string | string[] | undefined, "");
 
   const [loading, setLoading] = useState(true);
-  const [savingBase, setSavingBase] = useState(false);
-  const [addingImage, setAddingImage] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [qrxType, setQrxType] = useState<QrxType>("normal");
+  const [title, setTitle] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [description, setDescription] = useState("");
+  const [locationName, setLocationName] = useState("");
+  const [locationLat, setLocationLat] = useState("");
+  const [locationLng, setLocationLng] = useState("");
+  const [ctaPhone, setCtaPhone] = useState("");
+  const [ctaWebsite, setCtaWebsite] = useState("");
+  const [ctaEmail, setCtaEmail] = useState("");
+  const [ctaNavigation, setCtaNavigation] = useState("");
 
-  const [entry, setEntry] = useState<QrxEntry | null>(null);
-  const [media, setMedia] = useState<QrxMedia[]>([]);
+  const [passwordProtected, setPasswordProtected] = useState(false);
+  const [passwordWasProtected, setPasswordWasProtected] = useState(false);
+  const [qrxPassword, setQrxPassword] = useState("");
+  const [qrxPasswordRepeat, setQrxPasswordRepeat] = useState("");
 
-  const [coverUrl, setCoverUrl] = useState("");
-  const [logoUrl, setLogoUrl] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [imageFilename, setImageFilename] = useState("");
-
+  const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
 
   useEffect(() => {
-    void loadMediaPage();
+    void loadQrx();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qrxId]);
 
-  async function loadMediaPage() {
+  async function saveQrxPasswordProtection(args: {
+    qrxId: string;
+    enabled: boolean;
+    password: string;
+  }) {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+    const token = session?.access_token;
+
+    if (!token) {
+      throw new Error("Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.");
+    }
+
+    const { error } = await supabase.functions.invoke("set-qrx-password", {
+      body: {
+        qrxId: args.qrxId,
+        enabled: args.enabled,
+        password: args.enabled ? args.password : "",
+      },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async function loadQrx() {
     setLoading(true);
     setErrorText(null);
     setSuccessText(null);
 
-    if (!qrxId) {
-      setErrorText("QR-X ID fehlt.");
+    try {
+      if (!qrxId) {
+        throw new Error("QR-X ID fehlt.");
+      }
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) throw new Error("Bitte melde dich zuerst an.");
+
+      const { data, error } = await supabase
+        .from("qr_x_entries")
+        .select(
+          "id,owner_user_id,title,company_name,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected"
+        )
+        .eq("id", qrxId)
+        .maybeSingle()
+        .returns<QrxEntry>();
+
+      if (error) throw error;
+      if (!data) throw new Error("QR-X wurde nicht gefunden.");
+      if (data.owner_user_id !== user.id) throw new Error("Du darfst diesen QR-X nicht bearbeiten.");
+
+      const safeType = getSafeQrxType(data.type);
+      const isProtected = data.password_protected === true;
+
+      setQrxType(safeType);
+      setTitle(data.title ?? "");
+      setCompanyName(data.company_name ?? "");
+      setDescription(data.description ?? "");
+      setLocationName(data.location_name ?? "");
+      setLocationLat(formatOptionalNumber(data.location_lat));
+      setLocationLng(formatOptionalNumber(data.location_lng));
+      setCtaPhone(data.cta_phone ?? "");
+      setCtaWebsite(data.cta_website ?? "");
+      setCtaEmail(data.cta_email ?? "");
+      setCtaNavigation(data.cta_navigation ?? "");
+      setPasswordProtected(isProtected);
+      setPasswordWasProtected(isProtected);
+      setQrxPassword("");
+      setQrxPasswordRepeat("");
+    } catch (error) {
+      setErrorText(error instanceof Error ? error.message : "QR-X konnte nicht geladen werden.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (userError) {
-      setErrorText(userError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (!user) {
-      setErrorText("Bitte melde dich zuerst an.");
-      setLoading(false);
-      return;
-    }
-
-    const { data: entryData, error: entryError } = await supabase
-      .from("qr_x_entries")
-      .select("id,title,company_name,cover_image_url,logo_url,owner_user_id")
-      .eq("id", qrxId)
-      .maybeSingle()
-      .returns<QrxEntry>();
-
-    if (entryError) {
-      setErrorText(entryError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (!entryData) {
-      setErrorText("QR-X wurde nicht gefunden.");
-      setLoading(false);
-      return;
-    }
-
-    if (entryData.owner_user_id !== user.id) {
-      setErrorText("Du darfst diesen QR-X nicht bearbeiten.");
-      setLoading(false);
-      return;
-    }
-
-    const { data: mediaData, error: mediaError } = await supabase
-      .from("qr_x_media")
-      .select("id,qrx_id,type,url,filename,bytes,created_at")
-      .eq("qrx_id", qrxId)
-      .eq("type", "image")
-      .order("created_at", { ascending: false })
-      .returns<QrxMedia[]>();
-
-    if (mediaError) {
-      setErrorText(mediaError.message);
-      setLoading(false);
-      return;
-    }
-
-    setEntry(entryData);
-    setCoverUrl(entryData.cover_image_url ?? "");
-    setLogoUrl(entryData.logo_url ?? "");
-    setMedia(mediaData ?? []);
-    setLoading(false);
   }
 
-  async function handleSaveBaseImages(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSavingBase(true);
+    setSaving(true);
     setErrorText(null);
     setSuccessText(null);
 
     try {
-      if (!entry) throw new Error("QR-X konnte nicht geladen werden.");
+      if (!qrxId) {
+        throw new Error("QR-X ID fehlt.");
+      }
+
+      const nextTitle = title.trim();
+
+      if (!nextTitle) {
+        throw new Error("Bitte gib einen Titel ein.");
+      }
+
+      const nextPassword = qrxPassword.trim();
+      const nextPasswordRepeat = qrxPasswordRepeat.trim();
+      const passwordChanged = passwordProtected && nextPassword.length > 0;
+      const passwordWasDisabled = passwordWasProtected && !passwordProtected;
+      const passwordWasEnabled = !passwordWasProtected && passwordProtected;
+
+      if ((passwordWasEnabled || passwordChanged) && nextPassword.length < 4) {
+        throw new Error("Das Passwort muss mindestens 4 Zeichen lang sein.");
+      }
+
+      if ((passwordWasEnabled || passwordChanged) && nextPassword !== nextPasswordRepeat) {
+        throw new Error("Die beiden Passwörter stimmen nicht überein.");
+      }
+
+      const lat = parseOptionalNumber(locationLat, "Breitengrad");
+      const lng = parseOptionalNumber(locationLng, "Längengrad");
+
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) throw new Error("Bitte melde dich zuerst an.");
 
       const { error } = await supabase
         .from("qr_x_entries")
         .update({
-          cover_image_url: toNullable(coverUrl),
-          logo_url: toNullable(logoUrl),
+          title: nextTitle,
+          company_name: qrxType === "business" ? toNullable(companyName) : null,
+          description: toNullable(description),
+          type: qrxType,
+          location_name: toNullable(locationName),
+          location_lat: lat,
+          location_lng: lng,
+          cta_phone: qrxType === "business" ? toNullable(ctaPhone) : null,
+          cta_website: qrxType === "business" ? toNullable(ctaWebsite) : null,
+          cta_email: qrxType === "business" ? toNullable(ctaEmail) : null,
+          cta_navigation: qrxType === "business" ? toNullable(ctaNavigation) : null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", entry.id)
-        .eq("owner_user_id", entry.owner_user_id);
+        .eq("id", qrxId)
+        .eq("owner_user_id", user.id);
 
       if (error) throw error;
 
-      setSuccessText("Coverbild und Logo wurden gespeichert.");
+      if (passwordWasDisabled) {
+        await saveQrxPasswordProtection({ qrxId, enabled: false, password: "" });
+        setPasswordWasProtected(false);
+        setQrxPassword("");
+        setQrxPasswordRepeat("");
+      } else if (passwordWasEnabled || passwordChanged) {
+        await saveQrxPasswordProtection({ qrxId, enabled: true, password: nextPassword });
+        setPasswordWasProtected(true);
+        setPasswordProtected(true);
+        setQrxPassword("");
+        setQrxPasswordRepeat("");
+      }
+
+      setSuccessText("QR-X wurde gespeichert.");
       router.refresh();
-      await loadMediaPage();
     } catch (error) {
-      setErrorText(error instanceof Error ? error.message : "Medien konnten nicht gespeichert werden.");
+      setErrorText(error instanceof Error ? error.message : "QR-X konnte nicht gespeichert werden.");
     } finally {
-      setSavingBase(false);
+      setSaving(false);
     }
   }
 
-  async function handleAddImage(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setAddingImage(true);
-    setErrorText(null);
-    setSuccessText(null);
-
-    try {
-      if (!entry) throw new Error("QR-X konnte nicht geladen werden.");
-
-      const url = imageUrl.trim();
-      if (!url) throw new Error("Bitte gib eine Bild-URL ein.");
-
-      const filename = imageFilename.trim() || `bild-${Date.now()}.jpg`;
-
-      const { error } = await supabase.from("qr_x_media").insert({
-        qrx_id: entry.id,
-        type: "image",
-        url,
-        filename,
-        bytes: null,
-      });
-
-      if (error) throw error;
-
-      setImageUrl("");
-      setImageFilename("");
-      setSuccessText("Bild wurde hinzugefügt.");
-      await loadMediaPage();
-    } catch (error) {
-      setErrorText(error instanceof Error ? error.message : "Bild konnte nicht hinzugefügt werden.");
-    } finally {
-      setAddingImage(false);
-    }
-  }
-
-  async function handleDeleteImage(mediaId: string) {
-    const confirmed = window.confirm("Dieses Bild aus der Galerie entfernen?");
-    if (!confirmed) return;
-
-    setDeletingId(mediaId);
-    setErrorText(null);
-    setSuccessText(null);
-
-    try {
-      const { error } = await supabase.from("qr_x_media").delete().eq("id", mediaId);
-      if (error) throw error;
-
-      setSuccessText("Bild wurde entfernt.");
-      await loadMediaPage();
-    } catch (error) {
-      setErrorText(error instanceof Error ? error.message : "Bild konnte nicht entfernt werden.");
-    } finally {
-      setDeletingId(null);
-    }
-  }
+  const isBusiness = qrxType === "business";
 
   return (
     <main className={styles.page}>
@@ -238,256 +281,229 @@ export default function QrxMediaPage() {
           <img src="/logo-white.png" alt="Mioseg qr Logo" />
         </Link>
 
-        <nav className={styles.nav} aria-label="QR-X Medien Navigation">
+        <nav className={styles.nav} aria-label="QR-X bearbeiten Navigation">
           <Link href={`/${locale}/dashboard`}>Dashboard</Link>
           <Link href={`/${locale}/dashboard/qrx`}>Meine QR-X</Link>
+          {qrxId ? <Link href={`/${locale}/dashboard/qrx/${qrxId}/media`}>Bilder & Medien</Link> : null}
+          {qrxId ? <Link href={`/${locale}/qrx/${qrxId}`}>QR-X öffnen</Link> : null}
         </nav>
       </header>
 
       <section className={styles.hero}>
         <div>
-          <span className={styles.kicker}>Bilder & Medien</span>
-          <h1>{getTitle(entry)}</h1>
+          <span className={styles.kicker}>QR-X bearbeiten</span>
+          <h1>{title.trim() || "QR-X bearbeiten"}</h1>
           <p>
-            Ergänze Coverbild, Logo und Galerie-Bilder per URL. Upload über Storage bauen wir danach sauber mit Credits.
+            Bearbeite die Basisdaten deines QR-X und verwalte den Passwortschutz. Bilder und Galerie findest du unter „Bilder & Medien“.
           </p>
         </div>
 
         <div className={styles.heroActions}>
-          <Link href={`/${locale}/dashboard/qrx/${qrxId}/edit`} className={styles.secondaryButton}>
-            Basisdaten bearbeiten
+          <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
+            Zurück zu Meine QR-X
           </Link>
-          <Link href={`/${locale}/qrx/${qrxId}`} className={styles.secondaryButton}>
-            QR-X öffnen
-          </Link>
+          {qrxId ? (
+            <Link href={`/${locale}/dashboard/qrx/${qrxId}/media`} className={styles.secondaryButton}>
+              Bilder & Medien
+            </Link>
+          ) : null}
         </div>
       </section>
 
-      <section
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          display: "grid",
-          gap: 18,
-        }}
-      >
-        {loading ? (
-          <div style={panelStyle}>
-            <div style={{ minHeight: 220, display: "grid", placeItems: "center", color: "#cbd5e1", fontWeight: 950 }}>
-              Medien werden geladen …
-            </div>
+      <section style={panelStyle}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2>Basisdaten</h2>
+            <p>Ändere Typ, Titel, Beschreibung, Standort und Kontaktaktionen.</p>
           </div>
-        ) : null}
+          <span>{isBusiness ? "Business QR-X" : "Normaler QR-X"}</span>
+        </div>
 
-        {errorText ? (
-          <div style={errorStyle}>{errorText}</div>
-        ) : null}
+        {loading ? <div style={loadingStyle}>QR-X wird geladen …</div> : null}
 
-        {successText ? (
-          <div style={successStyle}>{successText}</div>
-        ) : null}
+        {errorText ? <div style={errorStyle}>{errorText}</div> : null}
+        {successText ? <div style={successStyle}>{successText}</div> : null}
 
-        {!loading && entry ? (
-          <>
-            <form onSubmit={handleSaveBaseImages} style={panelStyle}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h2>Coverbild & Logo</h2>
-                  <p>Diese URLs werden direkt in der QR-X Webansicht verwendet.</p>
-                </div>
-                <span>Basis</span>
-              </div>
+        {!loading ? (
+          <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <button
+                type="button"
+                onClick={() => setQrxType("normal")}
+                style={{
+                  minHeight: 74,
+                  borderRadius: 18,
+                  border: qrxType === "normal" ? "1px solid #bbf7d0" : "1px solid rgba(148, 163, 184, 0.22)",
+                  background: qrxType === "normal" ? "rgba(34,197,94,0.16)" : "rgba(255,255,255,0.06)",
+                  color: "#ffffff",
+                  fontWeight: 950,
+                  cursor: "pointer",
+                }}
+              >
+                ⌗ Normaler QR-X
+              </button>
 
-              <div style={{ display: "grid", gap: 16 }}>
-                <label style={labelStyle}>
-                  Coverbild-URL
-                  <input
-                    value={coverUrl}
-                    onChange={(event) => setCoverUrl(event.target.value)}
-                    style={inputStyle}
-                    placeholder="https://..."
-                  />
-                </label>
-
-                {coverUrl.trim() ? (
-                  <PreviewImage url={coverUrl} label="Coverbild Vorschau" />
-                ) : null}
-
-                <label style={labelStyle}>
-                  Logo-URL
-                  <input
-                    value={logoUrl}
-                    onChange={(event) => setLogoUrl(event.target.value)}
-                    style={inputStyle}
-                    placeholder="https://..."
-                  />
-                </label>
-
-                {logoUrl.trim() ? (
-                  <PreviewImage url={logoUrl} label="Logo Vorschau" compact />
-                ) : null}
-
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button
-                    type="submit"
-                    disabled={savingBase}
-                    className={styles.primaryButton}
-                    style={{ border: 0, cursor: savingBase ? "not-allowed" : "pointer", opacity: savingBase ? 0.72 : 1 }}
-                  >
-                    {savingBase ? "Speichert …" : "Cover & Logo speichern"}
-                  </button>
-                </div>
-              </div>
-            </form>
-
-            <form onSubmit={handleAddImage} style={panelStyle}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h2>Galerie-Bild hinzufügen</h2>
-                  <p>Füge zusätzliche Bilder hinzu, die unter „Bilder“ in der QR-X Webansicht erscheinen.</p>
-                </div>
-                <span>{media.length} Bilder</span>
-              </div>
-
-              <div style={{ display: "grid", gap: 16 }}>
-                <label style={labelStyle}>
-                  Bild-URL *
-                  <input
-                    value={imageUrl}
-                    onChange={(event) => setImageUrl(event.target.value)}
-                    style={inputStyle}
-                    placeholder="https://..."
-                    required
-                  />
-                </label>
-
-                <label style={labelStyle}>
-                  Dateiname / Bezeichnung
-                  <input
-                    value={imageFilename}
-                    onChange={(event) => setImageFilename(event.target.value)}
-                    style={inputStyle}
-                    placeholder="restaurant-innen.jpg"
-                  />
-                </label>
-
-                {imageUrl.trim() ? <PreviewImage url={imageUrl} label="Neues Bild Vorschau" /> : null}
-
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button
-                    type="submit"
-                    disabled={addingImage}
-                    className={styles.primaryButton}
-                    style={{ border: 0, cursor: addingImage ? "not-allowed" : "pointer", opacity: addingImage ? 0.72 : 1 }}
-                  >
-                    {addingImage ? "Fügt hinzu …" : "Bild hinzufügen"}
-                  </button>
-                </div>
-              </div>
-            </form>
-
-            <div style={panelStyle}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h2>Galerie</h2>
-                  <p>Diese Bilder sind aktuell mit deinem QR-X verknüpft.</p>
-                </div>
-                <span>{media.length} Einträge</span>
-              </div>
-
-              {media.length === 0 ? (
-                <div
-                  style={{
-                    minHeight: 180,
-                    display: "grid",
-                    placeItems: "center",
-                    color: "#94a3b8",
-                    textAlign: "center",
-                    borderRadius: 22,
-                    background: "rgba(255,255,255,0.045)",
-                    border: "1px solid rgba(255,255,255,0.075)",
-                    fontWeight: 850,
-                  }}
-                >
-                  Noch keine Galerie-Bilder vorhanden.
-                </div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
-                  {media.map((item) => (
-                    <article
-                      key={item.id}
-                      style={{
-                        overflow: "hidden",
-                        borderRadius: 22,
-                        background: "rgba(255,255,255,0.055)",
-                        border: "1px solid rgba(255,255,255,0.085)",
-                      }}
-                    >
-                      <div style={{ height: 150, background: "#e2e8f0", overflow: "hidden" }}>
-                        <img
-                          src={item.url}
-                          alt={item.filename}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                        />
-                      </div>
-
-                      <div style={{ padding: 12, display: "grid", gap: 10 }}>
-                        <strong style={{ color: "#ffffff", fontSize: 14, wordBreak: "break-word" }}>{item.filename}</strong>
-                        <a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontSize: 12, fontWeight: 900 }}>
-                          Bild öffnen
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => void handleDeleteImage(item.id)}
-                          disabled={deletingId === item.id}
-                          style={{
-                            minHeight: 38,
-                            borderRadius: 12,
-                            border: "1px solid rgba(252,165,165,0.22)",
-                            background: "rgba(239,68,68,0.14)",
-                            color: "#fecaca",
-                            fontWeight: 950,
-                            cursor: deletingId === item.id ? "not-allowed" : "pointer",
-                          }}
-                        >
-                          {deletingId === item.id ? "Entfernt …" : "Entfernen"}
-                        </button>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setQrxType("business")}
+                style={{
+                  minHeight: 74,
+                  borderRadius: 18,
+                  border: qrxType === "business" ? "1px solid #fed7aa" : "1px solid rgba(148, 163, 184, 0.22)",
+                  background: qrxType === "business" ? "rgba(251,146,60,0.16)" : "rgba(255,255,255,0.06)",
+                  color: "#ffffff",
+                  fontWeight: 950,
+                  cursor: "pointer",
+                }}
+              >
+                🏢 Business QR-X
+              </button>
             </div>
-          </>
+
+            <label style={labelStyle}>
+              Titel *
+              <input value={title} onChange={(event) => setTitle(event.target.value)} style={inputStyle} required />
+            </label>
+
+            {isBusiness ? (
+              <label style={labelStyle}>
+                Firmenname
+                <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} style={inputStyle} />
+              </label>
+            ) : null}
+
+            <label style={labelStyle}>
+              Beschreibung
+              <textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                style={{ ...inputStyle, minHeight: 140, paddingTop: 14, resize: "vertical" }}
+              />
+            </label>
+
+            <label style={labelStyle}>
+              Standortname
+              <input value={locationName} onChange={(event) => setLocationName(event.target.value)} style={inputStyle} />
+            </label>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label style={labelStyle}>
+                Breitengrad
+                <input value={locationLat} onChange={(event) => setLocationLat(event.target.value)} style={inputStyle} placeholder="z. B. 50.9375" />
+              </label>
+
+              <label style={labelStyle}>
+                Längengrad
+                <input value={locationLng} onChange={(event) => setLocationLng(event.target.value)} style={inputStyle} placeholder="z. B. 6.9603" />
+              </label>
+            </div>
+
+            {isBusiness ? (
+              <>
+                <div style={dividerStyle} />
+
+                <div>
+                  <h3 style={{ margin: "0 0 10px", color: "#ffffff", fontSize: 18 }}>Kontakt & Aktionen</h3>
+                  <p style={{ margin: "0 0 14px", color: "#94a3b8", lineHeight: 1.55 }}>
+                    Diese Angaben erscheinen später als Buttons in der QR-X Webansicht.
+                  </p>
+                </div>
+
+                <label style={labelStyle}>
+                  Telefon
+                  <input value={ctaPhone} onChange={(event) => setCtaPhone(event.target.value)} style={inputStyle} />
+                </label>
+
+                <label style={labelStyle}>
+                  Webseite
+                  <input value={ctaWebsite} onChange={(event) => setCtaWebsite(event.target.value)} style={inputStyle} placeholder="https://..." />
+                </label>
+
+                <label style={labelStyle}>
+                  E-Mail
+                  <input value={ctaEmail} onChange={(event) => setCtaEmail(event.target.value)} style={inputStyle} />
+                </label>
+
+                <label style={labelStyle}>
+                  Navigation
+                  <input value={ctaNavigation} onChange={(event) => setCtaNavigation(event.target.value)} style={inputStyle} placeholder="Adresse oder Google-Maps-Link" />
+                </label>
+              </>
+            ) : null}
+
+            <div style={passwordBoxStyle(passwordProtected)}>
+              <label style={passwordToggleStyle}>
+                <span>QR-X mit Passwort schützen</span>
+                <input
+                  type="checkbox"
+                  checked={passwordProtected}
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setPasswordProtected(checked);
+                    if (!checked) {
+                      setQrxPassword("");
+                      setQrxPasswordRepeat("");
+                    }
+                  }}
+                  style={{ width: 20, height: 20, accentColor: "#60a5fa" }}
+                />
+              </label>
+
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55, fontSize: 13 }}>
+                Wenn aktiviert, müssen Besucher vor dem Öffnen dieses QR-X ein Passwort eingeben.
+                {passwordWasProtected && passwordProtected ? " Lasse die Felder leer, wenn du das bestehende Passwort behalten möchtest." : ""}
+              </p>
+
+              {passwordProtected ? (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <label style={labelStyle}>
+                    {passwordWasProtected ? "Neues Passwort" : "Passwort *"}
+                    <input
+                      type="password"
+                      value={qrxPassword}
+                      onChange={(event) => setQrxPassword(event.target.value)}
+                      style={inputStyle}
+                      minLength={4}
+                      required={!passwordWasProtected}
+                      autoComplete="new-password"
+                    />
+                  </label>
+
+                  <label style={labelStyle}>
+                    {passwordWasProtected ? "Neues Passwort wiederholen" : "Passwort wiederholen *"}
+                    <input
+                      type="password"
+                      value={qrxPasswordRepeat}
+                      onChange={(event) => setQrxPasswordRepeat(event.target.value)}
+                      style={inputStyle}
+                      minLength={4}
+                      required={!passwordWasProtected}
+                      autoComplete="new-password"
+                    />
+                  </label>
+                </div>
+              ) : null}
+            </div>
+
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
+              <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
+                Abbrechen
+              </Link>
+
+              <button type="submit" disabled={saving} className={styles.primaryButton} style={{ border: 0, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.72 : 1 }}>
+                {saving ? "Speichert …" : "QR-X speichern"}
+              </button>
+            </div>
+          </form>
         ) : null}
       </section>
     </main>
   );
 }
 
-function PreviewImage({ url, label, compact }: { url: string; label: string; compact?: boolean }) {
-  return (
-    <div
-      style={{
-        borderRadius: 22,
-        padding: 12,
-        background: "rgba(255,255,255,0.045)",
-        border: "1px solid rgba(255,255,255,0.075)",
-      }}
-    >
-      <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 900, marginBottom: 8 }}>{label}</div>
-      <div style={{ height: compact ? 110 : 210, borderRadius: 16, overflow: "hidden", background: "#e2e8f0" }}>
-        <img
-          src={url}
-          alt={label}
-          style={{ width: "100%", height: "100%", objectFit: compact ? "contain" : "cover", display: "block" }}
-        />
-      </div>
-    </div>
-  );
-}
-
 const panelStyle: React.CSSProperties = {
+  maxWidth: 880,
+  margin: "0 auto",
   borderRadius: 30,
   background: "rgba(15, 23, 42, 0.82)",
   border: "1px solid rgba(148, 163, 184, 0.16)",
@@ -517,9 +533,24 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
+const dividerStyle: React.CSSProperties = {
+  height: 1,
+  background: "rgba(255,255,255,0.09)",
+  margin: "4px 0",
+};
+
+const loadingStyle: React.CSSProperties = {
+  minHeight: 160,
+  display: "grid",
+  placeItems: "center",
+  color: "#cbd5e1",
+  fontWeight: 950,
+};
+
 const errorStyle: React.CSSProperties = {
   borderRadius: 22,
   padding: 16,
+  marginBottom: 16,
   background: "rgba(239, 68, 68, 0.14)",
   border: "1px solid rgba(252, 165, 165, 0.22)",
   color: "#fecaca",
@@ -530,9 +561,31 @@ const errorStyle: React.CSSProperties = {
 const successStyle: React.CSSProperties = {
   borderRadius: 22,
   padding: 16,
+  marginBottom: 16,
   background: "rgba(34, 197, 94, 0.14)",
   border: "1px solid rgba(134, 239, 172, 0.22)",
   color: "#bbf7d0",
   fontWeight: 850,
   lineHeight: 1.55,
+};
+
+function passwordBoxStyle(active: boolean): React.CSSProperties {
+  return {
+    borderRadius: 22,
+    padding: 16,
+    background: active ? "rgba(59,130,246,0.14)" : "rgba(255,255,255,0.045)",
+    border: active ? "1px solid rgba(147,197,253,0.28)" : "1px solid rgba(255,255,255,0.08)",
+    display: "grid",
+    gap: 12,
+  };
+}
+
+const passwordToggleStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 14,
+  color: "#ffffff",
+  fontWeight: 950,
+  cursor: "pointer",
 };
