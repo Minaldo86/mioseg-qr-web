@@ -38,6 +38,52 @@ const BUSINESS_CATEGORY_OPTIONS: Array<{
   { value: "sonstiges", label: "Sonstiges", icon: "▦" },
 ];
 
+type PrepareUploadResponse = {
+  uploadUrl?: string;
+  signedUrl?: string;
+  signed_url?: string;
+  url?: string;
+  storagePath?: string;
+  storage_path?: string;
+  path?: string;
+  charged_credits?: number;
+  new_balance?: number;
+};
+
+type FinalizeUploadResponse = {
+  publicUrl?: string;
+  public_url?: string;
+  url?: string;
+  media?: {
+    url?: string | null;
+  } | null;
+};
+
+function pickFirstString(...values: Array<unknown>) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+
+  return null;
+}
+
+function getFileExtension(file: File) {
+  const fromName = file.name.split(".").pop();
+  if (fromName && fromName.length <= 8) return fromName.toLowerCase();
+
+  const fromType = file.type.split("/").pop();
+  return fromType && fromType.trim() ? fromType : "jpg";
+}
+
+function buildUploadFilename(prefix: "logo" | "cover", file: File) {
+  const ext = getFileExtension(file).replace(/[^a-z0-9]/gi, "") || "jpg";
+  return `${prefix}-${Date.now().toString()}-${Math.random()
+    .toString(36)
+    .slice(2, 10)}.${ext}`;
+}
+
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
   if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim())
@@ -114,6 +160,11 @@ export default function NewQrxPage() {
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [qrxPassword, setQrxPassword] = useState("");
   const [qrxPasswordRepeat, setQrxPasswordRepeat] = useState("");
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -275,6 +326,182 @@ export default function NewQrxPage() {
     }
   }
 
+  async function getAccessToken() {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error) throw error;
+
+    const token = session?.access_token;
+    if (!token) {
+      throw new Error(
+        "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+      );
+    }
+
+    return token;
+  }
+
+  async function prepareUpload(args: {
+    qrxId: string;
+    type: "image" | "file";
+    filename: string;
+    mimeType: string;
+    bytes: number;
+  }) {
+    const token = await getAccessToken();
+
+    const { data, error } = await supabase.functions.invoke(
+      "qrx-media-prepare-upload",
+      {
+        body: {
+          qrxId: args.qrxId,
+          type: args.type,
+          filename: args.filename,
+          mimeType: args.mimeType,
+          bytes: args.bytes,
+        },
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+
+    if (error) throw error;
+
+    const response = (data ?? {}) as PrepareUploadResponse;
+    const uploadUrl = pickFirstString(
+      response.uploadUrl,
+      response.signedUrl,
+      response.signed_url,
+      response.url,
+    );
+    const storagePath = pickFirstString(
+      response.storagePath,
+      response.storage_path,
+      response.path,
+    );
+
+    if (!uploadUrl || !storagePath) {
+      throw new Error("Prepare-Upload: uploadUrl oder storagePath fehlt.");
+    }
+
+    return { uploadUrl, storagePath };
+  }
+
+  async function finalizeUpload(args: {
+    qrxId: string;
+    type: "image" | "file";
+    filename: string;
+    mimeType: string;
+    bytes: number;
+    storagePath: string;
+  }) {
+    const token = await getAccessToken();
+
+    const { data, error } = await supabase.functions.invoke(
+      "qrx-media-finalize-upload",
+      {
+        body: {
+          qrxId: args.qrxId,
+          type: args.type,
+          filename: args.filename,
+          mimeType: args.mimeType,
+          bytes: args.bytes,
+          storagePath: args.storagePath,
+        },
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
+
+    if (error) throw error;
+
+    const response = (data ?? {}) as FinalizeUploadResponse;
+    const publicUrl = pickFirstString(
+      response.publicUrl,
+      response.public_url,
+      response.url,
+      response.media?.url,
+    );
+
+    if (!publicUrl) {
+      throw new Error("Finalize-Upload: publicUrl fehlt.");
+    }
+
+    return { publicUrl };
+  }
+
+  async function uploadQrxImage(args: {
+    qrxId: string;
+    file: File;
+    prefix: "logo" | "cover";
+  }) {
+    const filename = buildUploadFilename(args.prefix, args.file);
+    const mimeType = args.file.type || "image/jpeg";
+    const bytes = args.file.size;
+
+    const prepared = await prepareUpload({
+      qrxId: args.qrxId,
+      type: "image",
+      filename,
+      mimeType,
+      bytes,
+    });
+
+    const arrayBuffer = await args.file.arrayBuffer();
+    const uploadResponse = await fetch(prepared.uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": mimeType },
+      body: arrayBuffer,
+    });
+
+    if (!uploadResponse.ok) {
+      const message = await uploadResponse.text().catch(() => "");
+      throw new Error(
+        `Upload fehlgeschlagen (${uploadResponse.status}): ${message || "Unbekannter Fehler"}`,
+      );
+    }
+
+    const finalized = await finalizeUpload({
+      qrxId: args.qrxId,
+      type: "image",
+      filename,
+      mimeType,
+      bytes,
+      storagePath: prepared.storagePath,
+    });
+
+    return finalized.publicUrl;
+  }
+
+  function handleLogoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setLogoFile(file);
+
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
+    setLogoPreview(file ? URL.createObjectURL(file) : null);
+  }
+
+  function handleCoverChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setCoverFile(file);
+
+    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    setCoverPreview(file ? URL.createObjectURL(file) : null);
+  }
+
+  function clearLogoSelection() {
+    setLogoFile(null);
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
+    setLogoPreview(null);
+  }
+
+  function clearCoverSelection() {
+    setCoverFile(null);
+    if (coverPreview) URL.revokeObjectURL(coverPreview);
+    setCoverPreview(null);
+  }
+
   async function saveQrxPasswordProtection(args: {
     qrxId: string;
     enabled: boolean;
@@ -381,6 +608,8 @@ export default function NewQrxPage() {
         location_name: toNullable(locationName),
         location_lat: lat,
         location_lng: lng,
+        logo_url: null,
+        cover_image_url: null,
         cta_phone: qrxType === "business" ? toNullable(ctaPhone) : null,
         cta_website: qrxType === "business" ? toNullable(ctaWebsite) : null,
         cta_email: qrxType === "business" ? toNullable(ctaEmail) : null,
@@ -411,6 +640,8 @@ export default function NewQrxPage() {
           location_name: insertPayload.location_name,
           location_lat: insertPayload.location_lat,
           location_lng: insertPayload.location_lng,
+          logo_url: insertPayload.logo_url,
+          cover_image_url: insertPayload.cover_image_url,
           cta_phone: insertPayload.cta_phone,
           cta_website: insertPayload.cta_website,
           cta_navigation: insertPayload.cta_navigation,
@@ -441,6 +672,36 @@ export default function NewQrxPage() {
           enabled: true,
           password: nextPassword,
         });
+      }
+
+      if (newId && logoFile) {
+        const logoUrl = await uploadQrxImage({
+          qrxId: newId,
+          file: logoFile,
+          prefix: "logo",
+        });
+
+        const { error: logoUpdateError } = await supabase
+          .from("qr_x_entries")
+          .update({ logo_url: logoUrl })
+          .eq("id", newId);
+
+        if (logoUpdateError) throw logoUpdateError;
+      }
+
+      if (newId && qrxType === "business" && coverFile) {
+        const coverUrl = await uploadQrxImage({
+          qrxId: newId,
+          file: coverFile,
+          prefix: "cover",
+        });
+
+        const { error: coverUpdateError } = await supabase
+          .from("qr_x_entries")
+          .update({ cover_image_url: coverUrl })
+          .eq("id", newId);
+
+        if (coverUpdateError) throw coverUpdateError;
       }
 
       await loadCreditAndPricingData();
@@ -699,6 +960,90 @@ export default function NewQrxPage() {
             </button>
           </div>
 
+          <div style={mediaSectionStyle}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                Logo
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Optional: Lade ein Logo hoch. Es wird später in deinem QR-X
+                Profil angezeigt.
+              </p>
+            </div>
+
+            {logoPreview ? (
+              <div style={previewRowStyle}>
+                <img
+                  src={logoPreview}
+                  alt="Logo Vorschau"
+                  style={logoPreviewStyle}
+                />
+                <button
+                  type="button"
+                  onClick={clearLogoSelection}
+                  className={styles.secondaryButton}
+                  style={{ border: 0, cursor: "pointer" }}
+                >
+                  Logo entfernen
+                </button>
+              </div>
+            ) : null}
+
+            <label style={fileButtonStyle}>
+              Logo auswählen
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                style={{ display: "none" }}
+              />
+            </label>
+          </div>
+
+          {isBusiness ? (
+            <div style={mediaSectionStyle}>
+              <div>
+                <h3
+                  style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}
+                >
+                  Coverbild
+                </h3>
+                <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                  Optional: Das Coverbild erscheint später als großes Titelbild
+                  deines Business QR-X.
+                </p>
+              </div>
+
+              {coverPreview ? (
+                <div style={{ display: "grid", gap: 12 }}>
+                  <img
+                    src={coverPreview}
+                    alt="Coverbild Vorschau"
+                    style={coverPreviewStyle}
+                  />
+                  <button
+                    type="button"
+                    onClick={clearCoverSelection}
+                    className={styles.secondaryButton}
+                    style={{ border: 0, cursor: "pointer" }}
+                  >
+                    Coverbild entfernen
+                  </button>
+                </div>
+              ) : null}
+
+              <label style={fileButtonStyle}>
+                Coverbild auswählen
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverChange}
+                  style={{ display: "none" }}
+                />
+              </label>
+            </div>
+          ) : null}
+
           <label style={labelStyle}>
             Titel *
             <input
@@ -722,11 +1067,18 @@ export default function NewQrxPage() {
 
               <div style={{ display: "grid", gap: 12 }}>
                 <div>
-                  <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                  <h3
+                    style={{
+                      margin: "0 0 8px",
+                      color: "#ffffff",
+                      fontSize: 18,
+                    }}
+                  >
                     Kategorie
                   </h3>
                   <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
-                    Hilft später für Explore, Karte und Rankings. Du kannst die Kategorie später wieder ändern.
+                    Hilft später für Explore, Karte und Rankings. Du kannst die
+                    Kategorie später wieder ändern.
                   </p>
                 </div>
 
@@ -1041,6 +1393,54 @@ export default function NewQrxPage() {
     </main>
   );
 }
+
+const mediaSectionStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 12,
+  borderRadius: 22,
+  padding: 16,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.08)",
+};
+
+const previewRowStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 14,
+  flexWrap: "wrap",
+};
+
+const logoPreviewStyle: React.CSSProperties = {
+  width: 104,
+  height: 104,
+  objectFit: "cover",
+  borderRadius: 26,
+  border: "1px solid rgba(255,255,255,0.18)",
+  background: "rgba(255,255,255,0.08)",
+};
+
+const coverPreviewStyle: React.CSSProperties = {
+  width: "100%",
+  maxHeight: 260,
+  objectFit: "cover",
+  borderRadius: 22,
+  border: "1px solid rgba(255,255,255,0.18)",
+  background: "rgba(255,255,255,0.08)",
+};
+
+const fileButtonStyle: React.CSSProperties = {
+  minHeight: 48,
+  borderRadius: 16,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "0 18px",
+  background: "rgba(255,255,255,0.075)",
+  border: "1px solid rgba(148,163,184,0.22)",
+  color: "#ffffff",
+  fontWeight: 950,
+  cursor: "pointer",
+};
 
 const labelStyle: React.CSSProperties = {
   display: "grid",
