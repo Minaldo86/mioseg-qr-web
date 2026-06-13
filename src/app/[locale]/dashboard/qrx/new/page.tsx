@@ -136,6 +136,7 @@ export default function NewQrxPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .insert({
+          category: qrxType === "business" ? "unternehmen" : null,
           owner_user_id: user.id,
           title: nextTitle,
           company_name: qrxType === "business" ? toNullable(companyName) : null,
