@@ -179,8 +179,12 @@ export default function NewQrxPage() {
         }
       }, 700);
     } catch (error) {
-      setErrorText(error instanceof Error ? error.message : "QR-X konnte nicht erstellt werden.");
-    } finally {
+  console.error("QRX CREATE ERROR", error);
+
+  setErrorText(
+    JSON.stringify(error, null, 2)
+  );
+} finally {
       setSaving(false);
     }
   }
