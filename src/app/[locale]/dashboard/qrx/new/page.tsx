@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard.module.css";
@@ -11,7 +11,8 @@ type QrxType = "normal" | "business";
 
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
-  if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim()) return value[0];
+  if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim())
+    return value[0];
   return fallback;
 }
 
@@ -34,11 +35,32 @@ function parseOptionalNumber(value: string, label: string) {
   return numberValue;
 }
 
+function normalizeErrorMessage(error: unknown) {
+  const anyError = error as any;
+  return String(
+    anyError?.message ??
+      anyError?.error_description ??
+      anyError?.details ??
+      anyError?.hint ??
+      error ??
+      "Unbekannter Fehler",
+  );
+}
+
+function isMissingColumnError(error: unknown, columnName: string) {
+  return normalizeErrorMessage(error)
+    .toLowerCase()
+    .includes(columnName.toLowerCase());
+}
+
 export default function NewQrxPage() {
   const router = useRouter();
   const params = useParams();
 
-  const locale = getParam(params?.locale as string | string[] | undefined, "de");
+  const locale = getParam(
+    params?.locale as string | string[] | undefined,
+    "de",
+  );
 
   const [qrxType, setQrxType] = useState<QrxType>("normal");
   const [title, setTitle] = useState("");
@@ -59,6 +81,162 @@ export default function NewQrxPage() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
 
+  const [credits, setCredits] = useState<number | null>(null);
+  const [normalQrxCount, setNormalQrxCount] = useState<number | null>(null);
+  const [businessQrxCount, setBusinessQrxCount] = useState<number | null>(null);
+  const [pricingLoading, setPricingLoading] = useState(true);
+
+  const creationCostCredits = useMemo(() => {
+    if (qrxType === "business") {
+      if (businessQrxCount == null) return null;
+      return businessQrxCount === 0 ? 2 : 7;
+    }
+
+    if (normalQrxCount == null) return null;
+    return normalQrxCount === 0 ? 0 : 5;
+  }, [qrxType, normalQrxCount, businessQrxCount]);
+
+  const hasEnoughCredits =
+    creationCostCredits != null && credits != null
+      ? credits >= creationCostCredits
+      : false;
+
+  useEffect(() => {
+    void loadCreditAndPricingData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function loadCreditAndPricingData() {
+    setPricingLoading(true);
+    setErrorText(null);
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+
+      if (!user) {
+        setCredits(null);
+        setNormalQrxCount(null);
+        setBusinessQrxCount(null);
+        return;
+      }
+
+      const [creditsRes, normalRes, businessRes] = await Promise.all([
+        supabase
+          .from("qrx_credits")
+          .select("credits")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("qr_x_entries")
+          .select("*", { count: "exact", head: true })
+          .eq("owner_user_id", user.id)
+          .eq("type", "normal"),
+        supabase
+          .from("qr_x_entries")
+          .select("*", { count: "exact", head: true })
+          .eq("owner_user_id", user.id)
+          .eq("type", "business"),
+      ]);
+
+      if (creditsRes.error) throw creditsRes.error;
+      if (normalRes.error) throw normalRes.error;
+      if (businessRes.error) throw businessRes.error;
+
+      if (!creditsRes.data) {
+        const { data: inserted, error: insertCreditError } = await supabase
+          .from("qrx_credits")
+          .upsert(
+            { user_id: user.id, credits: 0 },
+            { onConflict: "user_id", ignoreDuplicates: false },
+          )
+          .select("credits")
+          .maybeSingle();
+
+        if (insertCreditError) throw insertCreditError;
+        setCredits(Number(inserted?.credits ?? 0));
+      } else {
+        setCredits(Number((creditsRes.data as any)?.credits ?? 0));
+      }
+
+      setNormalQrxCount(
+        typeof normalRes.count === "number" ? normalRes.count : 0,
+      );
+      setBusinessQrxCount(
+        typeof businessRes.count === "number" ? businessRes.count : 0,
+      );
+    } catch (error) {
+      console.error("QRX PRICING LOAD ERROR", error);
+      setErrorText(
+        normalizeErrorMessage(error) ||
+          "Credits und QR-X-Kosten konnten nicht geladen werden.",
+      );
+    } finally {
+      setPricingLoading(false);
+    }
+  }
+
+  async function spendCredits(amount: number) {
+    if (!Number.isFinite(amount) || amount <= 0) return credits ?? 0;
+
+    const { data, error } = await supabase.rpc("spend_credits", {
+      p_amount: amount,
+    });
+
+    if (error) {
+      throw new Error(
+        normalizeErrorMessage(error) ||
+          "Credits konnten nicht abgezogen werden.",
+      );
+    }
+
+    const nextCredits =
+      typeof data === "number" ? data : Math.max(0, (credits ?? 0) - amount);
+    setCredits(nextCredits);
+    return nextCredits;
+  }
+
+  async function addCredits(amount: number) {
+    if (!Number.isFinite(amount) || amount <= 0) return credits ?? 0;
+
+    const { data, error } = await supabase.rpc("add_credits", {
+      p_amount: amount,
+    });
+
+    if (error) {
+      throw new Error(
+        normalizeErrorMessage(error) ||
+          "Credits konnten nicht zurückgebucht werden.",
+      );
+    }
+
+    const nextCredits =
+      typeof data === "number" ? data : (credits ?? 0) + amount;
+    setCredits(nextCredits);
+    return nextCredits;
+  }
+
+  async function deleteCreatedQrxIfNeeded(qrxId: string) {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const token = session?.access_token;
+
+      await supabase.functions.invoke("delete-qrx", {
+        body: { qrxId },
+        ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+      });
+    } catch (deleteError) {
+      console.warn("QR-X Cleanup nach Fehler fehlgeschlagen:", deleteError);
+    }
+  }
+
   async function saveQrxPasswordProtection(args: {
     qrxId: string;
     enabled: boolean;
@@ -76,7 +254,9 @@ export default function NewQrxPage() {
     const token = session?.access_token;
 
     if (!token) {
-      throw new Error("Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.");
+      throw new Error(
+        "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+      );
     }
 
     const { error } = await supabase.functions.invoke("set-qrx-password", {
@@ -98,6 +278,9 @@ export default function NewQrxPage() {
     setSaving(true);
     setErrorText(null);
     setSuccessText(null);
+
+    let chargedCreation = false;
+    let createdQrxId: string | null = null;
 
     try {
       const nextTitle = title.trim();
@@ -133,34 +316,69 @@ export default function NewQrxPage() {
         throw new Error("Bitte melde dich zuerst an.");
       }
 
-      const { data, error } = await supabase
+      if (creationCostCredits == null || credits == null) {
+        throw new Error(
+          "Credits und QR-X-Kosten werden noch geladen. Bitte versuche es gleich erneut.",
+        );
+      }
+
+      if (creationCostCredits > 0 && credits < creationCostCredits) {
+        throw new Error(
+          `Nicht genug Credits. Benötigt: ${creationCostCredits}, vorhanden: ${credits}. Bitte kaufe zuerst Credits.`,
+        );
+      }
+
+      if (creationCostCredits > 0) {
+        await spendCredits(creationCostCredits);
+        chargedCreation = true;
+      }
+
+      const insertPayload = {
+        category: qrxType === "business" ? "unternehmen" : null,
+        owner_user_id: user.id,
+        title: nextTitle,
+        company_name: qrxType === "business" ? toNullable(companyName) : null,
+        description: toNullable(description),
+        type: qrxType,
+        location_name: toNullable(locationName),
+        location_lat: lat,
+        location_lng: lng,
+        cta_phone: qrxType === "business" ? toNullable(ctaPhone) : null,
+        cta_website: qrxType === "business" ? toNullable(ctaWebsite) : null,
+        cta_email: qrxType === "business" ? toNullable(ctaEmail) : null,
+        cta_navigation:
+          qrxType === "business" ? toNullable(ctaNavigation) : null,
+        verified: false,
+        suspended: false,
+        password_protected: false,
+      };
+
+      let insertResult = await supabase
         .from("qr_x_entries")
-        .insert({
-          category: qrxType === "business" ? "unternehmen" : null,
-          owner_user_id: user.id,
-          title: nextTitle,
-          company_name: qrxType === "business" ? toNullable(companyName) : null,
-          description: toNullable(description),
-          type: qrxType,
-          location_name: toNullable(locationName),
-          location_lat: lat,
-          location_lng: lng,
-          cta_phone: qrxType === "business" ? toNullable(ctaPhone) : null,
-          cta_website: qrxType === "business" ? toNullable(ctaWebsite) : null,
-          cta_email: qrxType === "business" ? toNullable(ctaEmail) : null,
-          cta_navigation: qrxType === "business" ? toNullable(ctaNavigation) : null,
-          verified: false,
-          suspended: false,
-          password_protected: false,
-        })
+        .insert(insertPayload)
         .select("id")
         .single();
+
+      if (
+        insertResult.error &&
+        isMissingColumnError(insertResult.error, "cta_email")
+      ) {
+        const { cta_email, ...fallbackPayload } = insertPayload;
+        insertResult = await supabase
+          .from("qr_x_entries")
+          .insert(fallbackPayload)
+          .select("id")
+          .single();
+      }
+
+      const { data, error } = insertResult;
 
       if (error) {
         throw error;
       }
 
       const newId = data?.id;
+      createdQrxId = newId ?? null;
 
       if (passwordProtected && newId) {
         await saveQrxPasswordProtection({
@@ -170,7 +388,17 @@ export default function NewQrxPage() {
         });
       }
 
-      setSuccessText(passwordProtected ? "QR-X wurde erstellt und mit Passwort geschützt." : "QR-X wurde erstellt.");
+      await loadCreditAndPricingData();
+
+      const costText =
+        creationCostCredits > 0
+          ? ` ${creationCostCredits} Credits wurden abgezogen.`
+          : " Der erste normale QR-X ist kostenlos.";
+      setSuccessText(
+        passwordProtected
+          ? `QR-X wurde erstellt und mit Passwort geschützt.${costText}`
+          : `QR-X wurde erstellt.${costText}`,
+      );
 
       window.setTimeout(() => {
         if (newId) {
@@ -180,12 +408,32 @@ export default function NewQrxPage() {
         }
       }, 700);
     } catch (error) {
-  console.error("QRX CREATE ERROR", error);
+      console.error("QRX CREATE ERROR", error);
 
-  setErrorText(
-    JSON.stringify(error, null, 2)
-  );
-} finally {
+      if (createdQrxId) {
+        await deleteCreatedQrxIfNeeded(createdQrxId);
+      }
+
+      if (
+        chargedCreation &&
+        creationCostCredits != null &&
+        creationCostCredits > 0
+      ) {
+        try {
+          await addCredits(creationCostCredits);
+        } catch (refundError) {
+          console.warn(
+            "Credit-Rückbuchung nach Fehler fehlgeschlagen:",
+            refundError,
+          );
+        }
+      }
+
+      await loadCreditAndPricingData();
+      setErrorText(
+        normalizeErrorMessage(error) || "QR-X konnte nicht erstellt werden.",
+      );
+    } finally {
       setSaving(false);
     }
   }
@@ -210,13 +458,16 @@ export default function NewQrxPage() {
           <span className={styles.kicker}>QR-X erstellen</span>
           <h1>Neuen QR-X erstellen</h1>
           <p>
-            Erstelle eine schlanke erste Web-Version deines QR-X. Bilder, Dateien, Layouts und Credits
-            ergänzen wir im nächsten Schritt.
+            Erstelle eine schlanke erste Web-Version deines QR-X. Bilder,
+            Dateien, Layouts und Credits ergänzen wir im nächsten Schritt.
           </p>
         </div>
 
         <div className={styles.heroActions}>
-          <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
+          <Link
+            href={`/${locale}/dashboard/qrx`}
+            className={styles.secondaryButton}
+          >
             Zurück zu Meine QR-X
           </Link>
         </div>
@@ -275,16 +526,93 @@ export default function NewQrxPage() {
           </div>
         ) : null}
 
+        <div
+          style={{
+            borderRadius: 22,
+            padding: 16,
+            marginBottom: 16,
+            background: "rgba(255,255,255,0.045)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            display: "grid",
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <strong style={{ color: "#ffffff", fontSize: 16 }}>
+              Credit-Prüfung
+            </strong>
+            <span style={{ color: "#cbd5e1", fontWeight: 900 }}>
+              Aktuelle Credits: {pricingLoading ? "…" : (credits ?? 0)}
+            </span>
+          </div>
+
+          <div
+            style={{
+              color: "#94a3b8",
+              lineHeight: 1.55,
+              fontSize: 13,
+              fontWeight: 800,
+            }}
+          >
+            {pricingLoading || creationCostCredits == null ? (
+              "Kosten werden geladen …"
+            ) : qrxType === "normal" && creationCostCredits === 0 ? (
+              "Dieser normale QR-X ist kostenlos, weil es dein erster normaler QR-X ist."
+            ) : (
+              <>
+                Dieser {isBusiness ? "Business QR-X" : "normale QR-X"} kostet{" "}
+                <strong style={{ color: "#ffffff" }}>
+                  {creationCostCredits} Credits
+                </strong>
+                .
+              </>
+            )}
+          </div>
+
+          {!pricingLoading &&
+          creationCostCredits != null &&
+          credits != null &&
+          credits < creationCostCredits ? (
+            <div
+              style={{ color: "#fecaca", fontWeight: 900, lineHeight: 1.55 }}
+            >
+              Nicht genügend Credits. Benötigt: {creationCostCredits},
+              vorhanden: {credits}.{" "}
+              <Link
+                href={`/${locale}/dashboard/credits`}
+                style={{ color: "#bfdbfe" }}
+              >
+                Credits kaufen
+              </Link>
+            </div>
+          ) : null}
+        </div>
+
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          >
             <button
               type="button"
               onClick={() => setQrxType("normal")}
               style={{
                 minHeight: 74,
                 borderRadius: 18,
-                border: qrxType === "normal" ? "1px solid #bbf7d0" : "1px solid rgba(148, 163, 184, 0.22)",
-                background: qrxType === "normal" ? "rgba(34,197,94,0.16)" : "rgba(255,255,255,0.06)",
+                border:
+                  qrxType === "normal"
+                    ? "1px solid #bbf7d0"
+                    : "1px solid rgba(148, 163, 184, 0.22)",
+                background:
+                  qrxType === "normal"
+                    ? "rgba(34,197,94,0.16)"
+                    : "rgba(255,255,255,0.06)",
                 color: "#ffffff",
                 fontWeight: 950,
                 cursor: "pointer",
@@ -299,8 +627,14 @@ export default function NewQrxPage() {
               style={{
                 minHeight: 74,
                 borderRadius: 18,
-                border: qrxType === "business" ? "1px solid #fed7aa" : "1px solid rgba(148, 163, 184, 0.22)",
-                background: qrxType === "business" ? "rgba(251,146,60,0.16)" : "rgba(255,255,255,0.06)",
+                border:
+                  qrxType === "business"
+                    ? "1px solid #fed7aa"
+                    : "1px solid rgba(148, 163, 184, 0.22)",
+                background:
+                  qrxType === "business"
+                    ? "rgba(251,146,60,0.16)"
+                    : "rgba(255,255,255,0.06)",
                 color: "#ffffff",
                 fontWeight: 950,
                 cursor: "pointer",
@@ -312,13 +646,22 @@ export default function NewQrxPage() {
 
           <label style={labelStyle}>
             Titel *
-            <input value={title} onChange={(event) => setTitle(event.target.value)} style={inputStyle} required />
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              style={inputStyle}
+              required
+            />
           </label>
 
           {isBusiness ? (
             <label style={labelStyle}>
               Firmenname
-              <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} style={inputStyle} />
+              <input
+                value={companyName}
+                onChange={(event) => setCompanyName(event.target.value)}
+                style={inputStyle}
+              />
             </label>
           ) : null}
 
@@ -327,16 +670,27 @@ export default function NewQrxPage() {
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              style={{ ...inputStyle, minHeight: 140, paddingTop: 14, resize: "vertical" }}
+              style={{
+                ...inputStyle,
+                minHeight: 140,
+                paddingTop: 14,
+                resize: "vertical",
+              }}
             />
           </label>
 
           <label style={labelStyle}>
             Standortname
-            <input value={locationName} onChange={(event) => setLocationName(event.target.value)} style={inputStyle} />
+            <input
+              value={locationName}
+              onChange={(event) => setLocationName(event.target.value)}
+              style={inputStyle}
+            />
           </label>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          >
             <label style={labelStyle}>
               Breitengrad
               <input
@@ -369,15 +723,30 @@ export default function NewQrxPage() {
               />
 
               <div>
-                <h3 style={{ margin: "0 0 10px", color: "#ffffff", fontSize: 18 }}>Kontakt & Aktionen</h3>
-                <p style={{ margin: "0 0 14px", color: "#94a3b8", lineHeight: 1.55 }}>
-                  Diese Angaben erscheinen später als Buttons in der QR-X Webansicht.
+                <h3
+                  style={{ margin: "0 0 10px", color: "#ffffff", fontSize: 18 }}
+                >
+                  Kontakt & Aktionen
+                </h3>
+                <p
+                  style={{
+                    margin: "0 0 14px",
+                    color: "#94a3b8",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Diese Angaben erscheinen später als Buttons in der QR-X
+                  Webansicht.
                 </p>
               </div>
 
               <label style={labelStyle}>
                 Telefon
-                <input value={ctaPhone} onChange={(event) => setCtaPhone(event.target.value)} style={inputStyle} />
+                <input
+                  value={ctaPhone}
+                  onChange={(event) => setCtaPhone(event.target.value)}
+                  style={inputStyle}
+                />
               </label>
 
               <label style={labelStyle}>
@@ -392,7 +761,11 @@ export default function NewQrxPage() {
 
               <label style={labelStyle}>
                 E-Mail
-                <input value={ctaEmail} onChange={(event) => setCtaEmail(event.target.value)} style={inputStyle} />
+                <input
+                  value={ctaEmail}
+                  onChange={(event) => setCtaEmail(event.target.value)}
+                  style={inputStyle}
+                />
               </label>
 
               <label style={labelStyle}>
@@ -411,8 +784,12 @@ export default function NewQrxPage() {
             style={{
               borderRadius: 22,
               padding: 16,
-              background: passwordProtected ? "rgba(59,130,246,0.14)" : "rgba(255,255,255,0.045)",
-              border: passwordProtected ? "1px solid rgba(147,197,253,0.28)" : "1px solid rgba(255,255,255,0.08)",
+              background: passwordProtected
+                ? "rgba(59,130,246,0.14)"
+                : "rgba(255,255,255,0.045)",
+              border: passwordProtected
+                ? "1px solid rgba(147,197,253,0.28)"
+                : "1px solid rgba(255,255,255,0.08)",
               display: "grid",
               gap: 12,
             }}
@@ -444,12 +821,26 @@ export default function NewQrxPage() {
               />
             </label>
 
-            <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55, fontSize: 13 }}>
-              Wenn aktiviert, müssen Besucher vor dem Öffnen dieses QR-X ein Passwort eingeben.
+            <p
+              style={{
+                margin: 0,
+                color: "#94a3b8",
+                lineHeight: 1.55,
+                fontSize: 13,
+              }}
+            >
+              Wenn aktiviert, müssen Besucher vor dem Öffnen dieses QR-X ein
+              Passwort eingeben.
             </p>
 
             {passwordProtected ? (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 12,
+                }}
+              >
                 <label style={labelStyle}>
                   Passwort *
                   <input
@@ -468,7 +859,9 @@ export default function NewQrxPage() {
                   <input
                     type="password"
                     value={qrxPasswordRepeat}
-                    onChange={(event) => setQrxPasswordRepeat(event.target.value)}
+                    onChange={(event) =>
+                      setQrxPasswordRepeat(event.target.value)
+                    }
                     style={inputStyle}
                     minLength={4}
                     required={passwordProtected}
@@ -488,17 +881,50 @@ export default function NewQrxPage() {
               marginTop: 8,
             }}
           >
-            <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
+            <Link
+              href={`/${locale}/dashboard/qrx`}
+              className={styles.secondaryButton}
+            >
               Abbrechen
             </Link>
 
             <button
               type="submit"
-              disabled={saving}
+              disabled={
+                saving ||
+                pricingLoading ||
+                creationCostCredits == null ||
+                credits == null ||
+                !hasEnoughCredits
+              }
               className={styles.primaryButton}
-              style={{ border: 0, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.72 : 1 }}
+              style={{
+                border: 0,
+                cursor:
+                  saving ||
+                  pricingLoading ||
+                  creationCostCredits == null ||
+                  credits == null ||
+                  !hasEnoughCredits
+                    ? "not-allowed"
+                    : "pointer",
+                opacity:
+                  saving ||
+                  pricingLoading ||
+                  creationCostCredits == null ||
+                  credits == null ||
+                  !hasEnoughCredits
+                    ? 0.72
+                    : 1,
+              }}
             >
-              {saving ? "Erstellt …" : "QR-X erstellen"}
+              {saving
+                ? "Erstellt …"
+                : pricingLoading
+                  ? "Kosten werden geladen …"
+                  : !hasEnoughCredits
+                    ? "Nicht genug Credits"
+                    : "QR-X erstellen"}
             </button>
           </div>
         </form>
