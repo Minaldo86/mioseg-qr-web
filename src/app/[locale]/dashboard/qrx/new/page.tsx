@@ -9,6 +9,35 @@ import styles from "../../dashboard.module.css";
 
 type QrxType = "normal" | "business";
 
+type BusinessCategory =
+  | "praxis_gesundheit"
+  | "gastronomie"
+  | "unternehmen"
+  | "dienstleistung"
+  | "handwerk"
+  | "event"
+  | "verein"
+  | "wohltaetigkeit"
+  | "sehenswuerdigkeit"
+  | "sonstiges";
+
+const BUSINESS_CATEGORY_OPTIONS: Array<{
+  value: BusinessCategory;
+  label: string;
+  icon: string;
+}> = [
+  { value: "praxis_gesundheit", label: "Praxis & Gesundheit", icon: "🏥" },
+  { value: "gastronomie", label: "Gastronomie", icon: "🍽️" },
+  { value: "unternehmen", label: "Unternehmen", icon: "🏢" },
+  { value: "dienstleistung", label: "Dienstleistung", icon: "🛠️" },
+  { value: "handwerk", label: "Handwerk", icon: "🔨" },
+  { value: "event", label: "Event", icon: "📅" },
+  { value: "verein", label: "Verein", icon: "👥" },
+  { value: "wohltaetigkeit", label: "Wohltätigkeit", icon: "♡" },
+  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit", icon: "📷" },
+  { value: "sonstiges", label: "Sonstiges", icon: "▦" },
+];
+
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
   if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim())
@@ -73,6 +102,7 @@ export default function NewQrxPage() {
   const [qrxType, setQrxType] = useState<QrxType>("normal");
   const [title, setTitle] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [category, setCategory] = useState<BusinessCategory>("unternehmen");
   const [description, setDescription] = useState("");
   const [locationName, setLocationName] = useState("");
   const [locationLat, setLocationLat] = useState("");
@@ -342,7 +372,7 @@ export default function NewQrxPage() {
       }
 
       const insertPayload = {
-        category: qrxType === "business" ? "unternehmen" : null,
+        category: qrxType === "business" ? category : null,
         owner_user_id: user.id,
         title: nextTitle,
         company_name: qrxType === "business" ? toNullable(companyName) : null,
@@ -680,14 +710,68 @@ export default function NewQrxPage() {
           </label>
 
           {isBusiness ? (
-            <label style={labelStyle}>
-              Firmenname
-              <input
-                value={companyName}
-                onChange={(event) => setCompanyName(event.target.value)}
-                style={inputStyle}
-              />
-            </label>
+            <>
+              <label style={labelStyle}>
+                Firmenname
+                <input
+                  value={companyName}
+                  onChange={(event) => setCompanyName(event.target.value)}
+                  style={inputStyle}
+                />
+              </label>
+
+              <div style={{ display: "grid", gap: 12 }}>
+                <div>
+                  <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                    Kategorie
+                  </h3>
+                  <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                    Hilft später für Explore, Karte und Rankings. Du kannst die Kategorie später wieder ändern.
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                    gap: 10,
+                  }}
+                >
+                  {BUSINESS_CATEGORY_OPTIONS.map((item) => {
+                    const active = category === item.value;
+
+                    return (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() => setCategory(item.value)}
+                        style={{
+                          minHeight: 58,
+                          borderRadius: 16,
+                          border: active
+                            ? "1px solid #facc15"
+                            : "1px solid rgba(148, 163, 184, 0.22)",
+                          background: active
+                            ? "linear-gradient(135deg, rgba(250,204,21,0.98), rgba(251,146,60,0.88))"
+                            : "rgba(255,255,255,0.055)",
+                          color: active ? "#111827" : "#ffffff",
+                          fontWeight: 950,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 8,
+                          padding: "0 12px",
+                        }}
+                      >
+                        <span aria-hidden="true">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
           ) : null}
 
           <label style={labelStyle}>
