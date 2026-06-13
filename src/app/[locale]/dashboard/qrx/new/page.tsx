@@ -35,13 +35,21 @@ function parseOptionalNumber(value: string, label: string) {
   return numberValue;
 }
 
+type ErrorLike = {
+  message?: unknown;
+  error_description?: unknown;
+  details?: unknown;
+  hint?: unknown;
+};
+
 function normalizeErrorMessage(error: unknown) {
-  const anyError = error as any;
+  const errorLike = error as ErrorLike;
+
   return String(
-    anyError?.message ??
-      anyError?.error_description ??
-      anyError?.details ??
-      anyError?.hint ??
+    errorLike.message ??
+      errorLike.error_description ??
+      errorLike.details ??
+      errorLike.hint ??
       error ??
       "Unbekannter Fehler",
   );
@@ -103,7 +111,6 @@ export default function NewQrxPage() {
 
   useEffect(() => {
     void loadCreditAndPricingData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function loadCreditAndPricingData() {
@@ -160,7 +167,8 @@ export default function NewQrxPage() {
         if (insertCreditError) throw insertCreditError;
         setCredits(Number(inserted?.credits ?? 0));
       } else {
-        setCredits(Number((creditsRes.data as any)?.credits ?? 0));
+        const creditRow = creditsRes.data as { credits?: number | null } | null;
+        setCredits(Number(creditRow?.credits ?? 0));
       }
 
       setNormalQrxCount(
@@ -363,7 +371,24 @@ export default function NewQrxPage() {
         insertResult.error &&
         isMissingColumnError(insertResult.error, "cta_email")
       ) {
-        const { cta_email, ...fallbackPayload } = insertPayload;
+        const fallbackPayload = {
+          category: insertPayload.category,
+          owner_user_id: insertPayload.owner_user_id,
+          title: insertPayload.title,
+          company_name: insertPayload.company_name,
+          description: insertPayload.description,
+          type: insertPayload.type,
+          location_name: insertPayload.location_name,
+          location_lat: insertPayload.location_lat,
+          location_lng: insertPayload.location_lng,
+          cta_phone: insertPayload.cta_phone,
+          cta_website: insertPayload.cta_website,
+          cta_navigation: insertPayload.cta_navigation,
+          verified: insertPayload.verified,
+          suspended: insertPayload.suspended,
+          password_protected: insertPayload.password_protected,
+        };
+
         insertResult = await supabase
           .from("qr_x_entries")
           .insert(fallbackPayload)
