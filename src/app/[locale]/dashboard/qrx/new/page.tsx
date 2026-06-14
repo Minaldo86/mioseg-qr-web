@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { ChangeEvent, CSSProperties, FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard.module.css";
@@ -62,6 +62,12 @@ type FinalizeUploadResponse = {
   } | null;
 };
 
+type SelectedMediaFile = {
+  id: string;
+  file: File;
+  previewUrl: string | null;
+};
+
 function pickFirstString(...values: Array<unknown>) {
   for (const value of values) {
     if (typeof value === "string" && value.trim().length > 0) {
@@ -104,6 +110,22 @@ function formatBytes(bytes: number | null | undefined) {
 
 function isImageMime(file: File) {
   return file.type.startsWith("image/");
+}
+
+function buildSelectedMediaFile(file: File): SelectedMediaFile {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+
+  return {
+    id: `${Date.now().toString()}-${Math.random()
+      .toString(36)
+      .slice(2, 10)}-${safeName}`,
+    file,
+    previewUrl: isImageMime(file) ? URL.createObjectURL(file) : null,
+  };
+}
+
+function revokeSelectedMediaPreview(item: SelectedMediaFile) {
+  if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
 }
 
 function getParam(value: string | string[] | undefined, fallback: string) {
@@ -189,8 +211,12 @@ export default function NewQrxPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
-  const [fileUploads, setFileUploads] = useState<File[]>([]);
+  const [galleryFiles, setGalleryFiles] = useState<SelectedMediaFile[]>([]);
+  const [fileUploads, setFileUploads] = useState<SelectedMediaFile[]>([]);
+  const logoPreviewRef = useRef<string | null>(null);
+  const coverPreviewRef = useRef<string | null>(null);
+  const galleryFilesRef = useRef<SelectedMediaFile[]>([]);
+  const fileUploadsRef = useRef<SelectedMediaFile[]>([]);
 
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -218,6 +244,31 @@ export default function NewQrxPage() {
 
   useEffect(() => {
     void loadCreditAndPricingData();
+  }, []);
+
+  useEffect(() => {
+    logoPreviewRef.current = logoPreview;
+  }, [logoPreview]);
+
+  useEffect(() => {
+    coverPreviewRef.current = coverPreview;
+  }, [coverPreview]);
+
+  useEffect(() => {
+    galleryFilesRef.current = galleryFiles;
+  }, [galleryFiles]);
+
+  useEffect(() => {
+    fileUploadsRef.current = fileUploads;
+  }, [fileUploads]);
+
+  useEffect(() => {
+    return () => {
+      if (logoPreviewRef.current) URL.revokeObjectURL(logoPreviewRef.current);
+      if (coverPreviewRef.current) URL.revokeObjectURL(coverPreviewRef.current);
+      galleryFilesRef.current.forEach(revokeSelectedMediaPreview);
+      fileUploadsRef.current.forEach(revokeSelectedMediaPreview);
+    };
   }, []);
 
   async function loadCreditAndPricingData() {
@@ -532,20 +583,59 @@ export default function NewQrxPage() {
   }
 
   function handleGalleryFilesChange(event: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? []).filter(isImageMime);
-    setGalleryFiles(files);
+    const selectedFiles = Array.from(event.target.files ?? []).filter(isImageMime);
+
+    if (selectedFiles.length > 0) {
+      setGalleryFiles((current) => [
+        ...current,
+        ...selectedFiles.map(buildSelectedMediaFile),
+      ]);
+    }
+
+    event.target.value = "";
   }
 
   function handleFileUploadsChange(event: ChangeEvent<HTMLInputElement>) {
-    setFileUploads(Array.from(event.target.files ?? []));
+    const selectedFiles = Array.from(event.target.files ?? []);
+
+    if (selectedFiles.length > 0) {
+      setFileUploads((current) => [
+        ...current,
+        ...selectedFiles.map(buildSelectedMediaFile),
+      ]);
+    }
+
+    event.target.value = "";
+  }
+
+  function removeGalleryFile(id: string) {
+    setGalleryFiles((current) => {
+      const itemToRemove = current.find((item) => item.id === id);
+      if (itemToRemove) revokeSelectedMediaPreview(itemToRemove);
+      return current.filter((item) => item.id !== id);
+    });
+  }
+
+  function removeFileUpload(id: string) {
+    setFileUploads((current) => {
+      const itemToRemove = current.find((item) => item.id === id);
+      if (itemToRemove) revokeSelectedMediaPreview(itemToRemove);
+      return current.filter((item) => item.id !== id);
+    });
   }
 
   function clearGalleryFiles() {
-    setGalleryFiles([]);
+    setGalleryFiles((current) => {
+      current.forEach(revokeSelectedMediaPreview);
+      return [];
+    });
   }
 
   function clearFileUploads() {
-    setFileUploads([]);
+    setFileUploads((current) => {
+      current.forEach(revokeSelectedMediaPreview);
+      return [];
+    });
   }
 
   function handleLocationModeChange(nextMode: LocationMode) {
@@ -797,10 +887,10 @@ export default function NewQrxPage() {
       }
 
       if (newId && galleryFiles.length > 0) {
-        for (const file of galleryFiles) {
+        for (const item of galleryFiles) {
           await uploadQrxMedia({
             qrxId: newId,
-            file,
+            file: item.file,
             prefix: "gallery",
             mediaType: "image",
           });
@@ -808,18 +898,18 @@ export default function NewQrxPage() {
       }
 
       if (newId && fileUploads.length > 0) {
-        for (const file of fileUploads) {
+        for (const item of fileUploads) {
           await uploadQrxMedia({
             qrxId: newId,
-            file,
+            file: item.file,
             prefix: "file",
             mediaType: "file",
           });
         }
       }
 
-      setGalleryFiles([]);
-      setFileUploads([]);
+      clearGalleryFiles();
+      clearFileUploads();
       await loadCreditAndPricingData();
 
       const costText =
@@ -1437,15 +1527,43 @@ export default function NewQrxPage() {
 
             {galleryFiles.length > 0 ? (
               <div style={selectionInfoStyle}>
-                <strong>{galleryFiles.length} Bild(er) ausgewählt:</strong>{" "}
-                {galleryFiles.map((file) => `${file.name} (${formatBytes(file.size)})`).join(", ")}
-                <button
-                  type="button"
-                  onClick={clearGalleryFiles}
-                  style={miniDangerButtonStyle}
-                >
-                  Auswahl entfernen
-                </button>
+                <div style={selectionHeaderStyle}>
+                  <strong>{galleryFiles.length} Bild(er) ausgewählt</strong>
+                  <button
+                    type="button"
+                    onClick={clearGalleryFiles}
+                    style={miniDangerButtonStyle}
+                  >
+                    Alle Bilder entfernen
+                  </button>
+                </div>
+
+                <div style={galleryPreviewGridStyle}>
+                  {galleryFiles.map((item) => (
+                    <div key={item.id} style={galleryPreviewCardStyle}>
+                      {item.previewUrl ? (
+                        <img
+                          src={item.previewUrl}
+                          alt={`${item.file.name} Vorschau`}
+                          style={galleryImagePreviewStyle}
+                        />
+                      ) : null}
+
+                      <div style={previewFileMetaStyle}>
+                        <strong>{item.file.name}</strong>
+                        <span>{formatBytes(item.file.size)}</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryFile(item.id)}
+                        style={previewRemoveButtonStyle}
+                      >
+                        Löschen
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
           </div>
@@ -1473,15 +1591,52 @@ export default function NewQrxPage() {
 
             {fileUploads.length > 0 ? (
               <div style={selectionInfoStyle}>
-                <strong>{fileUploads.length} Datei(en) ausgewählt:</strong>{" "}
-                {fileUploads.map((file) => `${file.name} (${formatBytes(file.size)})`).join(", ")}
-                <button
-                  type="button"
-                  onClick={clearFileUploads}
-                  style={miniDangerButtonStyle}
-                >
-                  Auswahl entfernen
-                </button>
+                <div style={selectionHeaderStyle}>
+                  <strong>{fileUploads.length} Datei(en) ausgewählt</strong>
+                  <button
+                    type="button"
+                    onClick={clearFileUploads}
+                    style={miniDangerButtonStyle}
+                  >
+                    Alle Dateien entfernen
+                  </button>
+                </div>
+
+                <div style={filePreviewListStyle}>
+                  {fileUploads.map((item) => (
+                    <div key={item.id} style={filePreviewCardStyle}>
+                      {item.previewUrl ? (
+                        <img
+                          src={item.previewUrl}
+                          alt={`${item.file.name} Vorschau`}
+                          style={fileImagePreviewStyle}
+                        />
+                      ) : (
+                        <div style={fileIconPreviewStyle}>
+                          {item.file.type === "application/pdf" ||
+                          item.file.name.toLowerCase().endsWith(".pdf")
+                            ? "PDF"
+                            : "FILE"}
+                        </div>
+                      )}
+
+                      <div style={previewFileMetaStyle}>
+                        <strong>{item.file.name}</strong>
+                        <span>
+                          {item.file.type || "Datei"} · {formatBytes(item.file.size)}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeFileUpload(item.id)}
+                        style={previewRemoveButtonStyle}
+                      >
+                        Löschen
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
           </div>
@@ -1726,6 +1881,95 @@ const miniDangerButtonStyle: CSSProperties = {
   cursor: "pointer",
   padding: "0 12px",
   justifySelf: "start",
+};
+
+const selectionHeaderStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 12,
+  flexWrap: "wrap",
+};
+
+const galleryPreviewGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+  gap: 12,
+};
+
+const galleryPreviewCardStyle: CSSProperties = {
+  display: "grid",
+  gap: 10,
+  borderRadius: 18,
+  padding: 10,
+  background: "rgba(15,23,42,0.58)",
+  border: "1px solid rgba(148,163,184,0.18)",
+};
+
+const galleryImagePreviewStyle: CSSProperties = {
+  width: "100%",
+  aspectRatio: "1 / 1",
+  objectFit: "cover",
+  borderRadius: 14,
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.12)",
+};
+
+const filePreviewListStyle: CSSProperties = {
+  display: "grid",
+  gap: 10,
+};
+
+const filePreviewCardStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "64px 1fr auto",
+  alignItems: "center",
+  gap: 12,
+  borderRadius: 18,
+  padding: 10,
+  background: "rgba(15,23,42,0.58)",
+  border: "1px solid rgba(148,163,184,0.18)",
+};
+
+const fileImagePreviewStyle: CSSProperties = {
+  width: 64,
+  height: 64,
+  objectFit: "cover",
+  borderRadius: 14,
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.12)",
+};
+
+const fileIconPreviewStyle: CSSProperties = {
+  width: 64,
+  height: 64,
+  borderRadius: 14,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  color: "#e0f2fe",
+  fontSize: 12,
+  fontWeight: 950,
+};
+
+const previewFileMetaStyle: CSSProperties = {
+  minWidth: 0,
+  display: "grid",
+  gap: 4,
+  color: "#dbeafe",
+};
+
+const previewRemoveButtonStyle: CSSProperties = {
+  minHeight: 36,
+  borderRadius: 12,
+  border: "1px solid rgba(252,165,165,0.24)",
+  background: "rgba(239,68,68,0.16)",
+  color: "#fecaca",
+  fontWeight: 950,
+  cursor: "pointer",
+  padding: "0 12px",
 };
 
 const labelStyle: CSSProperties = {
