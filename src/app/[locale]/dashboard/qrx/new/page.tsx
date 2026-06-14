@@ -8,7 +8,6 @@ import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard.module.css";
 
 type QrxType = "normal" | "business";
-type LocationMode = "none" | "current" | "manual";
 
 type BusinessCategory =
   | "praxis_gesundheit"
@@ -78,11 +77,30 @@ function getFileExtension(file: File) {
   return fromType && fromType.trim() ? fromType : "jpg";
 }
 
-function buildUploadFilename(prefix: "logo" | "cover", file: File) {
-  const ext = getFileExtension(file).replace(/[^a-z0-9]/gi, "") || "jpg";
+function buildUploadFilename(prefix: "logo" | "cover" | "gallery" | "file", file: File) {
+  const ext = getFileExtension(file).replace(/[^a-z0-9]/gi, "") || "bin";
   return `${prefix}-${Date.now().toString()}-${Math.random()
     .toString(36)
     .slice(2, 10)}.${ext}`;
+}
+
+function formatBytes(bytes: number | null | undefined) {
+  const value = Number(bytes ?? 0);
+  if (!Number.isFinite(value) || value <= 0) return "–";
+
+  if (value >= 1024 * 1024) {
+    return `${(value / (1024 * 1024)).toFixed(1).replace(".", ",")} MB`;
+  }
+
+  if (value >= 1024) {
+    return `${(value / 1024).toFixed(1).replace(".", ",")} KB`;
+  }
+
+  return `${value} B`;
+}
+
+function isImageMime(file: File) {
+  return file.type.startsWith("image/");
 }
 
 function getParam(value: string | string[] | undefined, fallback: string) {
@@ -154,8 +172,6 @@ export default function NewQrxPage() {
   const [locationName, setLocationName] = useState("");
   const [locationLat, setLocationLat] = useState("");
   const [locationLng, setLocationLng] = useState("");
-  const [locationMode, setLocationMode] = useState<LocationMode>("none");
-  const [locating, setLocating] = useState(false);
   const [ctaPhone, setCtaPhone] = useState("");
   const [ctaWebsite, setCtaWebsite] = useState("");
   const [ctaEmail, setCtaEmail] = useState("");
@@ -168,6 +184,8 @@ export default function NewQrxPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [fileUploads, setFileUploads] = useState<File[]>([]);
 
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -434,10 +452,11 @@ export default function NewQrxPage() {
     return { publicUrl };
   }
 
-  async function uploadQrxImage(args: {
+  async function uploadQrxMedia(args: {
     qrxId: string;
     file: File;
-    prefix: "logo" | "cover";
+    prefix: "logo" | "cover" | "gallery" | "file";
+    mediaType?: "image" | "file";
   }) {
     const filename = buildUploadFilename(args.prefix, args.file);
     const mimeType = args.file.type || "image/jpeg";
@@ -445,7 +464,7 @@ export default function NewQrxPage() {
 
     const prepared = await prepareUpload({
       qrxId: args.qrxId,
-      type: "image",
+      type: args.mediaType ?? "image",
       filename,
       mimeType,
       bytes,
@@ -467,7 +486,7 @@ export default function NewQrxPage() {
 
     const finalized = await finalizeUpload({
       qrxId: args.qrxId,
-      type: "image",
+      type: args.mediaType ?? "image",
       filename,
       mimeType,
       bytes,
@@ -505,34 +524,21 @@ export default function NewQrxPage() {
     setCoverPreview(null);
   }
 
-  async function getCurrentLocation() {
-    if (!navigator.geolocation) {
-      setErrorText("Dein Browser unterstützt keine Standortermittlung.");
-      return;
-    }
+  function handleGalleryFilesChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []).filter(isImageMime);
+    setGalleryFiles(files);
+  }
 
-    setLocating(true);
-    setErrorText(null);
+  function handleFileUploadsChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setFileUploads(Array.from(event.target.files ?? []));
+  }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocationMode("current");
-        setLocationLat(String(position.coords.latitude));
-        setLocationLng(String(position.coords.longitude));
-        setLocating(false);
-      },
-      () => {
-        setLocating(false);
-        setErrorText(
-          "Standort konnte nicht ermittelt werden. Bitte erlaube den Standortzugriff oder gib die Koordinaten manuell ein.",
-        );
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 60000,
-      },
-    );
+  function clearGalleryFiles() {
+    setGalleryFiles([]);
+  }
+
+  function clearFileUploads() {
+    setFileUploads([]);
   }
 
   async function saveQrxPasswordProtection(args: {
@@ -598,8 +604,8 @@ export default function NewQrxPage() {
         throw new Error("Die beiden Passwörter stimmen nicht überein.");
       }
 
-      const lat = locationMode === "none" ? null : parseOptionalNumber(locationLat, "Breitengrad");
-      const lng = locationMode === "none" ? null : parseOptionalNumber(locationLng, "Längengrad");
+      const lat = parseOptionalNumber(locationLat, "Breitengrad");
+      const lng = parseOptionalNumber(locationLng, "Längengrad");
 
       const {
         data: { user },
@@ -638,7 +644,7 @@ export default function NewQrxPage() {
         company_name: qrxType === "business" ? toNullable(companyName) : null,
         description: toNullable(description),
         type: qrxType,
-        location_name: locationMode === "none" ? null : toNullable(locationName),
+        location_name: toNullable(locationName),
         location_lat: lat,
         location_lng: lng,
         logo_url: null,
@@ -708,7 +714,7 @@ export default function NewQrxPage() {
       }
 
       if (newId && logoFile) {
-        const logoUrl = await uploadQrxImage({
+        const logoUrl = await uploadQrxMedia({
           qrxId: newId,
           file: logoFile,
           prefix: "logo",
@@ -723,7 +729,7 @@ export default function NewQrxPage() {
       }
 
       if (newId && qrxType === "business" && coverFile) {
-        const coverUrl = await uploadQrxImage({
+        const coverUrl = await uploadQrxMedia({
           qrxId: newId,
           file: coverFile,
           prefix: "cover",
@@ -737,6 +743,30 @@ export default function NewQrxPage() {
         if (coverUpdateError) throw coverUpdateError;
       }
 
+      if (newId && galleryFiles.length > 0) {
+        for (const file of galleryFiles) {
+          await uploadQrxMedia({
+            qrxId: newId,
+            file,
+            prefix: "gallery",
+            mediaType: "image",
+          });
+        }
+      }
+
+      if (newId && fileUploads.length > 0) {
+        for (const file of fileUploads) {
+          await uploadQrxMedia({
+            qrxId: newId,
+            file,
+            prefix: "file",
+            mediaType: "file",
+          });
+        }
+      }
+
+      setGalleryFiles([]);
+      setFileUploads([]);
       await loadCreditAndPricingData();
 
       const costText =
@@ -1173,116 +1203,37 @@ export default function NewQrxPage() {
             />
           </label>
 
-          <div style={mediaSectionStyle}>
-            <div>
-              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
-                Standort
-              </h3>
-              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
-                Wähle, ob dieser QR-X ohne Standort gespeichert wird, deinen aktuellen Standort nutzt oder manuelle Koordinaten bekommt.
-              </p>
-            </div>
+          <label style={labelStyle}>
+            Standortname
+            <input
+              value={locationName}
+              onChange={(event) => setLocationName(event.target.value)}
+              style={inputStyle}
+            />
+          </label>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
-                gap: 10,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  setLocationMode("none");
-                  setLocationName("");
-                  setLocationLat("");
-                  setLocationLng("");
-                }}
-                style={locationModeButtonStyle(locationMode === "none")}
-              >
-                Kein Standort
-              </button>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          >
+            <label style={labelStyle}>
+              Breitengrad
+              <input
+                value={locationLat}
+                onChange={(event) => setLocationLat(event.target.value)}
+                style={inputStyle}
+                placeholder="z. B. 50.9375"
+              />
+            </label>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setLocationMode("current");
-                  void getCurrentLocation();
-                }}
-                style={locationModeButtonStyle(locationMode === "current")}
-              >
-                {locating ? "Standort wird ermittelt …" : "Aktuellen Standort übernehmen"}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setLocationMode("manual")}
-                style={locationModeButtonStyle(locationMode === "manual")}
-              >
-                Koordinaten manuell eingeben
-              </button>
-            </div>
-
-            {locationMode !== "none" ? (
-              <label style={labelStyle}>
-                Standortname
-                <input
-                  value={locationName}
-                  onChange={(event) => setLocationName(event.target.value)}
-                  style={inputStyle}
-                  placeholder="z. B. Köln Innenstadt"
-                />
-              </label>
-            ) : null}
-
-            {locationMode === "manual" ? (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 12,
-                }}
-              >
-                <label style={labelStyle}>
-                  Breitengrad
-                  <input
-                    value={locationLat}
-                    onChange={(event) => setLocationLat(event.target.value)}
-                    style={inputStyle}
-                    placeholder="z. B. 50.9375"
-                  />
-                </label>
-
-                <label style={labelStyle}>
-                  Längengrad
-                  <input
-                    value={locationLng}
-                    onChange={(event) => setLocationLng(event.target.value)}
-                    style={inputStyle}
-                    placeholder="z. B. 6.9603"
-                  />
-                </label>
-              </div>
-            ) : null}
-
-            {locationMode === "current" ? (
-              <div
-                style={{
-                  borderRadius: 16,
-                  padding: 12,
-                  background: "rgba(255,255,255,0.055)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "#cbd5e1",
-                  fontSize: 13,
-                  fontWeight: 850,
-                  lineHeight: 1.55,
-                }}
-              >
-                {locationLat && locationLng
-                  ? `GPS-Koordinaten übernommen: ${locationLat}, ${locationLng}`
-                  : "GPS-Koordinaten werden nach Freigabe automatisch übernommen."}
-              </div>
-            ) : null}
+            <label style={labelStyle}>
+              Längengrad
+              <input
+                value={locationLng}
+                onChange={(event) => setLocationLng(event.target.value)}
+                style={inputStyle}
+                placeholder="z. B. 6.9603"
+              />
+            </label>
           </div>
 
           {isBusiness ? (
@@ -1352,6 +1303,78 @@ export default function NewQrxPage() {
               </label>
             </>
           ) : null}
+
+          <div style={mediaSectionStyle}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                Galerie-Bilder
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Optional: Lade direkt beim Erstellen Bilder hoch, die später in der QR-X Galerie angezeigt werden.
+              </p>
+            </div>
+
+            <label style={fileButtonStyle}>
+              Galerie-Bilder auswählen
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleGalleryFilesChange}
+                style={{ display: "none" }}
+              />
+            </label>
+
+            {galleryFiles.length > 0 ? (
+              <div style={selectionInfoStyle}>
+                <strong>{galleryFiles.length} Bild(er) ausgewählt:</strong>{" "}
+                {galleryFiles.map((file) => `${file.name} (${formatBytes(file.size)})`).join(", ")}
+                <button
+                  type="button"
+                  onClick={clearGalleryFiles}
+                  style={miniDangerButtonStyle}
+                >
+                  Auswahl entfernen
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          <div style={mediaSectionStyle}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                Dateien / PDFs
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Optional: Lade Dateien wie PDF, Preisliste, Speisekarte, Dokumente oder Bilder direkt mit hoch.
+              </p>
+            </div>
+
+            <label style={fileButtonStyle}>
+              Dateien auswählen
+              <input
+                type="file"
+                multiple
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,image/*,application/pdf"
+                onChange={handleFileUploadsChange}
+                style={{ display: "none" }}
+              />
+            </label>
+
+            {fileUploads.length > 0 ? (
+              <div style={selectionInfoStyle}>
+                <strong>{fileUploads.length} Datei(en) ausgewählt:</strong>{" "}
+                {fileUploads.map((file) => `${file.name} (${formatBytes(file.size)})`).join(", ")}
+                <button
+                  type="button"
+                  onClick={clearFileUploads}
+                  style={miniDangerButtonStyle}
+                >
+                  Auswahl entfernen
+                </button>
+              </div>
+            ) : null}
+          </div>
 
           <div
             style={{
@@ -1492,7 +1515,7 @@ export default function NewQrxPage() {
               }}
             >
               {saving
-                ? "Erstellt …"
+                ? "Erstellt & lädt Medien hoch …"
                 : pricingLoading
                   ? "Kosten werden geladen …"
                   : !hasEnoughCredits
@@ -1554,20 +1577,31 @@ const fileButtonStyle: React.CSSProperties = {
   cursor: "pointer",
 };
 
-function locationModeButtonStyle(active: boolean): React.CSSProperties {
-  return {
-    minHeight: 54,
-    borderRadius: 16,
-    border: active ? "1px solid #facc15" : "1px solid rgba(148, 163, 184, 0.22)",
-    background: active
-      ? "linear-gradient(135deg, rgba(250,204,21,0.96), rgba(251,146,60,0.84))"
-      : "rgba(255,255,255,0.055)",
-    color: active ? "#111827" : "#ffffff",
-    fontWeight: 950,
-    cursor: "pointer",
-    padding: "0 12px",
-  };
-}
+const selectionInfoStyle: React.CSSProperties = {
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(59,130,246,0.12)",
+  border: "1px solid rgba(147,197,253,0.22)",
+  color: "#bfdbfe",
+  fontSize: 13,
+  fontWeight: 850,
+  lineHeight: 1.55,
+  wordBreak: "break-word",
+  display: "grid",
+  gap: 10,
+};
+
+const miniDangerButtonStyle: React.CSSProperties = {
+  minHeight: 34,
+  borderRadius: 12,
+  border: "1px solid rgba(252,165,165,0.22)",
+  background: "rgba(239,68,68,0.14)",
+  color: "#fecaca",
+  fontWeight: 950,
+  cursor: "pointer",
+  padding: "0 12px",
+  justifySelf: "start",
+};
 
 const labelStyle: React.CSSProperties = {
   display: "grid",
