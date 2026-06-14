@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import type { ChangeEvent, CSSProperties, FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard.module.css";
 
 type QrxType = "normal" | "business";
+
+type LocationMode = "none" | "current" | "manual";
 
 type BusinessCategory =
   | "praxis_gesundheit"
@@ -169,9 +172,11 @@ export default function NewQrxPage() {
   const [companyName, setCompanyName] = useState("");
   const [category, setCategory] = useState<BusinessCategory>("unternehmen");
   const [description, setDescription] = useState("");
+  const [locationMode, setLocationMode] = useState<LocationMode>("none");
   const [locationName, setLocationName] = useState("");
   const [locationLat, setLocationLat] = useState("");
   const [locationLng, setLocationLng] = useState("");
+  const [locationLoading, setLocationLoading] = useState(false);
   const [ctaPhone, setCtaPhone] = useState("");
   const [ctaWebsite, setCtaWebsite] = useState("");
   const [ctaEmail, setCtaEmail] = useState("");
@@ -459,7 +464,9 @@ export default function NewQrxPage() {
     mediaType?: "image" | "file";
   }) {
     const filename = buildUploadFilename(args.prefix, args.file);
-    const mimeType = args.file.type || "image/jpeg";
+    const mimeType =
+      args.file.type ||
+      (args.mediaType === "file" ? "application/octet-stream" : "image/jpeg");
     const bytes = args.file.size;
 
     const prepared = await prepareUpload({
@@ -496,7 +503,7 @@ export default function NewQrxPage() {
     return finalized.publicUrl;
   }
 
-  function handleLogoChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleLogoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
     setLogoFile(file);
 
@@ -504,7 +511,7 @@ export default function NewQrxPage() {
     setLogoPreview(file ? URL.createObjectURL(file) : null);
   }
 
-  function handleCoverChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
     setCoverFile(file);
 
@@ -524,12 +531,12 @@ export default function NewQrxPage() {
     setCoverPreview(null);
   }
 
-  function handleGalleryFilesChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleGalleryFilesChange(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []).filter(isImageMime);
     setGalleryFiles(files);
   }
 
-  function handleFileUploadsChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleFileUploadsChange(event: ChangeEvent<HTMLInputElement>) {
     setFileUploads(Array.from(event.target.files ?? []));
   }
 
@@ -539,6 +546,52 @@ export default function NewQrxPage() {
 
   function clearFileUploads() {
     setFileUploads([]);
+  }
+
+  function handleLocationModeChange(nextMode: LocationMode) {
+    setLocationMode(nextMode);
+
+    if (nextMode === "none") {
+      setLocationName("");
+      setLocationLat("");
+      setLocationLng("");
+    }
+  }
+
+  async function getCurrentLocation() {
+    setErrorText(null);
+
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setLocationMode("manual");
+      setErrorText(
+        "Standort konnte nicht automatisch ermittelt werden. Bitte gib die Koordinaten manuell ein.",
+      );
+      return;
+    }
+
+    setLocationLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationMode("current");
+        setLocationLat(String(position.coords.latitude));
+        setLocationLng(String(position.coords.longitude));
+        setLocationLoading(false);
+      },
+      (geoError) => {
+        console.warn("QRX GEOLOCATION ERROR", geoError);
+        setLocationMode("manual");
+        setLocationLoading(false);
+        setErrorText(
+          "Standort konnte nicht automatisch ermittelt werden. Bitte gib die Koordinaten manuell ein.",
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+    );
   }
 
   async function saveQrxPasswordProtection(args: {
@@ -837,8 +890,8 @@ export default function NewQrxPage() {
           <span className={styles.kicker}>QR-X erstellen</span>
           <h1>Neuen QR-X erstellen</h1>
           <p>
-            Erstelle eine schlanke erste Web-Version deines QR-X. Bilder,
-            Dateien, Layouts und Credits ergänzen wir im nächsten Schritt.
+            Erstelle deinen QR-X inklusive Logo, Coverbild, Galerie-Bildern,
+            Dateien/PDFs, Standort, Passwortschutz und Credit-Prüfung.
           </p>
         </div>
 
@@ -1203,37 +1256,94 @@ export default function NewQrxPage() {
             />
           </label>
 
-          <label style={labelStyle}>
-            Standortname
-            <input
-              value={locationName}
-              onChange={(event) => setLocationName(event.target.value)}
-              style={inputStyle}
-            />
-          </label>
+          <div style={mediaSectionStyle}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                Standort
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Lege fest, ob dieser QR-X ohne Standort gespeichert wird, den
+                aktuellen Standort nutzt oder manuelle Koordinaten bekommt.
+              </p>
+            </div>
 
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
-          >
-            <label style={labelStyle}>
-              Breitengrad
-              <input
-                value={locationLat}
-                onChange={(event) => setLocationLat(event.target.value)}
-                style={inputStyle}
-                placeholder="z. B. 50.9375"
-              />
-            </label>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+                gap: 10,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => handleLocationModeChange("none")}
+                style={locationModeButtonStyle(locationMode === "none")}
+              >
+                Kein Standort
+              </button>
 
-            <label style={labelStyle}>
-              Längengrad
-              <input
-                value={locationLng}
-                onChange={(event) => setLocationLng(event.target.value)}
-                style={inputStyle}
-                placeholder="z. B. 6.9603"
-              />
-            </label>
+              <button
+                type="button"
+                onClick={() => {
+                  handleLocationModeChange("current");
+                  void getCurrentLocation();
+                }}
+                style={locationModeButtonStyle(locationMode === "current")}
+                disabled={locationLoading}
+              >
+                {locationLoading ? "Standort wird geladen …" : "Aktuellen Standort übernehmen"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleLocationModeChange("manual")}
+                style={locationModeButtonStyle(locationMode === "manual")}
+              >
+                Koordinaten manuell eingeben
+              </button>
+            </div>
+
+            {locationMode !== "none" ? (
+              <>
+                <label style={labelStyle}>
+                  Standortname
+                  <input
+                    value={locationName}
+                    onChange={(event) => setLocationName(event.target.value)}
+                    style={inputStyle}
+                    placeholder="z. B. Mioseg Köln"
+                  />
+                </label>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 12,
+                  }}
+                >
+                  <label style={labelStyle}>
+                    Breitengrad
+                    <input
+                      value={locationLat}
+                      onChange={(event) => setLocationLat(event.target.value)}
+                      style={inputStyle}
+                      placeholder="z. B. 50.9375"
+                    />
+                  </label>
+
+                  <label style={labelStyle}>
+                    Längengrad
+                    <input
+                      value={locationLng}
+                      onChange={(event) => setLocationLng(event.target.value)}
+                      style={inputStyle}
+                      placeholder="z. B. 6.9603"
+                    />
+                  </label>
+                </div>
+              </>
+            ) : null}
           </div>
 
           {isBusiness ? (
@@ -1529,7 +1639,22 @@ export default function NewQrxPage() {
   );
 }
 
-const mediaSectionStyle: React.CSSProperties = {
+function locationModeButtonStyle(active: boolean): CSSProperties {
+  return {
+    minHeight: 56,
+    borderRadius: 16,
+    border: active
+      ? "1px solid #bbf7d0"
+      : "1px solid rgba(148, 163, 184, 0.22)",
+    background: active ? "rgba(34,197,94,0.16)" : "rgba(255,255,255,0.055)",
+    color: "#ffffff",
+    fontWeight: 950,
+    cursor: "pointer",
+    padding: "0 14px",
+  };
+}
+
+const mediaSectionStyle: CSSProperties = {
   display: "grid",
   gap: 12,
   borderRadius: 22,
@@ -1538,14 +1663,14 @@ const mediaSectionStyle: React.CSSProperties = {
   border: "1px solid rgba(255,255,255,0.08)",
 };
 
-const previewRowStyle: React.CSSProperties = {
+const previewRowStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: 14,
   flexWrap: "wrap",
 };
 
-const logoPreviewStyle: React.CSSProperties = {
+const logoPreviewStyle: CSSProperties = {
   width: 104,
   height: 104,
   objectFit: "cover",
@@ -1554,7 +1679,7 @@ const logoPreviewStyle: React.CSSProperties = {
   background: "rgba(255,255,255,0.08)",
 };
 
-const coverPreviewStyle: React.CSSProperties = {
+const coverPreviewStyle: CSSProperties = {
   width: "100%",
   maxHeight: 260,
   objectFit: "cover",
@@ -1563,7 +1688,7 @@ const coverPreviewStyle: React.CSSProperties = {
   background: "rgba(255,255,255,0.08)",
 };
 
-const fileButtonStyle: React.CSSProperties = {
+const fileButtonStyle: CSSProperties = {
   minHeight: 48,
   borderRadius: 16,
   display: "inline-flex",
@@ -1577,7 +1702,7 @@ const fileButtonStyle: React.CSSProperties = {
   cursor: "pointer",
 };
 
-const selectionInfoStyle: React.CSSProperties = {
+const selectionInfoStyle: CSSProperties = {
   borderRadius: 16,
   padding: 12,
   background: "rgba(59,130,246,0.12)",
@@ -1591,7 +1716,7 @@ const selectionInfoStyle: React.CSSProperties = {
   gap: 10,
 };
 
-const miniDangerButtonStyle: React.CSSProperties = {
+const miniDangerButtonStyle: CSSProperties = {
   minHeight: 34,
   borderRadius: 12,
   border: "1px solid rgba(252,165,165,0.22)",
@@ -1603,7 +1728,7 @@ const miniDangerButtonStyle: React.CSSProperties = {
   justifySelf: "start",
 };
 
-const labelStyle: React.CSSProperties = {
+const labelStyle: CSSProperties = {
   display: "grid",
   gap: 8,
   color: "#cbd5e1",
@@ -1611,7 +1736,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 900,
 };
 
-const inputStyle: React.CSSProperties = {
+const inputStyle: CSSProperties = {
   width: "100%",
   minHeight: 52,
   borderRadius: 16,
