@@ -505,7 +505,7 @@ export default function NewQrxPage() {
     setCoverPreview(null);
   }
 
-  async function useCurrentLocation() {
+  async function getCurrentLocation() {
     if (!navigator.geolocation) {
       setErrorText("Dein Browser unterstützt keine Standortermittlung.");
       return;
@@ -1207,7 +1207,7 @@ export default function NewQrxPage() {
                 type="button"
                 onClick={() => {
                   setLocationMode("current");
-                  void useCurrentLocation();
+                  void getCurrentLocation();
                 }}
                 style={locationModeButtonStyle(locationMode === "current")}
               >
