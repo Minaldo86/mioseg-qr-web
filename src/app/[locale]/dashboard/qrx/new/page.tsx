@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard.module.css";
 
 type QrxType = "normal" | "business";
+type LocationMode = "none" | "current" | "manual";
 
 type BusinessCategory =
   | "praxis_gesundheit"
@@ -153,6 +154,8 @@ export default function NewQrxPage() {
   const [locationName, setLocationName] = useState("");
   const [locationLat, setLocationLat] = useState("");
   const [locationLng, setLocationLng] = useState("");
+  const [locationMode, setLocationMode] = useState<LocationMode>("none");
+  const [locating, setLocating] = useState(false);
   const [ctaPhone, setCtaPhone] = useState("");
   const [ctaWebsite, setCtaWebsite] = useState("");
   const [ctaEmail, setCtaEmail] = useState("");
@@ -502,6 +505,36 @@ export default function NewQrxPage() {
     setCoverPreview(null);
   }
 
+  async function useCurrentLocation() {
+    if (!navigator.geolocation) {
+      setErrorText("Dein Browser unterstützt keine Standortermittlung.");
+      return;
+    }
+
+    setLocating(true);
+    setErrorText(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationMode("current");
+        setLocationLat(String(position.coords.latitude));
+        setLocationLng(String(position.coords.longitude));
+        setLocating(false);
+      },
+      () => {
+        setLocating(false);
+        setErrorText(
+          "Standort konnte nicht ermittelt werden. Bitte erlaube den Standortzugriff oder gib die Koordinaten manuell ein.",
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 60000,
+      },
+    );
+  }
+
   async function saveQrxPasswordProtection(args: {
     qrxId: string;
     enabled: boolean;
@@ -565,8 +598,8 @@ export default function NewQrxPage() {
         throw new Error("Die beiden Passwörter stimmen nicht überein.");
       }
 
-      const lat = parseOptionalNumber(locationLat, "Breitengrad");
-      const lng = parseOptionalNumber(locationLng, "Längengrad");
+      const lat = locationMode === "none" ? null : parseOptionalNumber(locationLat, "Breitengrad");
+      const lng = locationMode === "none" ? null : parseOptionalNumber(locationLng, "Längengrad");
 
       const {
         data: { user },
@@ -605,7 +638,7 @@ export default function NewQrxPage() {
         company_name: qrxType === "business" ? toNullable(companyName) : null,
         description: toNullable(description),
         type: qrxType,
-        location_name: toNullable(locationName),
+        location_name: locationMode === "none" ? null : toNullable(locationName),
         location_lat: lat,
         location_lng: lng,
         logo_url: null,
@@ -1140,37 +1173,116 @@ export default function NewQrxPage() {
             />
           </label>
 
-          <label style={labelStyle}>
-            Standortname
-            <input
-              value={locationName}
-              onChange={(event) => setLocationName(event.target.value)}
-              style={inputStyle}
-            />
-          </label>
+          <div style={mediaSectionStyle}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                Standort
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Wähle, ob dieser QR-X ohne Standort gespeichert wird, deinen aktuellen Standort nutzt oder manuelle Koordinaten bekommt.
+              </p>
+            </div>
 
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
-          >
-            <label style={labelStyle}>
-              Breitengrad
-              <input
-                value={locationLat}
-                onChange={(event) => setLocationLat(event.target.value)}
-                style={inputStyle}
-                placeholder="z. B. 50.9375"
-              />
-            </label>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+                gap: 10,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setLocationMode("none");
+                  setLocationName("");
+                  setLocationLat("");
+                  setLocationLng("");
+                }}
+                style={locationModeButtonStyle(locationMode === "none")}
+              >
+                Kein Standort
+              </button>
 
-            <label style={labelStyle}>
-              Längengrad
-              <input
-                value={locationLng}
-                onChange={(event) => setLocationLng(event.target.value)}
-                style={inputStyle}
-                placeholder="z. B. 6.9603"
-              />
-            </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setLocationMode("current");
+                  void useCurrentLocation();
+                }}
+                style={locationModeButtonStyle(locationMode === "current")}
+              >
+                {locating ? "Standort wird ermittelt …" : "Aktuellen Standort übernehmen"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setLocationMode("manual")}
+                style={locationModeButtonStyle(locationMode === "manual")}
+              >
+                Koordinaten manuell eingeben
+              </button>
+            </div>
+
+            {locationMode !== "none" ? (
+              <label style={labelStyle}>
+                Standortname
+                <input
+                  value={locationName}
+                  onChange={(event) => setLocationName(event.target.value)}
+                  style={inputStyle}
+                  placeholder="z. B. Köln Innenstadt"
+                />
+              </label>
+            ) : null}
+
+            {locationMode === "manual" ? (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 12,
+                }}
+              >
+                <label style={labelStyle}>
+                  Breitengrad
+                  <input
+                    value={locationLat}
+                    onChange={(event) => setLocationLat(event.target.value)}
+                    style={inputStyle}
+                    placeholder="z. B. 50.9375"
+                  />
+                </label>
+
+                <label style={labelStyle}>
+                  Längengrad
+                  <input
+                    value={locationLng}
+                    onChange={(event) => setLocationLng(event.target.value)}
+                    style={inputStyle}
+                    placeholder="z. B. 6.9603"
+                  />
+                </label>
+              </div>
+            ) : null}
+
+            {locationMode === "current" ? (
+              <div
+                style={{
+                  borderRadius: 16,
+                  padding: 12,
+                  background: "rgba(255,255,255,0.055)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#cbd5e1",
+                  fontSize: 13,
+                  fontWeight: 850,
+                  lineHeight: 1.55,
+                }}
+              >
+                {locationLat && locationLng
+                  ? `GPS-Koordinaten übernommen: ${locationLat}, ${locationLng}`
+                  : "GPS-Koordinaten werden nach Freigabe automatisch übernommen."}
+              </div>
+            ) : null}
           </div>
 
           {isBusiness ? (
@@ -1441,6 +1553,21 @@ const fileButtonStyle: React.CSSProperties = {
   fontWeight: 950,
   cursor: "pointer",
 };
+
+function locationModeButtonStyle(active: boolean): React.CSSProperties {
+  return {
+    minHeight: 54,
+    borderRadius: 16,
+    border: active ? "1px solid #facc15" : "1px solid rgba(148, 163, 184, 0.22)",
+    background: active
+      ? "linear-gradient(135deg, rgba(250,204,21,0.96), rgba(251,146,60,0.84))"
+      : "rgba(255,255,255,0.055)",
+    color: active ? "#111827" : "#ffffff",
+    fontWeight: 950,
+    cursor: "pointer",
+    padding: "0 12px",
+  };
+}
 
 const labelStyle: React.CSSProperties = {
   display: "grid",
