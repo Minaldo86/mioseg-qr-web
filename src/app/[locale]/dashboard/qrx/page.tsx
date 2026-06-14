@@ -110,7 +110,7 @@ export default function DashboardQrxPage() {
   }
 
   async function handleShare(entry: QrxEntry) {
-    const url = `${window.location.origin}/${locale}/qrx/${entry.id}`;
+    const url = `${window.location.origin}/qrx/${entry.id}`;
     const title = getQrxTitle(entry);
 
     try {
@@ -289,7 +289,7 @@ export default function DashboardQrxPage() {
               const title = getQrxTitle(entry);
               const image = entry.cover_image_url?.trim() || entry.logo_url?.trim() || null;
               const isBusiness = entry.type === "business";
-              const openHref = `/${locale}/qrx/${entry.id}`;
+              const openHref = `/qrx/${entry.id}`;
               const editHref = `/${locale}/dashboard/qrx/${entry.id}/edit`;
 
               return (
