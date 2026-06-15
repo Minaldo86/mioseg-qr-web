@@ -41,6 +41,9 @@ const BUSINESS_CATEGORY_OPTIONS: Array<{
   { value: "sonstiges", label: "Sonstiges", icon: "▦" },
 ];
 
+const QRX_VERIFICATION_BUCKET = "qrx-verification-documents";
+const QRX_VERIFICATION_COST_CREDITS = 10;
+
 type PrepareUploadResponse = {
   uploadUrl?: string;
   signedUrl?: string;
@@ -66,6 +69,13 @@ type SelectedMediaFile = {
   id: string;
   file: File;
   previewUrl: string | null;
+};
+
+type SelectedVerificationDocument = {
+  id: string;
+  file: File;
+  previewUrl: string | null;
+  documentType: "image" | "pdf";
 };
 
 function pickFirstString(...values: Array<unknown>) {
@@ -126,6 +136,36 @@ function buildSelectedMediaFile(file: File): SelectedMediaFile {
 
 function revokeSelectedMediaPreview(item: SelectedMediaFile) {
   if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+}
+
+function isPdfFile(file: File) {
+  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+}
+
+function buildSelectedVerificationDocument(file: File): SelectedVerificationDocument {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+
+  return {
+    id: `${Date.now().toString()}-${Math.random()
+      .toString(36)
+      .slice(2, 10)}-${safeName}`,
+    file,
+    previewUrl: isImageMime(file) ? URL.createObjectURL(file) : null,
+    documentType: isPdfFile(file) ? "pdf" : "image",
+  };
+}
+
+function revokeVerificationDocumentPreview(item: SelectedVerificationDocument | null) {
+  if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl);
+}
+
+function sanitizeFilename(value: string) {
+  return (
+    value
+      .replace(/[^a-zA-Z0-9._-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "") || `verification-${Date.now().toString()}`
+  );
 }
 
 function getParam(value: string | string[] | undefined, fallback: string) {
@@ -206,6 +246,9 @@ export default function NewQrxPage() {
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [qrxPassword, setQrxPassword] = useState("");
   const [qrxPasswordRepeat, setQrxPasswordRepeat] = useState("");
+  const [wantsVerification, setWantsVerification] = useState(false);
+  const [verificationDocument, setVerificationDocument] =
+    useState<SelectedVerificationDocument | null>(null);
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -217,6 +260,7 @@ export default function NewQrxPage() {
   const coverPreviewRef = useRef<string | null>(null);
   const galleryFilesRef = useRef<SelectedMediaFile[]>([]);
   const fileUploadsRef = useRef<SelectedMediaFile[]>([]);
+  const verificationDocumentRef = useRef<SelectedVerificationDocument | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -237,9 +281,20 @@ export default function NewQrxPage() {
     return normalQrxCount === 0 ? 0 : 5;
   }, [qrxType, normalQrxCount, businessQrxCount]);
 
+  const verificationCredits = useMemo(() => {
+    return qrxType === "business" && wantsVerification
+      ? QRX_VERIFICATION_COST_CREDITS
+      : 0;
+  }, [qrxType, wantsVerification]);
+
+  const totalCostCredits = useMemo(() => {
+    if (creationCostCredits == null) return null;
+    return creationCostCredits + verificationCredits;
+  }, [creationCostCredits, verificationCredits]);
+
   const hasEnoughCredits =
-    creationCostCredits != null && credits != null
-      ? credits >= creationCostCredits
+    totalCostCredits != null && credits != null
+      ? credits >= totalCostCredits
       : false;
 
   useEffect(() => {
@@ -263,11 +318,26 @@ export default function NewQrxPage() {
   }, [fileUploads]);
 
   useEffect(() => {
+    verificationDocumentRef.current = verificationDocument;
+  }, [verificationDocument]);
+
+  useEffect(() => {
+    if (qrxType !== "business") {
+      setWantsVerification(false);
+      setVerificationDocument((current) => {
+        revokeVerificationDocumentPreview(current);
+        return null;
+      });
+    }
+  }, [qrxType]);
+
+  useEffect(() => {
     return () => {
       if (logoPreviewRef.current) URL.revokeObjectURL(logoPreviewRef.current);
       if (coverPreviewRef.current) URL.revokeObjectURL(coverPreviewRef.current);
       galleryFilesRef.current.forEach(revokeSelectedMediaPreview);
       fileUploadsRef.current.forEach(revokeSelectedMediaPreview);
+      revokeVerificationDocumentPreview(verificationDocumentRef.current);
     };
   }, []);
 
@@ -638,6 +708,62 @@ export default function NewQrxPage() {
     });
   }
 
+
+  function handleVerificationDocumentChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+
+    if (!file) {
+      event.target.value = "";
+      return;
+    }
+
+    if (!isImageMime(file) && !isPdfFile(file)) {
+      setErrorText("Bitte lade für die Verifizierung nur ein Bild oder eine PDF-Datei hoch.");
+      event.target.value = "";
+      return;
+    }
+
+    setVerificationDocument((current) => {
+      revokeVerificationDocumentPreview(current);
+      return buildSelectedVerificationDocument(file);
+    });
+    event.target.value = "";
+  }
+
+  function clearVerificationDocument() {
+    setVerificationDocument((current) => {
+      revokeVerificationDocumentPreview(current);
+      return null;
+    });
+  }
+
+  async function uploadVerificationDocument(args: {
+    userId: string;
+    qrxId: string;
+    document: SelectedVerificationDocument;
+  }) {
+    const safeFilename = sanitizeFilename(args.document.file.name);
+    const storagePath = `${args.userId}/${args.qrxId}/${Date.now().toString()}-${safeFilename}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(QRX_VERIFICATION_BUCKET)
+      .upload(storagePath, args.document.file, {
+        contentType:
+          args.document.file.type ||
+          (args.document.documentType === "pdf"
+            ? "application/pdf"
+            : "application/octet-stream"),
+        upsert: false,
+      });
+
+    if (uploadError) throw uploadError;
+
+    return {
+      storagePath,
+      documentUrl: `storage://${QRX_VERIFICATION_BUCKET}/${storagePath}`,
+    };
+  }
+
   function handleLocationModeChange(nextMode: LocationMode) {
     setLocationMode(nextMode);
 
@@ -727,6 +853,7 @@ export default function NewQrxPage() {
     setSuccessText(null);
 
     let chargedCreation = false;
+    let chargedVerification = false;
     let createdQrxId: string | null = null;
 
     try {
@@ -747,6 +874,14 @@ export default function NewQrxPage() {
         throw new Error("Die beiden Passwörter stimmen nicht überein.");
       }
 
+      if (wantsVerification && qrxType !== "business") {
+        throw new Error("Eine Verifizierung ist nur für Business QR-X möglich.");
+      }
+
+      if (qrxType === "business" && wantsVerification && !verificationDocument) {
+        throw new Error("Bitte lade für die Verifizierung ein Dokument oder Bild hoch.");
+      }
+
       const lat = parseOptionalNumber(locationLat, "Breitengrad");
       const lng = parseOptionalNumber(locationLng, "Längengrad");
 
@@ -763,21 +898,26 @@ export default function NewQrxPage() {
         throw new Error("Bitte melde dich zuerst an.");
       }
 
-      if (creationCostCredits == null || credits == null) {
+      if (creationCostCredits == null || totalCostCredits == null || credits == null) {
         throw new Error(
           "Credits und QR-X-Kosten werden noch geladen. Bitte versuche es gleich erneut.",
         );
       }
 
-      if (creationCostCredits > 0 && credits < creationCostCredits) {
+      if (totalCostCredits > 0 && credits < totalCostCredits) {
         throw new Error(
-          `Nicht genug Credits. Benötigt: ${creationCostCredits}, vorhanden: ${credits}. Bitte kaufe zuerst Credits.`,
+          `Nicht genug Credits. Benötigt: ${totalCostCredits}, vorhanden: ${credits}. Bitte kaufe zuerst Credits.`,
         );
       }
 
       if (creationCostCredits > 0) {
         await spendCredits(creationCostCredits);
         chargedCreation = true;
+      }
+
+      if (verificationCredits > 0) {
+        await spendCredits(verificationCredits);
+        chargedVerification = true;
       }
 
       const insertPayload = {
@@ -908,18 +1048,60 @@ export default function NewQrxPage() {
         }
       }
 
+      if (
+        newId &&
+        user.id &&
+        qrxType === "business" &&
+        wantsVerification &&
+        verificationDocument
+      ) {
+        const uploadedVerification = await uploadVerificationDocument({
+          userId: user.id,
+          qrxId: newId,
+          document: verificationDocument,
+        });
+
+        const { error: verificationInsertError } = await supabase
+          .from("qrx_verification_requests")
+          .insert({
+            qrx_id: newId,
+            owner_user_id: user.id,
+            status: "pending",
+            credits_charged: verificationCredits,
+            refund_done: false,
+            document_url: uploadedVerification.documentUrl,
+            document_path: uploadedVerification.storagePath,
+            document_filename: verificationDocument.file.name,
+            document_mime_type:
+              verificationDocument.file.type ||
+              (verificationDocument.documentType === "pdf"
+                ? "application/pdf"
+                : "application/octet-stream"),
+            document_type: verificationDocument.documentType,
+          });
+
+        if (verificationInsertError) throw verificationInsertError;
+      }
+
       clearGalleryFiles();
       clearFileUploads();
+      clearVerificationDocument();
+      setWantsVerification(false);
       await loadCreditAndPricingData();
 
+      const totalCreditsUsed = creationCostCredits + verificationCredits;
       const costText =
-        creationCostCredits > 0
-          ? ` ${creationCostCredits} Credits wurden abgezogen.`
+        totalCreditsUsed > 0
+          ? ` ${totalCreditsUsed} Credits wurden abgezogen.`
           : " Der erste normale QR-X ist kostenlos.";
+      const verificationText =
+        wantsVerification && verificationCredits > 0
+          ? " Der Verifizierungsantrag wurde eingereicht."
+          : "";
       setSuccessText(
         passwordProtected
-          ? `QR-X wurde erstellt und mit Passwort geschützt.${costText}`
-          : `QR-X wurde erstellt.${costText}`,
+          ? `QR-X wurde erstellt und mit Passwort geschützt.${costText}${verificationText}`
+          : `QR-X wurde erstellt.${costText}${verificationText}`,
       );
 
       window.setTimeout(() => {
@@ -946,6 +1128,17 @@ export default function NewQrxPage() {
         } catch (refundError) {
           console.warn(
             "Credit-Rückbuchung nach Fehler fehlgeschlagen:",
+            refundError,
+          );
+        }
+      }
+
+      if (chargedVerification && verificationCredits > 0) {
+        try {
+          await addCredits(verificationCredits);
+        } catch (refundError) {
+          console.warn(
+            "Credit-Rückbuchung Verifizierung nach Fehler fehlgeschlagen:",
             refundError,
           );
         }
@@ -1093,6 +1286,14 @@ export default function NewQrxPage() {
                 <strong style={{ color: "#ffffff" }}>
                   {creationCostCredits} Credits
                 </strong>
+                {verificationCredits > 0 ? (
+                  <>
+                    {" "}+ Verifizierung{" "}
+                    <strong style={{ color: "#ffffff" }}>
+                      {verificationCredits} Credits
+                    </strong>
+                  </>
+                ) : null}
                 .
               </>
             )}
@@ -1100,12 +1301,13 @@ export default function NewQrxPage() {
 
           {!pricingLoading &&
           creationCostCredits != null &&
+          totalCostCredits != null &&
           credits != null &&
-          credits < creationCostCredits ? (
+          credits < totalCostCredits ? (
             <div
               style={{ color: "#fecaca", fontWeight: 900, lineHeight: 1.55 }}
             >
-              Nicht genügend Credits. Benötigt: {creationCostCredits},
+              Nicht genügend Credits. Benötigt: {totalCostCredits},
               vorhanden: {credits}.{" "}
               <Link
                 href={`/${locale}/dashboard/credits`}
@@ -1641,6 +1843,88 @@ export default function NewQrxPage() {
             ) : null}
           </div>
 
+          {isBusiness ? (
+            <div style={verificationSectionStyle(wantsVerification)}>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 14,
+                  color: "#ffffff",
+                  fontWeight: 950,
+                  cursor: "pointer",
+                }}
+              >
+                <span>Business-Verifizierung beantragen</span>
+                <input
+                  type="checkbox"
+                  checked={wantsVerification}
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setWantsVerification(checked);
+                    if (!checked) clearVerificationDocument();
+                  }}
+                  style={{ width: 20, height: 20, accentColor: "#facc15" }}
+                />
+              </label>
+
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55, fontSize: 13 }}>
+                Lade ein Dokument oder Bild hoch, mit dem dein Business QR-X
+                geprüft werden kann. Die Anfrage kostet {QRX_VERIFICATION_COST_CREDITS} Credits und wird in
+                der Kommandozentrale geprüft.
+              </p>
+
+              {wantsVerification ? (
+                <div style={{ display: "grid", gap: 12 }}>
+                  <label style={fileButtonStyle}>
+                    Nachweis auswählen (Bild oder PDF)
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf,.pdf"
+                      onChange={handleVerificationDocumentChange}
+                      style={{ display: "none" }}
+                    />
+                  </label>
+
+                  {verificationDocument ? (
+                    <div style={verificationPreviewCardStyle}>
+                      {verificationDocument.previewUrl ? (
+                        <img
+                          src={verificationDocument.previewUrl}
+                          alt="Verifizierungsnachweis Vorschau"
+                          style={fileImagePreviewStyle}
+                        />
+                      ) : (
+                        <div style={fileIconPreviewStyle}>PDF</div>
+                      )}
+
+                      <div style={previewFileMetaStyle}>
+                        <strong>{verificationDocument.file.name}</strong>
+                        <span>
+                          {verificationDocument.documentType.toUpperCase()} · {formatBytes(verificationDocument.file.size)}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={clearVerificationDocument}
+                        style={previewRemoveButtonStyle}
+                      >
+                        Löschen
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={verificationHintStyle}>
+                      Bitte lade einen Gewerbenachweis, eine Rechnung, ein Schreiben,
+                      eine Speisekarte, ein Praxisschild oder einen ähnlichen Nachweis hoch.
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <div
             style={{
               borderRadius: 22,
@@ -1755,6 +2039,7 @@ export default function NewQrxPage() {
                 saving ||
                 pricingLoading ||
                 creationCostCredits == null ||
+                totalCostCredits == null ||
                 credits == null ||
                 !hasEnoughCredits
               }
@@ -1765,6 +2050,7 @@ export default function NewQrxPage() {
                   saving ||
                   pricingLoading ||
                   creationCostCredits == null ||
+                  totalCostCredits == null ||
                   credits == null ||
                   !hasEnoughCredits
                     ? "not-allowed"
@@ -1773,6 +2059,7 @@ export default function NewQrxPage() {
                   saving ||
                   pricingLoading ||
                   creationCostCredits == null ||
+                  totalCostCredits == null ||
                   credits == null ||
                   !hasEnoughCredits
                     ? 0.72
@@ -1970,6 +2257,41 @@ const previewRemoveButtonStyle: CSSProperties = {
   fontWeight: 950,
   cursor: "pointer",
   padding: "0 12px",
+};
+
+function verificationSectionStyle(active: boolean): CSSProperties {
+  return {
+    display: "grid",
+    gap: 12,
+    borderRadius: 22,
+    padding: 16,
+    background: active ? "rgba(250,204,21,0.12)" : "rgba(255,255,255,0.045)",
+    border: active
+      ? "1px solid rgba(250,204,21,0.32)"
+      : "1px solid rgba(255,255,255,0.08)",
+  };
+}
+
+const verificationPreviewCardStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "64px 1fr auto",
+  alignItems: "center",
+  gap: 12,
+  borderRadius: 18,
+  padding: 10,
+  background: "rgba(15,23,42,0.58)",
+  border: "1px solid rgba(250,204,21,0.2)",
+};
+
+const verificationHintStyle: CSSProperties = {
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(250,204,21,0.10)",
+  border: "1px solid rgba(250,204,21,0.18)",
+  color: "#fde68a",
+  fontSize: 13,
+  fontWeight: 850,
+  lineHeight: 1.55,
 };
 
 const labelStyle: CSSProperties = {

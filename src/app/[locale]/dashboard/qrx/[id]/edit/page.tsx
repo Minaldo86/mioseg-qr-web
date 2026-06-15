@@ -1,14 +1,18 @@
-
 "use client";
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import type { ChangeEvent, CSSProperties, FormEvent } from "react";
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 import styles from "../../../dashboard.module.css";
 
 type QrxType = "normal" | "business";
+type VerificationStatus = "pending" | "approved" | "rejected" | string;
+
+const QRX_VERIFICATION_BUCKET = "qrx-verification-documents";
+const QRX_VERIFICATION_COST_CREDITS = 10;
 
 type QrxEntry = {
   id: string;
@@ -27,6 +31,20 @@ type QrxEntry = {
   verified: boolean | null;
   suspended: boolean | null;
   password_protected: boolean | null;
+};
+
+type VerificationRequest = {
+  id: string;
+  qrx_id: string | null;
+  owner_user_id: string | null;
+  status: VerificationStatus | null;
+  credits_charged: number | null;
+  refund_done: boolean | null;
+  document_filename: string | null;
+  document_mime_type: string | null;
+  document_type: "image" | "pdf" | string | null;
+  created_at: string | null;
+  updated_at: string | null;
 };
 
 function getParam(value: string | string[] | undefined, fallback: string) {
@@ -63,6 +81,65 @@ function getSafeQrxType(value: string | null | undefined): QrxType {
   return value === "business" ? "business" : "normal";
 }
 
+function normalizeErrorMessage(error: unknown) {
+  const errorLike = error as {
+    message?: unknown;
+    error_description?: unknown;
+    details?: unknown;
+    hint?: unknown;
+  };
+
+  return String(
+    errorLike.message ??
+      errorLike.error_description ??
+      errorLike.details ??
+      errorLike.hint ??
+      error ??
+      "Unbekannter Fehler",
+  );
+}
+
+function formatBytes(bytes: number | null | undefined) {
+  const value = Number(bytes ?? 0);
+  if (!Number.isFinite(value) || value <= 0) return "–";
+
+  if (value >= 1024 * 1024) {
+    return `${(value / (1024 * 1024)).toFixed(1).replace(".", ",")} MB`;
+  }
+
+  if (value >= 1024) {
+    return `${(value / 1024).toFixed(1).replace(".", ",")} KB`;
+  }
+
+  return `${value} B`;
+}
+
+function sanitizeFilename(value: string) {
+  return (
+    value
+      .replace(/[^a-zA-Z0-9._-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "") || `verification-${Date.now().toString()}`
+  );
+}
+
+function getVerificationStatusLabel(status: VerificationStatus | null | undefined) {
+  if (status === "pending") return "In Prüfung";
+  if (status === "approved") return "Genehmigt";
+  if (status === "rejected") return "Abgelehnt";
+  return "Unbekannt";
+}
+
+function getVerificationStatusText(args: {
+  isVerified: boolean;
+  request: VerificationRequest | null;
+}) {
+  if (args.isVerified) return "Dieser Business QR-X ist verifiziert.";
+  if (args.request?.status === "pending") return "Dein Verifizierungsantrag liegt vor und wird geprüft.";
+  if (args.request?.status === "rejected") return "Dein letzter Verifizierungsantrag wurde abgelehnt. Du kannst einen neuen Antrag einreichen.";
+  return "Noch nicht verifiziert.";
+}
+
 export default function EditQrxPage() {
   const router = useRouter();
   const params = useParams();
@@ -88,6 +165,12 @@ export default function EditQrxPage() {
   const [qrxPassword, setQrxPassword] = useState("");
   const [qrxPasswordRepeat, setQrxPasswordRepeat] = useState("");
 
+  const [isVerified, setIsVerified] = useState(false);
+  const [verificationRequest, setVerificationRequest] = useState<VerificationRequest | null>(null);
+  const [verificationDocument, setVerificationDocument] = useState<File | null>(null);
+  const [verificationSaving, setVerificationSaving] = useState(false);
+  const [credits, setCredits] = useState<number | null>(null);
+
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
@@ -96,6 +179,98 @@ export default function EditQrxPage() {
     void loadQrx();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qrxId]);
+
+  async function getCurrentUserOrThrow() {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error) throw error;
+    if (!user) throw new Error("Bitte melde dich zuerst an.");
+    return user;
+  }
+
+  async function loadCreditBalance(userId: string) {
+    const { data, error } = await supabase
+      .from("qrx_credits")
+      .select("credits")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      const { data: inserted, error: insertError } = await supabase
+        .from("qrx_credits")
+        .upsert(
+          { user_id: userId, credits: 0 },
+          { onConflict: "user_id", ignoreDuplicates: false },
+        )
+        .select("credits")
+        .maybeSingle();
+
+      if (insertError) throw insertError;
+      setCredits(Number(inserted?.credits ?? 0));
+      return;
+    }
+
+    setCredits(Number((data as { credits?: number | null }).credits ?? 0));
+  }
+
+  async function loadLatestVerificationRequest(userId: string) {
+    if (!qrxId) {
+      setVerificationRequest(null);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("qrx_verification_requests")
+      .select(
+        "id,qrx_id,owner_user_id,status,credits_charged,refund_done,document_filename,document_mime_type,document_type,created_at,updated_at",
+      )
+      .eq("qrx_id", qrxId)
+      .eq("owner_user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .returns<VerificationRequest>();
+
+    if (error) throw error;
+    setVerificationRequest(data ?? null);
+  }
+
+  async function spendCredits(amount: number) {
+    if (!Number.isFinite(amount) || amount <= 0) return credits ?? 0;
+
+    const { data, error } = await supabase.rpc("spend_credits", {
+      p_amount: amount,
+    });
+
+    if (error) {
+      throw new Error(normalizeErrorMessage(error) || "Credits konnten nicht abgezogen werden.");
+    }
+
+    const nextCredits = typeof data === "number" ? data : Math.max(0, (credits ?? 0) - amount);
+    setCredits(nextCredits);
+    return nextCredits;
+  }
+
+  async function addCredits(amount: number) {
+    if (!Number.isFinite(amount) || amount <= 0) return credits ?? 0;
+
+    const { data, error } = await supabase.rpc("add_credits", {
+      p_amount: amount,
+    });
+
+    if (error) {
+      throw new Error(normalizeErrorMessage(error) || "Credits konnten nicht zurückgebucht werden.");
+    }
+
+    const nextCredits = typeof data === "number" ? data : (credits ?? 0) + amount;
+    setCredits(nextCredits);
+    return nextCredits;
+  }
 
   async function saveQrxPasswordProtection(args: {
     qrxId: string;
@@ -141,18 +316,12 @@ export default function EditQrxPage() {
         throw new Error("QR-X ID fehlt.");
       }
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) throw userError;
-      if (!user) throw new Error("Bitte melde dich zuerst an.");
+      const user = await getCurrentUserOrThrow();
 
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected"
+          "id,owner_user_id,title,company_name,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -180,6 +349,10 @@ export default function EditQrxPage() {
       setPasswordWasProtected(isProtected);
       setQrxPassword("");
       setQrxPasswordRepeat("");
+      setIsVerified(data.verified === true);
+      setVerificationDocument(null);
+
+      await Promise.all([loadCreditBalance(user.id), loadLatestVerificationRequest(user.id)]);
     } catch (error) {
       setErrorText(error instanceof Error ? error.message : "QR-X konnte nicht geladen werden.");
     } finally {
@@ -221,13 +394,7 @@ export default function EditQrxPage() {
       const lat = parseOptionalNumber(locationLat, "Breitengrad");
       const lng = parseOptionalNumber(locationLng, "Längengrad");
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) throw userError;
-      if (!user) throw new Error("Bitte melde dich zuerst an.");
+      const user = await getCurrentUserOrThrow();
 
       const { error } = await supabase
         .from("qr_x_entries")
@@ -272,7 +439,111 @@ export default function EditQrxPage() {
     }
   }
 
+  function handleVerificationFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    setVerificationDocument(file);
+    event.target.value = "";
+  }
+
+  async function handleSubmitVerificationRequest() {
+    setVerificationSaving(true);
+    setErrorText(null);
+    setSuccessText(null);
+
+    let chargedVerification = false;
+    let uploadedStoragePath: string | null = null;
+
+    try {
+      if (!qrxId) throw new Error("QR-X ID fehlt.");
+      if (qrxType !== "business") throw new Error("Nur Business QR-X können verifiziert werden.");
+      if (isVerified) throw new Error("Dieser QR-X ist bereits verifiziert.");
+      if (verificationRequest?.status === "pending") {
+        throw new Error("Für diesen QR-X liegt bereits ein Verifizierungsantrag vor.");
+      }
+      if (!verificationDocument) {
+        throw new Error("Bitte lade einen Nachweis als Bild oder PDF hoch.");
+      }
+
+      const allowed = verificationDocument.type.startsWith("image/") || verificationDocument.type === "application/pdf" || verificationDocument.name.toLowerCase().endsWith(".pdf");
+      if (!allowed) {
+        throw new Error("Bitte lade nur ein Bild oder eine PDF-Datei für die Verifizierung hoch.");
+      }
+
+      const user = await getCurrentUserOrThrow();
+      await loadCreditBalance(user.id);
+
+      if (credits != null && credits < QRX_VERIFICATION_COST_CREDITS) {
+        throw new Error(
+          `Nicht genug Credits. Benötigt: ${QRX_VERIFICATION_COST_CREDITS}, vorhanden: ${credits}.`,
+        );
+      }
+
+      await spendCredits(QRX_VERIFICATION_COST_CREDITS);
+      chargedVerification = true;
+
+      const safeFilename = sanitizeFilename(verificationDocument.name);
+      const storagePath = `${user.id}/${qrxId}/${Date.now().toString()}-${safeFilename}`;
+      const documentType = verificationDocument.type === "application/pdf" || verificationDocument.name.toLowerCase().endsWith(".pdf") ? "pdf" : "image";
+
+      const { error: uploadError } = await supabase.storage
+        .from(QRX_VERIFICATION_BUCKET)
+        .upload(storagePath, verificationDocument, {
+          contentType: verificationDocument.type || "application/octet-stream",
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+      uploadedStoragePath = storagePath;
+
+      const { error: insertError } = await supabase
+        .from("qrx_verification_requests")
+        .insert({
+          qrx_id: qrxId,
+          owner_user_id: user.id,
+          status: "pending",
+          credits_charged: QRX_VERIFICATION_COST_CREDITS,
+          refund_done: false,
+          document_url: `storage://${QRX_VERIFICATION_BUCKET}/${storagePath}`,
+          document_path: storagePath,
+          document_filename: verificationDocument.name,
+          document_mime_type: verificationDocument.type || "application/octet-stream",
+          document_type: documentType,
+        });
+
+      if (insertError) throw insertError;
+
+      setVerificationDocument(null);
+      await Promise.all([loadCreditBalance(user.id), loadLatestVerificationRequest(user.id)]);
+      setSuccessText("Verifizierungsantrag wurde eingereicht. Dein QR-X wird nun geprüft.");
+    } catch (error) {
+      if (uploadedStoragePath) {
+        try {
+          await supabase.storage.from(QRX_VERIFICATION_BUCKET).remove([uploadedStoragePath]);
+        } catch (removeError) {
+          console.warn("Verifizierungsdokument-Cleanup fehlgeschlagen:", removeError);
+        }
+      }
+
+      if (chargedVerification) {
+        try {
+          await addCredits(QRX_VERIFICATION_COST_CREDITS);
+        } catch (refundError) {
+          console.warn("Credit-Rückbuchung nach Verifizierungsfehler fehlgeschlagen:", refundError);
+        }
+      }
+
+      setErrorText(normalizeErrorMessage(error) || "Verifizierungsantrag konnte nicht eingereicht werden.");
+    } finally {
+      setVerificationSaving(false);
+    }
+  }
+
   const isBusiness = qrxType === "business";
+  const canSubmitVerification =
+    isBusiness &&
+    !isVerified &&
+    verificationRequest?.status !== "pending" &&
+    !verificationSaving;
 
   return (
     <main className={styles.page}>
@@ -294,7 +565,7 @@ export default function EditQrxPage() {
           <span className={styles.kicker}>QR-X bearbeiten</span>
           <h1>{title.trim() || "QR-X bearbeiten"}</h1>
           <p>
-            Bearbeite die Basisdaten deines QR-X und verwalte den Passwortschutz. Bilder und Galerie findest du unter „Bilder & Medien“.
+            Bearbeite die Basisdaten deines QR-X, verwalte den Passwortschutz und beantrage für Business QR-X die Verifizierung.
           </p>
         </div>
 
@@ -330,15 +601,7 @@ export default function EditQrxPage() {
               <button
                 type="button"
                 onClick={() => setQrxType("normal")}
-                style={{
-                  minHeight: 74,
-                  borderRadius: 18,
-                  border: qrxType === "normal" ? "1px solid #bbf7d0" : "1px solid rgba(148, 163, 184, 0.22)",
-                  background: qrxType === "normal" ? "rgba(34,197,94,0.16)" : "rgba(255,255,255,0.06)",
-                  color: "#ffffff",
-                  fontWeight: 950,
-                  cursor: "pointer",
-                }}
+                style={typeButtonStyle(qrxType === "normal", "normal")}
               >
                 ⌗ Normaler QR-X
               </button>
@@ -346,15 +609,7 @@ export default function EditQrxPage() {
               <button
                 type="button"
                 onClick={() => setQrxType("business")}
-                style={{
-                  minHeight: 74,
-                  borderRadius: 18,
-                  border: qrxType === "business" ? "1px solid #fed7aa" : "1px solid rgba(148, 163, 184, 0.22)",
-                  background: qrxType === "business" ? "rgba(251,146,60,0.16)" : "rgba(255,255,255,0.06)",
-                  color: "#ffffff",
-                  fontWeight: 950,
-                  cursor: "pointer",
-                }}
+                style={typeButtonStyle(qrxType === "business", "business")}
               >
                 🏢 Business QR-X
               </button>
@@ -485,12 +740,87 @@ export default function EditQrxPage() {
               ) : null}
             </div>
 
+            {isBusiness ? (
+              <div style={verificationBoxStyle(isVerified, verificationRequest?.status)}>
+                <div style={verificationHeaderStyle}>
+                  <div>
+                    <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>Business-Verifizierung</h3>
+                    <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                      {getVerificationStatusText({ isVerified, request: verificationRequest })}
+                    </p>
+                  </div>
+                  <span style={verificationBadgeStyle(isVerified, verificationRequest?.status)}>
+                    {isVerified ? "Verifiziert" : getVerificationStatusLabel(verificationRequest?.status)}
+                  </span>
+                </div>
+
+                <div style={verificationInfoStyle}>
+                  <strong>Kosten: {QRX_VERIFICATION_COST_CREDITS} Credits</strong>
+                  <span>Aktuelle Credits: {credits == null ? "…" : credits}</span>
+                </div>
+
+                {verificationRequest ? (
+                  <div style={requestSummaryStyle}>
+                    <strong>Letzter Antrag</strong>
+                    <span>Status: {getVerificationStatusLabel(verificationRequest.status)}</span>
+                    {verificationRequest.document_filename ? <span>Dokument: {verificationRequest.document_filename}</span> : null}
+                    {verificationRequest.credits_charged ? <span>Abgezogen: {verificationRequest.credits_charged} Credits</span> : null}
+                  </div>
+                ) : null}
+
+                {!isVerified && verificationRequest?.status !== "pending" ? (
+                  <div style={{ display: "grid", gap: 12 }}>
+                    <p style={{ margin: 0, color: "#cbd5e1", lineHeight: 1.55, fontSize: 13, fontWeight: 800 }}>
+                      Lade einen Nachweis hoch, z. B. Gewerbeanmeldung, Handelsregisterauszug oder einen vergleichbaren offiziellen Nachweis. Erlaubt sind Bilder und PDF-Dateien.
+                    </p>
+
+                    <label style={fileButtonStyle}>
+                      Nachweis auswählen
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf,.pdf"
+                        onChange={handleVerificationFileChange}
+                        style={{ display: "none" }}
+                      />
+                    </label>
+
+                    {verificationDocument ? (
+                      <div style={selectedDocumentStyle}>
+                        <div>
+                          <strong>{verificationDocument.name}</strong>
+                          <span>{verificationDocument.type || "Datei"} · {formatBytes(verificationDocument.size)}</span>
+                        </div>
+                        <button type="button" onClick={() => setVerificationDocument(null)} style={miniDangerButtonStyle}>
+                          Entfernen
+                        </button>
+                      </div>
+                    ) : null}
+
+                    <button
+                      type="button"
+                      onClick={handleSubmitVerificationRequest}
+                      disabled={!canSubmitVerification || !verificationDocument}
+                      className={styles.primaryButton}
+                      style={{
+                        border: 0,
+                        justifySelf: "start",
+                        cursor: !canSubmitVerification || !verificationDocument ? "not-allowed" : "pointer",
+                        opacity: !canSubmitVerification || !verificationDocument ? 0.7 : 1,
+                      }}
+                    >
+                      {verificationSaving ? "Antrag wird eingereicht …" : "Verifizierung beantragen"}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
               <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
                 Abbrechen
               </Link>
 
-              <button type="submit" disabled={saving} className={styles.primaryButton} style={{ border: 0, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.72 : 1 }}>
+              <button type="submit" disabled={saving || verificationSaving} className={styles.primaryButton} style={{ border: 0, cursor: saving || verificationSaving ? "not-allowed" : "pointer", opacity: saving || verificationSaving ? 0.72 : 1 }}>
                 {saving ? "Speichert …" : "QR-X speichern"}
               </button>
             </div>
@@ -501,7 +831,27 @@ export default function EditQrxPage() {
   );
 }
 
-const panelStyle: React.CSSProperties = {
+function typeButtonStyle(active: boolean, type: QrxType): CSSProperties {
+  return {
+    minHeight: 74,
+    borderRadius: 18,
+    border: active
+      ? type === "business"
+        ? "1px solid #fed7aa"
+        : "1px solid #bbf7d0"
+      : "1px solid rgba(148, 163, 184, 0.22)",
+    background: active
+      ? type === "business"
+        ? "rgba(251,146,60,0.16)"
+        : "rgba(34,197,94,0.16)"
+      : "rgba(255,255,255,0.06)",
+    color: "#ffffff",
+    fontWeight: 950,
+    cursor: "pointer",
+  };
+}
+
+const panelStyle: CSSProperties = {
   maxWidth: 880,
   margin: "0 auto",
   borderRadius: 30,
@@ -511,7 +861,7 @@ const panelStyle: React.CSSProperties = {
   padding: 22,
 };
 
-const labelStyle: React.CSSProperties = {
+const labelStyle: CSSProperties = {
   display: "grid",
   gap: 8,
   color: "#cbd5e1",
@@ -519,7 +869,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 900,
 };
 
-const inputStyle: React.CSSProperties = {
+const inputStyle: CSSProperties = {
   width: "100%",
   minHeight: 52,
   borderRadius: 16,
@@ -533,13 +883,13 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-const dividerStyle: React.CSSProperties = {
+const dividerStyle: CSSProperties = {
   height: 1,
   background: "rgba(255,255,255,0.09)",
   margin: "4px 0",
 };
 
-const loadingStyle: React.CSSProperties = {
+const loadingStyle: CSSProperties = {
   minHeight: 160,
   display: "grid",
   placeItems: "center",
@@ -547,7 +897,7 @@ const loadingStyle: React.CSSProperties = {
   fontWeight: 950,
 };
 
-const errorStyle: React.CSSProperties = {
+const errorStyle: CSSProperties = {
   borderRadius: 22,
   padding: 16,
   marginBottom: 16,
@@ -558,7 +908,7 @@ const errorStyle: React.CSSProperties = {
   lineHeight: 1.55,
 };
 
-const successStyle: React.CSSProperties = {
+const successStyle: CSSProperties = {
   borderRadius: 22,
   padding: 16,
   marginBottom: 16,
@@ -569,7 +919,7 @@ const successStyle: React.CSSProperties = {
   lineHeight: 1.55,
 };
 
-function passwordBoxStyle(active: boolean): React.CSSProperties {
+function passwordBoxStyle(active: boolean): CSSProperties {
   return {
     borderRadius: 22,
     padding: 16,
@@ -580,7 +930,7 @@ function passwordBoxStyle(active: boolean): React.CSSProperties {
   };
 }
 
-const passwordToggleStyle: React.CSSProperties = {
+const passwordToggleStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
@@ -588,4 +938,103 @@ const passwordToggleStyle: React.CSSProperties = {
   color: "#ffffff",
   fontWeight: 950,
   cursor: "pointer",
+};
+
+function verificationBoxStyle(isVerified: boolean, status: VerificationStatus | null | undefined): CSSProperties {
+  const active = isVerified || status === "pending";
+  return {
+    borderRadius: 22,
+    padding: 16,
+    background: isVerified ? "rgba(34,197,94,0.14)" : active ? "rgba(250,204,21,0.12)" : "rgba(255,255,255,0.045)",
+    border: isVerified ? "1px solid rgba(134,239,172,0.28)" : active ? "1px solid rgba(253,224,71,0.24)" : "1px solid rgba(255,255,255,0.08)",
+    display: "grid",
+    gap: 14,
+  };
+}
+
+const verificationHeaderStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "flex-start",
+  justifyContent: "space-between",
+  gap: 14,
+  flexWrap: "wrap",
+};
+
+function verificationBadgeStyle(isVerified: boolean, status: VerificationStatus | null | undefined): CSSProperties {
+  return {
+    borderRadius: 999,
+    padding: "8px 12px",
+    background: isVerified ? "rgba(34,197,94,0.2)" : status === "pending" ? "rgba(250,204,21,0.18)" : "rgba(148,163,184,0.14)",
+    border: isVerified ? "1px solid rgba(134,239,172,0.34)" : status === "pending" ? "1px solid rgba(253,224,71,0.32)" : "1px solid rgba(148,163,184,0.22)",
+    color: isVerified ? "#bbf7d0" : status === "pending" ? "#fef08a" : "#cbd5e1",
+    fontSize: 12,
+    fontWeight: 950,
+  };
+}
+
+const verificationInfoStyle: CSSProperties = {
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(15,23,42,0.42)",
+  border: "1px solid rgba(148,163,184,0.14)",
+  color: "#dbeafe",
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  flexWrap: "wrap",
+  fontSize: 13,
+  fontWeight: 850,
+};
+
+const requestSummaryStyle: CSSProperties = {
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  color: "#cbd5e1",
+  display: "grid",
+  gap: 5,
+  fontSize: 13,
+  fontWeight: 800,
+};
+
+const fileButtonStyle: CSSProperties = {
+  minHeight: 48,
+  borderRadius: 16,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "0 18px",
+  background: "rgba(255,255,255,0.075)",
+  border: "1px solid rgba(148,163,184,0.22)",
+  color: "#ffffff",
+  fontWeight: 950,
+  cursor: "pointer",
+  justifySelf: "start",
+};
+
+const selectedDocumentStyle: CSSProperties = {
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(59,130,246,0.12)",
+  border: "1px solid rgba(147,197,253,0.22)",
+  color: "#bfdbfe",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 12,
+  flexWrap: "wrap",
+  fontSize: 13,
+  fontWeight: 850,
+};
+
+const miniDangerButtonStyle: CSSProperties = {
+  minHeight: 34,
+  borderRadius: 12,
+  border: "1px solid rgba(252,165,165,0.22)",
+  background: "rgba(239,68,68,0.14)",
+  color: "#fecaca",
+  fontWeight: 950,
+  cursor: "pointer",
+  padding: "0 12px",
 };
