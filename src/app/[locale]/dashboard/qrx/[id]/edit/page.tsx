@@ -25,7 +25,7 @@ type VerificationStatus = "pending" | "approved" | "rejected" | string;
 const QRX_VERIFICATION_BUCKET = "qrx-verification-documents";
 const QRX_VERIFICATION_COST_CREDITS = 10;
 
-const BUSINESS_CATEGORY_OPTIONS = [
+const BUSINESS_CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string }> = [
   { value: "praxis_gesundheit", label: "Praxis & Gesundheit" },
   { value: "gastronomie", label: "Gastronomie" },
   { value: "unternehmen", label: "Unternehmen" },
@@ -36,7 +36,13 @@ const BUSINESS_CATEGORY_OPTIONS = [
   { value: "wohltaetigkeit", label: "Wohltätigkeit" },
   { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit" },
   { value: "sonstiges", label: "Sonstiges" },
-] as const;
+];
+
+function getSafeBusinessCategory(value: unknown): BusinessCategory | "" {
+  return BUSINESS_CATEGORY_OPTIONS.some((item) => item.value === value)
+    ? (value as BusinessCategory)
+    : "";
+}
 
 type QrxEntry = {
   id: string;
@@ -605,7 +611,7 @@ export default function EditQrxPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,category,storage_limit_mb",
+          "id,owner_user_id,title,company_name,category,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -621,7 +627,7 @@ export default function EditQrxPage() {
       setQrxType(safeType);
       setTitle(data.title ?? "");
       setCompanyName(data.company_name ?? "");
-      setCategory((data.category as BusinessCategory) ?? "");
+      setCategory(getSafeBusinessCategory(data.category));
       setDescription(data.description ?? "");
       setLocationName(data.location_name ?? "");
       setLocationLat(formatOptionalNumber(data.location_lat));
@@ -1118,8 +1124,8 @@ export default function EditQrxPage() {
                 Kategorie
                 <select
                   value={category}
-                  onChange={(event) => setCategory(event.target.value as BusinessCategory)}
-                  style={inputStyle}
+                  onChange={(event) => setCategory(getSafeBusinessCategory(event.target.value))}
+                  style={selectStyle}
                 >
                   <option value="">Bitte auswählen</option>
                   {BUSINESS_CATEGORY_OPTIONS.map((item) => (
@@ -1548,7 +1554,17 @@ const inputStyle: CSSProperties = {
   fontWeight: 800,
   outline: "none",
   boxSizing: "border-box",
+};
+
+const selectStyle: CSSProperties = {
+  ...inputStyle,
   appearance: "none",
+  background:
+    "rgba(255,255,255,0.07) linear-gradient(45deg, transparent 50%, #cbd5e1 50%), linear-gradient(135deg, #cbd5e1 50%, transparent 50%)",
+  backgroundPosition: "calc(100% - 20px) 22px, calc(100% - 14px) 22px",
+  backgroundSize: "6px 6px, 6px 6px",
+  backgroundRepeat: "no-repeat",
+  paddingRight: 42,
 };
 
 const dividerStyle: CSSProperties = {
