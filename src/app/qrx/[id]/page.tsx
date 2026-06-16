@@ -387,9 +387,6 @@ export default async function QrxPage({
   const wantSave = getFirst(sp.save) === "1";
   const deepLink = wantSave ? `miosegqr://qrx/${qrxId}?save=1` : `miosegqr://qrx/${qrxId}`;
   const fallbackUrl = `/get-app?from=${encodeURIComponent(`/qrx/${qrxId}${wantSave ? "?save=1" : ""}`)}`;
-  const appScanPayload = `qrx:${qrxId}`;
-  const appScanQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=12&data=${encodeURIComponent(appScanPayload)}`;
-
   const websiteUrl = normalizeWebsite(entry.cta_website);
   const navigationUrl = normalizeNavigation(entry.cta_navigation);
   const phoneUrl = entry.cta_phone?.trim() ? `tel:${entry.cta_phone.trim()}` : null;
@@ -411,116 +408,63 @@ export default async function QrxPage({
       <TrackViewClient qrxId={qrxId} />
 
       <QrxPasswordGate qrxId={qrxId} enabled={entry.password_protected === true && !hasAdminAccess}>
+        {/* 1. Hero: nur Identität – keine Aktionen und keine Beschreibung */}
         {!isBusiness ? (
-        <div className={styles.header}>
-          <div>
-            <h1 className={styles.title}>{entry.title}</h1>
-            <p className={styles.sub}>Aktuelle Informationen zum QR-X</p>
-            {categoryMeta ? (
+          <div className={styles.header}>
+            <div>
               <div style={phaseBadgeRowStyle}>
-                <span style={phaseCategoryBadgeStyle}>{categoryMeta.icon} {categoryMeta.label}</span>
+                <span style={phaseCategoryBadgeStyle}>⌗ Normaler QR-X</span>
+                {categoryMeta ? (
+                  <span style={phaseCategoryBadgeStyle}>{categoryMeta.icon} {categoryMeta.label}</span>
+                ) : null}
+                {entry.verified ? <span style={phaseVerifiedSoftBadgeStyle}>✓ Verifiziert</span> : null}
               </div>
-            ) : null}
+              <h1 className={styles.title}>{companyName}</h1>
+            </div>
           </div>
-
-          <div className={styles.ctaCol}>
-            <a className={styles.openBtn} href={deepLink} data-fallback={fallbackUrl} id="openAppBtn">
-              In App öffnen
-            </a>
-
-            {showDownloadHint && (
-              <div className={styles.appHint}>
-                App nicht installiert?{" "}
-                <a className={styles.downloadLink} href={fallbackUrl}>
-                  Hier herunterladen
-                </a>
-              </div>
+        ) : (
+          <div className={styles.businessHero}>
+            {coverUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className={styles.businessHeroCover} src={coverUrl} alt="Cover" />
+            ) : (
+              <div className={styles.businessHeroCoverFallback} />
             )}
-          </div>
-        </div>
-      ) : (
-        <div className={styles.businessHero}>
-          {coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img className={styles.businessHeroCover} src={coverUrl} alt="Cover" />
-          ) : (
-            <div className={styles.businessHeroCoverFallback} />
-          )}
 
-          <div className={styles.businessHeroOverlay} />
+            <div className={styles.businessHeroOverlay} />
 
-          <div className={styles.businessHeroTopBar}>
-            <div className={styles.businessHeroTopLeft}>
-              <a className={styles.businessOpenBtn} href={deepLink} data-fallback={fallbackUrl} id="openAppBtn">
-                In App öffnen
-              </a>
+            <div className={styles.businessHeroTopBar}>
+              {entry.verified ? (
+                <div className={styles.businessVerifiedBadge}>
+                  <span className={styles.businessVerifiedDot}>●</span>
+                  VERIFIED
+                </div>
+              ) : null}
             </div>
 
-            {entry.verified ? (
-              <div className={styles.businessVerifiedBadge}>
-                <span className={styles.businessVerifiedDot}>●</span>
-                VERIFIED
-              </div>
-            ) : null}
-          </div>
+            <div className={styles.businessHeroContent}>
+              {logoUrl ? (
+                <div className={styles.businessLogoFrame}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className={styles.businessLogo} src={logoUrl} alt="Logo" />
+                </div>
+              ) : null}
 
-          <div className={styles.businessHeroContent}>
-            {logoUrl ? (
-              <div className={styles.businessLogoFrame}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className={styles.businessLogo} src={logoUrl} alt="Logo" />
-              </div>
-            ) : null}
+              <h1 className={styles.businessCompanyName}>{companyName}</h1>
 
-            <h1 className={styles.businessCompanyName}>{companyName}</h1>
-
-            {entry.title?.trim() && entry.title.trim() !== companyName ? (
-              <div style={phaseSubtitleStyle}>{entry.title.trim()}</div>
-            ) : null}
-
-            {categoryMeta ? (
               <div style={phaseBadgeRowStyle}>
-                <span style={phaseCategoryBadgeStyle}>{categoryMeta.icon} {categoryMeta.label}</span>
-              </div>
-            ) : null}
-
-            {(hasWebsite || hasPhone || hasEmail) && (
-              <div className={styles.businessHeroActions}>
-                {websiteUrl ? (
-                  <a className={styles.businessActionBtn} href={websiteUrl} target="_blank" rel="noreferrer">
-                    Website
-                  </a>
-                ) : null}
-
-                {phoneUrl ? (
-                  <a className={styles.businessActionBtn} href={phoneUrl}>
-                    Anrufen
-                  </a>
-                ) : null}
-
-                {emailUrl ? (
-                  <a className={styles.businessActionBtn} href={emailUrl}>
-                    E-Mail
-                  </a>
+                <span style={phaseCategoryBadgeStyle}>🏢 Business QR-X</span>
+                {categoryMeta ? (
+                  <span style={phaseCategoryBadgeStyle}>{categoryMeta.icon} {categoryMeta.label}</span>
                 ) : null}
               </div>
-            )}
-
-            {showDownloadHint && (
-              <div className={styles.businessAppHint}>
-                App nicht installiert?{" "}
-                <a className={styles.downloadLink} href={fallbackUrl}>
-                  Hier herunterladen
-                </a>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
 (function(){
   var btn = document.getElementById("openAppBtn");
   if(!btn) return;
@@ -539,203 +483,180 @@ export default async function QrxPage({
     e.preventDefault();
   });
 })();`.trim(),
-        }}
-      />
+          }}
+        />
 
-      {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
+        {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
 
-      {!isBusiness && entry.logo_url && (
-        <div className={styles.logoWrap}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className={styles.logo} src={entry.logo_url} alt="Logo" />
-        </div>
-      )}
+        {/* 2. Statistiken */}
+        <section className={styles.section}>
+          <div style={phaseAppStatsRowStyle}>
+            <div style={phaseAppStatPillStyle}>
+              <span style={phaseAppStatIconStyle}>👥</span>
+              <strong>{formatNumber(followerCount)}</strong>
+              <small>Follower</small>
+            </div>
+            <div style={phaseAppStatPillStyle}>
+              <span style={phaseAppStatIconStyle}>🖼️</span>
+              <strong>{formatNumber(totalMediaCount)}</strong>
+              <small>Medien</small>
+            </div>
+            <div style={phaseAppStatPillStyle}>
+              <span style={phaseAppStatIconStyle}>📰</span>
+              <strong>{formatNumber(newsItems.length)}</strong>
+              <small>Updates</small>
+            </div>
+            <div style={phaseAppStatPillStyle}>
+              <span style={phaseAppStatIconStyle}>👁️</span>
+              <strong>{formatNumber(entry.views_total)}</strong>
+              <small>Aufrufe</small>
+            </div>
+          </div>
+        </section>
 
-      <section className={styles.section} style={phaseAppLikeProfileCardStyle}>
-        <div style={phaseAppProfileTopStyle}>
-          <div style={phaseAppAvatarStyle}>
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={logoUrl} alt={`${companyName} Logo`} style={phaseAppAvatarImageStyle} />
-            ) : (
-              <span>{isBusiness ? "🏢" : "▣"}</span>
-            )}
+        {/* 3. Aktionen */}
+        <section className={styles.section}>
+          <div style={phaseSectionHeaderStyle}>
+            <div>
+              <h2 className={styles.h2}>Aktionen</h2>
+              <p className={styles.muted} style={{ margin: 0 }}>Öffnen, folgen oder direkt Kontakt aufnehmen.</p>
+            </div>
           </div>
 
-          <div style={phaseAppProfileInfoStyle}>
-            <div style={phaseBadgeRowStyle}>
-              <span style={phaseCategoryBadgeStyle}>{isBusiness ? "🏢 Business QR-X" : "⌗ Normaler QR-X"}</span>
-              {categoryMeta ? (
-                <span style={phaseCategoryBadgeStyle}>{categoryMeta.icon} {categoryMeta.label}</span>
-              ) : null}
-              {entry.verified ? <span style={phaseVerifiedSoftBadgeStyle}>✓ Verifiziert</span> : null}
+          <div style={phaseAppActionGridStyle}>
+            <a className={isBusiness ? styles.businessOpenBtn : styles.openBtn} href={deepLink} data-fallback={fallbackUrl} id="openAppBtn">
+              App öffnen
+            </a>
+
+            {currentUserId ? (
+              <form action={toggleFollowAction} style={{ display: "contents" }}>
+                <button type="submit" style={phasePrimaryButtonStyle}>
+                  {savedRow ? "Folgen beenden" : "Folgen"}
+                </button>
+              </form>
+            ) : (
+              <a href={`/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`} style={phasePrimaryLinkStyle}>
+                Folgen
+              </a>
+            )}
+
+            {websiteUrl ? <a style={phaseSecondaryLinkStyle} href={websiteUrl} target="_blank" rel="noreferrer">🌐 Website</a> : null}
+            {phoneUrl ? <a style={phaseSecondaryLinkStyle} href={phoneUrl}>☎️ Anrufen</a> : null}
+            {emailUrl ? <a style={phaseSecondaryLinkStyle} href={emailUrl}>✉️ E-Mail</a> : null}
+            {navigationUrl ? <a style={phaseSecondaryLinkStyle} href={navigationUrl} target="_blank" rel="noreferrer">🧭 Navigation</a> : null}
+          </div>
+
+          {showDownloadHint ? (
+            <p className={styles.muted} style={{ marginTop: 12 }}>
+              App nicht installiert? <a className={styles.downloadLink} href={fallbackUrl}>Hier herunterladen</a>
+            </p>
+          ) : null}
+        </section>
+
+        {/* 4. Titel & Beschreibung */}
+        <section className={styles.section}>
+          <div style={phaseSectionHeaderStyle}>
+            <div>
+              <h2 className={styles.h2}>Titel & Beschreibung</h2>
+              <p className={styles.muted} style={{ margin: 0 }}>Die wichtigsten Informationen zu diesem QR-X.</p>
+            </div>
+          </div>
+
+          <div style={phaseTitleBoxStyle}>
+            <div>
+              <span style={phaseSmallBadgeStyle}>Titel</span>
+              <h3 style={phaseTitleTextStyle}>{entry.title?.trim() || companyName}</h3>
             </div>
 
-            <h2 style={phaseAppTitleStyle}>{companyName}</h2>
-            {entry.title?.trim() && entry.title.trim() !== companyName ? (
-              <p style={phaseAppSubtitleStyle}>{entry.title.trim()}</p>
+            <div>
+              <span style={phaseSmallBadgeStyle}>Beschreibung</span>
+              <p style={phaseDescriptionTextStyle}>
+                {entry.description?.trim() ? entry.description : "Keine Beschreibung vorhanden."}
+              </p>
+            </div>
+
+            {entry.location_name?.trim() ? (
+              <div>
+                <span style={phaseSmallBadgeStyle}>Standort</span>
+                <p style={phaseDescriptionTextStyle}>📍 {entry.location_name.trim()}</p>
+              </div>
             ) : null}
-            <p style={phaseAppDescriptionStyle}>
-              {entry.description?.trim() ? entry.description : "Keine Beschreibung vorhanden."}
-            </p>
           </div>
-        </div>
+        </section>
 
-        <div style={phaseAppStatsRowStyle}>
-          <div style={phaseAppStatPillStyle}>
-            <span style={phaseAppStatIconStyle}>👥</span>
-            <strong>{formatNumber(followerCount)}</strong>
-            <small>Follower</small>
+        {/* 5. News & Updates */}
+        <section className={styles.section}>
+          <div style={phaseSectionHeaderStyle}>
+            <div>
+              <h2 className={styles.h2}>News & Updates</h2>
+              <p className={styles.muted} style={{ margin: 0 }}>Aktuelle Informationen dieses QR-X.</p>
+            </div>
+            <span style={phaseSmallBadgeStyle}>{formatNumber(newsItems.length)} Updates</span>
           </div>
-          <div style={phaseAppStatPillStyle}>
-            <span style={phaseAppStatIconStyle}>🖼️</span>
-            <strong>{formatNumber(totalMediaCount)}</strong>
-            <small>Medien</small>
-          </div>
-          <div style={phaseAppStatPillStyle}>
-            <span style={phaseAppStatIconStyle}>📰</span>
-            <strong>{formatNumber(newsItems.length)}</strong>
-            <small>Updates</small>
-          </div>
-          <div style={phaseAppStatPillStyle}>
-            <span style={phaseAppStatIconStyle}>👁️</span>
-            <strong>{formatNumber(entry.views_total)}</strong>
-            <small>Aufrufe</small>
-          </div>
-        </div>
 
-        <div style={phaseAppActionGridStyle}>
-          <a className={isBusiness ? styles.businessOpenBtn : styles.openBtn} href={deepLink} data-fallback={fallbackUrl} id="openAppBtnSecondary">
-            App öffnen
-          </a>
-
-          {currentUserId ? (
-            <form action={toggleFollowAction} style={{ display: "contents" }}>
-              <button type="submit" style={phasePrimaryButtonStyle}>
-                {savedRow ? "Folgen beenden" : "Folgen"}
-              </button>
-            </form>
+          {newsItems.length === 0 ? (
+            <p className={styles.muted}>Noch keine News vorhanden.</p>
           ) : (
-            <a href={`/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`} style={phasePrimaryLinkStyle}>
-              Folgen
-            </a>
+            <div style={phaseNewsListStyle}>
+              {newsItems.map((n) => (
+                <article key={n.id} style={phaseNewsCardStyle}>
+                  <div style={phaseNewsDateStyle}>{new Date(n.createdAt).toLocaleString("de-DE")}</div>
+                  <div style={phaseNewsTextStyle}>{n.text}</div>
+                </article>
+              ))}
+            </div>
           )}
+        </section>
 
-          {websiteUrl ? <a style={phaseSecondaryLinkStyle} href={websiteUrl} target="_blank" rel="noreferrer">🌐 Website</a> : null}
-          {phoneUrl ? <a style={phaseSecondaryLinkStyle} href={phoneUrl}>☎️ Anrufen</a> : null}
-          {emailUrl ? <a style={phaseSecondaryLinkStyle} href={emailUrl}>✉️ E-Mail</a> : null}
-          {navigationUrl ? <a style={phaseSecondaryLinkStyle} href={navigationUrl} target="_blank" rel="noreferrer">🧭 Navigation</a> : null}
-        </div>
-      </section>
-
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-(function(){
-  var btn = document.getElementById("openAppBtnSecondary");
-  if(!btn) return;
-
-  btn.addEventListener("click", function(e){
-    var href = btn.getAttribute("href");
-    var fallback = btn.getAttribute("data-fallback");
-    if(!href) return;
-
-    try { window.location.href = href; } catch(e){}
-
-    setTimeout(function(){
-      try { window.location.href = fallback; } catch(e){}
-    }, 1200);
-
-    e.preventDefault();
-  });
-})();`.trim(),
-        }}
-      />
-
-      <section className={styles.section}>
-        <div style={phaseSectionHeaderStyle}>
-          <div>
-            <h2 className={styles.h2}>News & Updates</h2>
-            <p className={styles.muted} style={{ margin: 0 }}>Aktuelle Informationen dieses QR-X.</p>
+        {/* 6. Medien */}
+        <section className={styles.section}>
+          <div style={phaseSectionHeaderStyle}>
+            <div>
+              <h2 className={styles.h2}>Medien</h2>
+              <p className={styles.muted} style={{ margin: 0 }}>Bilder und Dateien dieses QR-X.</p>
+            </div>
+            <span style={phaseSmallBadgeStyle}>{formatNumber(totalMediaCount)} Medien</span>
           </div>
-          <span style={phaseSmallBadgeStyle}>{formatNumber(newsItems.length)} Updates</span>
-        </div>
 
-        {newsItems.length === 0 ? (
-          <p className={styles.muted}>Noch keine News vorhanden.</p>
-        ) : (
-          <div style={phaseNewsListStyle}>
-            {newsItems.map((n) => (
-              <article key={n.id} style={phaseNewsCardStyle}>
-                <div style={phaseNewsDateStyle}>{new Date(n.createdAt).toLocaleString("de-DE")}</div>
-                <div style={phaseNewsTextStyle}>{n.text}</div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className={styles.section}>
-        <div style={phaseSectionHeaderStyle}>
-          <div>
-            <h2 className={styles.h2}>Medien</h2>
-            <p className={styles.muted} style={{ margin: 0 }}>Bilder und Dateien dieses QR-X.</p>
-          </div>
-          <span style={phaseSmallBadgeStyle}>{formatNumber(totalMediaCount)} Medien</span>
-        </div>
-
-        {galleryImages.length === 0 ? (
-          <p className={styles.muted}>Keine Bilder vorhanden.</p>
-        ) : (
-          <div className={styles.grid}>
-            {galleryImages.map((img) => (
-              <a key={img.id} className={styles.imgCard} href={img.url} target="_blank" rel="noreferrer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className={styles.img} src={img.url} alt={img.filename} />
-                <div className={styles.caption}>{img.filename}</div>
-              </a>
-            ))}
-          </div>
-        )}
-
-        {files.length > 0 ? (
-          <div style={{ marginTop: 18 }}>
-            <h3 style={phaseSubSectionTitleStyle}>Dateien</h3>
-            <div className={styles.list}>
-              {files.map((f) => (
-                <a key={f.id} className={styles.fileRow} href={f.url} target="_blank" rel="noreferrer">
-                  <span className={styles.bullet}>•</span>
-                  <span className={styles.fileName}>{f.filename}</span>
+          {galleryImages.length === 0 ? (
+            <p className={styles.muted}>Keine Bilder vorhanden.</p>
+          ) : (
+            <div className={styles.grid}>
+              {galleryImages.map((img) => (
+                <a key={img.id} className={styles.imgCard} href={img.url} target="_blank" rel="noreferrer">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className={styles.img} src={img.url} alt={img.filename} />
+                  <div className={styles.caption}>{img.filename}</div>
                 </a>
               ))}
             </div>
-          </div>
-        ) : null}
-      </section>
+          )}
 
-      <section className={styles.section}>
-        <div style={phaseActionsGridStyle}>
-          <div style={phaseActionBoxStyle}>
-            <h2 className={styles.h2}>QR-X Bild</h2>
-            <p className={styles.muted} style={{ marginTop: 0 }}>
-              Lade den öffentlichen QR-Code als PNG herunter oder öffne den direkten Link.
-            </p>
-            <div style={phaseQrWrapStyle}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={publicQrUrl} alt="QR-X Code" style={phaseQrImageStyle} />
+          {files.length > 0 ? (
+            <div style={{ marginTop: 18 }}>
+              <h3 style={phaseSubSectionTitleStyle}>Dateien</h3>
+              <div className={styles.list}>
+                {files.map((f) => (
+                  <a key={f.id} className={styles.fileRow} href={f.url} target="_blank" rel="noreferrer">
+                    <span className={styles.bullet}>•</span>
+                    <span className={styles.fileName}>{f.filename}</span>
+                  </a>
+                ))}
+              </div>
             </div>
-            <div style={phaseButtonRowStyle}>
-              <a href={publicQrUrl} download={`mioseg-qrx-${qrxId}.png`} style={phasePrimaryLinkStyle}>
-                QR-Code herunterladen
-              </a>
-              <a href={publicQrxUrl} style={phaseSecondaryLinkStyle}>
-                Link öffnen
-              </a>
+          ) : null}
+        </section>
+
+        {/* 7. Standort */}
+        <section className={styles.section}>
+          <div style={phaseSectionHeaderStyle}>
+            <div>
+              <h2 className={styles.h2}>Standort</h2>
+              <p className={styles.muted} style={{ margin: 0 }}>Ort und Navigation.</p>
             </div>
           </div>
 
           <div style={phaseActionBoxStyle}>
-            <h2 className={styles.h2}>Standort</h2>
             <p className={styles.text} style={{ marginTop: 0 }}>
               {entry.location_name?.trim() ? entry.location_name : "Kein Ort hinterlegt."}
             </p>
@@ -757,50 +678,78 @@ export default async function QrxPage({
               ) : null}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {isOwner ? (
+        {/* 8. QR-X Bild */}
         <section className={styles.section}>
           <div style={phaseSectionHeaderStyle}>
             <div>
-              <h2 className={styles.h2}>Transfer</h2>
-              <p className={styles.muted} style={{ margin: 0 }}>Verlauf der QR-X-Übertragungen.</p>
+              <h2 className={styles.h2}>QR-X Bild</h2>
+              <p className={styles.muted} style={{ margin: 0 }}>
+                Lade den öffentlichen QR-Code als PNG herunter oder öffne den direkten Link.
+              </p>
             </div>
-            <span style={phaseSmallBadgeStyle}>{formatNumber(transferHistory.length)} Einträge</span>
           </div>
 
-          {transferHistory.length === 0 ? (
-            <p className={styles.muted}>Noch kein Transfer-Verlauf vorhanden.</p>
-          ) : (
-            <div style={phaseTransferListStyle}>
-              {transferHistory.map((item, index) => (
-                <div key={item.id ?? item.transfer_id ?? `${item.created_at}-${index}`} style={phaseTransferCardStyle}>
-                  <div style={phaseTransferTopStyle}>
-                    <strong>{item.status ?? "Transfer"}</strong>
-                    <span>{formatDate(item.created_at)}</span>
-                  </div>
-                  {item.recipient_email ? <span>Empfänger: {item.recipient_email}</span> : null}
-                  {item.from_name ? <span>Von: {item.from_name}</span> : null}
-                  {item.to_name ? <span>An: {item.to_name}</span> : null}
-                  {item.accepted_at ? <span>Angenommen: {formatDate(item.accepted_at)}</span> : null}
-                  {item.expires_at ? <span>Ablauf: {formatDate(item.expires_at)}</span> : null}
-                </div>
-              ))}
+          <div style={phaseQrSectionStyle}>
+            <div style={phaseQrWrapStyle}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={publicQrUrl} alt="QR-X Code" style={phaseQrImageStyle} />
             </div>
-          )}
+            <div style={phaseButtonRowStyle}>
+              <a href={publicQrUrl} download={`mioseg-qrx-${qrxId}.png`} style={phasePrimaryLinkStyle}>
+                QR-Code herunterladen
+              </a>
+              <a href={publicQrxUrl} style={phaseSecondaryLinkStyle}>
+                Link öffnen
+              </a>
+            </div>
+          </div>
         </section>
-      ) : null}
-    <section className={styles.section}>
-  <QrxReportForm qrxId={qrxId} />
-</section>
 
-      <div className={styles.footer}>mioseg qr • QR-X Web</div>
+        {/* 9. Transfer – nur Besitzer */}
+        {isOwner ? (
+          <section className={styles.section}>
+            <div style={phaseSectionHeaderStyle}>
+              <div>
+                <h2 className={styles.h2}>Transfer</h2>
+                <p className={styles.muted} style={{ margin: 0 }}>Verlauf der QR-X-Übertragungen.</p>
+              </div>
+              <span style={phaseSmallBadgeStyle}>{formatNumber(transferHistory.length)} Einträge</span>
+            </div>
+
+            {transferHistory.length === 0 ? (
+              <p className={styles.muted}>Noch kein Transfer-Verlauf vorhanden.</p>
+            ) : (
+              <div style={phaseTransferListStyle}>
+                {transferHistory.map((item, index) => (
+                  <div key={item.id ?? item.transfer_id ?? `${item.created_at}-${index}`} style={phaseTransferCardStyle}>
+                    <div style={phaseTransferTopStyle}>
+                      <strong>{item.status ?? "Transfer"}</strong>
+                      <span>{formatDate(item.created_at)}</span>
+                    </div>
+                    {item.recipient_email ? <span>Empfänger: {item.recipient_email}</span> : null}
+                    {item.from_name ? <span>Von: {item.from_name}</span> : null}
+                    {item.to_name ? <span>An: {item.to_name}</span> : null}
+                    {item.accepted_at ? <span>Angenommen: {formatDate(item.accepted_at)}</span> : null}
+                    {item.expires_at ? <span>Ablauf: {formatDate(item.expires_at)}</span> : null}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : null}
+
+        {/* 10. Inhalt melden */}
+        <section className={styles.section}>
+          <QrxReportForm qrxId={qrxId} />
+        </section>
+
+        <div className={styles.footer}>mioseg qr • QR-X Web</div>
       </QrxPasswordGate>
     </main>
   );
 }
-
 
 const phaseBadgeRowStyle: CSSProperties = {
   display: "flex",
@@ -1145,4 +1094,40 @@ const phaseVerifiedSoftBadgeStyle: CSSProperties = {
   fontSize: 12,
   fontWeight: 950,
   border: "1px solid rgba(134,239,172,0.24)",
+};
+
+const phaseTitleBoxStyle: CSSProperties = {
+  borderRadius: 24,
+  padding: 18,
+  background: "rgba(255,255,255,0.055)",
+  border: "1px solid rgba(255,255,255,0.09)",
+  display: "grid",
+  gap: 18,
+};
+
+const phaseTitleTextStyle: CSSProperties = {
+  margin: "10px 0 0",
+  color: "#ffffff",
+  fontSize: 28,
+  lineHeight: 1.12,
+  fontWeight: 950,
+  letterSpacing: "-0.035em",
+};
+
+const phaseDescriptionTextStyle: CSSProperties = {
+  margin: "10px 0 0",
+  color: "#dbeafe",
+  lineHeight: 1.7,
+  whiteSpace: "pre-wrap",
+  fontWeight: 740,
+};
+
+const phaseQrSectionStyle: CSSProperties = {
+  borderRadius: 24,
+  padding: 18,
+  background: "rgba(255,255,255,0.055)",
+  border: "1px solid rgba(255,255,255,0.09)",
+  display: "grid",
+  gap: 16,
+  justifyItems: "center",
 };
