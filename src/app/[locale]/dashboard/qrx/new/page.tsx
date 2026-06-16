@@ -43,6 +43,8 @@ const BUSINESS_CATEGORY_OPTIONS: Array<{
 
 const QRX_VERIFICATION_BUCKET = "qrx-verification-documents";
 const QRX_VERIFICATION_COST_CREDITS = 10;
+const FREE_STORAGE_MB = 2;
+const STORAGE_PACK_MB = 5;
 
 type PrepareUploadResponse = {
   uploadUrl?: string;
@@ -61,6 +63,7 @@ type FinalizeUploadResponse = {
   public_url?: string;
   url?: string;
   media?: {
+    id?: string | null;
     url?: string | null;
   } | null;
 };
@@ -116,6 +119,10 @@ function formatBytes(bytes: number | null | undefined) {
   }
 
   return `${value} B`;
+}
+
+function formatMb(value: number) {
+  return `${value.toFixed(1).replace(".", ",")} MB`;
 }
 
 function isImageMime(file: File) {
@@ -287,10 +294,31 @@ export default function NewQrxPage() {
       : 0;
   }, [qrxType, wantsVerification]);
 
+  const selectedStorageBytes = useMemo(() => {
+    const logoBytes = logoFile?.size ?? 0;
+    const coverBytes = coverFile?.size ?? 0;
+    const galleryBytes = galleryFiles.reduce((sum, item) => sum + item.file.size, 0);
+    const fileBytes = fileUploads.reduce((sum, item) => sum + item.file.size, 0);
+    return logoBytes + coverBytes + galleryBytes + fileBytes;
+  }, [logoFile, coverFile, galleryFiles, fileUploads]);
+
+  const selectedStorageMb = useMemo(() => {
+    return selectedStorageBytes / (1024 * 1024);
+  }, [selectedStorageBytes]);
+
+  const estimatedStorageCredits = useMemo(() => {
+    const extraMb = Math.max(0, selectedStorageMb - FREE_STORAGE_MB);
+    return Math.ceil(extraMb / STORAGE_PACK_MB);
+  }, [selectedStorageMb]);
+
+  const estimatedStorageLimitMb = useMemo(() => {
+    return FREE_STORAGE_MB + estimatedStorageCredits * STORAGE_PACK_MB;
+  }, [estimatedStorageCredits]);
+
   const totalCostCredits = useMemo(() => {
     if (creationCostCredits == null) return null;
-    return creationCostCredits + verificationCredits;
-  }, [creationCostCredits, verificationCredits]);
+    return creationCostCredits + verificationCredits + estimatedStorageCredits;
+  }, [creationCostCredits, verificationCredits, estimatedStorageCredits]);
 
   const hasEnoughCredits =
     totalCostCredits != null && credits != null
@@ -533,7 +561,18 @@ export default function NewQrxPage() {
       throw new Error("Prepare-Upload: uploadUrl oder storagePath fehlt.");
     }
 
-    return { uploadUrl, storagePath };
+    return {
+      uploadUrl,
+      storagePath,
+      chargedCredits:
+        typeof response.charged_credits === "number"
+          ? response.charged_credits
+          : null,
+      newBalance:
+        typeof response.new_balance === "number"
+          ? response.new_balance
+          : null,
+    };
   }
 
   async function finalizeUpload(args: {
@@ -573,6 +612,41 @@ export default function NewQrxPage() {
 
     if (!publicUrl) {
       throw new Error("Finalize-Upload: publicUrl fehlt.");
+    }
+
+    // Sicherheits-Fallback wie in der App:
+    // Falls die Edge Function zwar die Datei finalisiert, aber keinen Datensatz
+    // in qr_x_media zurückgibt, legen wir den Eintrag hier nachträglich an.
+    // Dadurch landen Galerie-Bilder sicher als type="image" und Dateien/PDFs
+    // sicher als type="file" in qr_x_media.
+    if (!response.media?.id) {
+      const { data: existingRow, error: existingError } = await supabase
+        .from("qr_x_media")
+        .select("id")
+        .eq("qrx_id", args.qrxId)
+        .eq("url", publicUrl)
+        .eq("filename", args.filename)
+        .maybeSingle();
+
+      if (existingError) {
+        console.warn("qr_x_media existing check fehlgeschlagen:", existingError);
+      }
+
+      if (!existingRow?.id) {
+        const { error: mediaInsertError } = await supabase
+          .from("qr_x_media")
+          .insert({
+            qrx_id: args.qrxId,
+            type: args.type,
+            url: publicUrl,
+            filename: args.filename,
+            bytes: args.bytes,
+          });
+
+        if (mediaInsertError) {
+          console.warn("qr_x_media fallback insert fehlgeschlagen:", mediaInsertError);
+        }
+      }
     }
 
     return { publicUrl };
@@ -621,7 +695,10 @@ export default function NewQrxPage() {
       storagePath: prepared.storagePath,
     });
 
-    return finalized.publicUrl;
+    return {
+      publicUrl: finalized.publicUrl,
+      chargedCredits: prepared.chargedCredits ?? 0,
+    };
   }
 
   function handleLogoChange(event: ChangeEvent<HTMLInputElement>) {
@@ -854,6 +931,7 @@ export default function NewQrxPage() {
 
     let chargedCreation = false;
     let chargedVerification = false;
+    let chargedStorageCredits = 0;
     let createdQrxId: string | null = null;
 
     try {
@@ -997,7 +1075,7 @@ export default function NewQrxPage() {
       }
 
       if (newId && logoFile) {
-        const logoUrl = await uploadQrxMedia({
+        const logoUpload = await uploadQrxMedia({
           qrxId: newId,
           file: logoFile,
           prefix: "logo",
@@ -1005,14 +1083,14 @@ export default function NewQrxPage() {
 
         const { error: logoUpdateError } = await supabase
           .from("qr_x_entries")
-          .update({ logo_url: logoUrl })
+          .update({ logo_url: logoUpload.publicUrl })
           .eq("id", newId);
 
         if (logoUpdateError) throw logoUpdateError;
       }
 
       if (newId && qrxType === "business" && coverFile) {
-        const coverUrl = await uploadQrxMedia({
+        const coverUpload = await uploadQrxMedia({
           qrxId: newId,
           file: coverFile,
           prefix: "cover",
@@ -1020,7 +1098,7 @@ export default function NewQrxPage() {
 
         const { error: coverUpdateError } = await supabase
           .from("qr_x_entries")
-          .update({ cover_image_url: coverUrl })
+          .update({ cover_image_url: coverUpload.publicUrl })
           .eq("id", newId);
 
         if (coverUpdateError) throw coverUpdateError;
@@ -1028,23 +1106,25 @@ export default function NewQrxPage() {
 
       if (newId && galleryFiles.length > 0) {
         for (const item of galleryFiles) {
-          await uploadQrxMedia({
+          const galleryUpload = await uploadQrxMedia({
             qrxId: newId,
             file: item.file,
             prefix: "gallery",
             mediaType: "image",
           });
+          chargedStorageCredits += Math.max(0, galleryUpload.chargedCredits);
         }
       }
 
       if (newId && fileUploads.length > 0) {
         for (const item of fileUploads) {
-          await uploadQrxMedia({
+          const fileUpload = await uploadQrxMedia({
             qrxId: newId,
             file: item.file,
             prefix: "file",
             mediaType: "file",
           });
+          chargedStorageCredits += Math.max(0, fileUpload.chargedCredits);
         }
       }
 
@@ -1089,19 +1169,23 @@ export default function NewQrxPage() {
       setWantsVerification(false);
       await loadCreditAndPricingData();
 
-      const totalCreditsUsed = creationCostCredits + verificationCredits;
+      const totalCreditsUsed = creationCostCredits + verificationCredits + chargedStorageCredits;
       const costText =
         totalCreditsUsed > 0
           ? ` ${totalCreditsUsed} Credits wurden abgezogen.`
           : " Der erste normale QR-X ist kostenlos.";
+      const storageText =
+        chargedStorageCredits > 0
+          ? ` Für zusätzlichen Speicher wurden ${chargedStorageCredits} Credit(s) abgezogen.`
+          : "";
       const verificationText =
         wantsVerification && verificationCredits > 0
           ? " Der Verifizierungsantrag wurde eingereicht."
           : "";
       setSuccessText(
         passwordProtected
-          ? `QR-X wurde erstellt und mit Passwort geschützt.${costText}${verificationText}`
-          : `QR-X wurde erstellt.${costText}${verificationText}`,
+          ? `QR-X wurde erstellt und mit Passwort geschützt.${costText}${storageText}${verificationText}`
+          : `QR-X wurde erstellt.${costText}${storageText}${verificationText}`,
       );
 
       window.setTimeout(() => {
@@ -1139,6 +1223,17 @@ export default function NewQrxPage() {
         } catch (refundError) {
           console.warn(
             "Credit-Rückbuchung Verifizierung nach Fehler fehlgeschlagen:",
+            refundError,
+          );
+        }
+      }
+
+      if (chargedStorageCredits > 0) {
+        try {
+          await addCredits(chargedStorageCredits);
+        } catch (refundError) {
+          console.warn(
+            "Credit-Rückbuchung Storage nach Fehler fehlgeschlagen:",
             refundError,
           );
         }
@@ -2017,6 +2112,39 @@ export default function NewQrxPage() {
             ) : null}
           </div>
 
+          <div style={storageBoxStyle}>
+            <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+              Speicher-Kontingent
+            </h3>
+            <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+              {FREE_STORAGE_MB} MB sind pro QR-X inklusive. Danach kostet jedes weitere Paket mit {STORAGE_PACK_MB} MB genau 1 Credit.
+            </p>
+            <div style={storageGridStyle}>
+              <div style={storageMetricStyle}>
+                <span style={storageMetricLabelStyle}>Ausgewählt</span>
+                <strong>{formatMb(selectedStorageMb)}</strong>
+              </div>
+              <div style={storageMetricStyle}>
+                <span style={storageMetricLabelStyle}>Kontingent nach Erstellung</span>
+                <strong>{formatMb(estimatedStorageLimitMb)}</strong>
+              </div>
+              <div style={storageMetricStyle}>
+                <span style={storageMetricLabelStyle}>Speicher-Credits</span>
+                <strong>{estimatedStorageCredits}</strong>
+              </div>
+            </div>
+            {estimatedStorageCredits > 0 ? (
+              <p style={{ margin: 0, color: "#fde68a", lineHeight: 1.55, fontWeight: 850 }}>
+                Für den ausgewählten Speicher werden voraussichtlich {estimatedStorageCredits} Credit
+                {estimatedStorageCredits === 1 ? "" : "s"} abgebucht. Das Kontingent bleibt diesem QR-X erhalten, auch wenn später Dateien gelöscht werden.
+              </p>
+            ) : (
+              <p style={{ margin: 0, color: "#bbf7d0", lineHeight: 1.55, fontWeight: 850 }}>
+                Voraussichtlich keine zusätzlichen Speicher-Credits nötig.
+              </p>
+            )}
+          </div>
+
           <div
             style={{
               display: "flex",
@@ -2142,6 +2270,37 @@ const fileButtonStyle: CSSProperties = {
   color: "#ffffff",
   fontWeight: 950,
   cursor: "pointer",
+};
+
+const storageBoxStyle: CSSProperties = {
+  borderRadius: 18,
+  padding: 16,
+  background: "rgba(15,23,42,0.72)",
+  border: "1px solid rgba(148,163,184,0.24)",
+  display: "grid",
+  gap: 12,
+};
+
+const storageGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+  gap: 10,
+};
+
+const storageMetricStyle: CSSProperties = {
+  borderRadius: 14,
+  padding: 12,
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  display: "grid",
+  gap: 4,
+  color: "#ffffff",
+};
+
+const storageMetricLabelStyle: CSSProperties = {
+  color: "#94a3b8",
+  fontSize: 12,
+  fontWeight: 850,
 };
 
 const selectionInfoStyle: CSSProperties = {
