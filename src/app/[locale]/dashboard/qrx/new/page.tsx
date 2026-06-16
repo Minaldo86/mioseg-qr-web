@@ -12,6 +12,10 @@ type QrxType = "normal" | "business";
 
 type LocationMode = "none" | "current" | "manual";
 
+type NewsItem = { text: string; createdAt: string };
+
+const MAX_VISIBLE_NEWS = 5;
+
 type BusinessCategory =
   | "praxis_gesundheit"
   | "gastronomie"
@@ -241,6 +245,8 @@ export default function NewQrxPage() {
   const [companyName, setCompanyName] = useState("");
   const [category, setCategory] = useState<BusinessCategory>("unternehmen");
   const [description, setDescription] = useState("");
+  const [newsDraft, setNewsDraft] = useState("");
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [locationMode, setLocationMode] = useState<LocationMode>("none");
   const [locationName, setLocationName] = useState("");
   const [locationLat, setLocationLat] = useState("");
@@ -785,6 +791,26 @@ export default function NewQrxPage() {
     });
   }
 
+  function addNewsItem() {
+    const text = newsDraft.trim();
+
+    if (!text) {
+      setErrorText("Bitte gib zuerst einen Text für die News ein.");
+      return;
+    }
+
+    setNewsItems((current) => [
+      { text, createdAt: new Date().toISOString() },
+      ...current,
+    ]);
+    setNewsDraft("");
+    setErrorText(null);
+  }
+
+  function removeNewsItem(indexToRemove: number) {
+    setNewsItems((current) => current.filter((_, index) => index !== indexToRemove));
+  }
+
 
   function handleVerificationDocumentChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
@@ -1004,6 +1030,7 @@ export default function NewQrxPage() {
         title: nextTitle,
         company_name: qrxType === "business" ? toNullable(companyName) : null,
         description: toNullable(description),
+        news: newsItems.length > 0 ? newsItems : null,
         type: qrxType,
         location_name: toNullable(locationName),
         location_lat: lat,
@@ -1036,6 +1063,7 @@ export default function NewQrxPage() {
           title: insertPayload.title,
           company_name: insertPayload.company_name,
           description: insertPayload.description,
+          news: insertPayload.news,
           type: insertPayload.type,
           location_name: insertPayload.location_name,
           location_lat: insertPayload.location_lat,
@@ -1165,6 +1193,8 @@ export default function NewQrxPage() {
 
       clearGalleryFiles();
       clearFileUploads();
+      setNewsItems([]);
+      setNewsDraft("");
       clearVerificationDocument();
       setWantsVerification(false);
       await loadCreditAndPricingData();
@@ -1642,6 +1672,74 @@ export default function NewQrxPage() {
               }}
             />
           </label>
+
+          <div style={mediaSectionStyle}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                News & Aktualisierung
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Optional: Informiere Nutzer direkt beim Erstellen über Änderungen,
+                Angebote, Öffnungszeiten oder wichtige Hinweise.
+              </p>
+            </div>
+
+            <textarea
+              value={newsDraft}
+              onChange={(event) => setNewsDraft(event.target.value)}
+              style={{
+                ...inputStyle,
+                minHeight: 110,
+                paddingTop: 14,
+                resize: "vertical",
+              }}
+              placeholder="z. B. Neue Speisekarte verfügbar, geänderte Öffnungszeiten oder aktuelles Angebot …"
+            />
+
+            <button
+              type="button"
+              onClick={addNewsItem}
+              style={fileButtonStyle}
+            >
+              + News hinzufügen
+            </button>
+
+            {newsItems.length > 0 ? (
+              <div style={newsSelectionBoxStyle}>
+                <div style={selectionHeaderStyle}>
+                  <strong>
+                    {newsItems.length} News-Eintrag{newsItems.length === 1 ? "" : "e"} angelegt
+                  </strong>
+                  {newsItems.length > MAX_VISIBLE_NEWS ? (
+                    <span style={newsScrollHintStyle}>
+                      Max. {MAX_VISIBLE_NEWS} sichtbar · Bereich ist scrollbar
+                    </span>
+                  ) : null}
+                </div>
+
+                <div style={newsPreviewListStyle(newsItems.length)}>
+                  {newsItems.map((item, index) => (
+                    <article key={`${item.createdAt}-${index}`} style={newsPreviewRowStyle}>
+                      <div style={{ display: "grid", gap: 6 }}>
+                        <div style={newsPreviewTextStyle}>{item.text}</div>
+                        <div style={newsPreviewDateStyle}>
+                          {new Date(item.createdAt).toLocaleString("de-DE")}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeNewsItem(index)}
+                        style={previewRemoveButtonStyle}
+                      >
+                        Löschen
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
 
           <div style={mediaSectionStyle}>
             <div>
@@ -2145,6 +2243,57 @@ export default function NewQrxPage() {
             )}
           </div>
 
+          <div style={totalCostBoxStyle(!pricingLoading && totalCostCredits != null && credits != null && credits < totalCostCredits)}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                Gesamtkosten
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Übersicht der geschätzten Kosten vor dem Erstellen.
+              </p>
+            </div>
+
+            <div style={costRowsStyle}>
+              <div style={costRowStyle}>
+                <span>QR-X Erstellung</span>
+                <strong>{pricingLoading || creationCostCredits == null ? "…" : `${creationCostCredits} Credits`}</strong>
+              </div>
+              <div style={costRowStyle}>
+                <span>Verifizierung</span>
+                <strong>{verificationCredits} Credits</strong>
+              </div>
+              <div style={costRowStyle}>
+                <span>Zusätzlicher Speicher</span>
+                <strong>{estimatedStorageCredits} Credits</strong>
+              </div>
+              <div style={costTotalRowStyle}>
+                <span>Gesamt</span>
+                <strong>{pricingLoading || totalCostCredits == null ? "…" : `${totalCostCredits} Credits`}</strong>
+              </div>
+            </div>
+
+            {!pricingLoading && totalCostCredits != null && credits != null && credits < totalCostCredits ? (
+              <p style={{ margin: 0, color: "#fecaca", lineHeight: 1.55, fontWeight: 900 }}>
+                Dir fehlen noch {totalCostCredits - credits} Credit{totalCostCredits - credits === 1 ? "" : "s"}.
+              </p>
+            ) : null}
+          </div>
+
+          <div style={creditsBuyBoxStyle}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                Credits kaufen
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Kaufe Credits für weitere QR-X und zusätzlichen Speicherplatz.
+              </p>
+            </div>
+
+            <Link href={`/${locale}/dashboard/credits`} style={wideCreditLinkStyle}>
+              💳 Credits kaufen
+            </Link>
+          </div>
+
           <div
             style={{
               display: "flex",
@@ -2474,3 +2623,119 @@ const inputStyle: CSSProperties = {
   outline: "none",
   boxSizing: "border-box",
 };
+
+function newsPreviewListStyle(count: number): CSSProperties {
+  const shouldScroll = count > MAX_VISIBLE_NEWS;
+
+  return {
+    display: "grid",
+    gap: 10,
+    maxHeight: shouldScroll ? 430 : "none",
+    overflowY: shouldScroll ? "auto" : "visible",
+    paddingRight: shouldScroll ? 8 : 0,
+    overscrollBehavior: "contain",
+    scrollbarWidth: "thin",
+  };
+}
+
+function totalCostBoxStyle(warning: boolean): CSSProperties {
+  return {
+    borderRadius: 22,
+    padding: 16,
+    background: warning ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.045)",
+    border: warning ? "1px solid rgba(252,165,165,0.24)" : "1px solid rgba(255,255,255,0.08)",
+    display: "grid",
+    gap: 12,
+  };
+}
+
+const newsSelectionBoxStyle: CSSProperties = {
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(59,130,246,0.12)",
+  border: "1px solid rgba(147,197,253,0.22)",
+  color: "#bfdbfe",
+  fontSize: 13,
+  fontWeight: 850,
+  lineHeight: 1.55,
+  display: "grid",
+  gap: 10,
+};
+
+const newsScrollHintStyle: CSSProperties = {
+  color: "#fde68a",
+  fontSize: 12,
+  fontWeight: 950,
+};
+
+const newsPreviewRowStyle: CSSProperties = {
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(15,23,42,0.62)",
+  border: "1px solid rgba(148,163,184,0.18)",
+  display: "grid",
+  gridTemplateColumns: "1fr auto",
+  gap: 12,
+  alignItems: "start",
+};
+
+const newsPreviewTextStyle: CSSProperties = {
+  color: "#ffffff",
+  fontSize: 14,
+  lineHeight: 1.55,
+  fontWeight: 850,
+  whiteSpace: "pre-wrap",
+};
+
+const newsPreviewDateStyle: CSSProperties = {
+  color: "#94a3b8",
+  fontSize: 12,
+  fontWeight: 800,
+};
+
+const creditsBuyBoxStyle: CSSProperties = {
+  borderRadius: 22,
+  padding: 16,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  display: "grid",
+  gap: 12,
+};
+
+const wideCreditLinkStyle: CSSProperties = {
+  minHeight: 54,
+  borderRadius: 16,
+  padding: "0 18px",
+  background: "rgba(255,255,255,0.075)",
+  border: "1px solid rgba(148,163,184,0.22)",
+  color: "#ffffff",
+  fontWeight: 950,
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const costRowsStyle: CSSProperties = {
+  display: "grid",
+  gap: 8,
+};
+
+const costRowStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  color: "#cbd5e1",
+  fontSize: 14,
+  fontWeight: 850,
+};
+
+const costTotalRowStyle: CSSProperties = {
+  ...costRowStyle,
+  borderTop: "1px solid rgba(255,255,255,0.1)",
+  paddingTop: 10,
+  color: "#ffffff",
+  fontSize: 16,
+  fontWeight: 950,
+};
+
