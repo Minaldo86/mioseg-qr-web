@@ -328,21 +328,35 @@ export default function EditQrxPage() {
     if (!qrxId) {
       setMediaItems([]);
       setUsedBytes(0);
+      setStorageLimitMb(2);
       return;
     }
 
-    const { data, error } = await supabase
-      .from("qr_x_media")
-      .select("id,qrx_id,type,url,filename,bytes,storage_path")
-      .eq("qrx_id", qrxId)
-      .order("created_at", { ascending: false })
-      .returns<QrxMedia[]>();
+    const [mediaResult, entryResult] = await Promise.all([
+      supabase
+        .from("qr_x_media")
+        .select("id,qrx_id,type,url,filename,bytes,storage_path")
+        .eq("qrx_id", qrxId)
+        .order("created_at", { ascending: false })
+        .returns<QrxMedia[]>(),
+      supabase
+        .from("qr_x_entries")
+        .select("storage_limit_mb")
+        .eq("id", qrxId)
+        .maybeSingle(),
+    ]);
 
-    if (error) throw error;
+    if (mediaResult.error) throw mediaResult.error;
+    if (entryResult.error) throw entryResult.error;
 
-    const list = data ?? [];
+    const list = mediaResult.data ?? [];
     setMediaItems(list);
     setUsedBytes(list.reduce((sum, item) => sum + Number(item.bytes ?? 0), 0));
+
+    const nextStorageLimit = Number(
+      (entryResult.data as { storage_limit_mb?: number | null } | null)?.storage_limit_mb ?? 2,
+    );
+    setStorageLimitMb(Number.isFinite(nextStorageLimit) && nextStorageLimit >= 2 ? nextStorageLimit : 2);
   }
 
   async function spendCredits(amount: number) {
@@ -977,9 +991,20 @@ export default function EditQrxPage() {
     verificationRequest?.status !== "pending" &&
     !verificationSaving;
 
+  const pendingBytes =
+    Number(logoFile?.size ?? 0) +
+    Number(coverFile?.size ?? 0) +
+    galleryFiles.reduce((sum, file) => sum + Number(file.size ?? 0), 0) +
+    fileUploads.reduce((sum, file) => sum + Number(file.size ?? 0), 0);
+  const projectedBytes = usedBytes + pendingBytes;
   const usedMb = usedBytes / 1024 / 1024;
+  const projectedMb = projectedBytes / 1024 / 1024;
   const freeMb = Math.max(storageLimitMb - usedMb, 0);
   const usagePercent = storageLimitMb > 0 ? Math.min((usedMb / storageLimitMb) * 100, 100) : 0;
+  const projectedAdditionalCredits = Math.ceil(Math.max(0, projectedMb - storageLimitMb) / 5);
+  const projectedStorageLimitMb = storageLimitMb + projectedAdditionalCredits * 5;
+  const projectedUsagePercent =
+    projectedStorageLimitMb > 0 ? Math.min((projectedMb / projectedStorageLimitMb) * 100, 100) : 0;
   const visibleImageMedia = mediaItems.filter((item) => item.type === "image" && item.url !== logoUrl && item.url !== coverUrl);
   const visibleFileMedia = mediaItems.filter((item) => item.type === "file");
   const hasPendingMedia = Boolean(logoFile || coverFile || galleryFiles.length > 0 || fileUploads.length > 0);
@@ -1017,8 +1042,8 @@ export default function EditQrxPage() {
       <section style={panelStyle}>
         <div className={styles.cardHeader}>
           <div>
-            <h2>Basisdaten</h2>
-            <p>Ändere Typ, Titel, Beschreibung, Standort und Kontaktaktionen.</p>
+            <h2>Basisdaten & Medien</h2>
+            <p>Ändere Typ, Titel, Beschreibung, Standort, Kontaktaktionen und Medien in einem Formular.</p>
           </div>
           <span>{isBusiness ? "Business QR-X" : "Normaler QR-X"}</span>
         </div>
@@ -1274,6 +1299,28 @@ export default function EditQrxPage() {
             <p style={{ margin: "10px 0 0", color: "#94a3b8", fontSize: 13, lineHeight: 1.5, fontWeight: 750 }}>
               Dein gekauftes Speicherkontingent bleibt erhalten, auch wenn du Bilder oder Dateien später löschst.
             </p>
+
+            {hasPendingMedia ? (
+              <div style={storagePreviewBoxStyle}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <strong>Nach dem Speichern</strong>
+                  <span>
+                    {projectedMb.toFixed(1).replace(".", ",")} MB / {projectedStorageLimitMb} MB
+                  </span>
+                </div>
+
+                <div style={storageProgressTrackStyle}>
+                  <div style={storageProgressBarStyle(projectedUsagePercent)} />
+                </div>
+
+                <div style={storageMetaStyle}>
+                  <span>Neu ausgewählt: {formatBytes(pendingBytes)}</span>
+                  <span>
+                    Zusatzkosten: {projectedAdditionalCredits > 0 ? `${projectedAdditionalCredits} Credit${projectedAdditionalCredits === 1 ? "" : "s"}` : "0 Credits"}
+                  </span>
+                </div>
+              </div>
+            ) : null}
           </div>
 
           <div style={mediaGridStyle}>
@@ -1613,6 +1660,18 @@ const miniDangerButtonStyle: CSSProperties = {
   padding: "0 12px",
 };
 
+
+const storagePreviewBoxStyle: CSSProperties = {
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(59,130,246,0.12)",
+  border: "1px solid rgba(147,197,253,0.22)",
+  color: "#dbeafe",
+  display: "grid",
+  gap: 10,
+  fontSize: 13,
+  fontWeight: 850,
+};
 
 const storageBoxStyle: CSSProperties = {
   borderRadius: 20,
