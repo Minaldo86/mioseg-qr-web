@@ -7,6 +7,36 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard/dashboard.module.css";
 
+type BusinessCategory =
+  | "praxis_gesundheit"
+  | "gastronomie"
+  | "unternehmen"
+  | "dienstleistung"
+  | "handwerk"
+  | "event"
+  | "verein"
+  | "wohltaetigkeit"
+  | "sehenswuerdigkeit"
+  | "sonstiges";
+
+const BUSINESS_CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string }> = [
+  { value: "praxis_gesundheit", label: "Praxis & Gesundheit" },
+  { value: "gastronomie", label: "Gastronomie" },
+  { value: "unternehmen", label: "Unternehmen" },
+  { value: "dienstleistung", label: "Dienstleistung" },
+  { value: "handwerk", label: "Handwerk" },
+  { value: "event", label: "Event" },
+  { value: "verein", label: "Verein" },
+  { value: "wohltaetigkeit", label: "Wohltätigkeit" },
+  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit" },
+  { value: "sonstiges", label: "Sonstiges" },
+];
+
+function getBusinessCategoryLabel(value: string | null | undefined) {
+  if (!value) return null;
+  return BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value)?.label ?? value;
+}
+
 type QrxEntry = {
   id: string;
   title: string | null;
@@ -118,6 +148,7 @@ export default function PublicQrxDetailPage() {
   const isBusiness = entry?.type === "business";
   const website = normalizeUrl(entry?.cta_website ?? null);
   const navigation = normalizeUrl(entry?.cta_navigation ?? null);
+  const categoryLabel = getBusinessCategoryLabel(entry?.category);
 
   return (
     <main className={styles.page}>
@@ -155,7 +186,7 @@ export default function PublicQrxDetailPage() {
 
             <div style={{ display: "grid", gap: 16, marginTop: 18 }}>
               {entry.location_name?.trim() ? <InfoRow title="📍 Standort" text={entry.location_name.trim()} /> : null}
-              {isBusiness && entry.category ? <InfoRow title="▦ Kategorie" text={entry.category} /> : null}
+              {isBusiness && categoryLabel ? <InfoRow title="▦ Kategorie" text={categoryLabel} /> : null}
 
               {isBusiness ? (
                 <div style={{ display: "grid", gap: 10 }}>

@@ -1127,9 +1127,9 @@ export default function EditQrxPage() {
                   onChange={(event) => setCategory(getSafeBusinessCategory(event.target.value))}
                   style={selectStyle}
                 >
-                  <option value="">Bitte auswählen</option>
+                  <option value="" style={categoryOptionStyle}>Bitte auswählen</option>
                   {BUSINESS_CATEGORY_OPTIONS.map((item) => (
-                    <option key={item.value} value={item.value}>
+                    <option key={item.value} value={item.value} style={categoryOptionStyle}>
                       {item.label}
                     </option>
                   ))}
@@ -1556,9 +1556,17 @@ const inputStyle: CSSProperties = {
   boxSizing: "border-box",
 };
 
+const categoryOptionStyle: CSSProperties = {
+  background: "#0f172a",
+  color: "#ffffff",
+  fontWeight: 800,
+};
+
 const selectStyle: CSSProperties = {
   ...inputStyle,
   appearance: "none",
+  WebkitAppearance: "none",
+  colorScheme: "dark",
   background:
     "rgba(255,255,255,0.07) linear-gradient(45deg, transparent 50%, #cbd5e1 50%), linear-gradient(135deg, #cbd5e1 50%, transparent 50%)",
   backgroundPosition: "calc(100% - 20px) 22px, calc(100% - 14px) 22px",

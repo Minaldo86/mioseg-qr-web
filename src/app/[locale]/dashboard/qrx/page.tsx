@@ -7,12 +7,43 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import styles from "../dashboard.module.css";
 
+type BusinessCategory =
+  | "praxis_gesundheit"
+  | "gastronomie"
+  | "unternehmen"
+  | "dienstleistung"
+  | "handwerk"
+  | "event"
+  | "verein"
+  | "wohltaetigkeit"
+  | "sehenswuerdigkeit"
+  | "sonstiges";
+
+const BUSINESS_CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string }> = [
+  { value: "praxis_gesundheit", label: "Praxis & Gesundheit" },
+  { value: "gastronomie", label: "Gastronomie" },
+  { value: "unternehmen", label: "Unternehmen" },
+  { value: "dienstleistung", label: "Dienstleistung" },
+  { value: "handwerk", label: "Handwerk" },
+  { value: "event", label: "Event" },
+  { value: "verein", label: "Verein" },
+  { value: "wohltaetigkeit", label: "Wohltätigkeit" },
+  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit" },
+  { value: "sonstiges", label: "Sonstiges" },
+];
+
+function getBusinessCategoryLabel(value: string | null | undefined) {
+  if (!value) return null;
+  return BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value)?.label ?? value;
+}
+
 type QrxEntry = {
   id: string;
   title: string | null;
   company_name: string | null;
   description: string | null;
   type: "normal" | "business" | null;
+  category: BusinessCategory | null;
   verified: boolean | null;
   cover_image_url: string | null;
   logo_url: string | null;
@@ -93,7 +124,7 @@ export default function DashboardQrxPage() {
     const { data, error } = await supabase
       .from("qr_x_entries")
       .select(
-        "id,title,company_name,description,type,verified,cover_image_url,logo_url,location_name,views_total,follower_count,created_at"
+        "id,title,company_name,description,type,category,verified,cover_image_url,logo_url,location_name,views_total,follower_count,created_at"
       )
       .eq("owner_user_id", user.id)
       .order("created_at", { ascending: false })
@@ -289,6 +320,7 @@ export default function DashboardQrxPage() {
               const title = getQrxTitle(entry);
               const image = entry.cover_image_url?.trim() || entry.logo_url?.trim() || null;
               const isBusiness = entry.type === "business";
+              const categoryLabel = getBusinessCategoryLabel(entry.category);
               const openHref = `/qrx/${entry.id}`;
               const editHref = `/${locale}/dashboard/qrx/${entry.id}/edit`;
 
@@ -446,6 +478,25 @@ export default function DashboardQrxPage() {
                           }}
                         >
                           📍 {entry.location_name.trim()}
+                        </span>
+                      ) : null}
+
+                      {isBusiness && categoryLabel ? (
+                        <span
+                          style={{
+                            minHeight: 30,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            borderRadius: 999,
+                            padding: "0 10px",
+                            background: "rgba(251,146,60,0.14)",
+                            color: "#fed7aa",
+                            fontSize: 12,
+                            fontWeight: 900,
+                            border: "1px solid rgba(253,186,116,0.18)",
+                          }}
+                        >
+                          ▦ {categoryLabel}
                         </span>
                       ) : null}
 
