@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import styles from "../../../dashboard.module.css";
 
 type QrxType = "normal" | "business";
+type LocationMode = "none" | "current" | "manual";
 type BusinessCategory =
   | "praxis_gesundheit"
   | "gastronomie"
@@ -25,17 +26,17 @@ type VerificationStatus = "pending" | "approved" | "rejected" | string;
 const QRX_VERIFICATION_BUCKET = "qrx-verification-documents";
 const QRX_VERIFICATION_COST_CREDITS = 10;
 
-const BUSINESS_CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string }> = [
-  { value: "praxis_gesundheit", label: "Praxis & Gesundheit" },
-  { value: "gastronomie", label: "Gastronomie" },
-  { value: "unternehmen", label: "Unternehmen" },
-  { value: "dienstleistung", label: "Dienstleistung" },
-  { value: "handwerk", label: "Handwerk" },
-  { value: "event", label: "Event" },
-  { value: "verein", label: "Verein" },
-  { value: "wohltaetigkeit", label: "Wohltätigkeit" },
-  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit" },
-  { value: "sonstiges", label: "Sonstiges" },
+const BUSINESS_CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string; icon: string }> = [
+  { value: "praxis_gesundheit", label: "Praxis & Gesundheit", icon: "🏥" },
+  { value: "gastronomie", label: "Gastronomie", icon: "🍽️" },
+  { value: "unternehmen", label: "Unternehmen", icon: "🏢" },
+  { value: "dienstleistung", label: "Dienstleistung", icon: "🛠️" },
+  { value: "handwerk", label: "Handwerk", icon: "🔨" },
+  { value: "event", label: "Event", icon: "📅" },
+  { value: "verein", label: "Verein", icon: "👥" },
+  { value: "wohltaetigkeit", label: "Wohltätigkeit", icon: "♡" },
+  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit", icon: "📷" },
+  { value: "sonstiges", label: "Sonstiges", icon: "▦" },
 ];
 
 function getSafeBusinessCategory(value: unknown): BusinessCategory | "" {
@@ -257,6 +258,8 @@ export default function EditQrxPage() {
   const [locationName, setLocationName] = useState("");
   const [locationLat, setLocationLat] = useState("");
   const [locationLng, setLocationLng] = useState("");
+  const [locationMode, setLocationMode] = useState<LocationMode>("none");
+  const [locationLoading, setLocationLoading] = useState(false);
   const [ctaPhone, setCtaPhone] = useState("");
   const [ctaWebsite, setCtaWebsite] = useState("");
   const [ctaEmail, setCtaEmail] = useState("");
@@ -389,6 +392,52 @@ export default function EditQrxPage() {
       (entryResult.data as { storage_limit_mb?: number | null } | null)?.storage_limit_mb ?? 2,
     );
     setStorageLimitMb(Number.isFinite(nextStorageLimit) && nextStorageLimit >= 2 ? nextStorageLimit : 2);
+  }
+
+  function handleLocationModeChange(nextMode: LocationMode) {
+    setLocationMode(nextMode);
+
+    if (nextMode === "none") {
+      setLocationName("");
+      setLocationLat("");
+      setLocationLng("");
+    }
+  }
+
+  async function getCurrentLocation() {
+    setErrorText(null);
+
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      setLocationMode("manual");
+      setErrorText(
+        "Standort konnte nicht automatisch ermittelt werden. Bitte gib die Koordinaten manuell ein.",
+      );
+      return;
+    }
+
+    setLocationLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationMode("current");
+        setLocationLat(String(position.coords.latitude));
+        setLocationLng(String(position.coords.longitude));
+        setLocationLoading(false);
+      },
+      (geoError) => {
+        console.warn("QRX GEOLOCATION ERROR", geoError);
+        setLocationMode("manual");
+        setLocationLoading(false);
+        setErrorText(
+          "Standort konnte nicht automatisch ermittelt werden. Bitte gib die Koordinaten manuell ein.",
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+    );
   }
 
   async function spendCredits(amount: number) {
@@ -632,6 +681,7 @@ export default function EditQrxPage() {
       setLocationName(data.location_name ?? "");
       setLocationLat(formatOptionalNumber(data.location_lat));
       setLocationLng(formatOptionalNumber(data.location_lng));
+      setLocationMode(data.location_name || data.location_lat != null || data.location_lng != null ? "manual" : "none");
       setCtaPhone(data.cta_phone ?? "");
       setCtaWebsite(data.cta_website ?? "");
       setCtaEmail(data.cta_email ?? "");
@@ -689,8 +739,8 @@ export default function EditQrxPage() {
         throw new Error("Die beiden Passwörter stimmen nicht überein.");
       }
 
-      const lat = parseOptionalNumber(locationLat, "Breitengrad");
-      const lng = parseOptionalNumber(locationLng, "Längengrad");
+      const lat = locationMode === "none" ? null : parseOptionalNumber(locationLat, "Breitengrad");
+      const lng = locationMode === "none" ? null : parseOptionalNumber(locationLng, "Längengrad");
 
       const user = await getCurrentUserOrThrow();
 
@@ -702,7 +752,7 @@ export default function EditQrxPage() {
           category: qrxType === "business" ? category || null : null,
           description: toNullable(description),
           type: qrxType,
-          location_name: toNullable(locationName),
+          location_name: locationMode === "none" ? null : toNullable(locationName),
           location_lat: lat,
           location_lng: lng,
           cta_phone: qrxType === "business" ? toNullable(ctaPhone) : null,
@@ -1120,21 +1170,32 @@ export default function EditQrxPage() {
             ) : null}
 
             {isBusiness ? (
-              <label style={labelStyle}>
-                Kategorie
-                <select
-                  value={category}
-                  onChange={(event) => setCategory(getSafeBusinessCategory(event.target.value))}
-                  style={selectStyle}
-                >
-                  <option value="" style={categoryOptionStyle}>Bitte auswählen</option>
-                  {BUSINESS_CATEGORY_OPTIONS.map((item) => (
-                    <option key={item.value} value={item.value} style={categoryOptionStyle}>
-                      {item.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div style={sectionBoxStyle}>
+                <div>
+                  <h3 style={sectionTitleStyle}>Kategorie</h3>
+                  <p style={sectionHintStyle}>
+                    Die Kategorie wird in Explore, auf der Karte und in der öffentlichen QR-X-Ansicht verwendet.
+                  </p>
+                </div>
+
+                <div style={categoryGridStyle}>
+                  {BUSINESS_CATEGORY_OPTIONS.map((item) => {
+                    const active = category === item.value;
+
+                    return (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() => setCategory(item.value)}
+                        style={businessCategoryButtonStyle(active)}
+                      >
+                        <span aria-hidden="true">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             ) : null}
 
             <label style={labelStyle}>
@@ -1146,21 +1207,64 @@ export default function EditQrxPage() {
               />
             </label>
 
-            <label style={labelStyle}>
-              Standortname
-              <input value={locationName} onChange={(event) => setLocationName(event.target.value)} style={inputStyle} />
-            </label>
+            <div style={sectionBoxStyle}>
+              <div>
+                <h3 style={sectionTitleStyle}>Standort</h3>
+                <p style={sectionHintStyle}>
+                  Lege fest, ob dieser QR-X ohne Standort gespeichert wird, den aktuellen Standort nutzt oder manuelle Koordinaten bekommt.
+                </p>
+              </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <label style={labelStyle}>
-                Breitengrad
-                <input value={locationLat} onChange={(event) => setLocationLat(event.target.value)} style={inputStyle} placeholder="z. B. 50.9375" />
-              </label>
+              <div style={locationModeGridStyle}>
+                <button
+                  type="button"
+                  onClick={() => handleLocationModeChange("none")}
+                  style={locationModeButtonStyle(locationMode === "none")}
+                >
+                  Kein Standort
+                </button>
 
-              <label style={labelStyle}>
-                Längengrad
-                <input value={locationLng} onChange={(event) => setLocationLng(event.target.value)} style={inputStyle} placeholder="z. B. 6.9603" />
-              </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleLocationModeChange("current");
+                    void getCurrentLocation();
+                  }}
+                  style={locationModeButtonStyle(locationMode === "current")}
+                  disabled={locationLoading}
+                >
+                  {locationLoading ? "Standort wird geladen …" : "Aktuellen Standort übernehmen"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleLocationModeChange("manual")}
+                  style={locationModeButtonStyle(locationMode === "manual")}
+                >
+                  Koordinaten manuell eingeben
+                </button>
+              </div>
+
+              {locationMode !== "none" ? (
+                <>
+                  <label style={labelStyle}>
+                    Standortname
+                    <input value={locationName} onChange={(event) => setLocationName(event.target.value)} style={inputStyle} placeholder="z. B. Mioseg Köln" />
+                  </label>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <label style={labelStyle}>
+                      Breitengrad
+                      <input value={locationLat} onChange={(event) => setLocationLat(event.target.value)} style={inputStyle} placeholder="z. B. 50.9375" />
+                    </label>
+
+                    <label style={labelStyle}>
+                      Längengrad
+                      <input value={locationLng} onChange={(event) => setLocationLng(event.target.value)} style={inputStyle} placeholder="z. B. 6.9603" />
+                    </label>
+                  </div>
+                </>
+              ) : null}
             </div>
 
             {isBusiness ? (
@@ -1254,7 +1358,7 @@ export default function EditQrxPage() {
               <div style={verificationBoxStyle(isVerified, verificationRequest?.status)}>
                 <div style={verificationHeaderStyle}>
                   <div>
-                    <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>Business-Verifizierung</h3>
+                    <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>Business-Verifizierung nachträglich beantragen</h3>
                     <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
                       {getVerificationStatusText({ isVerified, request: verificationRequest })}
                     </p>
@@ -1574,6 +1678,74 @@ const selectStyle: CSSProperties = {
   backgroundRepeat: "no-repeat",
   paddingRight: 42,
 };
+
+
+const sectionBoxStyle: CSSProperties = {
+  borderRadius: 22,
+  padding: 16,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  display: "grid",
+  gap: 12,
+};
+
+const sectionTitleStyle: CSSProperties = {
+  margin: "0 0 8px",
+  color: "#ffffff",
+  fontSize: 18,
+  fontWeight: 950,
+};
+
+const sectionHintStyle: CSSProperties = {
+  margin: 0,
+  color: "#94a3b8",
+  lineHeight: 1.55,
+  fontSize: 13,
+  fontWeight: 750,
+};
+
+const categoryGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: 10,
+};
+
+function businessCategoryButtonStyle(active: boolean): CSSProperties {
+  return {
+    minHeight: 58,
+    borderRadius: 16,
+    border: active ? "1px solid #facc15" : "1px solid rgba(148, 163, 184, 0.22)",
+    background: active
+      ? "linear-gradient(135deg, rgba(250,204,21,0.98), rgba(251,146,60,0.88))"
+      : "rgba(255,255,255,0.055)",
+    color: active ? "#111827" : "#ffffff",
+    fontWeight: 950,
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    padding: "0 12px",
+  };
+}
+
+const locationModeGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+  gap: 10,
+};
+
+function locationModeButtonStyle(active: boolean): CSSProperties {
+  return {
+    minHeight: 54,
+    borderRadius: 16,
+    border: active ? "1px solid #93c5fd" : "1px solid rgba(148, 163, 184, 0.22)",
+    background: active ? "rgba(59,130,246,0.18)" : "rgba(255,255,255,0.055)",
+    color: "#ffffff",
+    fontWeight: 950,
+    cursor: "pointer",
+  };
+}
 
 const dividerStyle: CSSProperties = {
   height: 1,
