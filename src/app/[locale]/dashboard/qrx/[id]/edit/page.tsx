@@ -31,6 +31,47 @@ type QrxEntry = {
   verified: boolean | null;
   suspended: boolean | null;
   password_protected: boolean | null;
+  logo_url: string | null;
+  cover_image_url: string | null;
+  storage_limit_mb: number | null;
+};
+
+
+
+type QrxMedia = {
+  id: string;
+  qrx_id: string;
+  type: "image" | "file" | string;
+  url: string;
+  filename: string;
+  bytes: number | null;
+  storage_path?: string | null;
+};
+
+type PrepareUploadResponse = {
+  uploadUrl?: string;
+  signedUrl?: string;
+  signed_url?: string;
+  url?: string;
+  storagePath?: string;
+  storage_path?: string;
+  path?: string;
+  charged_credits?: number;
+  new_balance?: number;
+};
+
+type FinalizeUploadResponse = {
+  publicUrl?: string;
+  public_url?: string;
+  url?: string;
+  media?: {
+    id?: string;
+    qrx_id?: string;
+    type?: string;
+    url?: string | null;
+    filename?: string;
+    bytes?: number | null;
+  } | null;
 };
 
 type VerificationRequest = {
@@ -115,12 +156,41 @@ function formatBytes(bytes: number | null | undefined) {
 }
 
 function sanitizeFilename(value: string) {
+
   return (
     value
       .replace(/[^a-zA-Z0-9._-]+/g, "-")
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "") || `verification-${Date.now().toString()}`
   );
+}
+
+
+
+function pickFirstString(...values: Array<unknown>) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function getFileExtension(file: File) {
+  const fromName = file.name.split(".").pop();
+  if (fromName && fromName.length <= 8) return fromName.toLowerCase();
+
+  const fromType = file.type.split("/").pop();
+  return fromType && fromType.trim() ? fromType : "bin";
+}
+
+function buildUploadFilename(prefix: "logo" | "cover" | "gallery" | "file", file: File) {
+  const ext = getFileExtension(file).replace(/[^a-z0-9]/gi, "") || "bin";
+  return `${prefix}-${Date.now().toString()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
+}
+
+function isImageFile(file: File) {
+  return file.type.startsWith("image/");
 }
 
 function getVerificationStatusLabel(status: VerificationStatus | null | undefined) {
@@ -174,6 +244,18 @@ export default function EditQrxPage() {
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
+
+
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [storageLimitMb, setStorageLimitMb] = useState(2);
+  const [mediaItems, setMediaItems] = useState<QrxMedia[]>([]);
+  const [usedBytes, setUsedBytes] = useState(0);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [fileUploads, setFileUploads] = useState<File[]>([]);
+  const [mediaSaving, setMediaSaving] = useState(false);
 
   useEffect(() => {
     void loadQrx();
@@ -238,6 +320,29 @@ export default function EditQrxPage() {
 
     if (error) throw error;
     setVerificationRequest(data ?? null);
+  }
+
+
+
+  async function loadMediaAndStorage() {
+    if (!qrxId) {
+      setMediaItems([]);
+      setUsedBytes(0);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("qr_x_media")
+      .select("id,qrx_id,type,url,filename,bytes,storage_path")
+      .eq("qrx_id", qrxId)
+      .order("created_at", { ascending: false })
+      .returns<QrxMedia[]>();
+
+    if (error) throw error;
+
+    const list = data ?? [];
+    setMediaItems(list);
+    setUsedBytes(list.reduce((sum, item) => sum + Number(item.bytes ?? 0), 0));
   }
 
   async function spendCredits(amount: number) {
@@ -306,6 +411,145 @@ export default function EditQrxPage() {
     }
   }
 
+  async function getAccessToken() {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error) throw error;
+
+    const token = session?.access_token;
+    if (!token) {
+      throw new Error("Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.");
+    }
+
+    return token;
+  }
+
+  async function prepareUpload(args: {
+    qrxId: string;
+    type: "image" | "file";
+    filename: string;
+    mimeType: string;
+    bytes: number;
+  }) {
+    const token = await getAccessToken();
+
+    const { data, error } = await supabase.functions.invoke("qrx-media-prepare-upload", {
+      body: {
+        qrxId: args.qrxId,
+        type: args.type,
+        filename: args.filename,
+        mimeType: args.mimeType,
+        bytes: args.bytes,
+      },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (error) throw error;
+
+    const response = (data ?? {}) as PrepareUploadResponse;
+    const uploadUrl = pickFirstString(
+      response.uploadUrl,
+      response.signedUrl,
+      response.signed_url,
+      response.url,
+    );
+    const storagePath = pickFirstString(
+      response.storagePath,
+      response.storage_path,
+      response.path,
+    );
+
+    if (!uploadUrl || !storagePath) {
+      throw new Error("Prepare-Upload: uploadUrl oder storagePath fehlt.");
+    }
+
+    return { uploadUrl, storagePath };
+  }
+
+  async function finalizeUpload(args: {
+    qrxId: string;
+    type: "image" | "file";
+    filename: string;
+    mimeType: string;
+    bytes: number;
+    storagePath: string;
+  }) {
+    const token = await getAccessToken();
+
+    const { data, error } = await supabase.functions.invoke("qrx-media-finalize-upload", {
+      body: {
+        qrxId: args.qrxId,
+        type: args.type,
+        filename: args.filename,
+        mimeType: args.mimeType,
+        bytes: args.bytes,
+        storagePath: args.storagePath,
+      },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (error) throw error;
+
+    const response = (data ?? {}) as FinalizeUploadResponse;
+    const publicUrl = pickFirstString(
+      response.publicUrl,
+      response.public_url,
+      response.url,
+      response.media?.url,
+    );
+
+    if (!publicUrl) {
+      throw new Error("Finalize-Upload: publicUrl fehlt.");
+    }
+
+    return { publicUrl };
+  }
+
+  async function uploadQrxMedia(args: {
+    qrxId: string;
+    file: File;
+    prefix: "logo" | "cover" | "gallery" | "file";
+    mediaType: "image" | "file";
+  }) {
+    const filename = buildUploadFilename(args.prefix, args.file);
+    const mimeType = args.file.type || (args.mediaType === "file" ? "application/octet-stream" : "image/jpeg");
+    const bytes = args.file.size;
+
+    const prepared = await prepareUpload({
+      qrxId: args.qrxId,
+      type: args.mediaType,
+      filename,
+      mimeType,
+      bytes,
+    });
+
+    const arrayBuffer = await args.file.arrayBuffer();
+    const uploadResponse = await fetch(prepared.uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": mimeType },
+      body: arrayBuffer,
+    });
+
+    if (!uploadResponse.ok) {
+      const message = await uploadResponse.text().catch(() => "");
+      throw new Error(`Upload fehlgeschlagen (${uploadResponse.status}): ${message || "Unbekannter Fehler"}`);
+    }
+
+    const finalized = await finalizeUpload({
+      qrxId: args.qrxId,
+      type: args.mediaType,
+      filename,
+      mimeType,
+      bytes,
+      storagePath: prepared.storagePath,
+    });
+
+    return finalized.publicUrl;
+  }
+
   async function loadQrx() {
     setLoading(true);
     setErrorText(null);
@@ -321,7 +565,7 @@ export default function EditQrxPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected",
+          "id,owner_user_id,title,company_name,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -351,8 +595,15 @@ export default function EditQrxPage() {
       setQrxPasswordRepeat("");
       setIsVerified(data.verified === true);
       setVerificationDocument(null);
+      setLogoUrl(data.logo_url ?? null);
+      setCoverUrl(data.cover_image_url ?? null);
+      setStorageLimitMb(Number(data.storage_limit_mb ?? 2));
+      setLogoFile(null);
+      setCoverFile(null);
+      setGalleryFiles([]);
+      setFileUploads([]);
 
-      await Promise.all([loadCreditBalance(user.id), loadLatestVerificationRequest(user.id)]);
+      await Promise.all([loadCreditBalance(user.id), loadLatestVerificationRequest(user.id), loadMediaAndStorage()]);
     } catch (error) {
       setErrorText(error instanceof Error ? error.message : "QR-X konnte nicht geladen werden.");
     } finally {
@@ -538,12 +789,215 @@ export default function EditQrxPage() {
     }
   }
 
+
+  function handleLogoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    if (file && !isImageFile(file)) {
+      setErrorText("Bitte wähle für das Logo ein Bild aus.");
+      event.target.value = "";
+      return;
+    }
+    setLogoFile(file);
+    event.target.value = "";
+  }
+
+  function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+    if (file && !isImageFile(file)) {
+      setErrorText("Bitte wähle für das Cover ein Bild aus.");
+      event.target.value = "";
+      return;
+    }
+    setCoverFile(file);
+    event.target.value = "";
+  }
+
+  function handleGalleryFilesChange(event: ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(event.target.files ?? []).filter(isImageFile);
+    if (selected.length > 0) setGalleryFiles((current) => [...current, ...selected]);
+    event.target.value = "";
+  }
+
+  function handleFileUploadsChange(event: ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(event.target.files ?? []);
+    if (selected.length > 0) setFileUploads((current) => [...current, ...selected]);
+    event.target.value = "";
+  }
+
+  async function handleSaveMedia() {
+    setMediaSaving(true);
+    setErrorText(null);
+    setSuccessText(null);
+
+    try {
+      if (!qrxId) throw new Error("QR-X ID fehlt.");
+      const user = await getCurrentUserOrThrow();
+
+      if (logoFile) {
+        const uploadedLogoUrl = await uploadQrxMedia({
+          qrxId,
+          file: logoFile,
+          prefix: "logo",
+          mediaType: "image",
+        });
+
+        const { error } = await supabase
+          .from("qr_x_entries")
+          .update({ logo_url: uploadedLogoUrl, updated_at: new Date().toISOString() })
+          .eq("id", qrxId)
+          .eq("owner_user_id", user.id);
+
+        if (error) throw error;
+        setLogoUrl(uploadedLogoUrl);
+      }
+
+      if (coverFile) {
+        const uploadedCoverUrl = await uploadQrxMedia({
+          qrxId,
+          file: coverFile,
+          prefix: "cover",
+          mediaType: "image",
+        });
+
+        const { error } = await supabase
+          .from("qr_x_entries")
+          .update({ cover_image_url: uploadedCoverUrl, updated_at: new Date().toISOString() })
+          .eq("id", qrxId)
+          .eq("owner_user_id", user.id);
+
+        if (error) throw error;
+        setCoverUrl(uploadedCoverUrl);
+      }
+
+      for (const file of galleryFiles) {
+        await uploadQrxMedia({ qrxId, file, prefix: "gallery", mediaType: "image" });
+      }
+
+      for (const file of fileUploads) {
+        await uploadQrxMedia({ qrxId, file, prefix: "file", mediaType: "file" });
+      }
+
+      setLogoFile(null);
+      setCoverFile(null);
+      setGalleryFiles([]);
+      setFileUploads([]);
+      await Promise.all([loadQrx(), loadCreditBalance(user.id)]);
+      setSuccessText("Medien wurden gespeichert.");
+    } catch (error) {
+      setErrorText(normalizeErrorMessage(error) || "Medien konnten nicht gespeichert werden.");
+    } finally {
+      setMediaSaving(false);
+    }
+  }
+
+  async function handleDeleteMedia(media: QrxMedia) {
+    const ok = window.confirm(`Möchtest du „${media.filename}“ wirklich löschen? Das gekaufte Speicherkontingent bleibt erhalten.`);
+    if (!ok) return;
+
+    setMediaSaving(true);
+    setErrorText(null);
+    setSuccessText(null);
+
+    try {
+      if (!qrxId) throw new Error("QR-X ID fehlt.");
+      const user = await getCurrentUserOrThrow();
+
+      const updates: Record<string, string | null> = {};
+      if (logoUrl && media.url === logoUrl) updates.logo_url = null;
+      if (coverUrl && media.url === coverUrl) updates.cover_image_url = null;
+
+      if (Object.keys(updates).length > 0) {
+        const { error: updateError } = await supabase
+          .from("qr_x_entries")
+          .update({ ...updates, updated_at: new Date().toISOString() })
+          .eq("id", qrxId)
+          .eq("owner_user_id", user.id);
+
+        if (updateError) throw updateError;
+      }
+
+      const { error } = await supabase
+        .from("qr_x_media")
+        .delete()
+        .eq("id", media.id)
+        .eq("qrx_id", qrxId);
+
+      if (error) throw error;
+
+      if (media.url === logoUrl) setLogoUrl(null);
+      if (media.url === coverUrl) setCoverUrl(null);
+      await loadMediaAndStorage();
+      setSuccessText("Medium wurde entfernt. Dein gekauftes Speicherlimit bleibt erhalten.");
+    } catch (error) {
+      setErrorText(normalizeErrorMessage(error) || "Medium konnte nicht gelöscht werden.");
+    } finally {
+      setMediaSaving(false);
+    }
+  }
+
+  async function handleClearLogo() {
+    if (!logoUrl) {
+      setLogoFile(null);
+      return;
+    }
+
+    const existing = mediaItems.find((item) => item.url === logoUrl);
+    if (existing) {
+      await handleDeleteMedia(existing);
+      return;
+    }
+
+    const ok = window.confirm("Möchtest du das Logo wirklich entfernen?");
+    if (!ok) return;
+
+    const user = await getCurrentUserOrThrow();
+    const { error } = await supabase
+      .from("qr_x_entries")
+      .update({ logo_url: null, updated_at: new Date().toISOString() })
+      .eq("id", qrxId)
+      .eq("owner_user_id", user.id);
+    if (error) setErrorText(normalizeErrorMessage(error));
+    else setLogoUrl(null);
+  }
+
+  async function handleClearCover() {
+    if (!coverUrl) {
+      setCoverFile(null);
+      return;
+    }
+
+    const existing = mediaItems.find((item) => item.url === coverUrl);
+    if (existing) {
+      await handleDeleteMedia(existing);
+      return;
+    }
+
+    const ok = window.confirm("Möchtest du das Coverbild wirklich entfernen?");
+    if (!ok) return;
+
+    const user = await getCurrentUserOrThrow();
+    const { error } = await supabase
+      .from("qr_x_entries")
+      .update({ cover_image_url: null, updated_at: new Date().toISOString() })
+      .eq("id", qrxId)
+      .eq("owner_user_id", user.id);
+    if (error) setErrorText(normalizeErrorMessage(error));
+    else setCoverUrl(null);
+  }
+
   const isBusiness = qrxType === "business";
   const canSubmitVerification =
     isBusiness &&
     !isVerified &&
     verificationRequest?.status !== "pending" &&
     !verificationSaving;
+
+  const usedMb = usedBytes / 1024 / 1024;
+  const freeMb = Math.max(storageLimitMb - usedMb, 0);
+  const usagePercent = storageLimitMb > 0 ? Math.min((usedMb / storageLimitMb) * 100, 100) : 0;
+  const visibleImageMedia = mediaItems.filter((item) => item.type === "image" && item.url !== logoUrl && item.url !== coverUrl);
+  const visibleFileMedia = mediaItems.filter((item) => item.type === "file");
+  const hasPendingMedia = Boolean(logoFile || coverFile || galleryFiles.length > 0 || fileUploads.length > 0);
 
   return (
     <main className={styles.page}>
@@ -555,7 +1009,6 @@ export default function EditQrxPage() {
         <nav className={styles.nav} aria-label="QR-X bearbeiten Navigation">
           <Link href={`/${locale}/dashboard`}>Dashboard</Link>
           <Link href={`/${locale}/dashboard/qrx`}>Meine QR-X</Link>
-          {qrxId ? <Link href={`/${locale}/dashboard/qrx/${qrxId}/media`}>Bilder & Medien</Link> : null}
           {qrxId ? <Link href={`/${locale}/qrx/${qrxId}`}>QR-X öffnen</Link> : null}
         </nav>
       </header>
@@ -573,11 +1026,6 @@ export default function EditQrxPage() {
           <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
             Zurück zu Meine QR-X
           </Link>
-          {qrxId ? (
-            <Link href={`/${locale}/dashboard/qrx/${qrxId}/media`} className={styles.secondaryButton}>
-              Bilder & Medien
-            </Link>
-          ) : null}
         </div>
       </section>
 
@@ -827,6 +1275,159 @@ export default function EditQrxPage() {
           </form>
         ) : null}
       </section>
+
+      {!loading ? (
+        <section id="medien" style={{ ...panelStyle, marginTop: 22 }}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2>Bilder & Medien</h2>
+              <p>Verwalte Logo, Coverbild, Galerie-Bilder und Dateien direkt auf dieser Bearbeitungsseite.</p>
+            </div>
+            <span>
+              {usedMb.toFixed(1).replace(".", ",")} MB / {storageLimitMb} MB
+            </span>
+          </div>
+
+          <div style={storageBoxStyle}>
+            <div style={storageProgressTrackStyle}>
+              <div style={storageProgressBarStyle(usagePercent)} />
+            </div>
+            <div style={storageMetaStyle}>
+              <span>Verfügbar: {freeMb.toFixed(1).replace(".", ",")} MB</span>
+              <span>2 MB kostenlos · danach +5 MB = 1 Credit</span>
+            </div>
+            <p style={{ margin: "10px 0 0", color: "#94a3b8", fontSize: 13, lineHeight: 1.5, fontWeight: 750 }}>
+              Dein gekauftes Speicherkontingent bleibt erhalten, auch wenn du Bilder oder Dateien später löschst.
+            </p>
+          </div>
+
+          <div style={mediaGridStyle}>
+            <div style={mediaUploadBoxStyle}>
+              <h3 style={mediaTitleStyle}>Logo</h3>
+              {logoUrl ? <img src={logoUrl} alt="Aktuelles Logo" style={logoPreviewStyle} /> : <p style={emptyTextStyle}>Noch kein Logo hinterlegt.</p>}
+              {logoFile ? <p style={selectedFileTextStyle}>Neu ausgewählt: {logoFile.name} · {formatBytes(logoFile.size)}</p> : null}
+              <div style={mediaActionRowStyle}>
+                <label style={fileButtonStyle}>
+                  Logo auswählen
+                  <input type="file" accept="image/*" onChange={handleLogoChange} style={{ display: "none" }} />
+                </label>
+                {logoFile ? <button type="button" onClick={() => setLogoFile(null)} style={miniDangerButtonStyle}>Auswahl entfernen</button> : null}
+                {logoUrl ? <button type="button" onClick={handleClearLogo} style={miniDangerButtonStyle}>Logo löschen</button> : null}
+              </div>
+            </div>
+
+            <div style={mediaUploadBoxStyle}>
+              <h3 style={mediaTitleStyle}>Coverbild</h3>
+              {coverUrl ? <img src={coverUrl} alt="Aktuelles Coverbild" style={coverPreviewStyle} /> : <p style={emptyTextStyle}>Noch kein Coverbild hinterlegt.</p>}
+              {coverFile ? <p style={selectedFileTextStyle}>Neu ausgewählt: {coverFile.name} · {formatBytes(coverFile.size)}</p> : null}
+              <div style={mediaActionRowStyle}>
+                <label style={fileButtonStyle}>
+                  Cover auswählen
+                  <input type="file" accept="image/*" onChange={handleCoverChange} style={{ display: "none" }} />
+                </label>
+                {coverFile ? <button type="button" onClick={() => setCoverFile(null)} style={miniDangerButtonStyle}>Auswahl entfernen</button> : null}
+                {coverUrl ? <button type="button" onClick={handleClearCover} style={miniDangerButtonStyle}>Cover löschen</button> : null}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gap: 16, marginTop: 18 }}>
+            <div style={mediaUploadBoxStyle}>
+              <h3 style={mediaTitleStyle}>Galerie-Bilder</h3>
+              <p style={emptyTextStyle}>Du kannst mehrere Bilder gleichzeitig auswählen.</p>
+              <label style={fileButtonStyle}>
+                Bilder auswählen
+                <input type="file" accept="image/*" multiple onChange={handleGalleryFilesChange} style={{ display: "none" }} />
+              </label>
+
+              {galleryFiles.length > 0 ? (
+                <div style={pendingListStyle}>
+                  {galleryFiles.map((file, index) => (
+                    <div key={`${file.name}-${index}`} style={selectedDocumentStyle}>
+                      <span>{file.name} · {formatBytes(file.size)}</span>
+                      <button type="button" onClick={() => setGalleryFiles((current) => current.filter((_, itemIndex) => itemIndex !== index))} style={miniDangerButtonStyle}>Entfernen</button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {visibleImageMedia.length > 0 ? (
+                <div style={mediaCardGridStyle}>
+                  {visibleImageMedia.map((item) => (
+                    <div key={item.id} style={mediaCardStyle}>
+                      <img src={item.url} alt={item.filename} style={mediaImageStyle} />
+                      <strong style={mediaFilenameStyle}>{item.filename}</strong>
+                      <span style={mediaSubTextStyle}>{formatBytes(item.bytes)}</span>
+                      <button type="button" onClick={() => handleDeleteMedia(item)} style={miniDangerButtonStyle}>Löschen</button>
+                    </div>
+                  ))}
+                </div>
+              ) : <p style={emptyTextStyle}>Noch keine Galerie-Bilder vorhanden.</p>}
+            </div>
+
+            <div style={mediaUploadBoxStyle}>
+              <h3 style={mediaTitleStyle}>Dateien & PDFs</h3>
+              <p style={emptyTextStyle}>PDFs und andere Dateien werden als Datei-Medien gespeichert.</p>
+              <label style={fileButtonStyle}>
+                Dateien auswählen
+                <input type="file" multiple onChange={handleFileUploadsChange} style={{ display: "none" }} />
+              </label>
+
+              {fileUploads.length > 0 ? (
+                <div style={pendingListStyle}>
+                  {fileUploads.map((file, index) => (
+                    <div key={`${file.name}-${index}`} style={selectedDocumentStyle}>
+                      <span>{file.name} · {formatBytes(file.size)}</span>
+                      <button type="button" onClick={() => setFileUploads((current) => current.filter((_, itemIndex) => itemIndex !== index))} style={miniDangerButtonStyle}>Entfernen</button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {visibleFileMedia.length > 0 ? (
+                <div style={pendingListStyle}>
+                  {visibleFileMedia.map((item) => (
+                    <div key={item.id} style={selectedDocumentStyle}>
+                      <a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontWeight: 950, textDecoration: "none" }}>
+                        {item.filename}
+                      </a>
+                      <span>{formatBytes(item.bytes)}</span>
+                      <button type="button" onClick={() => handleDeleteMedia(item)} style={miniDangerButtonStyle}>Löschen</button>
+                    </div>
+                  ))}
+                </div>
+              ) : <p style={emptyTextStyle}>Noch keine Dateien vorhanden.</p>}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
+            {hasPendingMedia ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setLogoFile(null);
+                  setCoverFile(null);
+                  setGalleryFiles([]);
+                  setFileUploads([]);
+                }}
+                style={miniDangerButtonStyle}
+              >
+                Auswahl leeren
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleSaveMedia}
+              disabled={!hasPendingMedia || mediaSaving || saving || verificationSaving}
+              className={styles.primaryButton}
+              style={{ border: 0, cursor: !hasPendingMedia || mediaSaving ? "not-allowed" : "pointer", opacity: !hasPendingMedia || mediaSaving ? 0.7 : 1 }}
+            >
+              {mediaSaving ? "Medien werden gespeichert …" : "Medien speichern"}
+            </button>
+          </div>
+        </section>
+      ) : null}
+
     </main>
   );
 }
@@ -1037,4 +1638,146 @@ const miniDangerButtonStyle: CSSProperties = {
   fontWeight: 950,
   cursor: "pointer",
   padding: "0 12px",
+};
+
+
+const storageBoxStyle: CSSProperties = {
+  borderRadius: 20,
+  padding: 14,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  marginBottom: 18,
+};
+
+const storageProgressTrackStyle: CSSProperties = {
+  height: 12,
+  borderRadius: 999,
+  overflow: "hidden",
+  background: "rgba(255,255,255,0.08)",
+};
+
+function storageProgressBarStyle(percent: number): CSSProperties {
+  return {
+    width: `${percent}%`,
+    height: "100%",
+    background: percent > 90 ? "#ef4444" : percent > 75 ? "#f59e0b" : "#22c55e",
+    transition: "width .2s ease",
+  };
+}
+
+const storageMetaStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  flexWrap: "wrap",
+  marginTop: 12,
+  color: "#cbd5e1",
+  fontSize: 13,
+  fontWeight: 900,
+};
+
+const mediaGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+  gap: 16,
+};
+
+const mediaUploadBoxStyle: CSSProperties = {
+  borderRadius: 22,
+  padding: 16,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  display: "grid",
+  gap: 12,
+};
+
+const mediaTitleStyle: CSSProperties = {
+  margin: 0,
+  color: "#ffffff",
+  fontSize: 18,
+  fontWeight: 950,
+};
+
+const emptyTextStyle: CSSProperties = {
+  margin: 0,
+  color: "#94a3b8",
+  fontSize: 13,
+  lineHeight: 1.55,
+  fontWeight: 750,
+};
+
+const selectedFileTextStyle: CSSProperties = {
+  margin: 0,
+  color: "#bfdbfe",
+  fontSize: 13,
+  lineHeight: 1.55,
+  fontWeight: 850,
+};
+
+const mediaActionRowStyle: CSSProperties = {
+  display: "flex",
+  gap: 10,
+  flexWrap: "wrap",
+  alignItems: "center",
+};
+
+const logoPreviewStyle: CSSProperties = {
+  width: 96,
+  height: 96,
+  objectFit: "cover",
+  borderRadius: 24,
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(15,23,42,0.55)",
+};
+
+const coverPreviewStyle: CSSProperties = {
+  width: "100%",
+  maxHeight: 180,
+  objectFit: "cover",
+  borderRadius: 18,
+  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(15,23,42,0.55)",
+};
+
+const pendingListStyle: CSSProperties = {
+  display: "grid",
+  gap: 10,
+};
+
+const mediaCardGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+  gap: 12,
+};
+
+const mediaCardStyle: CSSProperties = {
+  borderRadius: 18,
+  padding: 10,
+  background: "rgba(15,23,42,0.42)",
+  border: "1px solid rgba(148,163,184,0.14)",
+  display: "grid",
+  gap: 8,
+};
+
+const mediaImageStyle: CSSProperties = {
+  width: "100%",
+  aspectRatio: "1 / 1",
+  objectFit: "cover",
+  borderRadius: 14,
+  background: "rgba(255,255,255,0.06)",
+};
+
+const mediaFilenameStyle: CSSProperties = {
+  color: "#ffffff",
+  fontSize: 12,
+  fontWeight: 900,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+const mediaSubTextStyle: CSSProperties = {
+  color: "#94a3b8",
+  fontSize: 12,
+  fontWeight: 800,
 };
