@@ -26,7 +26,7 @@ const BUSINESS_CATEGORY_OPTIONS: Array<{
   label: string;
   icon: string;
 }> = [
-  { value: "praxis_gesundheit", label: "Praxis & Gesundheit", icon: "🏥" },
+  { value: "praxis_gesundheit", label: "Praxis & Gesundheit", icon: "⚕️" },
   { value: "gastronomie", label: "Gastronomie", icon: "🍽️" },
   { value: "unternehmen", label: "Unternehmen", icon: "🏢" },
   { value: "dienstleistung", label: "Dienstleistung", icon: "🛠️" },
@@ -155,7 +155,14 @@ function formatDate(value: string | null | undefined) {
   if (!value) return "–";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "–";
-  return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
 }
 
 function normalizeNewsItems(value: NewsItem[] | null | undefined) {
@@ -335,10 +342,7 @@ export default async function QrxPage({
       <main className={styles.page}>
         <div className={styles.card}>
           <h1 className={styles.title}>QR-X nicht verfügbar</h1>
-          <p className={styles.sub}>
-            Dieser QR-X ist nicht mehr verfügbar.
-          </p>
-
+          <p className={styles.sub}>Dieser QR-X ist nicht mehr verfügbar.</p>
           {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
         </div>
       </main>
@@ -403,59 +407,130 @@ export default async function QrxPage({
       <TrackViewClient qrxId={qrxId} />
 
       <QrxPasswordGate qrxId={qrxId} enabled={entry.password_protected === true && !hasAdminAccess}>
-        {/* 1. Hero: nur Identität – keine Aktionen und keine Beschreibung */}
-        {!isBusiness ? (
-          <div className={styles.header}>
-            <div>
-              <div style={phaseBadgeRowStyle}>
-                <span style={phaseCategoryBadgeStyle}>⌗ Normaler QR-X</span>
-                {categoryMeta ? (
-                  <span style={phaseCategoryBadgeStyle}>{categoryMeta.icon} {categoryMeta.label}</span>
-                ) : null}
-                {entry.verified ? <span style={phaseVerifiedSoftBadgeStyle}>✓ Verifiziert</span> : null}
-              </div>
-              <h1 className={styles.title}>{companyName}</h1>
-            </div>
-          </div>
-        ) : (
-          <div className={styles.businessHero}>
-            {coverUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img className={styles.businessHeroCover} src={coverUrl} alt="Cover" />
-            ) : (
-              <div className={styles.businessHeroCoverFallback} />
-            )}
+        {/* 1. Hero */}
+        {isBusiness ? (
+          <section style={heroShellStyle}>
+            <div style={heroCardStyle}>
+              {coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={coverUrl} alt="Cover" style={heroCoverImageStyle} />
+              ) : (
+                <div style={heroCoverFallbackStyle} />
+              )}
 
-            <div className={styles.businessHeroOverlay} />
+              <div style={heroOverlayStyle} />
 
-            <div className={styles.businessHeroTopBar}>
               {entry.verified ? (
-                <div className={styles.businessVerifiedBadge}>
-                  <span className={styles.businessVerifiedDot}>●</span>
+                <div style={heroVerifiedBadgeStyle}>
+                  <span style={heroVerifiedDotStyle}>✓</span>
                   VERIFIED
                 </div>
               ) : null}
-            </div>
 
-            <div className={styles.businessHeroContent}>
-              {logoUrl ? (
-                <div className={styles.businessLogoFrame}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className={styles.businessLogo} src={logoUrl} alt="Logo" />
-                </div>
-              ) : null}
-
-              <h1 className={styles.businessCompanyName}>{companyName}</h1>
-
-              <div style={phaseBadgeRowStyle}>
-                <span style={phaseCategoryBadgeStyle}>🏢 Business QR-X</span>
-                {categoryMeta ? (
-                  <span style={phaseCategoryBadgeStyle}>{categoryMeta.icon} {categoryMeta.label}</span>
+              <div style={heroTitleWrapStyle}>
+                {logoUrl ? (
+                  <div style={heroLogoFrameStyle}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={logoUrl} alt="Logo" style={heroLogoStyle} />
+                  </div>
                 ) : null}
+
+                <h1 style={heroTitleStyle}>{companyName}</h1>
               </div>
             </div>
-          </div>
+          </section>
+        ) : (
+          <section style={sectionCardStyle}>
+            <div style={phaseBadgeRowStyle}>
+              <span style={phaseCategoryBadgeStyle}>⌗ Normaler QR-X</span>
+              {categoryMeta ? (
+                <span style={phaseCategoryBadgeStyle}>
+                  {categoryMeta.icon} {categoryMeta.label}
+                </span>
+              ) : null}
+              {entry.verified ? <span style={phaseVerifiedSoftBadgeStyle}>✓ Verifiziert</span> : null}
+            </div>
+            <h1 style={normalHeroTitleStyle}>{companyName}</h1>
+          </section>
         )}
+
+        {entry.verified ? (
+          <section style={verifiedNoticeStyle}>
+            <div style={verifiedIconStyle}>✓</div>
+            <div>
+              <h2 style={verifiedTitleStyle}>Verifiziert</h2>
+              <p style={verifiedTextStyle}>
+                Dieses Business-QR-X wurde erfolgreich geprüft und ist verifiziert.
+              </p>
+            </div>
+          </section>
+        ) : null}
+
+        {/* 2. Business-Profil */}
+        <section style={sectionCardStyle}>
+          <div style={profileHeaderStyle}>
+            <span style={profileKickerStyle}>{isBusiness ? "BUSINESS PROFILE" : "QR-X PROFIL"}</span>
+            {categoryMeta ? (
+              <span style={profileCategoryPillStyle}>
+                {categoryMeta.icon} {categoryMeta.label}
+              </span>
+            ) : null}
+          </div>
+
+          <div style={profileStatsStyle}>
+            <div style={profileStatBoxStyle}>
+              <strong>{formatNumber(followerCount)}</strong>
+              <span>FOLLOWER</span>
+            </div>
+            <div style={profileStatBoxStyle}>
+              <strong>{formatNumber(totalMediaCount)}</strong>
+              <span>MEDIEN</span>
+            </div>
+            <div style={profileStatBoxStyle}>
+              <strong>{formatNumber(newsItems.length)}</strong>
+              <span>UPDATES</span>
+            </div>
+          </div>
+
+          <div style={profileActionsStyle}>
+            <a href={deepLink} data-fallback={fallbackUrl} id="openAppBtn" style={appButtonStyle}>
+              App öffnen
+            </a>
+
+            {websiteUrl ? (
+              <a style={actionChipStyle} href={websiteUrl} target="_blank" rel="noreferrer">
+                🌐 Website
+              </a>
+            ) : null}
+
+            {phoneUrl ? (
+              <a style={actionChipStyle} href={phoneUrl}>
+                ☎️ Anrufen
+              </a>
+            ) : null}
+
+            {emailUrl ? (
+              <a style={actionChipStyle} href={emailUrl}>
+                ✉️ E-Mail
+              </a>
+            ) : null}
+
+            {navigationUrl ? (
+              <a style={actionChipStyle} href={navigationUrl} target="_blank" rel="noreferrer">
+                🧭 Navigation
+              </a>
+            ) : null}
+          </div>
+
+          {showDownloadHint ? (
+            <p className={styles.muted} style={{ marginTop: 14 }}>
+              App nicht installiert?{" "}
+              <a className={styles.downloadLink} href={fallbackUrl}>
+                Hier herunterladen
+              </a>
+            </p>
+          ) : null}
+        </section>
 
         <script
           dangerouslySetInnerHTML={{
@@ -483,219 +558,199 @@ export default async function QrxPage({
 
         {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
 
-        {/* 2. Statistiken */}
-        <section className={styles.section}>
-          <div style={phaseAppStatsRowStyle}>
-            <div style={phaseAppStatPillStyle}>
-              <span style={phaseAppStatIconStyle}>👥</span>
-              <strong>{formatNumber(followerCount)}</strong>
-              <small>Follower</small>
-            </div>
-            <div style={phaseAppStatPillStyle}>
-              <span style={phaseAppStatIconStyle}>🖼️</span>
-              <strong>{formatNumber(totalMediaCount)}</strong>
-              <small>Medien</small>
-            </div>
-            <div style={phaseAppStatPillStyle}>
-              <span style={phaseAppStatIconStyle}>📰</span>
-              <strong>{formatNumber(newsItems.length)}</strong>
-              <small>Updates</small>
-            </div>
-            <div style={phaseAppStatPillStyle}>
-              <span style={phaseAppStatIconStyle}>👁️</span>
-              <strong>{formatNumber(entry.views_total)}</strong>
-              <small>Aufrufe</small>
-            </div>
-          </div>
+        {/* 3. Titel */}
+        <section style={sectionCardStyle}>
+          <h2 style={cardTitleStyle}>Titel</h2>
+          <p style={simpleTextStyle}>{entry.title?.trim() || companyName}</p>
         </section>
 
-        {/* 3. Aktionen */}
-        <section className={styles.section}>
-          <div style={phaseSectionHeaderStyle}>
-            <div>
-              <h2 className={styles.h2}>Aktionen</h2>
-              <p className={styles.muted} style={{ margin: 0 }}>Öffnen, folgen oder direkt Kontakt aufnehmen.</p>
-            </div>
-          </div>
-
-          <div style={phaseAppActionGridStyle}>
-            <a className={isBusiness ? styles.businessOpenBtn : styles.openBtn} href={deepLink} data-fallback={fallbackUrl} id="openAppBtn">
-              App öffnen
-            </a>
-
-            {isOwner ? (
-              <button type="button" style={{ ...phasePrimaryButtonStyle, cursor: "default" }} disabled>
-                ✓ Eigener QR-X
-              </button>
-            ) : currentUserId ? (
-              <form action={toggleFollowAction} style={{ display: "contents" }}>
-                <button type="submit" style={phasePrimaryButtonStyle}>
-                  {savedRow ? "✓ Bereits gefolgt" : "+ Folgen"}
-                </button>
-              </form>
-            ) : (
-              <a href={`/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`} style={phasePrimaryLinkStyle}>
-                + Folgen
-              </a>
-            )}
-
-            {websiteUrl ? <a style={phaseSecondaryLinkStyle} href={websiteUrl} target="_blank" rel="noreferrer">🌐 Website</a> : null}
-            {phoneUrl ? <a style={phaseSecondaryLinkStyle} href={phoneUrl}>☎️ Anrufen</a> : null}
-            {emailUrl ? <a style={phaseSecondaryLinkStyle} href={emailUrl}>✉️ E-Mail</a> : null}
-            {navigationUrl ? <a style={phaseSecondaryLinkStyle} href={navigationUrl} target="_blank" rel="noreferrer">🧭 Navigation</a> : null}
-          </div>
-
-          {showDownloadHint ? (
-            <p className={styles.muted} style={{ marginTop: 12 }}>
-              App nicht installiert? <a className={styles.downloadLink} href={fallbackUrl}>Hier herunterladen</a>
-            </p>
-          ) : null}
+        {/* 4. Beschreibung */}
+        <section style={sectionCardStyle}>
+          <h2 style={cardTitleStyle}>Beschreibung</h2>
+          <p style={descriptionTextStyle}>
+            {entry.description?.trim() ? entry.description : "Keine Beschreibung vorhanden."}
+          </p>
         </section>
 
-        {/* 4. Titel & Beschreibung */}
-        <section className={styles.section}>
-          <div style={phaseSectionHeaderStyle}>
-            <div>
-              <h2 className={styles.h2}>Titel & Beschreibung</h2>
-              <p className={styles.muted} style={{ margin: 0 }}>Die wichtigsten Informationen zu diesem QR-X.</p>
-            </div>
-          </div>
-
-          <div style={phaseTitleBoxStyle}>
-            <div>
-              <span style={phaseSmallBadgeStyle}>Titel</span>
-              <h3 style={phaseTitleTextStyle}>{entry.title?.trim() || companyName}</h3>
-            </div>
-
-            <div>
-              <span style={phaseSmallBadgeStyle}>Beschreibung</span>
-              <p style={phaseDescriptionTextStyle}>
-                {entry.description?.trim() ? entry.description : "Keine Beschreibung vorhanden."}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* 5. News & Updates */}
-        <section className={styles.section}>
-          <div style={phaseSectionHeaderStyle}>
-            <div>
-              <h2 className={styles.h2}>News & Updates</h2>
-              <p className={styles.muted} style={{ margin: 0 }}>Aktuelle Informationen dieses QR-X.</p>
-            </div>
-            <span style={phaseSmallBadgeStyle}>{formatNumber(newsItems.length)} Updates</span>
-          </div>
+        {/* 5. News / Updates */}
+        <section style={sectionCardStyle}>
+          <h2 style={cardTitleStyle}>News / Updates</h2>
 
           {newsItems.length === 0 ? (
-            <p className={styles.muted}>Noch keine News vorhanden.</p>
+            <p style={mutedTextStyle}>Noch keine News vorhanden.</p>
           ) : (
-            <div style={phaseNewsListStyle}>
+            <div style={newsBoxStyle}>
               {newsItems.map((n) => (
-                <article key={n.id} style={phaseNewsCardStyle}>
-                  <div style={phaseNewsDateStyle}>{new Date(n.createdAt).toLocaleString("de-DE")}</div>
-                  <div style={phaseNewsTextStyle}>{n.text}</div>
+                <article key={n.id} style={newsRowStyle}>
+                  <div style={newsTextStyle}>{n.text}</div>
+                  <div style={newsDateStyle}>{formatDate(n.createdAt)}</div>
                 </article>
               ))}
             </div>
           )}
         </section>
 
-        {/* 6. Medien */}
-        <section className={styles.section}>
-          <div style={phaseSectionHeaderStyle}>
-            <div>
-              <h2 className={styles.h2}>Medien</h2>
-              <p className={styles.muted} style={{ margin: 0 }}>Bilder und Dateien dieses QR-X.</p>
-            </div>
-            <span style={phaseSmallBadgeStyle}>{formatNumber(totalMediaCount)} Medien</span>
-          </div>
+        {/* 6. Bilder */}
+        <section style={sectionCardStyle}>
+          <h2 style={cardTitleStyle}>Bilder</h2>
 
           {galleryImages.length === 0 ? (
-            <p className={styles.muted}>Keine Bilder vorhanden.</p>
+            <p style={mutedTextStyle}>Keine Bilder vorhanden.</p>
           ) : (
-            <div className={styles.grid}>
+            <div style={imageGridStyle}>
               {galleryImages.map((img) => (
-                <a key={img.id} className={styles.imgCard} href={img.url} target="_blank" rel="noreferrer">
+                <a key={img.id} href={img.url} target="_blank" rel="noreferrer" style={imageItemStyle}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img className={styles.img} src={img.url} alt={img.filename} />
-                  <div className={styles.caption}>{img.filename}</div>
+                  <img src={img.url} alt={img.filename} style={imageThumbStyle} />
+                  <span style={imageCaptionStyle}>{img.filename}</span>
+                  <span style={imageOpenHintStyle}>Zum Öffnen Bild antippen</span>
                 </a>
               ))}
             </div>
           )}
+        </section>
 
-          {files.length > 0 ? (
-            <div style={{ marginTop: 18 }}>
-              <h3 style={phaseSubSectionTitleStyle}>Dateien</h3>
-              <div className={styles.list}>
-                {files.map((f) => (
-                  <a key={f.id} className={styles.fileRow} href={f.url} target="_blank" rel="noreferrer">
-                    <span className={styles.bullet}>•</span>
-                    <span className={styles.fileName}>{f.filename}</span>
-                  </a>
+        {/* 7. Dateien */}
+        <section style={sectionCardStyle}>
+          <h2 style={cardTitleStyle}>Dateien</h2>
+
+          {files.length === 0 ? (
+            <p style={mutedTextStyle}>–</p>
+          ) : (
+            <div style={fileListStyle}>
+              {files.map((f) => (
+                <a key={f.id} href={f.url} target="_blank" rel="noreferrer" style={fileRowStyle}>
+                  <span>📄 {f.filename}</span>
+                  <span>Öffnen</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* 8. Standort */}
+        <section style={sectionCardStyle}>
+          <h2 style={cardTitleStyle}>Ort</h2>
+          <p style={simpleTextStyle}>{entry.location_name?.trim() ? entry.location_name : "Kein Ort hinterlegt."}</p>
+
+          {entry.location_lat != null && entry.location_lng != null ? (
+            <p style={coordinateTextStyle}>
+              {entry.location_lat}, {entry.location_lng}
+            </p>
+          ) : null}
+
+          <div style={mapButtonWrapStyle}>
+            {entry.location_lat != null && entry.location_lng != null ? (
+              <a
+                style={wideSecondaryButtonStyle}
+                href={`https://www.google.com/maps?q=${entry.location_lat},${entry.location_lng}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                🗺️ In Google Maps öffnen
+              </a>
+            ) : null}
+
+            {isBusiness && navigationUrl ? (
+              <a style={wideSecondaryButtonStyle} href={navigationUrl} target="_blank" rel="noreferrer">
+                🧭 Navigation öffnen
+              </a>
+            ) : null}
+          </div>
+        </section>
+
+        {/* 9. Transfer */}
+        {isOwner ? (
+          <section style={sectionCardStyle}>
+            <h2 style={cardTitleStyle}>Transfer</h2>
+            <p style={mutedTextStyle}>Verlauf und aktueller Transferstatus dieses QR-X.</p>
+
+            {transferHistory.length === 0 ? (
+              <div style={emptyTransferStyle}>↔ Noch kein Transfer vorhanden.</div>
+            ) : (
+              <div style={transferListStyle}>
+                {transferHistory.map((item, index) => (
+                  <div key={item.id ?? item.transfer_id ?? `${item.created_at}-${index}`} style={transferCardStyle}>
+                    <div style={transferTopStyle}>
+                      <strong>{item.status ?? "Transfer"}</strong>
+                      <span>{formatDate(item.created_at)}</span>
+                    </div>
+                    {item.recipient_email ? <span>Empfänger: {item.recipient_email}</span> : null}
+                    {item.from_name ? <span>Von: {item.from_name}</span> : null}
+                    {item.to_name ? <span>An: {item.to_name}</span> : null}
+                    {item.accepted_at ? <span>Angenommen: {formatDate(item.accepted_at)}</span> : null}
+                    {item.expires_at ? <span>Ablauf: {formatDate(item.expires_at)}</span> : null}
+                  </div>
                 ))}
               </div>
-            </div>
-          ) : null}
-        </section>
+            )}
+          </section>
+        ) : null}
 
-        {/* 7. Standort */}
-        <section className={styles.section}>
-          <div style={phaseSectionHeaderStyle}>
-            <div>
-              <h2 className={styles.h2}>Standort</h2>
-              <p className={styles.muted} style={{ margin: 0 }}>Ort und Navigation.</p>
-            </div>
-          </div>
+        {/* 10. Gefolgt */}
+        <section style={sectionCardStyle}>
+          <h2 style={cardTitleStyle}>Gefolgt</h2>
 
-          <div style={phaseActionBoxStyle}>
-            <p className={styles.text} style={{ marginTop: 0 }}>
-              {entry.location_name?.trim() ? entry.location_name : "Kein Ort hinterlegt."}
-            </p>
-            <div style={phaseButtonRowStyle}>
-              {entry.location_lat != null && entry.location_lng != null ? (
-                <a
-                  style={phaseSecondaryLinkStyle}
-                  href={`https://www.google.com/maps?q=${entry.location_lat},${entry.location_lng}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Google Maps
-                </a>
-              ) : null}
-              {isBusiness && navigationUrl ? (
-                <a style={phaseSecondaryLinkStyle} href={navigationUrl} target="_blank" rel="noreferrer">
-                  Navigation öffnen
-                </a>
-              ) : null}
-            </div>
-          </div>
-        </section>
-
-        {/* 8. QR-X Bild */}
-        <section className={styles.section}>
-          <div style={phaseSectionHeaderStyle}>
-            <div>
-              <h2 className={styles.h2}>QR-X Bild</h2>
-              <p className={styles.muted} style={{ margin: 0 }}>
-                Lade den öffentlichen QR-Code als PNG herunter oder kopiere den direkten Link.
-              </p>
-            </div>
-          </div>
-
-          <div style={phaseQrSectionStyle}>
-            <div style={phaseQrWrapStyle}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={publicQrUrl} alt="QR-X Code" style={phaseQrImageStyle} />
-            </div>
-            <div style={phaseButtonRowStyle}>
-              <a href={publicQrUrl} download={`mioseg-qrx-${qrxId}.png`} style={phasePrimaryLinkStyle}>
-                QR-Code herunterladen
-              </a>
-              <button type="button" id="copyQrxLinkBtn" data-qrx-url={publicQrxUrl} style={{ ...phaseSecondaryLinkStyle, border: "1px solid rgba(255,255,255,0.12)", cursor: "pointer" }}>
-                Link kopieren
+          {isOwner ? (
+            <>
+              <p style={mutedTextStyle}>Du bist der Besitzer dieses QR-X.</p>
+              <button type="button" disabled style={widePrimaryDisabledButtonStyle}>
+                ✓ Eigener QR-X
               </button>
-            </div>
+            </>
+          ) : currentUserId ? (
+            <>
+              <p style={mutedTextStyle}>
+                {savedRow
+                  ? "Dieser QR-X ist aktuell in deinen gespeicherten Einträgen."
+                  : "Folge diesem QR-X, um ihn schneller wiederzufinden."}
+              </p>
+
+              <form action={toggleFollowAction}>
+                <button type="submit" style={widePrimaryButtonStyle}>
+                  {savedRow ? "🔖 Folgen beenden" : "+ Folgen"}
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <p style={mutedTextStyle}>Melde dich an, um diesem QR-X zu folgen.</p>
+              <a href={`/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`} style={widePrimaryLinkStyle}>
+                + Folgen
+              </a>
+            </>
+          )}
+
+          <p style={centerInfoStyle}>
+            Gespeichert von {formatNumber(followerCount)} Nutzer{Number(followerCount) === 1 ? "" : "n"}
+          </p>
+        </section>
+
+        {/* 11. QR-X Code */}
+        <section style={{ ...sectionCardStyle, textAlign: "center" }}>
+          <h2 style={centerTitleStyle}>QR-X Code</h2>
+          <p style={mutedCenterTextStyle}>
+            Dieser QR-Code führt immer zur Web-Ansicht. Deep Link öffnet die App, falls installiert.
+          </p>
+
+          <div style={qrImageWrapStyle}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={publicQrUrl} alt="QR-X Code" style={qrImageStyle} />
+          </div>
+
+          <div style={qrButtonGridStyle}>
+            <a href={publicQrUrl} download={`mioseg-qrx-${qrxId}.png`} style={widePrimaryLinkStyle}>
+              ⇩ QR-Code als Bild speichern
+            </a>
+
+            <button
+              type="button"
+              id="copyQrxLinkBtn"
+              data-qrx-url={publicQrxUrl}
+              style={wideSecondaryButtonStyle}
+            >
+              Link kopieren
+            </button>
           </div>
         </section>
 
@@ -728,41 +783,8 @@ export default async function QrxPage({
           }}
         />
 
-        {/* 9. Transfer – nur Besitzer */}
-        {isOwner ? (
-          <section className={styles.section}>
-            <div style={phaseSectionHeaderStyle}>
-              <div>
-                <h2 className={styles.h2}>Transfer</h2>
-                <p className={styles.muted} style={{ margin: 0 }}>Verlauf der QR-X-Übertragungen.</p>
-              </div>
-              <span style={phaseSmallBadgeStyle}>{formatNumber(transferHistory.length)} Einträge</span>
-            </div>
-
-            {transferHistory.length === 0 ? (
-              <p className={styles.muted}>Noch kein Transfer-Verlauf vorhanden.</p>
-            ) : (
-              <div style={phaseTransferListStyle}>
-                {transferHistory.map((item, index) => (
-                  <div key={item.id ?? item.transfer_id ?? `${item.created_at}-${index}`} style={phaseTransferCardStyle}>
-                    <div style={phaseTransferTopStyle}>
-                      <strong>{item.status ?? "Transfer"}</strong>
-                      <span>{formatDate(item.created_at)}</span>
-                    </div>
-                    {item.recipient_email ? <span>Empfänger: {item.recipient_email}</span> : null}
-                    {item.from_name ? <span>Von: {item.from_name}</span> : null}
-                    {item.to_name ? <span>An: {item.to_name}</span> : null}
-                    {item.accepted_at ? <span>Angenommen: {formatDate(item.accepted_at)}</span> : null}
-                    {item.expires_at ? <span>Ablauf: {formatDate(item.expires_at)}</span> : null}
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        ) : null}
-
-        {/* 10. Inhalt melden */}
-        <section className={styles.section}>
+        {/* 12. Inhalt melden */}
+        <section style={sectionCardStyle}>
           <QrxReportForm qrxId={qrxId} />
         </section>
 
@@ -771,6 +793,493 @@ export default async function QrxPage({
     </main>
   );
 }
+
+const sectionCardStyle: CSSProperties = {
+  width: "min(1160px, calc(100% - 36px))",
+  margin: "0 auto 18px",
+  borderRadius: 28,
+  padding: 22,
+  background: "#111820",
+  border: "1px solid rgba(65, 84, 103, 0.7)",
+  boxShadow: "0 18px 44px rgba(0,0,0,0.24)",
+};
+
+const heroShellStyle: CSSProperties = {
+  width: "min(1160px, calc(100% - 36px))",
+  margin: "0 auto 18px",
+};
+
+const heroCardStyle: CSSProperties = {
+  position: "relative",
+  overflow: "hidden",
+  borderRadius: 28,
+  minHeight: 320,
+  background: "#111820",
+  border: "1px solid rgba(65, 84, 103, 0.7)",
+  boxShadow: "0 18px 44px rgba(0,0,0,0.24)",
+};
+
+const heroCoverImageStyle: CSSProperties = {
+  width: "100%",
+  height: 320,
+  objectFit: "cover",
+  display: "block",
+  filter: "brightness(0.78)",
+};
+
+const heroCoverFallbackStyle: CSSProperties = {
+  minHeight: 320,
+  background: "linear-gradient(135deg, #111820, #182531)",
+};
+
+const heroOverlayStyle: CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  background:
+    "linear-gradient(180deg, rgba(6,12,21,0.08) 0%, rgba(6,12,21,0.3) 48%, rgba(6,12,21,0.82) 100%)",
+};
+
+const heroVerifiedBadgeStyle: CSSProperties = {
+  position: "absolute",
+  top: 18,
+  right: 18,
+  minHeight: 44,
+  borderRadius: 999,
+  padding: "0 18px",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 8,
+  background: "#d6b65d",
+  color: "#ffffff",
+  fontWeight: 950,
+  letterSpacing: "0.02em",
+  boxShadow: "0 12px 26px rgba(0,0,0,0.22)",
+};
+
+const heroVerifiedDotStyle: CSSProperties = {
+  width: 20,
+  height: 20,
+  borderRadius: 999,
+  display: "grid",
+  placeItems: "center",
+  background: "rgba(15,23,42,0.22)",
+  fontSize: 12,
+};
+
+const heroTitleWrapStyle: CSSProperties = {
+  position: "absolute",
+  left: 22,
+  right: 22,
+  bottom: 24,
+  display: "grid",
+  justifyItems: "center",
+  gap: 10,
+  textAlign: "center",
+};
+
+const heroLogoFrameStyle: CSSProperties = {
+  width: 72,
+  height: 72,
+  borderRadius: 22,
+  overflow: "hidden",
+  background: "#ffffff",
+  border: "1px solid rgba(255,255,255,0.28)",
+};
+
+const heroLogoStyle: CSSProperties = {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  display: "block",
+};
+
+const heroTitleStyle: CSSProperties = {
+  margin: 0,
+  color: "#ffffff",
+  fontSize: 30,
+  lineHeight: 1.1,
+  fontWeight: 950,
+  textShadow: "0 8px 22px rgba(0,0,0,0.35)",
+};
+
+const normalHeroTitleStyle: CSSProperties = {
+  margin: "12px 0 0",
+  color: "#ffffff",
+  fontSize: 34,
+  lineHeight: 1.1,
+  fontWeight: 950,
+};
+
+const verifiedNoticeStyle: CSSProperties = {
+  width: "min(1160px, calc(100% - 36px))",
+  margin: "0 auto 18px",
+  borderRadius: 28,
+  padding: 22,
+  background: "#092b21",
+  border: "1px solid rgba(52,211,153,0.38)",
+  display: "flex",
+  alignItems: "center",
+  gap: 18,
+  boxShadow: "0 18px 44px rgba(0,0,0,0.2)",
+};
+
+const verifiedIconStyle: CSSProperties = {
+  width: 54,
+  height: 54,
+  borderRadius: 999,
+  background: "#2ba36d",
+  color: "#ffffff",
+  display: "grid",
+  placeItems: "center",
+  fontWeight: 950,
+  fontSize: 22,
+  flex: "0 0 auto",
+};
+
+const verifiedTitleStyle: CSSProperties = {
+  margin: 0,
+  color: "#ffffff",
+  fontSize: 22,
+  fontWeight: 950,
+};
+
+const verifiedTextStyle: CSSProperties = {
+  margin: "6px 0 0",
+  color: "#d1fae5",
+  lineHeight: 1.55,
+  fontWeight: 700,
+};
+
+const profileHeaderStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 14,
+  flexWrap: "wrap",
+  marginBottom: 36,
+};
+
+const profileKickerStyle: CSSProperties = {
+  color: "#d6b65d",
+  fontSize: 16,
+  fontWeight: 950,
+  letterSpacing: "0.08em",
+};
+
+const profileCategoryPillStyle: CSSProperties = {
+  minHeight: 40,
+  borderRadius: 999,
+  padding: "0 14px",
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  color: "#e5edf5",
+  display: "inline-flex",
+  alignItems: "center",
+  fontWeight: 900,
+};
+
+const profileStatsStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+  gap: 14,
+};
+
+const profileStatBoxStyle: CSSProperties = {
+  minHeight: 96,
+  borderRadius: 22,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.07)",
+  display: "grid",
+  placeItems: "center",
+  gap: 3,
+  color: "#ffffff",
+  textAlign: "center",
+};
+
+const profileActionsStyle: CSSProperties = {
+  display: "flex",
+  gap: 12,
+  flexWrap: "wrap",
+  marginTop: 24,
+};
+
+const actionChipStyle: CSSProperties = {
+  minHeight: 46,
+  borderRadius: 999,
+  padding: "0 20px",
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  color: "#ffffff",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textDecoration: "none",
+  fontWeight: 950,
+};
+
+const appButtonStyle: CSSProperties = {
+  ...actionChipStyle,
+  background: "#ffffff",
+  color: "#0f172a",
+};
+
+const cardTitleStyle: CSSProperties = {
+  margin: 0,
+  color: "#ffffff",
+  fontSize: 26,
+  lineHeight: 1.2,
+  fontWeight: 950,
+};
+
+const centerTitleStyle: CSSProperties = {
+  ...cardTitleStyle,
+  textAlign: "center",
+};
+
+const simpleTextStyle: CSSProperties = {
+  margin: "12px 0 0",
+  color: "#f5f7fa",
+  fontSize: 20,
+  lineHeight: 1.55,
+  fontWeight: 700,
+};
+
+const descriptionTextStyle: CSSProperties = {
+  margin: "18px 0 0",
+  color: "#f5f7fa",
+  fontSize: 19,
+  lineHeight: 1.75,
+  whiteSpace: "pre-wrap",
+  fontWeight: 620,
+};
+
+const mutedTextStyle: CSSProperties = {
+  margin: "12px 0 0",
+  color: "#9aa7b5",
+  fontSize: 17,
+  lineHeight: 1.55,
+};
+
+const mutedCenterTextStyle: CSSProperties = {
+  ...mutedTextStyle,
+  textAlign: "center",
+  maxWidth: 720,
+  margin: "12px auto 0",
+};
+
+const newsBoxStyle: CSSProperties = {
+  marginTop: 18,
+  borderRadius: 22,
+  overflow: "hidden",
+  border: "1px solid rgba(65,84,103,0.75)",
+  background: "rgba(255,255,255,0.025)",
+};
+
+const newsRowStyle: CSSProperties = {
+  padding: "16px 18px",
+  borderBottom: "1px solid rgba(65,84,103,0.6)",
+};
+
+const newsTextStyle: CSSProperties = {
+  color: "#f5f7fa",
+  fontSize: 18,
+  lineHeight: 1.55,
+};
+
+const newsDateStyle: CSSProperties = {
+  marginTop: 8,
+  color: "#8f9baa",
+  fontSize: 14,
+};
+
+const imageGridStyle: CSSProperties = {
+  marginTop: 22,
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+  gap: 22,
+};
+
+const imageItemStyle: CSSProperties = {
+  display: "grid",
+  justifyItems: "center",
+  gap: 8,
+  color: "#9fc2ee",
+  textDecoration: "none",
+  textAlign: "center",
+};
+
+const imageThumbStyle: CSSProperties = {
+  width: 132,
+  height: 132,
+  borderRadius: 18,
+  objectFit: "cover",
+  display: "block",
+  boxShadow: "0 16px 34px rgba(0,0,0,0.24)",
+};
+
+const imageCaptionStyle: CSSProperties = {
+  color: "#aeb9c6",
+  fontSize: 14,
+  wordBreak: "break-word",
+  maxWidth: 150,
+};
+
+const imageOpenHintStyle: CSSProperties = {
+  color: "#9fc2ee",
+  fontSize: 13,
+  lineHeight: 1.2,
+};
+
+const fileListStyle: CSSProperties = {
+  marginTop: 18,
+  display: "grid",
+  gap: 10,
+};
+
+const fileRowStyle: CSSProperties = {
+  minHeight: 56,
+  borderRadius: 18,
+  padding: "0 14px",
+  background: "rgba(255,255,255,0.05)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  color: "#e5edf5",
+  textDecoration: "none",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 14,
+  fontWeight: 850,
+};
+
+const coordinateTextStyle: CSSProperties = {
+  margin: "10px 0 0",
+  color: "#8f9baa",
+  fontSize: 16,
+  lineHeight: 1.55,
+};
+
+const mapButtonWrapStyle: CSSProperties = {
+  marginTop: 16,
+  display: "grid",
+  gap: 10,
+};
+
+const widePrimaryButtonStyle: CSSProperties = {
+  width: "100%",
+  minHeight: 58,
+  borderRadius: 18,
+  border: 0,
+  padding: "0 18px",
+  background: "#ffffff",
+  color: "#0f172a",
+  fontWeight: 950,
+  cursor: "pointer",
+  fontSize: 16,
+};
+
+const widePrimaryDisabledButtonStyle: CSSProperties = {
+  ...widePrimaryButtonStyle,
+  cursor: "default",
+  opacity: 0.88,
+};
+
+const widePrimaryLinkStyle: CSSProperties = {
+  width: "100%",
+  minHeight: 58,
+  borderRadius: 18,
+  padding: "0 18px",
+  background: "#ffffff",
+  color: "#0f172a",
+  fontWeight: 950,
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 16,
+};
+
+const wideSecondaryButtonStyle: CSSProperties = {
+  width: "100%",
+  minHeight: 58,
+  borderRadius: 18,
+  border: "1px solid rgba(255,255,255,0.12)",
+  padding: "0 18px",
+  background: "rgba(255,255,255,0.055)",
+  color: "#ffffff",
+  fontWeight: 950,
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+  fontSize: 16,
+};
+
+const emptyTransferStyle: CSSProperties = {
+  marginTop: 16,
+  borderRadius: 18,
+  padding: 18,
+  background: "rgba(255,255,255,0.035)",
+  border: "1px solid rgba(65,84,103,0.75)",
+  color: "#9aa7b5",
+  fontSize: 17,
+};
+
+const transferListStyle: CSSProperties = {
+  marginTop: 16,
+  display: "grid",
+  gap: 12,
+};
+
+const transferCardStyle: CSSProperties = {
+  borderRadius: 18,
+  padding: 14,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  color: "#cbd5e1",
+  display: "grid",
+  gap: 6,
+  fontSize: 13,
+  fontWeight: 800,
+};
+
+const transferTopStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  flexWrap: "wrap",
+  color: "#ffffff",
+};
+
+const centerInfoStyle: CSSProperties = {
+  margin: "14px 0 0",
+  textAlign: "center",
+  color: "#9aa7b5",
+  fontSize: 15,
+};
+
+const qrImageWrapStyle: CSSProperties = {
+  margin: "24px auto 0",
+  width: 260,
+  maxWidth: "100%",
+  borderRadius: 24,
+  padding: 12,
+  background: "#ffffff",
+  boxShadow: "0 18px 44px rgba(0,0,0,0.22)",
+};
+
+const qrImageStyle: CSSProperties = {
+  display: "block",
+  width: "100%",
+  height: "auto",
+  borderRadius: 16,
+};
+
+const qrButtonGridStyle: CSSProperties = {
+  marginTop: 22,
+  display: "grid",
+  gap: 12,
+};
 
 const phaseBadgeRowStyle: CSSProperties = {
   display: "flex",
@@ -792,318 +1301,6 @@ const phaseCategoryBadgeStyle: CSSProperties = {
   border: "1px solid rgba(147,197,253,0.28)",
 };
 
-const phaseSubtitleStyle: CSSProperties = {
-  marginTop: 8,
-  color: "#bfdbfe",
-  fontSize: 16,
-  fontWeight: 950,
-};
-
-const phaseStatsGridStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-  gap: 12,
-};
-
-const phaseStatCardStyle: CSSProperties = {
-  borderRadius: 22,
-  padding: 16,
-  background: "rgba(255,255,255,0.055)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  display: "flex",
-  alignItems: "center",
-  gap: 12,
-};
-
-const phaseStatIconStyle: CSSProperties = {
-  width: 42,
-  height: 42,
-  borderRadius: 16,
-  display: "grid",
-  placeItems: "center",
-  background: "rgba(255,255,255,0.08)",
-  fontSize: 20,
-};
-
-const phaseStatValueStyle: CSSProperties = {
-  display: "block",
-  color: "#ffffff",
-  fontSize: 22,
-  fontWeight: 950,
-};
-
-const phaseStatLabelStyle: CSSProperties = {
-  display: "block",
-  color: "#94a3b8",
-  fontSize: 12,
-  fontWeight: 850,
-};
-
-const phaseActionsGridStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-  gap: 16,
-};
-
-const phaseActionBoxStyle: CSSProperties = {
-  borderRadius: 24,
-  padding: 18,
-  background: "rgba(255,255,255,0.055)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  display: "grid",
-  gap: 14,
-};
-
-const phasePrimaryButtonStyle: CSSProperties = {
-  minHeight: 44,
-  borderRadius: 999,
-  border: 0,
-  padding: "0 18px",
-  background: "#ffffff",
-  color: "#0f172a",
-  fontWeight: 950,
-  cursor: "pointer",
-};
-
-const phasePrimaryLinkStyle: CSSProperties = {
-  minHeight: 44,
-  borderRadius: 999,
-  padding: "0 18px",
-  background: "#ffffff",
-  color: "#0f172a",
-  fontWeight: 950,
-  textDecoration: "none",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-};
-
-const phaseSecondaryLinkStyle: CSSProperties = {
-  minHeight: 44,
-  borderRadius: 999,
-  padding: "0 18px",
-  background: "rgba(255,255,255,0.08)",
-  color: "#ffffff",
-  fontWeight: 950,
-  textDecoration: "none",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  border: "1px solid rgba(255,255,255,0.12)",
-};
-
-const phaseSmallInfoStyle: CSSProperties = {
-  color: "#bfdbfe",
-  fontSize: 13,
-  fontWeight: 900,
-};
-
-const phaseQrWrapStyle: CSSProperties = {
-  width: 190,
-  height: 190,
-  borderRadius: 24,
-  padding: 12,
-  background: "#ffffff",
-  justifySelf: "center",
-  boxShadow: "0 18px 44px rgba(0,0,0,0.22)",
-};
-
-const phaseQrImageStyle: CSSProperties = {
-  display: "block",
-  width: "100%",
-  height: "100%",
-  borderRadius: 16,
-};
-
-const phaseButtonRowStyle: CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 10,
-};
-
-const phaseTransferListStyle: CSSProperties = {
-  display: "grid",
-  gap: 12,
-};
-
-const phaseTransferCardStyle: CSSProperties = {
-  borderRadius: 18,
-  padding: 14,
-  background: "rgba(255,255,255,0.055)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  color: "#cbd5e1",
-  display: "grid",
-  gap: 6,
-  fontSize: 13,
-  fontWeight: 800,
-};
-
-const phaseTransferTopStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 12,
-  flexWrap: "wrap",
-  color: "#ffffff",
-};
-
-
-const phaseAppLikeProfileCardStyle: CSSProperties = {
-  background: "linear-gradient(180deg, rgba(15,23,42,0.92), rgba(15,23,42,0.74))",
-  border: "1px solid rgba(255,255,255,0.1)",
-  boxShadow: "0 24px 60px rgba(0,0,0,0.24)",
-};
-
-const phaseAppProfileTopStyle: CSSProperties = {
-  display: "flex",
-  gap: 16,
-  alignItems: "flex-start",
-  flexWrap: "wrap",
-};
-
-const phaseAppAvatarStyle: CSSProperties = {
-  width: 86,
-  height: 86,
-  borderRadius: 28,
-  overflow: "hidden",
-  background: "rgba(255,255,255,0.08)",
-  border: "1px solid rgba(255,255,255,0.14)",
-  display: "grid",
-  placeItems: "center",
-  color: "#ffffff",
-  fontSize: 34,
-  fontWeight: 950,
-  flex: "0 0 auto",
-};
-
-const phaseAppAvatarImageStyle: CSSProperties = {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  display: "block",
-};
-
-const phaseAppProfileInfoStyle: CSSProperties = {
-  flex: 1,
-  minWidth: 240,
-};
-
-const phaseAppTitleStyle: CSSProperties = {
-  margin: "8px 0 0",
-  color: "#ffffff",
-  fontSize: 32,
-  lineHeight: 1.05,
-  fontWeight: 950,
-  letterSpacing: "-0.04em",
-};
-
-const phaseAppSubtitleStyle: CSSProperties = {
-  margin: "8px 0 0",
-  color: "#93c5fd",
-  fontSize: 15,
-  fontWeight: 900,
-};
-
-const phaseAppDescriptionStyle: CSSProperties = {
-  margin: "12px 0 0",
-  color: "#cbd5e1",
-  lineHeight: 1.65,
-  fontSize: 15,
-  fontWeight: 700,
-  whiteSpace: "pre-wrap",
-};
-
-const phaseAppStatsRowStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-  gap: 10,
-  marginTop: 18,
-};
-
-const phaseAppStatPillStyle: CSSProperties = {
-  borderRadius: 20,
-  padding: "12px 10px",
-  background: "rgba(255,255,255,0.055)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  display: "grid",
-  placeItems: "center",
-  gap: 5,
-  color: "#ffffff",
-  textAlign: "center",
-};
-
-const phaseAppStatIconStyle: CSSProperties = {
-  width: 34,
-  height: 34,
-  borderRadius: 14,
-  display: "grid",
-  placeItems: "center",
-  background: "rgba(255,255,255,0.08)",
-  fontSize: 17,
-};
-
-const phaseAppActionGridStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-  gap: 10,
-  marginTop: 18,
-};
-
-const phaseSectionHeaderStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "flex-start",
-  justifyContent: "space-between",
-  gap: 12,
-  flexWrap: "wrap",
-  marginBottom: 14,
-};
-
-const phaseSmallBadgeStyle: CSSProperties = {
-  minHeight: 30,
-  borderRadius: 999,
-  padding: "0 10px",
-  display: "inline-flex",
-  alignItems: "center",
-  background: "rgba(255,255,255,0.07)",
-  color: "#cbd5e1",
-  border: "1px solid rgba(255,255,255,0.1)",
-  fontSize: 12,
-  fontWeight: 900,
-};
-
-const phaseNewsListStyle: CSSProperties = {
-  display: "grid",
-  gap: 12,
-};
-
-const phaseNewsCardStyle: CSSProperties = {
-  borderRadius: 20,
-  padding: 14,
-  background: "rgba(255,255,255,0.055)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  display: "grid",
-  gap: 8,
-};
-
-const phaseNewsDateStyle: CSSProperties = {
-  color: "#93c5fd",
-  fontSize: 12,
-  fontWeight: 950,
-};
-
-const phaseNewsTextStyle: CSSProperties = {
-  color: "#dbeafe",
-  lineHeight: 1.65,
-  whiteSpace: "pre-wrap",
-  fontWeight: 760,
-};
-
-const phaseSubSectionTitleStyle: CSSProperties = {
-  margin: "0 0 12px",
-  color: "#ffffff",
-  fontSize: 18,
-  fontWeight: 950,
-};
-
 const phaseVerifiedSoftBadgeStyle: CSSProperties = {
   minHeight: 32,
   display: "inline-flex",
@@ -1115,40 +1312,4 @@ const phaseVerifiedSoftBadgeStyle: CSSProperties = {
   fontSize: 12,
   fontWeight: 950,
   border: "1px solid rgba(134,239,172,0.24)",
-};
-
-const phaseTitleBoxStyle: CSSProperties = {
-  borderRadius: 24,
-  padding: 18,
-  background: "rgba(255,255,255,0.055)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  display: "grid",
-  gap: 18,
-};
-
-const phaseTitleTextStyle: CSSProperties = {
-  margin: "10px 0 0",
-  color: "#ffffff",
-  fontSize: 28,
-  lineHeight: 1.12,
-  fontWeight: 950,
-  letterSpacing: "-0.035em",
-};
-
-const phaseDescriptionTextStyle: CSSProperties = {
-  margin: "10px 0 0",
-  color: "#dbeafe",
-  lineHeight: 1.7,
-  whiteSpace: "pre-wrap",
-  fontWeight: 740,
-};
-
-const phaseQrSectionStyle: CSSProperties = {
-  borderRadius: 24,
-  padding: 18,
-  background: "rgba(255,255,255,0.055)",
-  border: "1px solid rgba(255,255,255,0.09)",
-  display: "grid",
-  gap: 16,
-  justifyItems: "center",
 };
