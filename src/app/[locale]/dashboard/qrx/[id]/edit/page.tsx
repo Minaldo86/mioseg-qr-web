@@ -681,7 +681,57 @@ export default function EditQrxPage() {
         setQrxPasswordRepeat("");
       }
 
-      setSuccessText("QR-X wurde gespeichert.");
+      if (logoFile) {
+        const uploadedLogoUrl = await uploadQrxMedia({
+          qrxId,
+          file: logoFile,
+          prefix: "logo",
+          mediaType: "image",
+        });
+
+        const { error: logoUpdateError } = await supabase
+          .from("qr_x_entries")
+          .update({ logo_url: uploadedLogoUrl, updated_at: new Date().toISOString() })
+          .eq("id", qrxId)
+          .eq("owner_user_id", user.id);
+
+        if (logoUpdateError) throw logoUpdateError;
+        setLogoUrl(uploadedLogoUrl);
+      }
+
+      if (coverFile) {
+        const uploadedCoverUrl = await uploadQrxMedia({
+          qrxId,
+          file: coverFile,
+          prefix: "cover",
+          mediaType: "image",
+        });
+
+        const { error: coverUpdateError } = await supabase
+          .from("qr_x_entries")
+          .update({ cover_image_url: uploadedCoverUrl, updated_at: new Date().toISOString() })
+          .eq("id", qrxId)
+          .eq("owner_user_id", user.id);
+
+        if (coverUpdateError) throw coverUpdateError;
+        setCoverUrl(uploadedCoverUrl);
+      }
+
+      for (const file of galleryFiles) {
+        await uploadQrxMedia({ qrxId, file, prefix: "gallery", mediaType: "image" });
+      }
+
+      for (const file of fileUploads) {
+        await uploadQrxMedia({ qrxId, file, prefix: "file", mediaType: "file" });
+      }
+
+      setLogoFile(null);
+      setCoverFile(null);
+      setGalleryFiles([]);
+      setFileUploads([]);
+      await Promise.all([loadMediaAndStorage(), loadCreditBalance(user.id)]);
+
+      setSuccessText(hasPendingMedia ? "QR-X und Medien wurden gespeichert." : "QR-X wurde gespeichert.");
       router.refresh();
     } catch (error) {
       setErrorText(error instanceof Error ? error.message : "QR-X konnte nicht gespeichert werden.");
@@ -824,71 +874,6 @@ export default function EditQrxPage() {
     event.target.value = "";
   }
 
-  async function handleSaveMedia() {
-    setMediaSaving(true);
-    setErrorText(null);
-    setSuccessText(null);
-
-    try {
-      if (!qrxId) throw new Error("QR-X ID fehlt.");
-      const user = await getCurrentUserOrThrow();
-
-      if (logoFile) {
-        const uploadedLogoUrl = await uploadQrxMedia({
-          qrxId,
-          file: logoFile,
-          prefix: "logo",
-          mediaType: "image",
-        });
-
-        const { error } = await supabase
-          .from("qr_x_entries")
-          .update({ logo_url: uploadedLogoUrl, updated_at: new Date().toISOString() })
-          .eq("id", qrxId)
-          .eq("owner_user_id", user.id);
-
-        if (error) throw error;
-        setLogoUrl(uploadedLogoUrl);
-      }
-
-      if (coverFile) {
-        const uploadedCoverUrl = await uploadQrxMedia({
-          qrxId,
-          file: coverFile,
-          prefix: "cover",
-          mediaType: "image",
-        });
-
-        const { error } = await supabase
-          .from("qr_x_entries")
-          .update({ cover_image_url: uploadedCoverUrl, updated_at: new Date().toISOString() })
-          .eq("id", qrxId)
-          .eq("owner_user_id", user.id);
-
-        if (error) throw error;
-        setCoverUrl(uploadedCoverUrl);
-      }
-
-      for (const file of galleryFiles) {
-        await uploadQrxMedia({ qrxId, file, prefix: "gallery", mediaType: "image" });
-      }
-
-      for (const file of fileUploads) {
-        await uploadQrxMedia({ qrxId, file, prefix: "file", mediaType: "file" });
-      }
-
-      setLogoFile(null);
-      setCoverFile(null);
-      setGalleryFiles([]);
-      setFileUploads([]);
-      await Promise.all([loadQrx(), loadCreditBalance(user.id)]);
-      setSuccessText("Medien wurden gespeichert.");
-    } catch (error) {
-      setErrorText(normalizeErrorMessage(error) || "Medien konnten nicht gespeichert werden.");
-    } finally {
-      setMediaSaving(false);
-    }
-  }
 
   async function handleDeleteMedia(media: QrxMedia) {
     const ok = window.confirm(`Möchtest du „${media.filename}“ wirklich löschen? Das gekaufte Speicherkontingent bleibt erhalten.`);
@@ -1263,21 +1248,11 @@ export default function EditQrxPage() {
               </div>
             ) : null}
 
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
-              <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
-                Abbrechen
-              </Link>
 
-              <button type="submit" disabled={saving || verificationSaving} className={styles.primaryButton} style={{ border: 0, cursor: saving || verificationSaving ? "not-allowed" : "pointer", opacity: saving || verificationSaving ? 0.72 : 1 }}>
-                {saving ? "Speichert …" : "QR-X speichern"}
-              </button>
-            </div>
-          </form>
-        ) : null}
-      </section>
+            <div style={dividerStyle} />
 
-      {!loading ? (
-        <section id="medien" style={{ ...panelStyle, marginTop: 22 }}>
+            <div style={inlineMediaSectionStyle}>
+
           <div className={styles.cardHeader}>
             <div>
               <h2>Bilder & Medien</h2>
@@ -1399,38 +1374,36 @@ export default function EditQrxPage() {
               ) : <p style={emptyTextStyle}>Noch keine Dateien vorhanden.</p>}
             </div>
           </div>
+            </div>
 
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
-            {hasPendingMedia ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setLogoFile(null);
-                  setCoverFile(null);
-                  setGalleryFiles([]);
-                  setFileUploads([]);
-                }}
-                style={miniDangerButtonStyle}
-              >
-                Auswahl leeren
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 12, marginTop: 8 }}>
+              <Link href={`/${locale}/dashboard/qrx`} className={styles.secondaryButton}>
+                Abbrechen
+              </Link>
+
+              <button type="submit" disabled={saving || verificationSaving || mediaSaving} className={styles.primaryButton} style={{ border: 0, cursor: saving || verificationSaving || mediaSaving ? "not-allowed" : "pointer", opacity: saving || verificationSaving || mediaSaving ? 0.72 : 1 }}>
+                {saving ? "Speichert …" : "QR-X speichern"}
               </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={handleSaveMedia}
-              disabled={!hasPendingMedia || mediaSaving || saving || verificationSaving}
-              className={styles.primaryButton}
-              style={{ border: 0, cursor: !hasPendingMedia || mediaSaving ? "not-allowed" : "pointer", opacity: !hasPendingMedia || mediaSaving ? 0.7 : 1 }}
-            >
-              {mediaSaving ? "Medien werden gespeichert …" : "Medien speichern"}
-            </button>
-          </div>
-        </section>
-      ) : null}
+            </div>
+          </form>
+        ) : null}
+      </section>
+
+
 
     </main>
   );
 }
+
+
+const inlineMediaSectionStyle: CSSProperties = {
+  borderRadius: 24,
+  padding: 16,
+  background: "rgba(255,255,255,0.035)",
+  border: "1px solid rgba(148,163,184,0.14)",
+  display: "grid",
+  gap: 16,
+};
 
 function typeButtonStyle(active: boolean, type: QrxType): CSSProperties {
   return {
