@@ -1388,9 +1388,19 @@ export default function NewQrxPage() {
             <strong style={{ color: "#ffffff", fontSize: 16 }}>
               Credit-Prüfung
             </strong>
-            <span style={{ color: "#cbd5e1", fontWeight: 900 }}>
-              Aktuelle Credits: {pricingLoading ? "…" : (credits ?? 0)}
-            </span>
+            <div style={creditsHeaderActionsStyle}>
+              <span style={{ color: "#cbd5e1", fontWeight: 900 }}>
+                Aktuelle Credits: {pricingLoading ? "…" : (credits ?? 0)}
+              </span>
+              <button
+                type="button"
+                onClick={() => void loadCreditAndPricingData()}
+                disabled={pricingLoading}
+                style={refreshCreditsButtonStyle}
+              >
+                {pricingLoading ? "Aktualisiere …" : "Credits aktualisieren"}
+              </button>
+            </div>
           </div>
 
           <div
@@ -1436,6 +1446,8 @@ export default function NewQrxPage() {
               vorhanden: {credits}.{" "}
               <Link
                 href={`/${locale}/dashboard/credits`}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{ color: "#bfdbfe" }}
               >
                 Credits kaufen
@@ -2285,13 +2297,28 @@ export default function NewQrxPage() {
                 Credits kaufen
               </h3>
               <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
-                Kaufe Credits für weitere QR-X und zusätzlichen Speicherplatz.
+                Kaufe Credits für weitere QR-X und zusätzlichen Speicherplatz. Der Kauf öffnet in einem neuen Tab, damit deine Eingaben erhalten bleiben.
               </p>
             </div>
 
-            <Link href={`/${locale}/dashboard/credits`} style={wideCreditLinkStyle}>
-              💳 Credits kaufen
-            </Link>
+            <div style={creditsBuyActionsStyle}>
+              <Link
+                href={`/${locale}/dashboard/credits`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={wideCreditLinkStyle}
+              >
+                💳 Credits kaufen
+              </Link>
+              <button
+                type="button"
+                onClick={() => void loadCreditAndPricingData()}
+                disabled={pricingLoading}
+                style={wideRefreshCreditsButtonStyle}
+              >
+                {pricingLoading ? "Aktualisiere …" : "Credits aktualisieren"}
+              </button>
+            </div>
           </div>
 
           <div
@@ -2357,6 +2384,45 @@ export default function NewQrxPage() {
     </main>
   );
 }
+
+
+const creditsHeaderActionsStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  gap: 10,
+  flexWrap: "wrap",
+};
+
+const refreshCreditsButtonStyle: CSSProperties = {
+  minHeight: 34,
+  borderRadius: 999,
+  border: "1px solid rgba(147,197,253,0.28)",
+  background: "rgba(59,130,246,0.14)",
+  color: "#bfdbfe",
+  fontWeight: 950,
+  cursor: "pointer",
+  padding: "0 12px",
+};
+
+const creditsBuyActionsStyle: CSSProperties = {
+  display: "grid",
+  gap: 10,
+};
+
+const wideRefreshCreditsButtonStyle: CSSProperties = {
+  minHeight: 48,
+  borderRadius: 16,
+  border: "1px solid rgba(147,197,253,0.28)",
+  background: "rgba(59,130,246,0.14)",
+  color: "#bfdbfe",
+  fontWeight: 950,
+  cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "0 18px",
+};
 
 function locationModeButtonStyle(active: boolean): CSSProperties {
   return {
