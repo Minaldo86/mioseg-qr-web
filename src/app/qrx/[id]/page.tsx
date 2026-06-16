@@ -531,7 +531,7 @@ export default async function QrxPage({
             {currentUserId ? (
               <form action={toggleFollowAction} style={{ display: "contents" }}>
                 <button type="submit" style={phasePrimaryButtonStyle}>
-                  {savedRow ? "Folgen beenden" : "Folgen"}
+                  {savedRow ? "✓ Bereits gefolgt" : "+ Folgen"}
                 </button>
               </form>
             ) : (
@@ -574,13 +574,6 @@ export default async function QrxPage({
                 {entry.description?.trim() ? entry.description : "Keine Beschreibung vorhanden."}
               </p>
             </div>
-
-            {entry.location_name?.trim() ? (
-              <div>
-                <span style={phaseSmallBadgeStyle}>Standort</span>
-                <p style={phaseDescriptionTextStyle}>📍 {entry.location_name.trim()}</p>
-              </div>
-            ) : null}
           </div>
         </section>
 
