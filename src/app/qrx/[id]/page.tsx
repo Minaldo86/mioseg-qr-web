@@ -479,16 +479,16 @@ export default async function QrxPage({
 
           <div style={profileStatsStyle}>
             <div style={profileStatBoxStyle}>
-              <strong>{formatNumber(followerCount)}</strong>
-              <span>FOLLOWER</span>
+              <strong style={profileStatValueStyle}>{formatNumber(followerCount)}</strong>
+              <span style={profileStatLabelStyle}>FOLLOWER</span>
             </div>
             <div style={profileStatBoxStyle}>
-              <strong>{formatNumber(totalMediaCount)}</strong>
-              <span>MEDIEN</span>
+              <strong style={profileStatValueStyle}>{formatNumber(totalMediaCount)}</strong>
+              <span style={profileStatLabelStyle}>MEDIEN</span>
             </div>
             <div style={profileStatBoxStyle}>
-              <strong>{formatNumber(newsItems.length)}</strong>
-              <span>UPDATES</span>
+              <strong style={profileStatValueStyle}>{formatNumber(newsItems.length)}</strong>
+              <span style={profileStatLabelStyle}>UPDATES</span>
             </div>
           </div>
 
@@ -695,7 +695,7 @@ export default async function QrxPage({
             <>
               <p style={mutedTextStyle}>Du bist der Besitzer dieses QR-X.</p>
               <button type="button" disabled style={widePrimaryDisabledButtonStyle}>
-                ✓ Eigener QR-X
+                👑 Eigener QR-X
               </button>
             </>
           ) : currentUserId ? (
@@ -708,7 +708,7 @@ export default async function QrxPage({
 
               <form action={toggleFollowAction}>
                 <button type="submit" style={widePrimaryButtonStyle}>
-                  {savedRow ? "🔖 Folgen beenden" : "+ Folgen"}
+                  {savedRow ? "🔖 Folgen beenden" : "🔖 Folgen"}
                 </button>
               </form>
             </>
@@ -795,41 +795,41 @@ export default async function QrxPage({
 }
 
 const sectionCardStyle: CSSProperties = {
-  width: "min(1160px, calc(100% - 36px))",
-  margin: "0 auto 18px",
-  borderRadius: 28,
+  width: "min(960px, calc(100% - 32px))",
+  margin: "0 auto 20px",
+  borderRadius: 26,
   padding: 22,
-  background: "#111820",
-  border: "1px solid rgba(65, 84, 103, 0.7)",
-  boxShadow: "0 18px 44px rgba(0,0,0,0.24)",
+  background: "#0D1728",
+  border: "1px solid rgba(59, 130, 246, 0.18)",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
 };
 
 const heroShellStyle: CSSProperties = {
-  width: "min(1160px, calc(100% - 36px))",
-  margin: "0 auto 18px",
+  width: "min(960px, calc(100% - 32px))",
+  margin: "0 auto 20px",
 };
 
 const heroCardStyle: CSSProperties = {
   position: "relative",
   overflow: "hidden",
-  borderRadius: 28,
-  minHeight: 320,
-  background: "#111820",
-  border: "1px solid rgba(65, 84, 103, 0.7)",
-  boxShadow: "0 18px 44px rgba(0,0,0,0.24)",
+  borderRadius: 26,
+  minHeight: 316,
+  background: "#0D1728",
+  border: "1px solid rgba(59, 130, 246, 0.18)",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
 };
 
 const heroCoverImageStyle: CSSProperties = {
   width: "100%",
-  height: 320,
+  height: 316,
   objectFit: "cover",
   display: "block",
-  filter: "brightness(0.78)",
+  filter: "brightness(0.72) blur(0.2px)",
 };
 
 const heroCoverFallbackStyle: CSSProperties = {
-  minHeight: 320,
-  background: "linear-gradient(135deg, #111820, #182531)",
+  minHeight: 316,
+  background: "linear-gradient(135deg, #0D1728, #142236)",
 };
 
 const heroOverlayStyle: CSSProperties = {
@@ -841,19 +841,19 @@ const heroOverlayStyle: CSSProperties = {
 
 const heroVerifiedBadgeStyle: CSSProperties = {
   position: "absolute",
-  top: 18,
-  right: 18,
-  minHeight: 44,
+  top: 16,
+  right: 16,
+  minHeight: 38,
   borderRadius: 999,
-  padding: "0 18px",
+  padding: "0 16px",
   display: "inline-flex",
   alignItems: "center",
   gap: 8,
-  background: "#d6b65d",
+  background: "#C9A84F",
   color: "#ffffff",
-  fontWeight: 950,
+  fontWeight: 800,
   letterSpacing: "0.02em",
-  boxShadow: "0 12px 26px rgba(0,0,0,0.22)",
+  boxShadow: "0 10px 22px rgba(0,0,0,0.24)",
 };
 
 const heroVerifiedDotStyle: CSSProperties = {
@@ -896,10 +896,10 @@ const heroLogoStyle: CSSProperties = {
 const heroTitleStyle: CSSProperties = {
   margin: 0,
   color: "#ffffff",
-  fontSize: 30,
-  lineHeight: 1.1,
-  fontWeight: 950,
-  textShadow: "0 8px 22px rgba(0,0,0,0.35)",
+  fontSize: 24,
+  lineHeight: 1.15,
+  fontWeight: 800,
+  textShadow: "0 8px 22px rgba(0,0,0,0.38)",
 };
 
 const normalHeroTitleStyle: CSSProperties = {
@@ -911,43 +911,44 @@ const normalHeroTitleStyle: CSSProperties = {
 };
 
 const verifiedNoticeStyle: CSSProperties = {
-  width: "min(1160px, calc(100% - 36px))",
-  margin: "0 auto 18px",
-  borderRadius: 28,
-  padding: 22,
-  background: "#092b21",
-  border: "1px solid rgba(52,211,153,0.38)",
+  width: "min(960px, calc(100% - 32px))",
+  margin: "0 auto 20px",
+  borderRadius: 24,
+  padding: 20,
+  background: "#06281F",
+  border: "1px solid rgba(52,211,153,0.34)",
   display: "flex",
   alignItems: "center",
   gap: 18,
-  boxShadow: "0 18px 44px rgba(0,0,0,0.2)",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.22)",
 };
 
 const verifiedIconStyle: CSSProperties = {
-  width: 54,
-  height: 54,
+  width: 50,
+  height: 50,
   borderRadius: 999,
-  background: "#2ba36d",
+  background: "#2BA36D",
   color: "#ffffff",
   display: "grid",
   placeItems: "center",
-  fontWeight: 950,
-  fontSize: 22,
+  fontWeight: 900,
+  fontSize: 20,
   flex: "0 0 auto",
 };
 
 const verifiedTitleStyle: CSSProperties = {
   margin: 0,
   color: "#ffffff",
-  fontSize: 22,
-  fontWeight: 950,
+  fontSize: 20,
+  fontWeight: 800,
 };
 
 const verifiedTextStyle: CSSProperties = {
   margin: "6px 0 0",
-  color: "#d1fae5",
+  color: "rgba(255,255,255,0.82)",
   lineHeight: 1.55,
-  fontWeight: 700,
+  fontWeight: 400,
+  fontSize: 16,
 };
 
 const profileHeaderStyle: CSSProperties = {
@@ -956,26 +957,28 @@ const profileHeaderStyle: CSSProperties = {
   alignItems: "center",
   gap: 14,
   flexWrap: "wrap",
-  marginBottom: 36,
+  marginBottom: 30,
 };
 
 const profileKickerStyle: CSSProperties = {
-  color: "#d6b65d",
-  fontSize: 16,
-  fontWeight: 950,
-  letterSpacing: "0.08em",
+  color: "#D4AF37",
+  fontSize: 14,
+  fontWeight: 800,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
 };
 
 const profileCategoryPillStyle: CSSProperties = {
-  minHeight: 40,
+  minHeight: 38,
   borderRadius: 999,
   padding: "0 14px",
-  background: "rgba(255,255,255,0.08)",
-  border: "1px solid rgba(255,255,255,0.12)",
-  color: "#e5edf5",
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  color: "rgba(255,255,255,0.78)",
   display: "inline-flex",
   alignItems: "center",
-  fontWeight: 900,
+  fontWeight: 700,
+  fontSize: 14,
 };
 
 const profileStatsStyle: CSSProperties = {
@@ -985,15 +988,30 @@ const profileStatsStyle: CSSProperties = {
 };
 
 const profileStatBoxStyle: CSSProperties = {
-  minHeight: 96,
-  borderRadius: 22,
-  background: "rgba(255,255,255,0.045)",
-  border: "1px solid rgba(255,255,255,0.07)",
+  minHeight: 92,
+  borderRadius: 20,
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(255,255,255,0.06)",
   display: "grid",
   placeItems: "center",
   gap: 3,
   color: "#ffffff",
   textAlign: "center",
+};
+
+const profileStatValueStyle: CSSProperties = {
+  color: "#ffffff",
+  fontSize: 34,
+  lineHeight: 1,
+  fontWeight: 800,
+};
+
+const profileStatLabelStyle: CSSProperties = {
+  color: "rgba(255,255,255,0.55)",
+  fontSize: 12,
+  fontWeight: 700,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
 };
 
 const profileActionsStyle: CSSProperties = {
@@ -1006,15 +1024,16 @@ const profileActionsStyle: CSSProperties = {
 const actionChipStyle: CSSProperties = {
   minHeight: 46,
   borderRadius: 999,
-  padding: "0 20px",
-  background: "rgba(255,255,255,0.08)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  padding: "0 18px",
+  background: "rgba(255,255,255,0.07)",
+  border: "1px solid rgba(255,255,255,0.09)",
   color: "#ffffff",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
   textDecoration: "none",
-  fontWeight: 950,
+  fontWeight: 800,
+  fontSize: 15,
 };
 
 const appButtonStyle: CSSProperties = {
@@ -1026,9 +1045,10 @@ const appButtonStyle: CSSProperties = {
 const cardTitleStyle: CSSProperties = {
   margin: 0,
   color: "#ffffff",
-  fontSize: 26,
-  lineHeight: 1.2,
-  fontWeight: 950,
+  fontSize: 22,
+  lineHeight: 1.22,
+  fontWeight: 800,
+  letterSpacing: "-0.02em",
 };
 
 const centerTitleStyle: CSSProperties = {
@@ -1038,25 +1058,25 @@ const centerTitleStyle: CSSProperties = {
 
 const simpleTextStyle: CSSProperties = {
   margin: "12px 0 0",
-  color: "#f5f7fa",
-  fontSize: 20,
+  color: "rgba(255,255,255,0.86)",
+  fontSize: 17,
   lineHeight: 1.55,
-  fontWeight: 700,
+  fontWeight: 400,
 };
 
 const descriptionTextStyle: CSSProperties = {
   margin: "18px 0 0",
-  color: "#f5f7fa",
-  fontSize: 19,
-  lineHeight: 1.75,
+  color: "rgba(255,255,255,0.84)",
+  fontSize: 16,
+  lineHeight: 1.65,
   whiteSpace: "pre-wrap",
-  fontWeight: 620,
+  fontWeight: 400,
 };
 
 const mutedTextStyle: CSSProperties = {
   margin: "12px 0 0",
-  color: "#9aa7b5",
-  fontSize: 17,
+  color: "rgba(255,255,255,0.58)",
+  fontSize: 15,
   lineHeight: 1.55,
 };
 
@@ -1081,8 +1101,8 @@ const newsRowStyle: CSSProperties = {
 };
 
 const newsTextStyle: CSSProperties = {
-  color: "#f5f7fa",
-  fontSize: 18,
+  color: "rgba(255,255,255,0.86)",
+  fontSize: 16,
   lineHeight: 1.55,
 };
 
@@ -1109,12 +1129,12 @@ const imageItemStyle: CSSProperties = {
 };
 
 const imageThumbStyle: CSSProperties = {
-  width: 132,
-  height: 132,
+  width: 112,
+  height: 112,
   borderRadius: 18,
   objectFit: "cover",
   display: "block",
-  boxShadow: "0 16px 34px rgba(0,0,0,0.24)",
+  boxShadow: "0 14px 30px rgba(0,0,0,0.24)",
 };
 
 const imageCaptionStyle: CSSProperties = {
@@ -1172,9 +1192,9 @@ const widePrimaryButtonStyle: CSSProperties = {
   padding: "0 18px",
   background: "#ffffff",
   color: "#0f172a",
-  fontWeight: 950,
+  fontWeight: 800,
   cursor: "pointer",
-  fontSize: 16,
+  fontSize: 18,
 };
 
 const widePrimaryDisabledButtonStyle: CSSProperties = {
@@ -1190,29 +1210,29 @@ const widePrimaryLinkStyle: CSSProperties = {
   padding: "0 18px",
   background: "#ffffff",
   color: "#0f172a",
-  fontWeight: 950,
+  fontWeight: 800,
   textDecoration: "none",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: 16,
+  fontSize: 18,
 };
 
 const wideSecondaryButtonStyle: CSSProperties = {
   width: "100%",
-  minHeight: 58,
+  minHeight: 56,
   borderRadius: 18,
-  border: "1px solid rgba(255,255,255,0.12)",
+  border: "1px solid rgba(255,255,255,0.1)",
   padding: "0 18px",
   background: "rgba(255,255,255,0.055)",
   color: "#ffffff",
-  fontWeight: 950,
+  fontWeight: 800,
   textDecoration: "none",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
-  fontSize: 16,
+  fontSize: 17,
 };
 
 const emptyTransferStyle: CSSProperties = {
@@ -1260,7 +1280,7 @@ const centerInfoStyle: CSSProperties = {
 
 const qrImageWrapStyle: CSSProperties = {
   margin: "24px auto 0",
-  width: 260,
+  width: 280,
   maxWidth: "100%",
   borderRadius: 24,
   padding: 12,
@@ -1294,11 +1314,11 @@ const phaseCategoryBadgeStyle: CSSProperties = {
   alignItems: "center",
   borderRadius: 999,
   padding: "0 10px",
-  background: "rgba(59,130,246,0.18)",
-  color: "#dbeafe",
-  fontSize: 12,
-  fontWeight: 950,
-  border: "1px solid rgba(147,197,253,0.28)",
+  background: "rgba(255,255,255,0.06)",
+  color: "rgba(255,255,255,0.78)",
+  fontSize: 13,
+  fontWeight: 700,
+  border: "1px solid rgba(255,255,255,0.08)",
 };
 
 const phaseVerifiedSoftBadgeStyle: CSSProperties = {
