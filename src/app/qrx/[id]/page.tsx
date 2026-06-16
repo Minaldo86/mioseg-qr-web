@@ -1,14 +1,51 @@
+import type { CSSProperties } from "react";
 import styles from "./page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import TrackViewClient from "./TrackViewClient";
 import QrxReportForm from "./QrxReportForm";
 import QrxPasswordGate from "./QrxPasswordGate";
 
 type NewsItem = { text: string; createdAt: string };
 
+type BusinessCategory =
+  | "praxis_gesundheit"
+  | "gastronomie"
+  | "unternehmen"
+  | "dienstleistung"
+  | "handwerk"
+  | "event"
+  | "verein"
+  | "wohltaetigkeit"
+  | "sehenswuerdigkeit"
+  | "sonstiges";
+
+const BUSINESS_CATEGORY_OPTIONS: Array<{
+  value: BusinessCategory;
+  label: string;
+  icon: string;
+}> = [
+  { value: "praxis_gesundheit", label: "Praxis & Gesundheit", icon: "🏥" },
+  { value: "gastronomie", label: "Gastronomie", icon: "🍽️" },
+  { value: "unternehmen", label: "Unternehmen", icon: "🏢" },
+  { value: "dienstleistung", label: "Dienstleistung", icon: "🛠️" },
+  { value: "handwerk", label: "Handwerk", icon: "🔨" },
+  { value: "event", label: "Event", icon: "📅" },
+  { value: "verein", label: "Verein", icon: "👥" },
+  { value: "wohltaetigkeit", label: "Wohltätigkeit", icon: "♡" },
+  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit", icon: "📷" },
+  { value: "sonstiges", label: "Sonstiges", icon: "▦" },
+];
+
+function getBusinessCategoryMeta(value: string | null | undefined) {
+  if (!value) return null;
+  return BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value) ?? null;
+}
+
 type QrxEntry = {
   id: string;
+  owner_user_id: string | null;
   title: string;
   description: string | null;
   news: NewsItem[] | null;
@@ -17,6 +54,7 @@ type QrxEntry = {
   location_lng: number | null;
   logo_url: string | null;
   type: "normal" | "business" | null;
+  category: string | null;
   verified: boolean | null;
   cover_image_url: string | null;
   cta_phone: string | null;
@@ -30,6 +68,9 @@ type QrxEntry = {
   deleted_reason: string | null;
   deleted_by_admin: boolean | null;
   password_protected: boolean | null;
+  views_total: number | null;
+  follower_count: number | null;
+  created_at: string | null;
 };
 
 type QrxMedia = {
@@ -39,6 +80,21 @@ type QrxMedia = {
   url: string;
   filename: string;
   bytes?: number | null;
+};
+
+type TransferHistoryItem = {
+  id?: string;
+  transfer_id?: string;
+  qrx_id?: string;
+  status?: string;
+  created_at?: string;
+  accepted_at?: string | null;
+  expires_at?: string | null;
+  from_user_id?: string | null;
+  from_name?: string | null;
+  to_user_id?: string | null;
+  to_name?: string | null;
+  recipient_email?: string | null;
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -89,6 +145,35 @@ function normalizeNavigation(value: string | null | undefined): string | null {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
 }
 
+function formatNumber(value: number | null | undefined) {
+  const numberValue = Number(value ?? 0);
+  if (!Number.isFinite(numberValue)) return "0";
+  return new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.max(0, numberValue));
+}
+
+function formatDate(value: string | null | undefined) {
+  if (!value) return "–";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "–";
+  return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", year: "numeric" }).format(date);
+}
+
+function normalizeNewsItems(value: NewsItem[] | null | undefined) {
+  const raw = Array.isArray(value) ? value : [];
+  return raw
+    .filter((item) => typeof item?.text === "string" && item.text.trim().length > 0)
+    .map((item, index) => ({
+      id: `${item.createdAt ?? "news"}-${index}`,
+      text: item.text.trim(),
+      createdAt: typeof item.createdAt === "string" ? item.createdAt : "",
+    }))
+    .sort((a, b) => {
+      const ta = new Date(a.createdAt).getTime();
+      const tb = new Date(b.createdAt).getTime();
+      return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
+    });
+}
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -114,6 +199,7 @@ export default async function QrxPage({
     .from("qr_x_entries")
     .select(`
       id,
+      owner_user_id,
       title,
       description,
       news,
@@ -122,6 +208,7 @@ export default async function QrxPage({
       location_lng,
       logo_url,
       type,
+      category,
       verified,
       cover_image_url,
       cta_phone,
@@ -134,7 +221,10 @@ export default async function QrxPage({
       deleted_at,
       deleted_reason,
       deleted_by_admin,
-      password_protected
+      password_protected,
+      views_total,
+      follower_count,
+      created_at
     `)
     .eq("id", qrxId)
     .maybeSingle()
@@ -145,6 +235,60 @@ export default async function QrxPage({
     .select("id, qrx_id, type, url, filename, bytes")
     .eq("qrx_id", qrxId)
     .returns<QrxMedia[]>();
+
+  const { data: userData } = await supabase.auth.getUser();
+  const currentUserId = userData.user?.id ?? null;
+
+  const { count: saveCountRaw } = await supabase
+    .from("qrx_saves")
+    .select("*", { count: "exact", head: true })
+    .eq("qrx_id", qrxId);
+
+  const { data: savedRow } = currentUserId
+    ? await supabase
+        .from("qrx_saves")
+        .select("qrx_id")
+        .eq("qrx_id", qrxId)
+        .eq("user_id", currentUserId)
+        .maybeSingle()
+    : { data: null };
+
+  const isOwner = Boolean(entry?.owner_user_id && currentUserId && entry.owner_user_id === currentUserId);
+
+  const { data: transferHistoryRaw } = isOwner
+    ? await supabase.rpc("get_qrx_transfer_history", { p_qrx_id: qrxId })
+    : { data: [] };
+
+  async function toggleFollowAction() {
+    "use server";
+
+    const actionSupabase = createSupabaseServerClient();
+    const { data: actionUserData } = await actionSupabase.auth.getUser();
+    const actionUserId = actionUserData.user?.id ?? null;
+
+    if (!actionUserId) return;
+
+    const { data: existing } = await actionSupabase
+      .from("qrx_saves")
+      .select("qrx_id")
+      .eq("qrx_id", qrxId)
+      .eq("user_id", actionUserId)
+      .maybeSingle();
+
+    if (existing) {
+      await actionSupabase
+        .from("qrx_saves")
+        .delete()
+        .eq("qrx_id", qrxId)
+        .eq("user_id", actionUserId);
+    } else {
+      await actionSupabase
+        .from("qrx_saves")
+        .upsert({ qrx_id: qrxId, user_id: actionUserId }, { onConflict: "qrx_id,user_id" });
+    }
+
+    revalidatePath(`/qrx/${qrxId}`);
+  }
 
   const h = await headers();
   const ua = h.get("user-agent");
@@ -164,6 +308,9 @@ export default async function QrxPage({
     hasAdminAccess,
     mediaCount: (media ?? []).length,
     mediaErr: toErrorMessage(mediaErr),
+    currentUserId,
+    saveCount: saveCountRaw ?? entry?.follower_count ?? 0,
+    hasSaved: Boolean(savedRow),
     env: {
       SUPABASE_URL: !!process.env.SUPABASE_URL,
       SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
@@ -247,6 +394,17 @@ export default async function QrxPage({
   const navigationUrl = normalizeNavigation(entry.cta_navigation);
   const phoneUrl = entry.cta_phone?.trim() ? `tel:${entry.cta_phone.trim()}` : null;
   const emailUrl = entry.cta_email?.trim() ? `mailto:${entry.cta_email.trim()}` : null;
+  const categoryMeta = getBusinessCategoryMeta(entry.category);
+  const newsItems = normalizeNewsItems(entry.news);
+  const transferHistory = ((transferHistoryRaw ?? []) as TransferHistoryItem[]).sort((a, b) => {
+    const ta = a?.created_at ? new Date(a.created_at).getTime() : 0;
+    const tb = b?.created_at ? new Date(b.created_at).getTime() : 0;
+    return tb - ta;
+  });
+  const totalMediaCount = (media ?? []).length;
+  const followerCount = saveCountRaw ?? entry.follower_count ?? 0;
+  const publicQrxUrl = `https://www.mioseg-qr.com/qrx/${qrxId}`;
+  const publicQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=1024x1024&margin=28&data=${encodeURIComponent(publicQrxUrl)}`;
 
   return (
     <main className={styles.page}>
@@ -258,6 +416,11 @@ export default async function QrxPage({
           <div>
             <h1 className={styles.title}>{entry.title}</h1>
             <p className={styles.sub}>Aktuelle Informationen zum QR-X</p>
+            {categoryMeta ? (
+              <div style={phaseBadgeRowStyle}>
+                <span style={phaseCategoryBadgeStyle}>{categoryMeta.icon} {categoryMeta.label}</span>
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.ctaCol}>
@@ -310,6 +473,16 @@ export default async function QrxPage({
             ) : null}
 
             <h1 className={styles.businessCompanyName}>{companyName}</h1>
+
+            {entry.title?.trim() && entry.title.trim() !== companyName ? (
+              <div style={phaseSubtitleStyle}>{entry.title.trim()}</div>
+            ) : null}
+
+            {categoryMeta ? (
+              <div style={phaseBadgeRowStyle}>
+                <span style={phaseCategoryBadgeStyle}>{categoryMeta.icon} {categoryMeta.label}</span>
+              </div>
+            ) : null}
 
             {(hasWebsite || hasPhone || hasEmail) && (
               <div className={styles.businessHeroActions}>
@@ -377,6 +550,39 @@ export default async function QrxPage({
           <img className={styles.logo} src={entry.logo_url} alt="Logo" />
         </div>
       )}
+
+      <section className={styles.section}>
+        <div style={phaseStatsGridStyle}>
+          <div style={phaseStatCardStyle}>
+            <span style={phaseStatIconStyle}>👥</span>
+            <div>
+              <strong style={phaseStatValueStyle}>{formatNumber(followerCount)}</strong>
+              <span style={phaseStatLabelStyle}>Follower</span>
+            </div>
+          </div>
+          <div style={phaseStatCardStyle}>
+            <span style={phaseStatIconStyle}>🖼️</span>
+            <div>
+              <strong style={phaseStatValueStyle}>{formatNumber(totalMediaCount)}</strong>
+              <span style={phaseStatLabelStyle}>Medien</span>
+            </div>
+          </div>
+          <div style={phaseStatCardStyle}>
+            <span style={phaseStatIconStyle}>📰</span>
+            <div>
+              <strong style={phaseStatValueStyle}>{formatNumber(newsItems.length)}</strong>
+              <span style={phaseStatLabelStyle}>Updates</span>
+            </div>
+          </div>
+          <div style={phaseStatCardStyle}>
+            <span style={phaseStatIconStyle}>👁️</span>
+            <div>
+              <strong style={phaseStatValueStyle}>{formatNumber(entry.views_total)}</strong>
+              <span style={phaseStatLabelStyle}>Aufrufe</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.h2}>Beschreibung</h2>
@@ -447,12 +653,12 @@ export default async function QrxPage({
       <section className={styles.section}>
         <h2 className={styles.h2}>News & Aktualisierungen</h2>
 
-        {(entry.news ?? []).length === 0 ? (
+        {newsItems.length === 0 ? (
           <p className={styles.muted}>Noch keine News vorhanden.</p>
         ) : (
           <div className={styles.newsBox}>
-            {(entry.news ?? []).map((n, idx) => (
-              <div key={`${n.createdAt}-${idx}`} className={styles.newsRow}>
+            {newsItems.map((n) => (
+              <div key={n.id} className={styles.newsRow}>
                 <div className={styles.newsText}>{n.text}</div>
                 <div className={styles.newsDate}>{new Date(n.createdAt).toLocaleString()}</div>
               </div>
@@ -460,6 +666,77 @@ export default async function QrxPage({
           </div>
         )}
       </section>
+
+      <section className={styles.section}>
+        <div style={phaseActionsGridStyle}>
+          <div style={phaseActionBoxStyle}>
+            <h2 className={styles.h2}>Gefolgt</h2>
+            <p className={styles.muted} style={{ marginTop: 0 }}>
+              {currentUserId
+                ? savedRow
+                  ? "Dieser QR-X ist in deinen gespeicherten Einträgen."
+                  : "Folge diesem QR-X, damit du ihn später leichter wiederfindest."
+                : "Melde dich an, um diesem QR-X zu folgen."}
+            </p>
+            {currentUserId ? (
+              <form action={toggleFollowAction}>
+                <button type="submit" style={phasePrimaryButtonStyle}>
+                  {savedRow ? "Folgen beenden" : "QR-X folgen"}
+                </button>
+              </form>
+            ) : (
+              <a href={`/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`} style={phasePrimaryLinkStyle}>
+                Zum Login
+              </a>
+            )}
+            <div style={phaseSmallInfoStyle}>Gespeichert von {formatNumber(followerCount)} Nutzer{Number(followerCount) === 1 ? "" : "n"}</div>
+          </div>
+
+          <div style={phaseActionBoxStyle}>
+            <h2 className={styles.h2}>QR-X Bild</h2>
+            <p className={styles.muted} style={{ marginTop: 0 }}>
+              Lade den öffentlichen QR-Code als PNG herunter oder kopiere den Link.
+            </p>
+            <div style={phaseQrWrapStyle}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={publicQrUrl} alt="QR-X Code" style={phaseQrImageStyle} />
+            </div>
+            <div style={phaseButtonRowStyle}>
+              <a href={publicQrUrl} download={`mioseg-qrx-${qrxId}.png`} style={phasePrimaryLinkStyle}>
+                QR-Code herunterladen
+              </a>
+              <a href={publicQrxUrl} style={phaseSecondaryLinkStyle}>
+                Link öffnen
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {isOwner ? (
+        <section className={styles.section}>
+          <h2 className={styles.h2}>Transfer</h2>
+          {transferHistory.length === 0 ? (
+            <p className={styles.muted}>Noch kein Transfer-Verlauf vorhanden.</p>
+          ) : (
+            <div style={phaseTransferListStyle}>
+              {transferHistory.map((item, index) => (
+                <div key={item.id ?? item.transfer_id ?? `${item.created_at}-${index}`} style={phaseTransferCardStyle}>
+                  <div style={phaseTransferTopStyle}>
+                    <strong>{item.status ?? "Transfer"}</strong>
+                    <span>{formatDate(item.created_at)}</span>
+                  </div>
+                  {item.recipient_email ? <span>Empfänger: {item.recipient_email}</span> : null}
+                  {item.from_name ? <span>Von: {item.from_name}</span> : null}
+                  {item.to_name ? <span>An: {item.to_name}</span> : null}
+                  {item.accepted_at ? <span>Angenommen: {formatDate(item.accepted_at)}</span> : null}
+                  {item.expires_at ? <span>Ablauf: {formatDate(item.expires_at)}</span> : null}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
 
       <section
         className={styles.section}
@@ -538,3 +815,178 @@ export default async function QrxPage({
     </main>
   );
 }
+
+
+const phaseBadgeRowStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 8,
+  marginTop: 10,
+};
+
+const phaseCategoryBadgeStyle: CSSProperties = {
+  minHeight: 32,
+  display: "inline-flex",
+  alignItems: "center",
+  borderRadius: 999,
+  padding: "0 10px",
+  background: "rgba(59,130,246,0.18)",
+  color: "#dbeafe",
+  fontSize: 12,
+  fontWeight: 950,
+  border: "1px solid rgba(147,197,253,0.28)",
+};
+
+const phaseSubtitleStyle: CSSProperties = {
+  marginTop: 8,
+  color: "#bfdbfe",
+  fontSize: 16,
+  fontWeight: 950,
+};
+
+const phaseStatsGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+  gap: 12,
+};
+
+const phaseStatCardStyle: CSSProperties = {
+  borderRadius: 22,
+  padding: 16,
+  background: "rgba(255,255,255,0.055)",
+  border: "1px solid rgba(255,255,255,0.09)",
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+};
+
+const phaseStatIconStyle: CSSProperties = {
+  width: 42,
+  height: 42,
+  borderRadius: 16,
+  display: "grid",
+  placeItems: "center",
+  background: "rgba(255,255,255,0.08)",
+  fontSize: 20,
+};
+
+const phaseStatValueStyle: CSSProperties = {
+  display: "block",
+  color: "#ffffff",
+  fontSize: 22,
+  fontWeight: 950,
+};
+
+const phaseStatLabelStyle: CSSProperties = {
+  display: "block",
+  color: "#94a3b8",
+  fontSize: 12,
+  fontWeight: 850,
+};
+
+const phaseActionsGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+  gap: 16,
+};
+
+const phaseActionBoxStyle: CSSProperties = {
+  borderRadius: 24,
+  padding: 18,
+  background: "rgba(255,255,255,0.055)",
+  border: "1px solid rgba(255,255,255,0.09)",
+  display: "grid",
+  gap: 14,
+};
+
+const phasePrimaryButtonStyle: CSSProperties = {
+  minHeight: 44,
+  borderRadius: 999,
+  border: 0,
+  padding: "0 18px",
+  background: "#ffffff",
+  color: "#0f172a",
+  fontWeight: 950,
+  cursor: "pointer",
+};
+
+const phasePrimaryLinkStyle: CSSProperties = {
+  minHeight: 44,
+  borderRadius: 999,
+  padding: "0 18px",
+  background: "#ffffff",
+  color: "#0f172a",
+  fontWeight: 950,
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const phaseSecondaryLinkStyle: CSSProperties = {
+  minHeight: 44,
+  borderRadius: 999,
+  padding: "0 18px",
+  background: "rgba(255,255,255,0.08)",
+  color: "#ffffff",
+  fontWeight: 950,
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  border: "1px solid rgba(255,255,255,0.12)",
+};
+
+const phaseSmallInfoStyle: CSSProperties = {
+  color: "#bfdbfe",
+  fontSize: 13,
+  fontWeight: 900,
+};
+
+const phaseQrWrapStyle: CSSProperties = {
+  width: 190,
+  height: 190,
+  borderRadius: 24,
+  padding: 12,
+  background: "#ffffff",
+  justifySelf: "center",
+  boxShadow: "0 18px 44px rgba(0,0,0,0.22)",
+};
+
+const phaseQrImageStyle: CSSProperties = {
+  display: "block",
+  width: "100%",
+  height: "100%",
+  borderRadius: 16,
+};
+
+const phaseButtonRowStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 10,
+};
+
+const phaseTransferListStyle: CSSProperties = {
+  display: "grid",
+  gap: 12,
+};
+
+const phaseTransferCardStyle: CSSProperties = {
+  borderRadius: 18,
+  padding: 14,
+  background: "rgba(255,255,255,0.055)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  color: "#cbd5e1",
+  display: "grid",
+  gap: 6,
+  fontSize: 13,
+  fontWeight: 800,
+};
+
+const phaseTransferTopStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  flexWrap: "wrap",
+  color: "#ffffff",
+};
