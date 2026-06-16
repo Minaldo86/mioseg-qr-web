@@ -22,7 +22,9 @@ type BusinessCategory =
   | "sehenswuerdigkeit"
   | "sonstiges";
 type VerificationStatus = "pending" | "approved" | "rejected" | string;
+type NewsItem = { text: string; createdAt: string };
 
+const MAX_VISIBLE_NEWS = 5;
 const QRX_VERIFICATION_BUCKET = "qrx-verification-documents";
 const QRX_VERIFICATION_COST_CREDITS = 10;
 
@@ -51,6 +53,7 @@ type QrxEntry = {
   title: string | null;
   company_name: string | null;
   description: string | null;
+  news: NewsItem[] | null;
   type: QrxType | string | null;
   location_name: string | null;
   location_lat: number | null;
@@ -148,6 +151,40 @@ function parseOptionalNumber(value: string, label: string) {
 function formatOptionalNumber(value: number | null | undefined) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "";
   return String(value);
+}
+
+function normalizeNewsItems(value: NewsItem[] | null | undefined) {
+  const raw = Array.isArray(value) ? value : [];
+
+  return raw
+    .filter((item) => typeof item?.text === "string" && item.text.trim().length > 0)
+    .map((item) => ({
+      text: item.text.trim(),
+      createdAt: typeof item.createdAt === "string" && item.createdAt.trim()
+        ? item.createdAt
+        : new Date().toISOString(),
+    }))
+    .sort((a, b) => {
+      const ta = new Date(a.createdAt).getTime();
+      const tb = new Date(b.createdAt).getTime();
+      return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
+    });
+}
+
+function formatNewsDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Gerade eben";
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function formatMb(value: number) {
+  return `${value.toFixed(1).replace(".", ",")} MB`;
 }
 
 function getSafeQrxType(value: string | null | undefined): QrxType {
@@ -255,6 +292,8 @@ export default function EditQrxPage() {
   const [companyName, setCompanyName] = useState("");
   const [category, setCategory] = useState<BusinessCategory | "">("");
   const [description, setDescription] = useState("");
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
+  const [newsInput, setNewsInput] = useState("");
   const [locationName, setLocationName] = useState("");
   const [locationLat, setLocationLat] = useState("");
   const [locationLng, setLocationLng] = useState("");
@@ -660,7 +699,7 @@ export default function EditQrxPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,category,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb",
+          "id,owner_user_id,title,company_name,category,description,news,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -678,6 +717,8 @@ export default function EditQrxPage() {
       setCompanyName(data.company_name ?? "");
       setCategory(getSafeBusinessCategory(data.category));
       setDescription(data.description ?? "");
+      setNewsItems(normalizeNewsItems(data.news));
+      setNewsInput("");
       setLocationName(data.location_name ?? "");
       setLocationLat(formatOptionalNumber(data.location_lat));
       setLocationLng(formatOptionalNumber(data.location_lng));
@@ -744,6 +785,10 @@ export default function EditQrxPage() {
 
       const user = await getCurrentUserOrThrow();
 
+      if (projectedAdditionalCredits > 0 && credits != null && credits < projectedAdditionalCredits) {
+        throw new Error(`Nicht genug Credits für zusätzlichen Speicher. Benötigt: ${projectedAdditionalCredits}, vorhanden: ${credits}. Bitte kaufe zuerst Credits und klicke danach auf „Credits aktualisieren“ .`);
+      }
+
       const { error } = await supabase
         .from("qr_x_entries")
         .update({
@@ -751,6 +796,7 @@ export default function EditQrxPage() {
           company_name: qrxType === "business" ? toNullable(companyName) : null,
           category: qrxType === "business" ? category || null : null,
           description: toNullable(description),
+          news: normalizeNewsItems(newsItems),
           type: qrxType,
           location_name: locationMode === "none" ? null : toNullable(locationName),
           location_lat: lat,
@@ -970,6 +1016,27 @@ export default function EditQrxPage() {
     const selected = Array.from(event.target.files ?? []);
     if (selected.length > 0) setFileUploads((current) => [...current, ...selected]);
     event.target.value = "";
+  }
+
+  function handleAddNewsItem() {
+    const text = newsInput.trim();
+    if (!text) {
+      setErrorText("Bitte gib zuerst einen News-Text ein.");
+      return;
+    }
+
+    setNewsItems((current) =>
+      normalizeNewsItems([
+        { text, createdAt: new Date().toISOString() },
+        ...current,
+      ]),
+    );
+    setNewsInput("");
+    setErrorText(null);
+  }
+
+  function handleRemoveNewsItem(indexToRemove: number) {
+    setNewsItems((current) => current.filter((_, index) => index !== indexToRemove));
   }
 
 
@@ -1206,6 +1273,49 @@ export default function EditQrxPage() {
                 style={{ ...inputStyle, minHeight: 140, paddingTop: 14, resize: "vertical" }}
               />
             </label>
+
+            <div style={sectionBoxStyle}>
+              <div>
+                <h3 style={sectionTitleStyle}>News & Aktualisierung</h3>
+                <p style={sectionHintStyle}>
+                  Informiere Nutzer über Änderungen, Angebote oder wichtige Hinweise. Es werden maximal 5 News direkt angezeigt, danach ist der Bereich scrollbar.
+                </p>
+              </div>
+
+              <label style={labelStyle}>
+                Neuer News-Eintrag
+                <textarea
+                  value={newsInput}
+                  onChange={(event) => setNewsInput(event.target.value)}
+                  style={{ ...inputStyle, minHeight: 110, paddingTop: 14, resize: "vertical" }}
+                  placeholder="z. B. Neue Öffnungszeiten, neue Speisekarte, aktuelles Angebot …"
+                />
+              </label>
+
+              <button type="button" onClick={handleAddNewsItem} style={addNewsButtonStyle}>
+                + News hinzufügen
+              </button>
+
+              {newsItems.length > 0 ? (
+                <div style={newsListViewportStyle(newsItems.length > MAX_VISIBLE_NEWS)}>
+                  {newsItems.map((item, index) => (
+                    <div key={`${item.createdAt}-${index}`} style={newsItemCardStyle}>
+                      <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
+                        <strong style={{ color: "#ffffff", lineHeight: 1.45, whiteSpace: "pre-wrap" }}>{item.text}</strong>
+                        <span style={{ color: "#94a3b8", fontSize: 12, fontWeight: 800 }}>
+                          {formatNewsDate(item.createdAt)}
+                        </span>
+                      </div>
+                      <button type="button" onClick={() => handleRemoveNewsItem(index)} style={miniDangerButtonStyle}>
+                        Löschen
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={emptyTextStyle}>Noch keine News vorhanden.</p>
+              )}
+            </div>
 
             <div style={sectionBoxStyle}>
               <div>
@@ -1479,6 +1589,60 @@ export default function EditQrxPage() {
             ) : null}
           </div>
 
+          <div style={creditBuyBoxStyle(projectedAdditionalCredits > 0 && credits != null && credits < projectedAdditionalCredits)}>
+            <div>
+              <h3 style={sectionTitleStyle}>Credits & Zusatzkosten</h3>
+              <p style={sectionHintStyle}>
+                Wenn beim Bearbeiten zusätzlicher Speicher benötigt wird, werden nur die neuen Speicherpakete berechnet.
+              </p>
+            </div>
+
+            <div style={creditSummaryGridStyle}>
+              <div style={creditMetricStyle}>
+                <span>Aktuelle Credits</span>
+                <strong>{credits == null ? "…" : credits}</strong>
+              </div>
+              <div style={creditMetricStyle}>
+                <span>Zusätzliche Speicher-Credits</span>
+                <strong>{projectedAdditionalCredits}</strong>
+              </div>
+              <div style={creditMetricStyle}>
+                <span>Fehlende Credits</span>
+                <strong>{credits == null ? "…" : Math.max(0, projectedAdditionalCredits - credits)}</strong>
+              </div>
+            </div>
+
+            {projectedAdditionalCredits > 0 && credits != null && credits < projectedAdditionalCredits ? (
+              <p style={{ margin: 0, color: "#fecaca", lineHeight: 1.55, fontWeight: 900 }}>
+                Für die ausgewählten Medien fehlen noch {projectedAdditionalCredits - credits} Credit
+                {(projectedAdditionalCredits - credits) === 1 ? "" : "s"}. Kaufe Credits im neuen Tab und aktualisiere danach diese Seite.
+              </p>
+            ) : (
+              <p style={{ margin: 0, color: projectedAdditionalCredits > 0 ? "#fde68a" : "#bbf7d0", lineHeight: 1.55, fontWeight: 850 }}>
+                {projectedAdditionalCredits > 0
+                  ? `Beim Speichern werden voraussichtlich ${projectedAdditionalCredits} zusätzliche Speicher-Credit${projectedAdditionalCredits === 1 ? "" : "s"} benötigt.`
+                  : "Für die aktuelle Auswahl sind keine zusätzlichen Speicher-Credits nötig."}
+              </p>
+            )}
+
+            <div style={creditActionRowStyle}>
+              <Link href={`/${locale}/dashboard/credits`} target="_blank" rel="noopener noreferrer" className={styles.primaryButton}>
+                💳 Credits kaufen
+              </Link>
+              <button
+                type="button"
+                onClick={async () => {
+                  const user = await getCurrentUserOrThrow();
+                  await loadCreditBalance(user.id);
+                  setSuccessText("Credits wurden aktualisiert.");
+                }}
+                style={refreshCreditsButtonStyle}
+              >
+                Credits aktualisieren
+              </button>
+            </div>
+          </div>
+
           <div style={mediaGridStyle}>
             <div style={mediaUploadBoxStyle}>
               <h3 style={mediaTitleStyle}>Logo</h3>
@@ -1584,8 +1748,8 @@ export default function EditQrxPage() {
                 Abbrechen
               </Link>
 
-              <button type="submit" disabled={saving || verificationSaving || mediaSaving} className={styles.primaryButton} style={{ border: 0, cursor: saving || verificationSaving || mediaSaving ? "not-allowed" : "pointer", opacity: saving || verificationSaving || mediaSaving ? 0.72 : 1 }}>
-                {saving ? "Speichert …" : "QR-X speichern"}
+              <button type="submit" disabled={saving || verificationSaving || mediaSaving || (projectedAdditionalCredits > 0 && credits != null && credits < projectedAdditionalCredits)} className={styles.primaryButton} style={{ border: 0, cursor: saving || verificationSaving || mediaSaving || (projectedAdditionalCredits > 0 && credits != null && credits < projectedAdditionalCredits) ? "not-allowed" : "pointer", opacity: saving || verificationSaving || mediaSaving || (projectedAdditionalCredits > 0 && credits != null && credits < projectedAdditionalCredits) ? 0.72 : 1 }}>
+                {saving ? "Speichert …" : projectedAdditionalCredits > 0 && credits != null && credits < projectedAdditionalCredits ? "Nicht genug Credits" : "QR-X speichern"}
               </button>
             </div>
           </form>
@@ -1598,6 +1762,88 @@ export default function EditQrxPage() {
   );
 }
 
+
+const addNewsButtonStyle: CSSProperties = {
+  minHeight: 48,
+  borderRadius: 16,
+  border: "1px solid rgba(250,204,21,0.34)",
+  background: "linear-gradient(135deg, rgba(250,204,21,0.98), rgba(251,146,60,0.88))",
+  color: "#111827",
+  fontWeight: 950,
+  cursor: "pointer",
+  justifySelf: "start",
+  padding: "0 18px",
+};
+
+function newsListViewportStyle(scrollable: boolean): CSSProperties {
+  return {
+    display: "grid",
+    gap: 10,
+    maxHeight: scrollable ? 430 : "none",
+    overflowY: scrollable ? "auto" : "visible",
+    paddingRight: scrollable ? 8 : 0,
+    overscrollBehavior: "contain",
+    scrollbarWidth: "thin",
+  };
+}
+
+const newsItemCardStyle: CSSProperties = {
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(15,23,42,0.58)",
+  border: "1px solid rgba(148,163,184,0.18)",
+  display: "flex",
+  alignItems: "flex-start",
+  justifyContent: "space-between",
+  gap: 12,
+  flexWrap: "wrap",
+};
+
+function creditBuyBoxStyle(warning: boolean): CSSProperties {
+  return {
+    borderRadius: 20,
+    padding: 14,
+    background: warning ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.045)",
+    border: warning ? "1px solid rgba(252,165,165,0.22)" : "1px solid rgba(255,255,255,0.08)",
+    display: "grid",
+    gap: 12,
+    marginBottom: 18,
+  };
+}
+
+const creditSummaryGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+  gap: 10,
+};
+
+const creditMetricStyle: CSSProperties = {
+  borderRadius: 14,
+  padding: 12,
+  background: "rgba(15,23,42,0.58)",
+  border: "1px solid rgba(148,163,184,0.18)",
+  display: "grid",
+  gap: 4,
+  color: "#ffffff",
+};
+
+const creditActionRowStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 10,
+  alignItems: "center",
+};
+
+const refreshCreditsButtonStyle: CSSProperties = {
+  minHeight: 44,
+  borderRadius: 999,
+  border: "1px solid rgba(148,163,184,0.22)",
+  background: "rgba(255,255,255,0.075)",
+  color: "#ffffff",
+  fontWeight: 950,
+  cursor: "pointer",
+  padding: "0 18px",
+};
 
 const inlineMediaSectionStyle: CSSProperties = {
   borderRadius: 24,
