@@ -368,11 +368,6 @@ export default async function QrxPage({
   const files: QrxMedia[] = (media ?? []).filter((m) => m.type === "file");
 
   const isBusiness = entry.type === "business";
-  const hasWebsite = !!entry.cta_website?.trim();
-  const hasPhone = !!entry.cta_phone?.trim();
-  const hasEmail = !!entry.cta_email?.trim();
-  const hasNavigation = !!entry.cta_navigation?.trim();
-
   const companyName = entry.company_name?.trim() || entry.title;
   const logoUrl = entry.logo_url?.trim() || null;
   const coverUrl = entry.cover_image_url?.trim() || null;
@@ -528,7 +523,11 @@ export default async function QrxPage({
               App öffnen
             </a>
 
-            {currentUserId ? (
+            {isOwner ? (
+              <button type="button" style={{ ...phasePrimaryButtonStyle, cursor: "default" }} disabled>
+                ✓ Eigener QR-X
+              </button>
+            ) : currentUserId ? (
               <form action={toggleFollowAction} style={{ display: "contents" }}>
                 <button type="submit" style={phasePrimaryButtonStyle}>
                   {savedRow ? "✓ Bereits gefolgt" : "+ Folgen"}
@@ -536,7 +535,7 @@ export default async function QrxPage({
               </form>
             ) : (
               <a href={`/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`} style={phasePrimaryLinkStyle}>
-                Folgen
+                + Folgen
               </a>
             )}
 
@@ -679,7 +678,7 @@ export default async function QrxPage({
             <div>
               <h2 className={styles.h2}>QR-X Bild</h2>
               <p className={styles.muted} style={{ margin: 0 }}>
-                Lade den öffentlichen QR-Code als PNG herunter oder öffne den direkten Link.
+                Lade den öffentlichen QR-Code als PNG herunter oder kopiere den direkten Link.
               </p>
             </div>
           </div>
@@ -693,12 +692,41 @@ export default async function QrxPage({
               <a href={publicQrUrl} download={`mioseg-qrx-${qrxId}.png`} style={phasePrimaryLinkStyle}>
                 QR-Code herunterladen
               </a>
-              <a href={publicQrxUrl} style={phaseSecondaryLinkStyle}>
-                Link öffnen
-              </a>
+              <button type="button" id="copyQrxLinkBtn" data-qrx-url={publicQrxUrl} style={{ ...phaseSecondaryLinkStyle, border: "1px solid rgba(255,255,255,0.12)", cursor: "pointer" }}>
+                Link kopieren
+              </button>
             </div>
           </div>
         </section>
+
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+(function(){
+  var btn = document.getElementById("copyQrxLinkBtn");
+  if(!btn) return;
+
+  btn.addEventListener("click", function(){
+    var url = btn.getAttribute("data-qrx-url") || window.location.href;
+
+    function markCopied(){
+      var old = btn.textContent;
+      btn.textContent = "✓ Link kopiert";
+      setTimeout(function(){ btn.textContent = old || "Link kopieren"; }, 1600);
+    }
+
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(markCopied).catch(function(){
+        window.prompt("QR-X Link kopieren", url);
+      });
+      return;
+    }
+
+    window.prompt("QR-X Link kopieren", url);
+  });
+})();`.trim(),
+          }}
+        />
 
         {/* 9. Transfer – nur Besitzer */}
         {isOwner ? (
