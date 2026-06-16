@@ -580,8 +580,17 @@ export default async function QrxPage({
             <p style={mutedTextStyle}>Noch keine News vorhanden.</p>
           ) : (
             <div style={newsBoxStyle}>
-              {newsItems.map((n) => (
-                <article key={n.id} style={newsRowStyle}>
+              {newsItems.map((n, index) => (
+  <article
+    key={n.id}
+    style={{
+      ...newsRowStyle,
+      borderBottom:
+        index === newsItems.length - 1
+          ? "none"
+          : "1px solid rgba(65,84,103,0.6)",
+    }}
+  >
                   <div style={newsTextStyle}>{n.text}</div>
                   <div style={newsDateStyle}>{formatDate(n.createdAt)}</div>
                 </article>
@@ -1090,14 +1099,19 @@ const mutedCenterTextStyle: CSSProperties = {
 const newsBoxStyle: CSSProperties = {
   marginTop: 18,
   borderRadius: 22,
-  overflow: "hidden",
+  overflowY: "auto",
+  overflowX: "hidden",
+  maxHeight: 460,
   border: "1px solid rgba(65,84,103,0.75)",
   background: "rgba(255,255,255,0.025)",
+  scrollbarWidth: "thin",
+  scrollbarColor: "rgba(148,163,184,0.45) transparent",
+  overscrollBehavior: "contain",
+  paddingRight: 4,
 };
 
 const newsRowStyle: CSSProperties = {
   padding: "16px 18px",
-  borderBottom: "1px solid rgba(65,84,103,0.6)",
 };
 
 const newsTextStyle: CSSProperties = {
