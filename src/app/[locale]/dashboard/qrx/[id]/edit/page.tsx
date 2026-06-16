@@ -9,10 +9,34 @@ import { supabase } from "@/lib/supabase";
 import styles from "../../../dashboard.module.css";
 
 type QrxType = "normal" | "business";
+type BusinessCategory =
+  | "praxis_gesundheit"
+  | "gastronomie"
+  | "unternehmen"
+  | "dienstleistung"
+  | "handwerk"
+  | "event"
+  | "verein"
+  | "wohltaetigkeit"
+  | "sehenswuerdigkeit"
+  | "sonstiges";
 type VerificationStatus = "pending" | "approved" | "rejected" | string;
 
 const QRX_VERIFICATION_BUCKET = "qrx-verification-documents";
 const QRX_VERIFICATION_COST_CREDITS = 10;
+
+const BUSINESS_CATEGORY_OPTIONS = [
+  { value: "praxis_gesundheit", label: "Praxis & Gesundheit" },
+  { value: "gastronomie", label: "Gastronomie" },
+  { value: "unternehmen", label: "Unternehmen" },
+  { value: "dienstleistung", label: "Dienstleistung" },
+  { value: "handwerk", label: "Handwerk" },
+  { value: "event", label: "Event" },
+  { value: "verein", label: "Verein" },
+  { value: "wohltaetigkeit", label: "Wohltätigkeit" },
+  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit" },
+  { value: "sonstiges", label: "Sonstiges" },
+] as const;
 
 type QrxEntry = {
   id: string;
@@ -33,6 +57,7 @@ type QrxEntry = {
   password_protected: boolean | null;
   logo_url: string | null;
   cover_image_url: string | null;
+  category: BusinessCategory | null;
   storage_limit_mb: number | null;
 };
 
@@ -221,6 +246,7 @@ export default function EditQrxPage() {
   const [qrxType, setQrxType] = useState<QrxType>("normal");
   const [title, setTitle] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [category, setCategory] = useState<BusinessCategory | "">("");
   const [description, setDescription] = useState("");
   const [locationName, setLocationName] = useState("");
   const [locationLat, setLocationLat] = useState("");
@@ -579,7 +605,7 @@ export default function EditQrxPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb",
+          "id,owner_user_id,title,company_name,description,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,category,storage_limit_mb",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -595,6 +621,7 @@ export default function EditQrxPage() {
       setQrxType(safeType);
       setTitle(data.title ?? "");
       setCompanyName(data.company_name ?? "");
+      setCategory((data.category as BusinessCategory) ?? "");
       setDescription(data.description ?? "");
       setLocationName(data.location_name ?? "");
       setLocationLat(formatOptionalNumber(data.location_lat));
@@ -666,6 +693,7 @@ export default function EditQrxPage() {
         .update({
           title: nextTitle,
           company_name: qrxType === "business" ? toNullable(companyName) : null,
+          category: qrxType === "business" ? category || null : null,
           description: toNullable(description),
           type: qrxType,
           location_name: toNullable(locationName),
@@ -1082,6 +1110,24 @@ export default function EditQrxPage() {
               <label style={labelStyle}>
                 Firmenname
                 <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} style={inputStyle} />
+              </label>
+            ) : null}
+
+            {isBusiness ? (
+              <label style={labelStyle}>
+                Kategorie
+                <select
+                  value={category}
+                  onChange={(event) => setCategory(event.target.value as BusinessCategory)}
+                  style={inputStyle}
+                >
+                  <option value="">Bitte auswählen</option>
+                  {BUSINESS_CATEGORY_OPTIONS.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
               </label>
             ) : null}
 
@@ -1502,6 +1548,7 @@ const inputStyle: CSSProperties = {
   fontWeight: 800,
   outline: "none",
   boxSizing: "border-box",
+  appearance: "none",
 };
 
 const dividerStyle: CSSProperties = {
