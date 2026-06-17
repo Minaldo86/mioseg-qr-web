@@ -78,7 +78,7 @@ export default async function Page({ params }: Props) {
           </div>
 
           <Image
-            src="/logo-white.png"
+            src="/logo-wwhite.png"
             alt="mioseg qr Logo"
             width={320}
             height={120}
@@ -271,7 +271,7 @@ export default async function Page({ params }: Props) {
                 }}
               >
                 <Image
-                  src="/logo-white.png"
+                  src="/logo-wwhite.png"
                   alt="mioseg qr"
                   width={80}
                   height={80}

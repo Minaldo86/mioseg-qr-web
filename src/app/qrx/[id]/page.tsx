@@ -741,7 +741,7 @@ export default async function QrxPage({
             value={publicQrxUrl}
             qrxId={qrxId}
             variant={isBusiness ? "business" : "normal"}
-            logoSrc="/logo-white.png"
+            logoSrc="/logo-wwhite.png"
           />
         </section>
 

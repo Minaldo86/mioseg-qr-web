@@ -124,7 +124,7 @@ export default function GetAppPage() {
                   <div className={styles.phoneHeroCard}>
                     <div className={styles.phoneLogoWrap}>
                       <img
-                        src="/logo-white.png"
+                        src="/logo-wwhite.png"
                         alt="mioseg qr Logo"
                         className={styles.phoneLogo}
                       />

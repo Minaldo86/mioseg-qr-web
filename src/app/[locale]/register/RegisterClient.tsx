@@ -152,7 +152,7 @@ export default function RegisterClient({ locale }: Props) {
     <main className={styles.page}>
       <header className={styles.topbar}>
         <Link href={`/${locale}`} className={styles.brand}>
-          <img src="/logo-white.png" alt="Mioseg qr Logo" />
+          <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
         </Link>
 
         <Link href={`/${locale}`} className={styles.navLink}>

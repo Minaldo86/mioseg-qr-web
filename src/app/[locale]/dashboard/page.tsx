@@ -71,7 +71,7 @@ export default async function DashboardPage({ params }: Props) {
     <main className={styles.page}>
       <header className={styles.topbar}>
         <Link href={`/${locale}`} className={styles.brand}>
-          <img src="/logo-white.png" alt={`${t.common.appName} Logo`} />
+          <img src="/logo-wwhite.png" alt={`${t.common.appName} Logo`} />
         </Link>
 
         <nav className={styles.nav} aria-label="Dashboard Navigation">

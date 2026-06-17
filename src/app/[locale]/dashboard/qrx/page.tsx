@@ -185,7 +185,7 @@ export default function DashboardQrxPage() {
     <main className={styles.page}>
       <header className={styles.topbar}>
         <Link href={`/${locale}/dashboard`} className={styles.brand}>
-          <img src="/logo-white.png" alt="Mioseg qr Logo" />
+          <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
         </Link>
 
         <nav className={styles.nav} aria-label="QR-X Navigation">

@@ -9,7 +9,7 @@ export default function SiteHeader() {
       <div className={styles.inner}>
         <Link href="/" className={styles.brand} aria-label="mioseg qr Startseite">
           <img
-            src="/logo-white.png"
+            src="/logo-wwhite.png"
             alt="mioseg qr Logo"
             className={styles.logo}
           />

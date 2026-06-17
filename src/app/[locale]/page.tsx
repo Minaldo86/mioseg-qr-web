@@ -387,7 +387,7 @@ export default async function Home({ params }: Props) {
       <section className="miosegProHero">
         <div className="miosegProNav">
           <Link href={`/${locale}`} className="miosegProBrand">
-            <img src="/logo-white.png" alt={`${t.common.appName} Logo`} />
+            <img src="/logo-wwhite.png" alt={`${t.common.appName} Logo`} />
           </Link>
 
           <nav className="miosegProNavLinks" aria-label="Landing Navigation">
@@ -565,7 +565,7 @@ export default async function Home({ params }: Props) {
             <div className={styles.downloadBrand}>
               <div className={styles.downloadLogoWrap}>
                 <img
-                  src="/logo-white.png"
+                  src="/logo-wwhite.png"
                   alt={`${t.common.appName} Download Logo`}
                   className={styles.downloadLogo}
                 />
