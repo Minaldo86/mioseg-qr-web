@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import TrackViewClient from "./TrackViewClient";
 import QrxReportForm from "./QrxReportForm";
 import QrxPasswordGate from "./QrxPasswordGate";
+import QrxCodeCanvas from "./QrxCodeCanvas";
 
 type NewsItem = { text: string; createdAt: string };
 
@@ -400,7 +401,6 @@ export default async function QrxPage({
   const totalMediaCount = (media ?? []).length;
   const followerCount = saveCountRaw ?? entry.follower_count ?? 0;
   const publicQrxUrl = `https://www.mioseg-qr.com/qrx/${qrxId}`;
-  const publicQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=1024x1024&margin=28&data=${encodeURIComponent(publicQrxUrl)}`;
 
   return (
     <main className={styles.page}>
@@ -737,60 +737,13 @@ export default async function QrxPage({
 
         {/* 11. QR-X Code */}
         <section style={{ ...sectionCardStyle, textAlign: "center" }}>
-          <h2 style={centerTitleStyle}>QR-X Code</h2>
-          <p style={mutedCenterTextStyle}>
-            Dieser QR-Code führt immer zur Web-Ansicht. Deep Link öffnet die App, falls installiert.
-          </p>
-
-          <div style={qrImageWrapStyle}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={publicQrUrl} alt="QR-X Code" style={qrImageStyle} />
-          </div>
-
-          <div style={qrButtonGridStyle}>
-            <a href={publicQrUrl} download={`mioseg-qrx-${qrxId}.png`} style={widePrimaryLinkStyle}>
-              ⇩ QR-Code als Bild speichern
-            </a>
-
-            <button
-              type="button"
-              id="copyQrxLinkBtn"
-              data-qrx-url={publicQrxUrl}
-              style={wideSecondaryButtonStyle}
-            >
-              Link kopieren
-            </button>
-          </div>
+          <QrxCodeCanvas
+            value={publicQrxUrl}
+            qrxId={qrxId}
+            variant={isBusiness ? "business" : "normal"}
+            logoSrc="/logo-white.png"
+          />
         </section>
-
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-(function(){
-  var btn = document.getElementById("copyQrxLinkBtn");
-  if(!btn) return;
-
-  btn.addEventListener("click", function(){
-    var url = btn.getAttribute("data-qrx-url") || window.location.href;
-
-    function markCopied(){
-      var old = btn.textContent;
-      btn.textContent = "✓ Link kopiert";
-      setTimeout(function(){ btn.textContent = old || "Link kopieren"; }, 1600);
-    }
-
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(url).then(markCopied).catch(function(){
-        window.prompt("QR-X Link kopieren", url);
-      });
-      return;
-    }
-
-    window.prompt("QR-X Link kopieren", url);
-  });
-})();`.trim(),
-          }}
-        />
 
         {/* 12. Inhalt melden */}
         <section style={sectionCardStyle}>
@@ -1060,10 +1013,6 @@ const cardTitleStyle: CSSProperties = {
   letterSpacing: "-0.02em",
 };
 
-const centerTitleStyle: CSSProperties = {
-  ...cardTitleStyle,
-  textAlign: "center",
-};
 
 const simpleTextStyle: CSSProperties = {
   margin: "12px 0 0",
@@ -1089,12 +1038,6 @@ const mutedTextStyle: CSSProperties = {
   lineHeight: 1.55,
 };
 
-const mutedCenterTextStyle: CSSProperties = {
-  ...mutedTextStyle,
-  textAlign: "center",
-  maxWidth: 720,
-  margin: "12px auto 0",
-};
 
 const newsBoxStyle: CSSProperties = {
   marginTop: 18,
@@ -1292,28 +1235,8 @@ const centerInfoStyle: CSSProperties = {
   fontSize: 15,
 };
 
-const qrImageWrapStyle: CSSProperties = {
-  margin: "24px auto 0",
-  width: 280,
-  maxWidth: "100%",
-  borderRadius: 24,
-  padding: 12,
-  background: "#ffffff",
-  boxShadow: "0 18px 44px rgba(0,0,0,0.22)",
-};
 
-const qrImageStyle: CSSProperties = {
-  display: "block",
-  width: "100%",
-  height: "auto",
-  borderRadius: 16,
-};
 
-const qrButtonGridStyle: CSSProperties = {
-  marginTop: 22,
-  display: "grid",
-  gap: 12,
-};
 
 const phaseBadgeRowStyle: CSSProperties = {
   display: "flex",
