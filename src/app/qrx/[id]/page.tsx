@@ -301,6 +301,7 @@ export default async function QrxPage({
   const h = await headers();
   const ua = h.get("user-agent");
   const showDownloadHint = isProbablyMobile(ua);
+  const isMobile = showDownloadHint;
 
   const debugPayload = {
     idParam: id,
@@ -401,6 +402,141 @@ export default async function QrxPage({
   const totalMediaCount = (media ?? []).length;
   const followerCount = saveCountRaw ?? entry.follower_count ?? 0;
   const publicQrxUrl = `https://www.mioseg-qr.com/qrx/${qrxId}`;
+
+  const sectionCardStyle: CSSProperties = {
+    width: isMobile ? "calc(100% - 16px)" : "min(960px, calc(100% - 32px))",
+    margin: "0 auto 16px",
+    borderRadius: isMobile ? 22 : 26,
+    padding: isMobile ? 18 : 22,
+    background: "#0D1728",
+    border: "1px solid rgba(59, 130, 246, 0.18)",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
+  };
+
+  const heroShellStyle: CSSProperties = {
+    width: isMobile ? "calc(100% - 16px)" : "min(960px, calc(100% - 32px))",
+    margin: "0 auto 16px",
+  };
+
+  const heroCardStyle: CSSProperties = {
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: isMobile ? 22 : 26,
+    minHeight: isMobile ? 240 : 316,
+    background: "#0D1728",
+    border: "1px solid rgba(59, 130, 246, 0.18)",
+    boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
+  };
+
+  const heroCoverImageStyle: CSSProperties = {
+    width: "100%",
+    height: isMobile ? 240 : 316,
+    objectFit: "cover",
+    display: "block",
+    filter: "brightness(0.72) blur(0.2px)",
+  };
+
+  const heroLogoFrameStyle: CSSProperties = {
+    width: isMobile ? 60 : 72,
+    height: isMobile ? 60 : 72,
+    borderRadius: isMobile ? 18 : 22,
+    overflow: "hidden",
+    background: "#ffffff",
+    border: "1px solid rgba(255,255,255,0.28)",
+  };
+
+  const heroTitleStyle: CSSProperties = {
+    margin: 0,
+    color: "#ffffff",
+    fontSize: isMobile ? 22 : 24,
+    lineHeight: 1.15,
+    fontWeight: 800,
+    textShadow: "0 8px 22px rgba(0,0,0,0.38)",
+  };
+
+  const verifiedNoticeStyle: CSSProperties = {
+    width: isMobile ? "calc(100% - 16px)" : "min(960px, calc(100% - 32px))",
+    margin: "0 auto 16px",
+    borderRadius: 24,
+    padding: isMobile ? 16 : 20,
+    background: "#06281F",
+    border: "1px solid rgba(52,211,153,0.34)",
+    display: "flex",
+    alignItems: "center",
+    gap: 18,
+    boxShadow: "0 8px 32px rgba(0,0,0,0.22)",
+  };
+
+  const profileStatsStyle: CSSProperties = {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: isMobile ? 10 : 14,
+  };
+
+  const profileStatBoxStyle: CSSProperties = {
+    minHeight: isMobile ? 82 : 92,
+    borderRadius: 20,
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    display: "grid",
+    placeItems: "center",
+    gap: 3,
+    color: "#ffffff",
+    textAlign: "center",
+  };
+
+  const profileStatValueStyle: CSSProperties = {
+    color: "#ffffff",
+    fontSize: isMobile ? 28 : 34,
+    lineHeight: 1,
+    fontWeight: 800,
+  };
+
+  const profileActionsStyle: CSSProperties = isMobile
+    ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 24 }
+    : { display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 };
+
+  const actionChipStyle: CSSProperties = {
+    width: isMobile ? "100%" : undefined,
+    minHeight: isMobile ? 52 : 46,
+    borderRadius: 999,
+    padding: "0 18px",
+    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(255,255,255,0.09)",
+    color: "#ffffff",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    textDecoration: "none",
+    fontWeight: 800,
+    fontSize: isMobile ? 16 : 15,
+  };
+
+  const appButtonStyle: CSSProperties = { ...actionChipStyle, background: "#ffffff", color: "#0f172a" };
+
+  const cardTitleStyle: CSSProperties = {
+    margin: 0, color: "#ffffff", fontSize: isMobile ? 18 : 22, lineHeight: 1.22, fontWeight: 800, letterSpacing: "-0.02em",
+  };
+
+  const simpleTextStyle: CSSProperties = {
+    margin: "12px 0 0", color: "rgba(255,255,255,0.86)", fontSize: isMobile ? 16 : 17, lineHeight: 1.55, fontWeight: 400,
+  };
+
+  const descriptionTextStyle: CSSProperties = {
+    margin: "18px 0 0", color: "rgba(255,255,255,0.84)", fontSize: isMobile ? 15 : 16, lineHeight: isMobile ? 1.7 : 1.65, whiteSpace: "pre-wrap", fontWeight: 400,
+  };
+
+  const imageGridStyle: CSSProperties = {
+    marginTop: 22, display: "grid",
+    gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fit, minmax(140px, 1fr))",
+    gap: isMobile ? 14 : 22,
+  };
+
+  const imageThumbStyle: CSSProperties = {
+    width: isMobile ? 96 : 112, height: isMobile ? 96 : 112, borderRadius: 18,
+    objectFit: "cover", display: "block", boxShadow: "0 14px 30px rgba(0,0,0,0.24)",
+  };
+
 
   return (
     <main className={styles.page}>
