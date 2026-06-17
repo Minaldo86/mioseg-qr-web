@@ -404,17 +404,21 @@ export default async function QrxPage({
   const publicQrxUrl = `https://www.mioseg-qr.com/qrx/${qrxId}`;
 
   const sectionCardStyle: CSSProperties = {
-    width: isMobile ? "calc(100% - 16px)" : "min(960px, calc(100% - 32px))",
+    width: isMobile ? "100%" : "min(960px, calc(100% - 32px))",
+    maxWidth: "100%",
+    boxSizing: "border-box",
     margin: "0 auto 16px",
-    borderRadius: isMobile ? 22 : 26,
-    padding: isMobile ? 18 : 22,
+    borderRadius: isMobile ? 20 : 26,
+    padding: isMobile ? 16 : 22,
     background: "#0D1728",
     border: "1px solid rgba(59, 130, 246, 0.18)",
     boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
   };
 
   const heroShellStyle: CSSProperties = {
-    width: isMobile ? "calc(100% - 16px)" : "min(960px, calc(100% - 32px))",
+    width: isMobile ? "100%" : "min(960px, calc(100% - 32px))",
+    maxWidth: "100%",
+    boxSizing: "border-box",
     margin: "0 auto 16px",
   };
 
@@ -455,9 +459,11 @@ export default async function QrxPage({
   };
 
   const verifiedNoticeStyle: CSSProperties = {
-    width: isMobile ? "calc(100% - 16px)" : "min(960px, calc(100% - 32px))",
+    width: isMobile ? "100%" : "min(960px, calc(100% - 32px))",
+    maxWidth: "100%",
+    boxSizing: "border-box",
     margin: "0 auto 16px",
-    borderRadius: 24,
+    borderRadius: isMobile ? 20 : 24,
     padding: isMobile ? 16 : 20,
     background: "#06281F",
     border: "1px solid rgba(52,211,153,0.34)",
@@ -469,13 +475,13 @@ export default async function QrxPage({
 
   const profileStatsStyle: CSSProperties = {
     display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: isMobile ? 10 : 14,
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: isMobile ? 8 : 14,
   };
 
   const profileStatBoxStyle: CSSProperties = {
-    minHeight: isMobile ? 82 : 92,
-    borderRadius: 20,
+    minHeight: isMobile ? 74 : 92,
+    borderRadius: isMobile ? 16 : 20,
     background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(255,255,255,0.06)",
     display: "grid",
@@ -487,20 +493,20 @@ export default async function QrxPage({
 
   const profileStatValueStyle: CSSProperties = {
     color: "#ffffff",
-    fontSize: isMobile ? 28 : 34,
+    fontSize: isMobile ? 24 : 34,
     lineHeight: 1,
     fontWeight: 800,
   };
 
   const profileActionsStyle: CSSProperties = isMobile
-    ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 24 }
+    ? { display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10, marginTop: 20 }
     : { display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24 };
 
   const actionChipStyle: CSSProperties = {
     width: isMobile ? "100%" : undefined,
-    minHeight: isMobile ? 52 : 46,
+    minHeight: isMobile ? 48 : 46,
     borderRadius: 999,
-    padding: "0 18px",
+    padding: isMobile ? "0 10px" : "0 18px",
     background: "rgba(255,255,255,0.07)",
     border: "1px solid rgba(255,255,255,0.09)",
     color: "#ffffff",
@@ -509,13 +515,13 @@ export default async function QrxPage({
     justifyContent: "center",
     textDecoration: "none",
     fontWeight: 800,
-    fontSize: isMobile ? 16 : 15,
+    fontSize: isMobile ? 14 : 15,
   };
 
   const appButtonStyle: CSSProperties = { ...actionChipStyle, background: "#ffffff", color: "#0f172a" };
 
   const cardTitleStyle: CSSProperties = {
-    margin: 0, color: "#ffffff", fontSize: isMobile ? 18 : 22, lineHeight: 1.22, fontWeight: 800, letterSpacing: "-0.02em",
+    margin: 0, color: "#ffffff", fontSize: isMobile ? 20 : 22, lineHeight: 1.22, fontWeight: 800, letterSpacing: "-0.02em",
   };
 
   const simpleTextStyle: CSSProperties = {
@@ -523,7 +529,7 @@ export default async function QrxPage({
   };
 
   const descriptionTextStyle: CSSProperties = {
-    margin: "18px 0 0", color: "rgba(255,255,255,0.84)", fontSize: isMobile ? 15 : 16, lineHeight: isMobile ? 1.7 : 1.65, whiteSpace: "pre-wrap", fontWeight: 400,
+    margin: "18px 0 0", color: "rgba(255,255,255,0.84)", fontSize: isMobile ? 15 : 16, lineHeight: isMobile ? 1.58 : 1.65, whiteSpace: "pre-wrap", fontWeight: 400,
   };
 
   const imageGridStyle: CSSProperties = {
@@ -535,6 +541,83 @@ export default async function QrxPage({
   const imageThumbStyle: CSSProperties = {
     width: isMobile ? 96 : 112, height: isMobile ? 96 : 112, borderRadius: 18,
     objectFit: "cover", display: "block", boxShadow: "0 14px 30px rgba(0,0,0,0.24)",
+  };
+
+  const profileHeaderStyle: CSSProperties = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: isMobile ? "flex-start" : "center",
+    gap: isMobile ? 10 : 14,
+    flexWrap: "wrap",
+    marginBottom: isMobile ? 20 : 30,
+  };
+
+  const profileKickerStyle: CSSProperties = {
+    color: "#D4AF37",
+    fontSize: isMobile ? 12 : 14,
+    fontWeight: 800,
+    letterSpacing: isMobile ? "0.1em" : "0.14em",
+    textTransform: "uppercase",
+  };
+
+  const profileCategoryPillStyle: CSSProperties = {
+    minHeight: isMobile ? 34 : 38,
+    borderRadius: 999,
+    padding: isMobile ? "0 12px" : "0 14px",
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    color: "rgba(255,255,255,0.78)",
+    display: "inline-flex",
+    alignItems: "center",
+    fontWeight: 700,
+    fontSize: isMobile ? 13 : 14,
+  };
+
+  const profileStatLabelStyle: CSSProperties = {
+    color: "rgba(255,255,255,0.55)",
+    fontSize: isMobile ? 10 : 12,
+    fontWeight: 700,
+    letterSpacing: isMobile ? "0.06em" : "0.08em",
+    textTransform: "uppercase",
+  };
+
+  const mutedTextStyle: CSSProperties = {
+    margin: "12px 0 0",
+    color: "rgba(255,255,255,0.58)",
+    fontSize: isMobile ? 14 : 15,
+    lineHeight: 1.55,
+  };
+
+  const newsBoxStyle: CSSProperties = {
+    marginTop: isMobile ? 14 : 18,
+    borderRadius: isMobile ? 18 : 22,
+    overflowY: "auto",
+    overflowX: "hidden",
+    maxHeight: isMobile ? 360 : 460,
+    width: "100%",
+    boxSizing: "border-box",
+    border: "1px solid rgba(65,84,103,0.75)",
+    background: "rgba(255,255,255,0.025)",
+    scrollbarWidth: "thin",
+    scrollbarColor: "rgba(148,163,184,0.45) transparent",
+    overscrollBehavior: "contain",
+    paddingRight: isMobile ? 0 : 4,
+  };
+
+  const newsRowStyle: CSSProperties = {
+    padding: isMobile ? "14px 14px" : "16px 18px",
+  };
+
+  const newsTextStyle: CSSProperties = {
+    color: "rgba(255,255,255,0.86)",
+    fontSize: isMobile ? 15 : 16,
+    lineHeight: isMobile ? 1.42 : 1.55,
+  };
+
+  const newsDateStyle: CSSProperties = {
+    marginTop: 8,
+    color: "#8f9baa",
+    fontSize: isMobile ? 13 : 14,
   };
 
 
