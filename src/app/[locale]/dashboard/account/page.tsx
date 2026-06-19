@@ -26,7 +26,8 @@ type ProfileRow = {
 
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
-  if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim()) return value[0];
+  if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim())
+    return value[0];
   return fallback;
 }
 
@@ -51,7 +52,10 @@ export default function AccountPage() {
   const params = useParams();
   const router = useRouter();
 
-  const locale = getParam(params?.locale as string | string[] | undefined, "de");
+  const locale = getParam(
+    params?.locale as string | string[] | undefined,
+    "de",
+  );
 
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
@@ -73,6 +77,11 @@ export default function AccountPage() {
 
   const [savingBilling, setSavingBilling] = useState(false);
   const [billingMessage, setBillingMessage] = useState("");
+
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleteChecked, setDeleteChecked] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteMessage, setDeleteMessage] = useState("");
 
   useEffect(() => {
     void loadAccount();
@@ -146,6 +155,77 @@ export default function AccountPage() {
     router.push(`/${locale}/login`);
   }
 
+  async function handleDeleteAccount() {
+    if (deletingAccount) return;
+
+    setErrorText(null);
+    setDeleteMessage("");
+
+    if (!deleteChecked || deleteConfirm !== "KONTO LÖSCHEN") {
+      setDeleteMessage(
+        "Bitte bestätige die Löschung mit Checkbox und dem Text KONTO LÖSCHEN.",
+      );
+      return;
+    }
+
+    const reallyDelete = window.confirm(
+      "Möchtest du dein Konto wirklich dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    );
+
+    if (!reallyDelete) return;
+
+    setDeletingAccount(true);
+
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
+      if (!session?.access_token) {
+        throw new Error(
+          "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+        );
+      }
+
+      const { data, error } = await supabase.functions.invoke(
+        "delete-account",
+        {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        },
+      );
+
+      if (error) throw error;
+
+      const response = data as {
+        ok?: boolean;
+        error?: string;
+        details?: string;
+        step?: string;
+      } | null;
+
+      if (response && response.ok === false) {
+        throw new Error(
+          response.details ||
+            response.error ||
+            response.step ||
+            "Konto konnte nicht gelöscht werden.",
+        );
+      }
+
+      await supabase.auth.signOut();
+      router.replace(`/${locale}/login`);
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Konto konnte nicht gelöscht werden.";
+      setDeleteMessage(message);
+      setDeletingAccount(false);
+    }
+  }
+
   async function saveBillingData() {
     if (!userId) return;
 
@@ -202,13 +282,16 @@ export default function AccountPage() {
           <span className={styles.kicker}>Konto</span>
           <h1>Dein Konto</h1>
           <p>
-            Hier verwaltest du deine Kontodaten und Rechnungsadresse für Credit-Käufe,
-            Rechnungen und den automatischen E-Mail-Versand.
+            Hier verwaltest du deine Kontodaten und Rechnungsadresse für
+            Credit-Käufe, Rechnungen und den automatischen E-Mail-Versand.
           </p>
         </div>
 
         <div className={styles.heroActions}>
-          <Link href={`/${locale}/dashboard`} className={styles.secondaryButton}>
+          <Link
+            href={`/${locale}/dashboard`}
+            className={styles.secondaryButton}
+          >
             Zurück zum Dashboard
           </Link>
           <button
@@ -216,7 +299,11 @@ export default function AccountPage() {
             onClick={() => void handleSignOut()}
             disabled={signingOut}
             className={styles.primaryButton}
-            style={{ border: 0, cursor: signingOut ? "not-allowed" : "pointer", opacity: signingOut ? 0.72 : 1 }}
+            style={{
+              border: 0,
+              cursor: signingOut ? "not-allowed" : "pointer",
+              opacity: signingOut ? 0.72 : 1,
+            }}
           >
             {signingOut ? "Meldet ab …" : "Abmelden"}
           </button>
@@ -269,7 +356,10 @@ export default function AccountPage() {
           <div className={styles.cardHeader}>
             <div>
               <h2>Kontodaten</h2>
-              <p>Diese Daten kommen direkt aus deiner Supabase-Anmeldung und dem Profil.</p>
+              <p>
+                Diese Daten kommen direkt aus deiner Supabase-Anmeldung und dem
+                Profil.
+              </p>
             </div>
             <span>{loading ? "Lädt" : "Live"}</span>
           </div>
@@ -305,8 +395,8 @@ export default function AccountPage() {
             <div>
               <h2>Rechnungsdaten</h2>
               <p>
-                Diese Daten werden für Rechnungen, PDF-Erstellung und den automatischen
-                E-Mail-Versand nach Credit-Käufen verwendet.
+                Diese Daten werden für Rechnungen, PDF-Erstellung und den
+                automatischen E-Mail-Versand nach Credit-Käufen verwendet.
               </p>
             </div>
             <span>Rechnung</span>
@@ -354,7 +444,13 @@ export default function AccountPage() {
               />
             </label>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 12 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 2fr",
+                gap: 12,
+              }}
+            >
               <label style={labelStyle}>
                 PLZ
                 <input
@@ -380,7 +476,11 @@ export default function AccountPage() {
               Land
               <input
                 value={billingCountryCode}
-                onChange={(event) => setBillingCountryCode(normalizeCountryCode(event.target.value))}
+                onChange={(event) =>
+                  setBillingCountryCode(
+                    normalizeCountryCode(event.target.value),
+                  )
+                }
                 placeholder="DE"
                 maxLength={2}
                 style={inputStyle}
@@ -408,7 +508,9 @@ export default function AccountPage() {
                   border: billingMessage.startsWith("Fehler")
                     ? "1px solid rgba(252, 165, 165, 0.22)"
                     : "1px solid rgba(134, 239, 172, 0.22)",
-                  color: billingMessage.startsWith("Fehler") ? "#fecaca" : "#bbf7d0",
+                  color: billingMessage.startsWith("Fehler")
+                    ? "#fecaca"
+                    : "#bbf7d0",
                   fontWeight: 850,
                 }}
               >
@@ -436,16 +538,115 @@ export default function AccountPage() {
           <div className={styles.cardHeader}>
             <div>
               <h2>Nächste Konto-Funktionen</h2>
-              <p>Diese Bereiche bauen wir nach Stripe und Rechnungserstellung aus.</p>
+              <p>
+                Diese Bereiche bauen wir nach Stripe und Rechnungserstellung
+                aus.
+              </p>
             </div>
             <span>Roadmap</span>
           </div>
 
           <div style={{ display: "grid", gap: 10 }}>
-            <RoadmapItem icon="🧾" title="Rechnungen herunterladen" text="Nach Stripe-Kauf sollen Rechnungen im Konto abrufbar sein." />
-            <RoadmapItem icon="🏢" title="Rechnungsadresse" text="Firma, Name, Straße, PLZ, Ort und Land für korrekte Rechnungen." />
-            <RoadmapItem icon="🔐" title="Sicherheit" text="Passwort ändern, Sitzung prüfen und später Account löschen." />
-            <RoadmapItem icon="🛟" title="Support" text="Kontakt & Hilfe direkt mit deinem Nutzerkonto verbinden." />
+            <RoadmapItem
+              icon="🧾"
+              title="Rechnungen herunterladen"
+              text="Nach Stripe-Kauf sollen Rechnungen im Konto abrufbar sein."
+            />
+            <RoadmapItem
+              icon="🏢"
+              title="Rechnungsadresse"
+              text="Firma, Name, Straße, PLZ, Ort und Land für korrekte Rechnungen."
+            />
+            <RoadmapItem
+              icon="🔐"
+              title="Sicherheit"
+              text="Passwort ändern, Sitzung prüfen und später Account löschen."
+            />
+            <RoadmapItem
+              icon="🛟"
+              title="Support"
+              text="Kontakt & Hilfe direkt mit deinem Nutzerkonto verbinden."
+            />
+          </div>
+        </article>
+
+        <article style={dangerPanelStyle}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2 style={{ color: "#fca5a5" }}>Gefahrenbereich</h2>
+              <p>
+                Wenn du dein Konto löschst, werden dein Konto, deine Credits und
+                deine Nutzerzugänge dauerhaft entfernt. Deine eigenen QR-X
+                werden deaktiviert und sind für normale Nutzer nicht mehr
+                sichtbar.
+              </p>
+            </div>
+            <span style={{ color: "#fca5a5" }}>Löschen</span>
+          </div>
+
+          <div style={{ display: "grid", gap: 14 }}>
+            <label style={deleteCheckboxStyle}>
+              <input
+                type="checkbox"
+                checked={deleteChecked}
+                onChange={(event) => setDeleteChecked(event.target.checked)}
+                disabled={deletingAccount}
+                style={{ width: 20, height: 20, accentColor: "#ef4444" }}
+              />
+              <span>
+                Ich verstehe, dass mein Konto dauerhaft gelöscht wird.
+              </span>
+            </label>
+
+            <label style={labelStyle}>
+              Zur Bestätigung bitte KONTO LÖSCHEN eingeben
+              <input
+                value={deleteConfirm}
+                onChange={(event) => setDeleteConfirm(event.target.value)}
+                placeholder="KONTO LÖSCHEN"
+                disabled={deletingAccount}
+                style={inputStyle}
+              />
+            </label>
+
+            {deleteMessage ? (
+              <div style={errorStyle}>{deleteMessage}</div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => void handleDeleteAccount()}
+              disabled={
+                deletingAccount ||
+                !deleteChecked ||
+                deleteConfirm !== "KONTO LÖSCHEN"
+              }
+              style={{
+                minHeight: 52,
+                border: 0,
+                borderRadius: 16,
+                background: "#dc2626",
+                color: "#ffffff",
+                fontSize: 15,
+                fontWeight: 950,
+                cursor:
+                  deletingAccount ||
+                  !deleteChecked ||
+                  deleteConfirm !== "KONTO LÖSCHEN"
+                    ? "not-allowed"
+                    : "pointer",
+                opacity:
+                  deletingAccount ||
+                  !deleteChecked ||
+                  deleteConfirm !== "KONTO LÖSCHEN"
+                    ? 0.52
+                    : 1,
+              }}
+            >
+              {deletingAccount
+                ? "Konto wird gelöscht …"
+                : "Konto dauerhaft löschen"}
+            </button>
           </div>
         </article>
       </section>
@@ -453,7 +654,15 @@ export default function AccountPage() {
   );
 }
 
-function InfoRow({ label, value, monospace }: { label: string; value: string; monospace?: boolean }) {
+function InfoRow({
+  label,
+  value,
+  monospace,
+}: {
+  label: string;
+  value: string;
+  monospace?: boolean;
+}) {
   return (
     <div
       style={{
@@ -467,14 +676,18 @@ function InfoRow({ label, value, monospace }: { label: string; value: string; mo
         border: "1px solid rgba(255,255,255,0.075)",
       }}
     >
-      <div style={{ color: "#94a3b8", fontSize: 13, fontWeight: 900 }}>{label}</div>
+      <div style={{ color: "#94a3b8", fontSize: 13, fontWeight: 900 }}>
+        {label}
+      </div>
       <div
         style={{
           color: "#ffffff",
           fontSize: 14,
           fontWeight: 850,
           wordBreak: "break-word",
-          fontFamily: monospace ? "ui-monospace, SFMono-Regular, Menlo, monospace" : undefined,
+          fontFamily: monospace
+            ? "ui-monospace, SFMono-Regular, Menlo, monospace"
+            : undefined,
         }}
       >
         {value}
@@ -483,7 +696,15 @@ function InfoRow({ label, value, monospace }: { label: string; value: string; mo
   );
 }
 
-function RoadmapItem({ icon, title, text }: { icon: string; title: string; text: string }) {
+function RoadmapItem({
+  icon,
+  title,
+  text,
+}: {
+  icon: string;
+  title: string;
+  text: string;
+}) {
   return (
     <div
       style={{
@@ -513,8 +734,25 @@ function RoadmapItem({ icon, title, text }: { icon: string; title: string; text:
         {icon}
       </div>
       <div>
-        <strong style={{ display: "block", color: "#ffffff", fontSize: 15, fontWeight: 950 }}>{title}</strong>
-        <p style={{ margin: "4px 0 0", color: "#94a3b8", fontSize: 12, lineHeight: 1.45, fontWeight: 750 }}>
+        <strong
+          style={{
+            display: "block",
+            color: "#ffffff",
+            fontSize: 15,
+            fontWeight: 950,
+          }}
+        >
+          {title}
+        </strong>
+        <p
+          style={{
+            margin: "4px 0 0",
+            color: "#94a3b8",
+            fontSize: 12,
+            lineHeight: 1.45,
+            fontWeight: 750,
+          }}
+        >
           {text}
         </p>
       </div>
@@ -528,6 +766,22 @@ const panelStyle: React.CSSProperties = {
   border: "1px solid rgba(148, 163, 184, 0.16)",
   boxShadow: "0 22px 62px rgba(0, 0, 0, 0.17)",
   padding: 22,
+};
+
+const dangerPanelStyle: React.CSSProperties = {
+  ...panelStyle,
+  background: "rgba(127, 29, 29, 0.16)",
+  border: "1px solid rgba(248, 113, 113, 0.32)",
+};
+
+const deleteCheckboxStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  color: "#fecaca",
+  fontSize: 14,
+  fontWeight: 850,
+  lineHeight: 1.45,
 };
 
 const labelStyle: React.CSSProperties = {
