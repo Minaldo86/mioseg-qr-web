@@ -175,7 +175,7 @@ export default function DashboardQrxPage() {
     const title = getQrxTitle(entry);
 
     const confirmed = window.confirm(
-      `Möchtest du diesen QR-X wirklich löschen?\n\n${title}\n\nDer QR-X wird nur deaktiviert und kann später wiederhergestellt werden. Medien und Dateien werden nicht endgültig gelöscht.`,
+      `Möchtest du diesen QR-X wirklich löschen?\n\n${title}\n\nDer QR-X wird aus deinem Konto entfernt.`,
     );
 
     if (!confirmed) return;
