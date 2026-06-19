@@ -103,7 +103,10 @@ function getFileExtension(file: File) {
   return fromType && fromType.trim() ? fromType : "jpg";
 }
 
-function buildUploadFilename(prefix: "logo" | "cover" | "gallery" | "file", file: File) {
+function buildUploadFilename(
+  prefix: "logo" | "cover" | "gallery" | "file",
+  file: File,
+) {
   const ext = getFileExtension(file).replace(/[^a-z0-9]/gi, "") || "bin";
   return `${prefix}-${Date.now().toString()}-${Math.random()
     .toString(36)
@@ -150,10 +153,14 @@ function revokeSelectedMediaPreview(item: SelectedMediaFile) {
 }
 
 function isPdfFile(file: File) {
-  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  return (
+    file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")
+  );
 }
 
-function buildSelectedVerificationDocument(file: File): SelectedVerificationDocument {
+function buildSelectedVerificationDocument(
+  file: File,
+): SelectedVerificationDocument {
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
 
   return {
@@ -166,7 +173,9 @@ function buildSelectedVerificationDocument(file: File): SelectedVerificationDocu
   };
 }
 
-function revokeVerificationDocumentPreview(item: SelectedVerificationDocument | null) {
+function revokeVerificationDocumentPreview(
+  item: SelectedVerificationDocument | null,
+) {
   if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl);
 }
 
@@ -231,6 +240,61 @@ function isMissingColumnError(error: unknown, columnName: string) {
     .includes(columnName.toLowerCase());
 }
 
+type NewQrxDraft = {
+  savedAt: string;
+  qrxType: QrxType;
+  title: string;
+  companyName: string;
+  category: BusinessCategory;
+  description: string;
+  newsDraft: string;
+  newsItems: NewsItem[];
+  locationMode: LocationMode;
+  locationName: string;
+  locationLat: string;
+  locationLng: string;
+  ctaPhone: string;
+  ctaWebsite: string;
+  ctaEmail: string;
+  ctaNavigation: string;
+  passwordProtected: boolean;
+  wantsVerification: boolean;
+};
+
+const NEW_QRX_DRAFT_STORAGE_PREFIX = "mioseg.qrx.new.draft.v1";
+
+function getNewQrxDraftStorageKey(locale: string) {
+  return `${NEW_QRX_DRAFT_STORAGE_PREFIX}.${locale || "de"}`;
+}
+
+function isSafeBusinessCategory(value: unknown): value is BusinessCategory {
+  return BUSINESS_CATEGORY_OPTIONS.some((item) => item.value === value);
+}
+
+function isSafeLocationMode(value: unknown): value is LocationMode {
+  return value === "none" || value === "current" || value === "manual";
+}
+
+function isSafeQrxType(value: unknown): value is QrxType {
+  return value === "normal" || value === "business";
+}
+
+function normalizeDraftNewsItems(value: unknown): NewsItem[] {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter(
+      (item) => typeof item?.text === "string" && item.text.trim().length > 0,
+    )
+    .map((item) => ({
+      text: item.text.trim(),
+      createdAt:
+        typeof item.createdAt === "string" && item.createdAt.trim().length > 0
+          ? item.createdAt
+          : new Date().toISOString(),
+    }));
+}
+
 export default function NewQrxPage() {
   const router = useRouter();
   const params = useParams();
@@ -273,11 +337,20 @@ export default function NewQrxPage() {
   const coverPreviewRef = useRef<string | null>(null);
   const galleryFilesRef = useRef<SelectedMediaFile[]>([]);
   const fileUploadsRef = useRef<SelectedMediaFile[]>([]);
-  const verificationDocumentRef = useRef<SelectedVerificationDocument | null>(null);
+  const verificationDocumentRef = useRef<SelectedVerificationDocument | null>(
+    null,
+  );
 
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
+  const [draftNotice, setDraftNotice] = useState<string | null>(null);
+  const draftHydratedRef = useRef(false);
+  const draftSaveTimerRef = useRef<number | null>(null);
+  const draftStorageKey = useMemo(
+    () => getNewQrxDraftStorageKey(locale),
+    [locale],
+  );
 
   const [credits, setCredits] = useState<number | null>(null);
   const [normalQrxCount, setNormalQrxCount] = useState<number | null>(null);
@@ -303,8 +376,14 @@ export default function NewQrxPage() {
   const selectedStorageBytes = useMemo(() => {
     const logoBytes = logoFile?.size ?? 0;
     const coverBytes = coverFile?.size ?? 0;
-    const galleryBytes = galleryFiles.reduce((sum, item) => sum + item.file.size, 0);
-    const fileBytes = fileUploads.reduce((sum, item) => sum + item.file.size, 0);
+    const galleryBytes = galleryFiles.reduce(
+      (sum, item) => sum + item.file.size,
+      0,
+    );
+    const fileBytes = fileUploads.reduce(
+      (sum, item) => sum + item.file.size,
+      0,
+    );
     return logoBytes + coverBytes + galleryBytes + fileBytes;
   }, [logoFile, coverFile, galleryFiles, fileUploads]);
 
@@ -330,6 +409,152 @@ export default function NewQrxPage() {
     totalCostCredits != null && credits != null
       ? credits >= totalCostCredits
       : false;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const rawDraft = window.localStorage.getItem(draftStorageKey);
+
+      if (!rawDraft) {
+        draftHydratedRef.current = true;
+        return;
+      }
+
+      const draft = JSON.parse(rawDraft) as Partial<NewQrxDraft>;
+
+      if (isSafeQrxType(draft.qrxType)) setQrxType(draft.qrxType);
+      if (typeof draft.title === "string") setTitle(draft.title);
+      if (typeof draft.companyName === "string")
+        setCompanyName(draft.companyName);
+      if (isSafeBusinessCategory(draft.category)) setCategory(draft.category);
+      if (typeof draft.description === "string")
+        setDescription(draft.description);
+      if (typeof draft.newsDraft === "string") setNewsDraft(draft.newsDraft);
+      setNewsItems(normalizeDraftNewsItems(draft.newsItems));
+      if (isSafeLocationMode(draft.locationMode))
+        setLocationMode(draft.locationMode);
+      if (typeof draft.locationName === "string")
+        setLocationName(draft.locationName);
+      if (typeof draft.locationLat === "string")
+        setLocationLat(draft.locationLat);
+      if (typeof draft.locationLng === "string")
+        setLocationLng(draft.locationLng);
+      if (typeof draft.ctaPhone === "string") setCtaPhone(draft.ctaPhone);
+      if (typeof draft.ctaWebsite === "string") setCtaWebsite(draft.ctaWebsite);
+      if (typeof draft.ctaEmail === "string") setCtaEmail(draft.ctaEmail);
+      if (typeof draft.ctaNavigation === "string")
+        setCtaNavigation(draft.ctaNavigation);
+      if (typeof draft.passwordProtected === "boolean")
+        setPasswordProtected(draft.passwordProtected);
+      if (typeof draft.wantsVerification === "boolean")
+        setWantsVerification(draft.wantsVerification);
+
+      setQrxPassword("");
+      setQrxPasswordRepeat("");
+      setDraftNotice(
+        "Dein QR-X Entwurf wurde wiederhergestellt. Bitte wähle Logo, Cover, Galerie-Bilder, Dateien/PDFs und Verifizierungsnachweise bei Bedarf erneut aus.",
+      );
+    } catch (restoreError) {
+      console.warn(
+        "QR-X Entwurf konnte nicht wiederhergestellt werden:",
+        restoreError,
+      );
+      try {
+        window.localStorage.removeItem(draftStorageKey);
+      } catch {
+        // ignore
+      }
+    } finally {
+      draftHydratedRef.current = true;
+    }
+  }, [draftStorageKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !draftHydratedRef.current) return;
+
+    if (draftSaveTimerRef.current) {
+      window.clearTimeout(draftSaveTimerRef.current);
+    }
+
+    draftSaveTimerRef.current = window.setTimeout(() => {
+      const draft: NewQrxDraft = {
+        savedAt: new Date().toISOString(),
+        qrxType,
+        title,
+        companyName,
+        category,
+        description,
+        newsDraft,
+        newsItems,
+        locationMode,
+        locationName,
+        locationLat,
+        locationLng,
+        ctaPhone,
+        ctaWebsite,
+        ctaEmail,
+        ctaNavigation,
+        passwordProtected,
+        wantsVerification,
+      };
+
+      try {
+        const hasTextDraft =
+          title.trim().length > 0 ||
+          companyName.trim().length > 0 ||
+          description.trim().length > 0 ||
+          newsDraft.trim().length > 0 ||
+          newsItems.length > 0 ||
+          locationName.trim().length > 0 ||
+          locationLat.trim().length > 0 ||
+          locationLng.trim().length > 0 ||
+          ctaPhone.trim().length > 0 ||
+          ctaWebsite.trim().length > 0 ||
+          ctaEmail.trim().length > 0 ||
+          ctaNavigation.trim().length > 0 ||
+          qrxType !== "normal" ||
+          passwordProtected ||
+          wantsVerification;
+
+        if (hasTextDraft) {
+          window.localStorage.setItem(draftStorageKey, JSON.stringify(draft));
+        } else {
+          window.localStorage.removeItem(draftStorageKey);
+        }
+      } catch (saveError) {
+        console.warn(
+          "QR-X Entwurf konnte nicht gespeichert werden:",
+          saveError,
+        );
+      }
+    }, 350);
+
+    return () => {
+      if (draftSaveTimerRef.current) {
+        window.clearTimeout(draftSaveTimerRef.current);
+      }
+    };
+  }, [
+    draftStorageKey,
+    qrxType,
+    title,
+    companyName,
+    category,
+    description,
+    newsDraft,
+    newsItems,
+    locationMode,
+    locationName,
+    locationLat,
+    locationLng,
+    ctaPhone,
+    ctaWebsite,
+    ctaEmail,
+    ctaNavigation,
+    passwordProtected,
+    wantsVerification,
+  ]);
 
   useEffect(() => {
     void loadCreditAndPricingData();
@@ -575,9 +800,7 @@ export default function NewQrxPage() {
           ? response.charged_credits
           : null,
       newBalance:
-        typeof response.new_balance === "number"
-          ? response.new_balance
-          : null,
+        typeof response.new_balance === "number" ? response.new_balance : null,
     };
   }
 
@@ -635,7 +858,10 @@ export default function NewQrxPage() {
         .maybeSingle();
 
       if (existingError) {
-        console.warn("qr_x_media existing check fehlgeschlagen:", existingError);
+        console.warn(
+          "qr_x_media existing check fehlgeschlagen:",
+          existingError,
+        );
       }
 
       if (!existingRow?.id) {
@@ -650,7 +876,10 @@ export default function NewQrxPage() {
           });
 
         if (mediaInsertError) {
-          console.warn("qr_x_media fallback insert fehlgeschlagen:", mediaInsertError);
+          console.warn(
+            "qr_x_media fallback insert fehlgeschlagen:",
+            mediaInsertError,
+          );
         }
       }
     }
@@ -736,7 +965,9 @@ export default function NewQrxPage() {
   }
 
   function handleGalleryFilesChange(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = Array.from(event.target.files ?? []).filter(isImageMime);
+    const selectedFiles = Array.from(event.target.files ?? []).filter(
+      isImageMime,
+    );
 
     if (selectedFiles.length > 0) {
       setGalleryFiles((current) => [
@@ -808,11 +1039,14 @@ export default function NewQrxPage() {
   }
 
   function removeNewsItem(indexToRemove: number) {
-    setNewsItems((current) => current.filter((_, index) => index !== indexToRemove));
+    setNewsItems((current) =>
+      current.filter((_, index) => index !== indexToRemove),
+    );
   }
 
-
-  function handleVerificationDocumentChange(event: ChangeEvent<HTMLInputElement>) {
+  function handleVerificationDocumentChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
     const file = event.target.files?.[0] ?? null;
 
     if (!file) {
@@ -821,7 +1055,9 @@ export default function NewQrxPage() {
     }
 
     if (!isImageMime(file) && !isPdfFile(file)) {
-      setErrorText("Bitte lade für die Verifizierung nur ein Bild oder eine PDF-Datei hoch.");
+      setErrorText(
+        "Bitte lade für die Verifizierung nur ein Bild oder eine PDF-Datei hoch.",
+      );
       event.target.value = "";
       return;
     }
@@ -838,6 +1074,18 @@ export default function NewQrxPage() {
       revokeVerificationDocumentPreview(current);
       return null;
     });
+  }
+
+  function clearSavedDraft() {
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(draftStorageKey);
+      } catch (draftError) {
+        console.warn("QR-X Entwurf konnte nicht gelöscht werden:", draftError);
+      }
+    }
+
+    setDraftNotice(null);
   }
 
   async function uploadVerificationDocument(args: {
@@ -979,11 +1227,19 @@ export default function NewQrxPage() {
       }
 
       if (wantsVerification && qrxType !== "business") {
-        throw new Error("Eine Verifizierung ist nur für Business QR-X möglich.");
+        throw new Error(
+          "Eine Verifizierung ist nur für Business QR-X möglich.",
+        );
       }
 
-      if (qrxType === "business" && wantsVerification && !verificationDocument) {
-        throw new Error("Bitte lade für die Verifizierung ein Dokument oder Bild hoch.");
+      if (
+        qrxType === "business" &&
+        wantsVerification &&
+        !verificationDocument
+      ) {
+        throw new Error(
+          "Bitte lade für die Verifizierung ein Dokument oder Bild hoch.",
+        );
       }
 
       const lat = parseOptionalNumber(locationLat, "Breitengrad");
@@ -1002,7 +1258,11 @@ export default function NewQrxPage() {
         throw new Error("Bitte melde dich zuerst an.");
       }
 
-      if (creationCostCredits == null || totalCostCredits == null || credits == null) {
+      if (
+        creationCostCredits == null ||
+        totalCostCredits == null ||
+        credits == null
+      ) {
         throw new Error(
           "Credits und QR-X-Kosten werden noch geladen. Bitte versuche es gleich erneut.",
         );
@@ -1197,9 +1457,11 @@ export default function NewQrxPage() {
       setNewsDraft("");
       clearVerificationDocument();
       setWantsVerification(false);
+      clearSavedDraft();
       await loadCreditAndPricingData();
 
-      const totalCreditsUsed = creationCostCredits + verificationCredits + chargedStorageCredits;
+      const totalCreditsUsed =
+        creationCostCredits + verificationCredits + chargedStorageCredits;
       const costText =
         totalCreditsUsed > 0
           ? ` ${totalCreditsUsed} Credits wurden abgezogen.`
@@ -1366,6 +1628,32 @@ export default function NewQrxPage() {
           </div>
         ) : null}
 
+        {draftNotice ? (
+          <div
+            style={{
+              borderRadius: 22,
+              padding: 16,
+              marginBottom: 16,
+              background: "rgba(59, 130, 246, 0.14)",
+              border: "1px solid rgba(147, 197, 253, 0.24)",
+              color: "#dbeafe",
+              fontWeight: 850,
+              lineHeight: 1.55,
+              display: "grid",
+              gap: 12,
+            }}
+          >
+            <span>{draftNotice}</span>
+            <button
+              type="button"
+              onClick={clearSavedDraft}
+              style={dismissDraftButtonStyle}
+            >
+              Hinweis ausblenden
+            </button>
+          </div>
+        ) : null}
+
         <div
           style={{
             borderRadius: 22,
@@ -1423,7 +1711,8 @@ export default function NewQrxPage() {
                 </strong>
                 {verificationCredits > 0 ? (
                   <>
-                    {" "}+ Verifizierung{" "}
+                    {" "}
+                    + Verifizierung{" "}
                     <strong style={{ color: "#ffffff" }}>
                       {verificationCredits} Credits
                     </strong>
@@ -1442,8 +1731,8 @@ export default function NewQrxPage() {
             <div
               style={{ color: "#fecaca", fontWeight: 900, lineHeight: 1.55 }}
             >
-              Nicht genügend Credits. Benötigt: {totalCostCredits},
-              vorhanden: {credits}.{" "}
+              Nicht genügend Credits. Benötigt: {totalCostCredits}, vorhanden:{" "}
+              {credits}.{" "}
               <Link
                 href={`/${locale}/dashboard/credits`}
                 target="_blank"
@@ -1691,8 +1980,8 @@ export default function NewQrxPage() {
                 News & Aktualisierung
               </h3>
               <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
-                Optional: Informiere Nutzer direkt beim Erstellen über Änderungen,
-                Angebote, Öffnungszeiten oder wichtige Hinweise.
+                Optional: Informiere Nutzer direkt beim Erstellen über
+                Änderungen, Angebote, Öffnungszeiten oder wichtige Hinweise.
               </p>
             </div>
 
@@ -1708,11 +1997,7 @@ export default function NewQrxPage() {
               placeholder="z. B. Neue Speisekarte verfügbar, geänderte Öffnungszeiten oder aktuelles Angebot …"
             />
 
-            <button
-              type="button"
-              onClick={addNewsItem}
-              style={fileButtonStyle}
-            >
+            <button type="button" onClick={addNewsItem} style={fileButtonStyle}>
               + News hinzufügen
             </button>
 
@@ -1720,7 +2005,8 @@ export default function NewQrxPage() {
               <div style={newsSelectionBoxStyle}>
                 <div style={selectionHeaderStyle}>
                   <strong>
-                    {newsItems.length} News-Eintrag{newsItems.length === 1 ? "" : "e"} angelegt
+                    {newsItems.length} News-Eintrag
+                    {newsItems.length === 1 ? "" : "e"} angelegt
                   </strong>
                   {newsItems.length > MAX_VISIBLE_NEWS ? (
                     <span style={newsScrollHintStyle}>
@@ -1731,7 +2017,10 @@ export default function NewQrxPage() {
 
                 <div style={newsPreviewListStyle(newsItems.length)}>
                   {newsItems.map((item, index) => (
-                    <article key={`${item.createdAt}-${index}`} style={newsPreviewRowStyle}>
+                    <article
+                      key={`${item.createdAt}-${index}`}
+                      style={newsPreviewRowStyle}
+                    >
                       <div style={{ display: "grid", gap: 6 }}>
                         <div style={newsPreviewTextStyle}>{item.text}</div>
                         <div style={newsPreviewDateStyle}>
@@ -1788,7 +2077,9 @@ export default function NewQrxPage() {
                 style={locationModeButtonStyle(locationMode === "current")}
                 disabled={locationLoading}
               >
-                {locationLoading ? "Standort wird geladen …" : "Aktuellen Standort übernehmen"}
+                {locationLoading
+                  ? "Standort wird geladen …"
+                  : "Aktuellen Standort übernehmen"}
               </button>
 
               <button
@@ -1917,7 +2208,8 @@ export default function NewQrxPage() {
                 Galerie-Bilder
               </h3>
               <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
-                Optional: Lade direkt beim Erstellen Bilder hoch, die später in der QR-X Galerie angezeigt werden.
+                Optional: Lade direkt beim Erstellen Bilder hoch, die später in
+                der QR-X Galerie angezeigt werden.
               </p>
             </div>
 
@@ -1981,7 +2273,8 @@ export default function NewQrxPage() {
                 Dateien / PDFs
               </h3>
               <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
-                Optional: Lade Dateien wie PDF, Preisliste, Speisekarte, Dokumente oder Bilder direkt mit hoch.
+                Optional: Lade Dateien wie PDF, Preisliste, Speisekarte,
+                Dokumente oder Bilder direkt mit hoch.
               </p>
             </div>
 
@@ -2030,7 +2323,8 @@ export default function NewQrxPage() {
                       <div style={previewFileMetaStyle}>
                         <strong>{item.file.name}</strong>
                         <span>
-                          {item.file.type || "Datei"} · {formatBytes(item.file.size)}
+                          {item.file.type || "Datei"} ·{" "}
+                          {formatBytes(item.file.size)}
                         </span>
                       </div>
 
@@ -2074,10 +2368,18 @@ export default function NewQrxPage() {
                 />
               </label>
 
-              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55, fontSize: 13 }}>
+              <p
+                style={{
+                  margin: 0,
+                  color: "#94a3b8",
+                  lineHeight: 1.55,
+                  fontSize: 13,
+                }}
+              >
                 Lade ein Dokument oder Bild hoch, mit dem dein Business QR-X
-                geprüft werden kann. Die Anfrage kostet {QRX_VERIFICATION_COST_CREDITS} Credits und wird in
-                der Kommandozentrale geprüft.
+                geprüft werden kann. Die Anfrage kostet{" "}
+                {QRX_VERIFICATION_COST_CREDITS} Credits und wird in der
+                Kommandozentrale geprüft.
               </p>
 
               {wantsVerification ? (
@@ -2107,7 +2409,8 @@ export default function NewQrxPage() {
                       <div style={previewFileMetaStyle}>
                         <strong>{verificationDocument.file.name}</strong>
                         <span>
-                          {verificationDocument.documentType.toUpperCase()} · {formatBytes(verificationDocument.file.size)}
+                          {verificationDocument.documentType.toUpperCase()} ·{" "}
+                          {formatBytes(verificationDocument.file.size)}
                         </span>
                       </div>
 
@@ -2121,8 +2424,9 @@ export default function NewQrxPage() {
                     </div>
                   ) : (
                     <div style={verificationHintStyle}>
-                      Bitte lade einen Gewerbenachweis, eine Rechnung, ein Schreiben,
-                      eine Speisekarte, ein Praxisschild oder einen ähnlichen Nachweis hoch.
+                      Bitte lade einen Gewerbenachweis, eine Rechnung, ein
+                      Schreiben, eine Speisekarte, ein Praxisschild oder einen
+                      ähnlichen Nachweis hoch.
                     </div>
                   )}
                 </div>
@@ -2227,7 +2531,8 @@ export default function NewQrxPage() {
               Speicher-Kontingent
             </h3>
             <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
-              {FREE_STORAGE_MB} MB sind pro QR-X inklusive. Danach kostet jedes weitere Paket mit {STORAGE_PACK_MB} MB genau 1 Credit.
+              {FREE_STORAGE_MB} MB sind pro QR-X inklusive. Danach kostet jedes
+              weitere Paket mit {STORAGE_PACK_MB} MB genau 1 Credit.
             </p>
             <div style={storageGridStyle}>
               <div style={storageMetricStyle}>
@@ -2235,7 +2540,9 @@ export default function NewQrxPage() {
                 <strong>{formatMb(selectedStorageMb)}</strong>
               </div>
               <div style={storageMetricStyle}>
-                <span style={storageMetricLabelStyle}>Kontingent nach Erstellung</span>
+                <span style={storageMetricLabelStyle}>
+                  Kontingent nach Erstellung
+                </span>
                 <strong>{formatMb(estimatedStorageLimitMb)}</strong>
               </div>
               <div style={storageMetricStyle}>
@@ -2244,18 +2551,42 @@ export default function NewQrxPage() {
               </div>
             </div>
             {estimatedStorageCredits > 0 ? (
-              <p style={{ margin: 0, color: "#fde68a", lineHeight: 1.55, fontWeight: 850 }}>
-                Für den ausgewählten Speicher werden voraussichtlich {estimatedStorageCredits} Credit
-                {estimatedStorageCredits === 1 ? "" : "s"} abgebucht. Das Kontingent bleibt diesem QR-X erhalten, auch wenn später Dateien gelöscht werden.
+              <p
+                style={{
+                  margin: 0,
+                  color: "#fde68a",
+                  lineHeight: 1.55,
+                  fontWeight: 850,
+                }}
+              >
+                Für den ausgewählten Speicher werden voraussichtlich{" "}
+                {estimatedStorageCredits} Credit
+                {estimatedStorageCredits === 1 ? "" : "s"} abgebucht. Das
+                Kontingent bleibt diesem QR-X erhalten, auch wenn später Dateien
+                gelöscht werden.
               </p>
             ) : (
-              <p style={{ margin: 0, color: "#bbf7d0", lineHeight: 1.55, fontWeight: 850 }}>
+              <p
+                style={{
+                  margin: 0,
+                  color: "#bbf7d0",
+                  lineHeight: 1.55,
+                  fontWeight: 850,
+                }}
+              >
                 Voraussichtlich keine zusätzlichen Speicher-Credits nötig.
               </p>
             )}
           </div>
 
-          <div style={totalCostBoxStyle(!pricingLoading && totalCostCredits != null && credits != null && credits < totalCostCredits)}>
+          <div
+            style={totalCostBoxStyle(
+              !pricingLoading &&
+                totalCostCredits != null &&
+                credits != null &&
+                credits < totalCostCredits,
+            )}
+          >
             <div>
               <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
                 Gesamtkosten
@@ -2268,7 +2599,11 @@ export default function NewQrxPage() {
             <div style={costRowsStyle}>
               <div style={costRowStyle}>
                 <span>QR-X Erstellung</span>
-                <strong>{pricingLoading || creationCostCredits == null ? "…" : `${creationCostCredits} Credits`}</strong>
+                <strong>
+                  {pricingLoading || creationCostCredits == null
+                    ? "…"
+                    : `${creationCostCredits} Credits`}
+                </strong>
               </div>
               <div style={costRowStyle}>
                 <span>Verifizierung</span>
@@ -2280,13 +2615,28 @@ export default function NewQrxPage() {
               </div>
               <div style={costTotalRowStyle}>
                 <span>Gesamt</span>
-                <strong>{pricingLoading || totalCostCredits == null ? "…" : `${totalCostCredits} Credits`}</strong>
+                <strong>
+                  {pricingLoading || totalCostCredits == null
+                    ? "…"
+                    : `${totalCostCredits} Credits`}
+                </strong>
               </div>
             </div>
 
-            {!pricingLoading && totalCostCredits != null && credits != null && credits < totalCostCredits ? (
-              <p style={{ margin: 0, color: "#fecaca", lineHeight: 1.55, fontWeight: 900 }}>
-                Dir fehlen noch {totalCostCredits - credits} Credit{totalCostCredits - credits === 1 ? "" : "s"}.
+            {!pricingLoading &&
+            totalCostCredits != null &&
+            credits != null &&
+            credits < totalCostCredits ? (
+              <p
+                style={{
+                  margin: 0,
+                  color: "#fecaca",
+                  lineHeight: 1.55,
+                  fontWeight: 900,
+                }}
+              >
+                Dir fehlen noch {totalCostCredits - credits} Credit
+                {totalCostCredits - credits === 1 ? "" : "s"}.
               </p>
             ) : null}
           </div>
@@ -2297,7 +2647,9 @@ export default function NewQrxPage() {
                 Credits kaufen
               </h3>
               <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
-                Kaufe Credits für weitere QR-X und zusätzlichen Speicherplatz. Der Kauf öffnet in einem neuen Tab, damit deine Eingaben erhalten bleiben.
+                Kaufe Credits für weitere QR-X und zusätzlichen Speicherplatz.
+                Der Kauf öffnet in einem neuen Tab, damit deine Eingaben
+                erhalten bleiben.
               </p>
             </div>
 
@@ -2384,7 +2736,6 @@ export default function NewQrxPage() {
     </main>
   );
 }
-
 
 const creditsHeaderActionsStyle: CSSProperties = {
   display: "flex",
@@ -2668,6 +3019,18 @@ const verificationHintStyle: CSSProperties = {
   lineHeight: 1.55,
 };
 
+const dismissDraftButtonStyle: CSSProperties = {
+  minHeight: 38,
+  borderRadius: 999,
+  border: "1px solid rgba(147,197,253,0.34)",
+  background: "rgba(15,23,42,0.54)",
+  color: "#dbeafe",
+  cursor: "pointer",
+  fontWeight: 900,
+  justifySelf: "start",
+  padding: "0 14px",
+};
+
 const labelStyle: CSSProperties = {
   display: "grid",
   gap: 8,
@@ -2709,7 +3072,9 @@ function totalCostBoxStyle(warning: boolean): CSSProperties {
     borderRadius: 22,
     padding: 16,
     background: warning ? "rgba(239,68,68,0.12)" : "rgba(255,255,255,0.045)",
-    border: warning ? "1px solid rgba(252,165,165,0.24)" : "1px solid rgba(255,255,255,0.08)",
+    border: warning
+      ? "1px solid rgba(252,165,165,0.24)"
+      : "1px solid rgba(255,255,255,0.08)",
     display: "grid",
     gap: 12,
   };
@@ -2804,4 +3169,3 @@ const costTotalRowStyle: CSSProperties = {
   fontSize: 16,
   fontWeight: 950,
 };
-
