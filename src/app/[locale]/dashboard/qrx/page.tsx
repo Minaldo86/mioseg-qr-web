@@ -51,6 +51,7 @@ type QrxEntry = {
   views_total: number | null;
   follower_count: number | null;
   created_at: string | null;
+  deleted_at?: string | null;
 };
 
 function getLocaleFromParams(value: unknown) {
@@ -94,6 +95,7 @@ export default function DashboardQrxPage() {
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     void loadMyQrx();
@@ -124,9 +126,10 @@ export default function DashboardQrxPage() {
     const { data, error } = await supabase
       .from("qr_x_entries")
       .select(
-        "id,title,company_name,description,type,category,verified,cover_image_url,logo_url,location_name,views_total,follower_count,created_at"
+        "id,title,company_name,description,type,category,verified,cover_image_url,logo_url,location_name,views_total,follower_count,created_at,deleted_at"
       )
       .eq("owner_user_id", user.id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .returns<QrxEntry[]>();
 
@@ -165,6 +168,57 @@ export default function DashboardQrxPage() {
       } catch {
         alert("Link konnte nicht kopiert werden.");
       }
+    }
+  }
+
+  async function handleDelete(entry: QrxEntry) {
+    const title = getQrxTitle(entry);
+
+    const confirmed = window.confirm(
+      `Möchtest du diesen QR-X wirklich löschen?\n\n${title}\n\nDer QR-X wird nur deaktiviert und kann später wiederhergestellt werden. Medien und Dateien werden nicht endgültig gelöscht.`,
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(entry.id);
+    setErrorText(null);
+
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
+
+      const token = session?.access_token;
+      if (!token) {
+        throw new Error("Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.");
+      }
+
+      const { data, error } = await supabase.functions.invoke("delete-qrx", {
+        body: {
+          qrxId: entry.id,
+          reason: "Vom Ersteller im Web-Dashboard gelöscht",
+        },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (error) throw error;
+
+      const response = (data ?? {}) as { success?: boolean; error?: string; step?: string };
+      if (response.error || response.success === false) {
+        throw new Error(response.error || "QR-X konnte nicht gelöscht werden.");
+      }
+
+      setItems((current) => current.filter((item) => item.id !== entry.id));
+    } catch (error) {
+      console.error("QR-X DELETE ERROR", error);
+      const message = error instanceof Error ? error.message : "QR-X konnte nicht gelöscht werden.";
+      setErrorText(message);
+      alert(message);
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -577,10 +631,25 @@ export default function DashboardQrxPage() {
                       <Link
                         href={editHref}
                         className={styles.secondaryButton}
-                        style={{ gridColumn: "1 / -1" }}
                       >
                         Bearbeiten
                       </Link>
+
+                      <button
+                        type="button"
+                        onClick={() => void handleDelete(entry)}
+                        className={styles.secondaryButton}
+                        disabled={deletingId === entry.id}
+                        style={{
+                          cursor: deletingId === entry.id ? "not-allowed" : "pointer",
+                          border: "1px solid rgba(248,113,113,0.35)",
+                          background: "rgba(239,68,68,0.14)",
+                          color: "#fecaca",
+                          opacity: deletingId === entry.id ? 0.72 : 1,
+                        }}
+                      >
+                        {deletingId === entry.id ? "Löscht …" : "🗑️ Löschen"}
+                      </button>
                     </div>
                   </div>
                 </article>
