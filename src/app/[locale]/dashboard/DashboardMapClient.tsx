@@ -170,7 +170,19 @@ function buildPopup(point: MapPoint) {
         ${escapeHtml(getMarkerLabel(point.kind))}
       </div>
       <div style="font-weight:950;font-size:17px;line-height:1.25;margin-bottom:7px;">${escapeHtml(point.title)}</div>
-      <div style="color:#5d6b7d;font-size:13px;line-height:1.55;margin-bottom:10px;">${escapeHtml(point.description)}</div>
+      <div style="
+  color:#5d6b7d;
+  font-size:13px;
+  line-height:1.55;
+  margin-bottom:10px;
+  display:-webkit-box;
+  -webkit-line-clamp:5;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  text-overflow:ellipsis;
+">
+  ${escapeHtml(point.description)}
+</div>
       ${
         point.locationName
           ? `<div style="color:#5d6b7d;font-size:12px;font-weight:800;margin-bottom:12px;">📍 ${escapeHtml(point.locationName)}</div>`
