@@ -300,6 +300,11 @@ export default function PublicQrxDetailPage() {
       return;
     }
 
+    if (entry?.owner_user_id && entry.owner_user_id === currentUserId) {
+      setErrorText(null);
+      return;
+    }
+
     try {
       setSaveLoading(true);
       setErrorText(null);
@@ -609,33 +614,41 @@ export default function PublicQrxDetailPage() {
             <section style={actionsLayoutStyle} aria-label="QR-X Aktionen">
               <div style={followBoxStyle}>
                 <div>
-                  <h2 style={boxTitleStyle}>Gefolgt</h2>
+                  <h2 style={boxTitleStyle}>
+                    {isOwner ? "Eigener QR-X" : hasSaved ? "Gefolgt" : "Folgen"}
+                  </h2>
                   <p style={boxHintStyle}>
-                    {currentUserId
-                      ? hasSaved
-                        ? "Dieser QR-X ist aktuell in deinen gespeicherten Einträgen."
-                        : "Du kannst diesem QR-X folgen, um ihn in deiner App und im Web wiederzufinden."
-                      : "Melde dich an, um diesem QR-X zu folgen."}
+                    {isOwner
+                      ? "Du bist der Besitzer dieses QR-X. Er ist automatisch in deinen erstellten QR-X sichtbar."
+                      : currentUserId
+                        ? hasSaved
+                          ? "Dieser QR-X ist aktuell in deinen gespeicherten Einträgen."
+                          : "Du kannst diesem QR-X folgen, um ihn in deiner App und im Web wiederzufinden."
+                        : "Melde dich an, um diesem QR-X zu folgen."}
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={handleToggleSave}
-                  disabled={saveLoading || !currentUserId}
+                  disabled={isOwner || saveLoading || !currentUserId}
                   className={styles.primaryButton}
                   style={{
                     border: 0,
                     cursor:
-                      saveLoading || !currentUserId ? "not-allowed" : "pointer",
-                    opacity: saveLoading || !currentUserId ? 0.72 : 1,
+                      isOwner || saveLoading || !currentUserId
+                        ? "not-allowed"
+                        : "pointer",
+                    opacity: isOwner || saveLoading || !currentUserId ? 0.82 : 1,
                   }}
                 >
-                  {saveLoading
-                    ? "Bitte warten …"
-                    : hasSaved
-                      ? "Folgen beenden"
-                      : "QR-X folgen"}
+                  {isOwner
+                    ? "👑 Eigener QR-X"
+                    : saveLoading
+                      ? "Bitte warten …"
+                      : hasSaved
+                        ? "✓ Gefolgt"
+                        : "+ Folgen"}
                 </button>
 
                 <span style={saveCountStyle}>
