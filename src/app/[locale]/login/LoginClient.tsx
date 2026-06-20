@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
@@ -33,12 +33,15 @@ function getAuthErrorMessage(message: string, locale: string) {
 
 export default function LoginClient({ locale }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
+
+  const nextUrl = searchParams.get("next") || `/${locale}/dashboard`;
 
   const copy = useMemo(
     () =>
@@ -113,7 +116,7 @@ export default function LoginClient({ locale }: Props) {
         return;
       }
 
-      router.push(`/${locale}/dashboard`);
+      router.push(nextUrl);
       router.refresh();
     } finally {
       setWorking(false);
