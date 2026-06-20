@@ -215,7 +215,7 @@ export default async function ExplorePage({
   const userLng = parseNumberParam(sp.lng);
   const hasUserLocation = userLat != null && userLng != null;
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();;
 
   const { data, error } = await supabase
     .from("qr_x_entries")

@@ -37,7 +37,7 @@ export default async function OpenGraphImage({
 }) {
   const { id } = await params;
   const qrxId = normalizeQrxId(id);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data: entry } = await supabase
     .from("qr_x_entries")

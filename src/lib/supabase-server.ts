@@ -1,35 +1,32 @@
-// mioseg-qr-web/lib/supabase-server.ts
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-/**
- * Server-side Supabase client for Next.js (Node runtime).
- * Uses server environment variables by default.
- * Falls back to NEXT_PUBLIC_* for local/preview convenience.
- *
- * IMPORTANT:
- * - This is NOT the browser client.
- * - persistSession is disabled on purpose for server usage.
- */
-export function createSupabaseServerClient() {
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
+
   const supabaseUrl =
-    (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+    process.env.SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   const supabaseAnonKey =
-    (process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl) {
-    throw new Error(
-      "SUPABASE_URL is required (server). Set it in Vercel Environment Variables."
-    );
+    throw new Error("SUPABASE_URL is missing.");
   }
 
   if (!supabaseAnonKey) {
-    throw new Error(
-      "SUPABASE_ANON_KEY is required (server). Set it in Vercel Environment Variables."
-    );
+    throw new Error("SUPABASE_ANON_KEY is missing.");
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    auth: { persistSession: false },
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
+      },
+      set() {},
+      remove() {},
+    },
   });
 }

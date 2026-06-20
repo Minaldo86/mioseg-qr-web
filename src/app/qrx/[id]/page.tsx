@@ -201,7 +201,7 @@ export default async function QrxPage({
     adminKey === process.env.QRX_ADMIN_ACCESS_KEY;
 
   const qrxId = normalizeQrxId(id);
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();;
 
   const { data: entry, error: entryErr } = await supabase
     .from("qr_x_entries")
@@ -270,7 +270,7 @@ export default async function QrxPage({
   async function toggleFollowAction() {
     "use server";
 
-    const actionSupabase = createSupabaseServerClient();
+   const actionSupabase = await createSupabaseServerClient();
     const { data: actionUserData } = await actionSupabase.auth.getUser();
     const actionUserId = actionUserData.user?.id ?? null;
 
