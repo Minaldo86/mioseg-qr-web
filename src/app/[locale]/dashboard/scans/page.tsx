@@ -7,77 +7,22 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import styles from "../dashboard.module.css";
 
-type BusinessCategory =
-  | "praxis_gesundheit"
-  | "gastronomie"
-  | "unternehmen"
-  | "dienstleistung"
-  | "handwerk"
-  | "event"
-  | "verein"
-  | "wohltaetigkeit"
-  | "sehenswuerdigkeit"
-  | "sonstiges";
-
-const BUSINESS_CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string }> = [
-  { value: "praxis_gesundheit", label: "Praxis & Gesundheit" },
-  { value: "gastronomie", label: "Gastronomie" },
-  { value: "unternehmen", label: "Unternehmen" },
-  { value: "dienstleistung", label: "Dienstleistung" },
-  { value: "handwerk", label: "Handwerk" },
-  { value: "event", label: "Event" },
-  { value: "verein", label: "Verein" },
-  { value: "wohltaetigkeit", label: "Wohltätigkeit" },
-  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit" },
-  { value: "sonstiges", label: "Sonstiges" },
-];
-
-function getBusinessCategoryLabel(value: string | null | undefined) {
-  if (!value) return null;
-  return BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value)?.label ?? value;
-}
-
-type QrxEntry = {
+type UserScan = {
   id: string;
-  title: string | null;
-  company_name: string | null;
-  description: string | null;
-  type: "normal" | "business" | null;
-  category: BusinessCategory | null;
-  verified: boolean | null;
-  cover_image_url: string | null;
-  logo_url: string | null;
-  location_name: string | null;
-  views_total: number | null;
-  follower_count: number | null;
+  name: string | null;
+  data: string | null;
+  title?: string | null;
+  url?: string | null;
+  kind?: "scan" | "qr-x" | string | null;
+  latitude: number | null;
+  longitude: number | null;
   created_at: string | null;
-  deleted_at?: string | null;
-};
-
-type SavedQrxRow = {
-  qrx_id: string | null;
-  qr_x_entries: QrxEntry | null;
 };
 
 function getLocaleFromParams(value: unknown) {
   if (typeof value === "string" && value.trim()) return value;
   if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim()) return value[0];
   return "de";
-}
-
-function getQrxTitle(entry: QrxEntry) {
-  return entry.company_name?.trim() || entry.title?.trim() || "Unbenannter QR-X";
-}
-
-function getQrxText(entry: QrxEntry) {
-  return entry.description?.trim() || entry.location_name?.trim() || "QR-X auf mioseg qr";
-}
-
-function formatNumber(value: number | null | undefined) {
-  const n = Math.max(0, Number(value ?? 0));
-  if (n >= 1000000) return `${(n / 1000000).toFixed(n >= 10000000 ? 0 : 1).replace(".", ",")} Mio.`;
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(".", ",")} Tsd.`;
-  return String(n);
 }
 
 function formatDate(value: string | null) {
@@ -89,24 +34,53 @@ function formatDate(value: string | null) {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(date);
+}
+
+function getScanTitle(scan: UserScan) {
+  return scan.name?.trim() || scan.title?.trim() || "Gespeicherter Scan";
+}
+
+function getScanTarget(scan: UserScan) {
+  return scan.url?.trim() || scan.data?.trim() || "";
+}
+
+function hasLocation(scan: UserScan) {
+  return (
+    typeof scan.latitude === "number" &&
+    typeof scan.longitude === "number" &&
+    Number.isFinite(scan.latitude) &&
+    Number.isFinite(scan.longitude)
+  );
+}
+
+function isOpenableUrl(value: string) {
+  return value.startsWith("http://") || value.startsWith("https://");
+}
+
+function shortText(value: string, max = 90) {
+  const v = value.trim();
+  if (v.length <= max) return v;
+  return `${v.slice(0, max - 1)}…`;
 }
 
 export default function DashboardScansPage() {
   const params = useParams();
   const locale = getLocaleFromParams(params?.locale);
 
-  const [items, setItems] = useState<QrxEntry[]>([]);
+  const [items, setItems] = useState<UserScan[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    void loadMyQrx();
+    void loadScans();
   }, []);
 
-  async function loadMyQrx() {
+  async function loadScans() {
     setLoading(true);
     setErrorText(null);
 
@@ -123,61 +97,50 @@ export default function DashboardScansPage() {
 
     if (!user) {
       setItems([]);
-      setErrorText("Bitte melde dich zuerst an, um deine QR-X zu sehen.");
+      setErrorText("Bitte melde dich zuerst an, um deine Scans zu sehen.");
       setLoading(false);
       return;
     }
 
     const { data, error } = await supabase
-      .from("qrx_saves")
-      .select(`
-        qrx_id,
-        qr_x_entries (
-          id,title,company_name,description,type,category,verified,
-          cover_image_url,logo_url,location_name,views_total,
-          follower_count,created_at,deleted_at
-        )
-      `)
+      .from("user_scans")
+      .select("id,name,title,url,data,kind,latitude,longitude,created_at")
       .eq("user_id", user.id)
-      .is("qr_x_entries.deleted_at", null)
-      .returns<SavedQrxRow[]>();
-
-    const mappedItems =
-      (data ?? [])
-        .map((row) => row.qr_x_entries)
-        .filter((entry): entry is QrxEntry => Boolean(entry));
+      .eq("kind", "scan")
+      .order("created_at", { ascending: false })
+      .returns<UserScan[]>();
 
     if (error) {
       setErrorText(error.message);
       setItems([]);
     } else {
-      setItems(mappedItems ?? []);
+      setItems(data ?? []);
     }
 
     setLoading(false);
   }
 
-  async function handleShare(entry: QrxEntry) {
-    const url = `${window.location.origin}/qrx/${entry.id}`;
-    const title = getQrxTitle(entry);
+  async function handleShare(scan: UserScan) {
+    const target = getScanTarget(scan);
+    if (!target) return;
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title,
-          text: `QR-X: ${title}`,
-          url,
+          title: getScanTitle(scan),
+          text: target,
+          url: isOpenableUrl(target) ? target : undefined,
         });
         return;
       }
 
-      await navigator.clipboard.writeText(url);
-      setCopiedId(entry.id);
+      await navigator.clipboard.writeText(target);
+      setCopiedId(scan.id);
       window.setTimeout(() => setCopiedId(null), 1800);
     } catch {
       try {
-        await navigator.clipboard.writeText(url);
-        setCopiedId(entry.id);
+        await navigator.clipboard.writeText(target);
+        setCopiedId(scan.id);
         window.setTimeout(() => setCopiedId(null), 1800);
       } catch {
         alert("Link konnte nicht kopiert werden.");
@@ -185,32 +148,48 @@ export default function DashboardScansPage() {
     }
   }
 
-  async function handleDelete(entry: QrxEntry) {
+  function handleOpen(scan: UserScan) {
+    const target = getScanTarget(scan);
+    if (!target) return;
+
+    if (isOpenableUrl(target)) {
+      window.open(target, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    void navigator.clipboard.writeText(target);
+    setCopiedId(scan.id);
+    window.setTimeout(() => setCopiedId(null), 1800);
+  }
+
+  async function handleDelete(scan: UserScan) {
     const confirmed = window.confirm(
-      `Möchtest du diesen QR-X aus deinen gespeicherten Einträgen entfernen?\n\n${getQrxTitle(entry)}`,
+      `Möchtest du diesen Scan wirklich löschen?\n\n${getScanTitle(scan)}`,
     );
 
     if (!confirmed) return;
 
-    setDeletingId(entry.id);
+    setDeletingId(scan.id);
     setErrorText(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) throw new Error("Bitte melde dich erneut an.");
 
       const { error } = await supabase
-        .from("qrx_saves")
+        .from("user_scans")
         .delete()
-        .eq("user_id", user.id)
-        .eq("qrx_id", entry.id);
+        .eq("id", scan.id)
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
-      setItems((current) => current.filter((item) => item.id !== entry.id));
+      setItems((current) => current.filter((item) => item.id !== scan.id));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "QR-X konnte nicht entfernt werden.";
+      const message = error instanceof Error ? error.message : "Scan konnte nicht gelöscht werden.";
       setErrorText(message);
       alert(message);
     } finally {
@@ -218,16 +197,15 @@ export default function DashboardScansPage() {
     }
   }
 
-const stats = useMemo(() => {
-    const business = items.filter((item) => item.type === "business").length;
-    const normal = items.length - business;
-    const verified = items.filter((item) => item.verified).length;
+  const stats = useMemo(() => {
+    const withLocation = items.filter((item) => hasLocation(item)).length;
+    const links = items.filter((item) => isOpenableUrl(getScanTarget(item))).length;
 
     return [
-      { label: "Alle QR-X", value: items.length, icon: "▣" },
-      { label: "Business QR-X", value: business, icon: "🏢" },
-      { label: "Normale QR-X", value: normal, icon: "⌗" },
-      { label: "Verifiziert", value: verified, icon: "✓" },
+      { label: "Alle Scans", value: items.length, icon: "⌗" },
+      { label: "Mit Standort", value: withLocation, icon: "📍" },
+      { label: "Links", value: links, icon: "🔗" },
+      { label: "Ohne Standort", value: items.length - withLocation, icon: "○" },
     ];
   }, [items]);
 
@@ -238,8 +216,9 @@ const stats = useMemo(() => {
           <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
         </Link>
 
-        <nav className={styles.nav} aria-label="QR-X Navigation">
+        <nav className={styles.nav} aria-label="Scans Navigation">
           <Link href={`/${locale}/dashboard`}>Dashboard</Link>
+          <Link href={`/${locale}/dashboard/qrx`}>Meine QR-X</Link>
           <Link href={`/${locale}/explore`}>Explore</Link>
         </nav>
       </header>
@@ -249,14 +228,14 @@ const stats = useMemo(() => {
           <span className={styles.kicker}>Meine Scans</span>
           <h1>Meine Scans</h1>
           <p>
-            Verwalte deine erstellten QR-X bequem im Browser. Öffnen, Teilen und Bearbeiten
-            funktionieren jetzt als erste schlanke Web-Version.
+            Hier findest du normale QR-Codes und Links, die du mit der App gescannt hast.
+            Wenn beim Scannen ein Standort gespeichert wurde, erscheint der Scan auch auf deiner Dashboard-Karte.
           </p>
         </div>
 
         <div className={styles.heroActions}>
-          <Link href={`/${locale}/explore`} className={styles.primaryButton}>
-            Explore öffnen
+          <Link href={`/${locale}/dashboard/qrx`} className={styles.primaryButton}>
+            Meine QR-X öffnen
           </Link>
           <Link href={`/${locale}/dashboard`} className={styles.secondaryButton}>
             Zurück zum Dashboard
@@ -289,74 +268,29 @@ const stats = useMemo(() => {
       >
         <div className={styles.cardHeader}>
           <div>
-            <h2>Deine gespeicherten QR-X</h2>
-            <p>Alle QR-X, denen du folgst. Änderungen werden automatisch mit der App synchronisiert.</p>
+            <h2>Normale QR-Codes & Links</h2>
+            <p>Alle normalen Scans aus deiner App, sortiert nach dem neuesten Eintrag.</p>
           </div>
           <span>{loading ? "Lädt ..." : `${items.length} Einträge`}</span>
         </div>
 
-        {errorText ? (
-          <div
-            style={{
-              borderRadius: 22,
-              padding: 18,
-              background: "rgba(239, 68, 68, 0.14)",
-              border: "1px solid rgba(252, 165, 165, 0.22)",
-              color: "#fecaca",
-              fontWeight: 850,
-              lineHeight: 1.55,
-            }}
-          >
-            {errorText}
-          </div>
-        ) : null}
+        {errorText ? <div style={errorStyle}>{errorText}</div> : null}
 
         {!loading && !errorText && items.length === 0 ? (
-          <div
-            style={{
-              borderRadius: 24,
-              minHeight: 260,
-              display: "grid",
-              placeItems: "center",
-              textAlign: "center",
-              padding: 24,
-              background:
-                "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035))",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
+          <div style={emptyStyle}>
             <div>
-              <div style={{ fontSize: 44, marginBottom: 12 }}>▣</div>
+              <div style={{ fontSize: 44, marginBottom: 12 }}>⌗</div>
               <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 24 }}>
-                Noch keine QR-X gespeichert
+                Noch keine normalen Scans gespeichert
               </h3>
-              <p style={{ margin: "0 auto 18px", color: "#94a3b8", maxWidth: 520, lineHeight: 1.6 }}>
-                Sobald du einem QR-X folgst, erscheint er hier automatisch.
+              <p style={{ margin: "0 auto 18px", color: "#94a3b8", maxWidth: 560, lineHeight: 1.6 }}>
+                Sobald du mit der App einen normalen QR-Code scannst und speicherst, erscheint er hier.
               </p>
-              <Link href={`/${locale}/explore`} className={styles.primaryButton}>
-                Explore öffnen
-              </Link>
             </div>
           </div>
         ) : null}
 
-        {loading ? (
-          <div
-            style={{
-              borderRadius: 24,
-              minHeight: 260,
-              display: "grid",
-              placeItems: "center",
-              color: "#cbd5e1",
-              background:
-                "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035))",
-              border: "1px solid rgba(255,255,255,0.08)",
-              fontWeight: 950,
-            }}
-          >
-            QR-X werden geladen …
-          </div>
-        ) : null}
+        {loading ? <div style={loadingStyle}>Scans werden geladen …</div> : null}
 
         {!loading && items.length > 0 ? (
           <div
@@ -366,115 +300,31 @@ const stats = useMemo(() => {
               gap: 14,
             }}
           >
-            {items.map((entry) => {
-              const title = getQrxTitle(entry);
-              const image = entry.cover_image_url?.trim() || entry.logo_url?.trim() || null;
-              const isBusiness = entry.type === "business";
-              const categoryLabel = getBusinessCategoryLabel(entry.category);
-              const openHref = `/qrx/${entry.id}`;
+            {items.map((scan) => {
+              const title = getScanTitle(scan);
+              const target = getScanTarget(scan);
+              const locationSaved = hasLocation(scan);
 
               return (
-                <article
-                  key={entry.id}
-                  style={{
-                    overflow: "hidden",
-                    borderRadius: 26,
-                    background: "linear-gradient(180deg, rgba(255,255,255,0.105), rgba(255,255,255,0.045))",
-                    border: "1px solid rgba(255,255,255,0.105)",
-                    boxShadow: "0 18px 46px rgba(0,0,0,0.14)",
-                  }}
-                >
-                  <div
-                    style={{
-                      height: 174,
-                      position: "relative",
-                      background:
-                        "radial-gradient(circle at 30% 20%, #ffffff 0%, #edf4fb 45%, #dce7f3 100%)",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {image ? (
-                      <img
-                        src={image}
-                        alt={title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          height: "100%",
-                          display: "grid",
-                          placeItems: "center",
-                          fontSize: 46,
-                          color: "#0d1726",
-                          fontWeight: 950,
-                        }}
-                      >
-                        ▣
-                      </div>
-                    )}
-
+                <article key={scan.id} style={cardStyle}>
+                  <div style={{ padding: 16 }}>
                     <div
                       style={{
-                        position: "absolute",
-                        inset: 0,
-                        background: image
-                          ? "linear-gradient(180deg, rgba(6,12,21,0.06) 0%, rgba(6,12,21,0.62) 100%)"
-                          : "transparent",
-                      }}
-                    />
-
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: 12,
-                        top: 12,
-                        right: 12,
-                        display: "flex",
-                        gap: 8,
-                        flexWrap: "wrap",
-                        justifyContent: "space-between",
+                        width: 48,
+                        height: 48,
+                        borderRadius: 18,
+                        display: "grid",
+                        placeItems: "center",
+                        background: "linear-gradient(180deg, #ffffff, #dbeafe)",
+                        color: "#07101f",
+                        fontSize: 22,
+                        fontWeight: 950,
+                        marginBottom: 14,
                       }}
                     >
-                      <span
-                        style={{
-                          minHeight: 32,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          borderRadius: 999,
-                          padding: "0 10px",
-                          background: isBusiness ? "#fff7ed" : "#ecfdf3",
-                          color: isBusiness ? "#9a4f00" : "#166534",
-                          fontSize: 12,
-                          fontWeight: 950,
-                          border: isBusiness ? "1px solid #fed7aa" : "1px solid #bbf7d0",
-                        }}
-                      >
-                        {isBusiness ? "🏢 Business QR-X" : "⌗ Normaler QR-X"}
-                      </span>
-
-                      {entry.verified ? (
-                        <span
-                          style={{
-                            minHeight: 32,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            borderRadius: 999,
-                            padding: "0 10px",
-                            background: "rgba(13,23,38,0.86)",
-                            color: "#ffffff",
-                            fontSize: 12,
-                            fontWeight: 950,
-                            border: "1px solid rgba(255,255,255,0.18)",
-                          }}
-                        >
-                          ✓ Verifiziert
-                        </span>
-                      ) : null}
+                      {isOpenableUrl(target) ? "🔗" : "⌗"}
                     </div>
-                  </div>
 
-                  <div style={{ padding: 16 }}>
                     <h3
                       style={{
                         margin: "0 0 8px",
@@ -495,113 +345,39 @@ const stats = useMemo(() => {
                         fontSize: 13,
                         lineHeight: 1.55,
                         minHeight: 42,
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
+                        wordBreak: "break-word",
                       }}
                     >
-                      {getQrxText(entry)}
+                      {target ? shortText(target, 120) : "Kein Inhalt gespeichert."}
                     </p>
 
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 8,
-                        flexWrap: "wrap",
-                        marginBottom: 14,
-                      }}
-                    >
-                      {entry.location_name?.trim() ? (
-                        <span
-                          style={{
-                            minHeight: 30,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            borderRadius: 999,
-                            padding: "0 10px",
-                            background: "rgba(255,255,255,0.06)",
-                            color: "#cbd5e1",
-                            fontSize: 12,
-                            fontWeight: 850,
-                          }}
-                        >
-                          📍 {entry.location_name.trim()}
-                        </span>
-                      ) : null}
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+                      <span style={pillStyle}>Gescannt: {formatDate(scan.created_at)}</span>
 
-                      {isBusiness && categoryLabel ? (
-                        <span
-                          style={{
-                            minHeight: 30,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            borderRadius: 999,
-                            padding: "0 10px",
-                            background: "rgba(251,146,60,0.14)",
-                            color: "#fed7aa",
-                            fontSize: 12,
-                            fontWeight: 900,
-                            border: "1px solid rgba(253,186,116,0.18)",
-                          }}
-                        >
-                          ▦ {categoryLabel}
-                        </span>
-                      ) : null}
+                      {locationSaved ? (
+                        <span style={locationPillStyle}>📍 Standort gespeichert</span>
+                      ) : (
+                        <span style={pillStyle}>Ohne Standort</span>
+                      )}
+                    </div>
 
-                      <span
+                    {locationSaved ? (
+                      <div
                         style={{
-                          minHeight: 30,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          borderRadius: 999,
-                          padding: "0 10px",
-                          background: "rgba(255,255,255,0.06)",
-                          color: "#cbd5e1",
+                          borderRadius: 16,
+                          padding: 12,
+                          background: "rgba(37,99,235,0.12)",
+                          border: "1px solid rgba(147,197,253,0.18)",
+                          color: "#bfdbfe",
                           fontSize: 12,
                           fontWeight: 850,
+                          marginBottom: 14,
+                          wordBreak: "break-word",
                         }}
                       >
-                        Erstellt: {formatDate(entry.created_at)}
-                      </span>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 10,
-                        marginBottom: 14,
-                      }}
-                    >
-                      <div
-                        style={{
-                          borderRadius: 18,
-                          padding: 12,
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.07)",
-                        }}
-                      >
-                        <div style={{ color: "#ffffff", fontSize: 20, fontWeight: 950 }}>
-                          {formatNumber(entry.views_total)}
-                        </div>
-                        <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850 }}>Aufrufe</div>
+                        {scan.latitude?.toFixed(6)}, {scan.longitude?.toFixed(6)}
                       </div>
-
-                      <div
-                        style={{
-                          borderRadius: 18,
-                          padding: 12,
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.07)",
-                        }}
-                      >
-                        <div style={{ color: "#ffffff", fontSize: 20, fontWeight: 950 }}>
-                          {formatNumber(entry.follower_count)}
-                        </div>
-                        <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850 }}>Follower</div>
-                      </div>
-                    </div>
+                    ) : null}
 
                     <div
                       style={{
@@ -610,33 +386,39 @@ const stats = useMemo(() => {
                         gap: 10,
                       }}
                     >
-                      <Link href={openHref} className={styles.primaryButton}>
-                        Öffnen
-                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleOpen(scan)}
+                        className={styles.primaryButton}
+                        style={{ border: 0, cursor: "pointer" }}
+                      >
+                        {isOpenableUrl(target) ? "Öffnen" : copiedId === scan.id ? "Kopiert" : "Kopieren"}
+                      </button>
 
                       <button
                         type="button"
-                        onClick={() => void handleShare(entry)}
+                        onClick={() => void handleShare(scan)}
                         className={styles.secondaryButton}
                         style={{ cursor: "pointer" }}
                       >
-                        {copiedId === entry.id ? "Kopiert" : "Teilen"}
+                        {copiedId === scan.id ? "Kopiert" : "Teilen"}
                       </button>
 
-                                            <button
+                      <button
                         type="button"
-                        onClick={() => void handleDelete(entry)}
+                        onClick={() => void handleDelete(scan)}
                         className={styles.secondaryButton}
-                        disabled={deletingId === entry.id}
+                        disabled={deletingId === scan.id}
                         style={{
-                          cursor: deletingId === entry.id ? "not-allowed" : "pointer",
+                          gridColumn: "1 / -1",
+                          cursor: deletingId === scan.id ? "not-allowed" : "pointer",
                           border: "1px solid rgba(248,113,113,0.35)",
                           background: "rgba(239,68,68,0.14)",
                           color: "#fecaca",
-                          opacity: deletingId === entry.id ? 0.72 : 1,
+                          opacity: deletingId === scan.id ? 0.72 : 1,
                         }}
                       >
-                        {deletingId === entry.id ? "Entfernt …" : "✕ Entfernen"}
+                        {deletingId === scan.id ? "Löscht …" : "🗑️ Scan löschen"}
                       </button>
                     </div>
                   </div>
@@ -649,3 +431,62 @@ const stats = useMemo(() => {
     </main>
   );
 }
+
+const cardStyle: React.CSSProperties = {
+  overflow: "hidden",
+  borderRadius: 26,
+  background: "linear-gradient(180deg, rgba(255,255,255,0.105), rgba(255,255,255,0.045))",
+  border: "1px solid rgba(255,255,255,0.105)",
+  boxShadow: "0 18px 46px rgba(0,0,0,0.14)",
+};
+
+const pillStyle: React.CSSProperties = {
+  minHeight: 30,
+  display: "inline-flex",
+  alignItems: "center",
+  borderRadius: 999,
+  padding: "0 10px",
+  background: "rgba(255,255,255,0.06)",
+  color: "#cbd5e1",
+  fontSize: 12,
+  fontWeight: 850,
+};
+
+const locationPillStyle: React.CSSProperties = {
+  ...pillStyle,
+  background: "rgba(37,99,235,0.16)",
+  color: "#bfdbfe",
+  border: "1px solid rgba(147,197,253,0.18)",
+};
+
+const errorStyle: React.CSSProperties = {
+  borderRadius: 22,
+  padding: 18,
+  background: "rgba(239, 68, 68, 0.14)",
+  border: "1px solid rgba(252, 165, 165, 0.22)",
+  color: "#fecaca",
+  fontWeight: 850,
+  lineHeight: 1.55,
+};
+
+const emptyStyle: React.CSSProperties = {
+  borderRadius: 24,
+  minHeight: 260,
+  display: "grid",
+  placeItems: "center",
+  textAlign: "center",
+  padding: 24,
+  background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035))",
+  border: "1px solid rgba(255,255,255,0.08)",
+};
+
+const loadingStyle: React.CSSProperties = {
+  borderRadius: 24,
+  minHeight: 260,
+  display: "grid",
+  placeItems: "center",
+  color: "#cbd5e1",
+  background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.035))",
+  border: "1px solid rgba(255,255,255,0.08)",
+  fontWeight: 950,
+};

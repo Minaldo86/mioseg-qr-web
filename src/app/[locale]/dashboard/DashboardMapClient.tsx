@@ -308,7 +308,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           latitude: scan.latitude as number,
           longitude: scan.longitude as number,
           kind: "scan",
-          locationName: null,
+          locationName: scan.name?.trim() || null,
         }));
 
       setPoints([...ownPoints, ...savedPoints, ...scanPoints]);
