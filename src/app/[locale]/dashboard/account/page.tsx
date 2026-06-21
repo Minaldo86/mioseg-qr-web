@@ -511,8 +511,8 @@ export default function AccountPage() {
                 onChange={(event) => setAccountType(event.target.value)}
                 style={selectStyle}
               >
-                <option value="private">Privatperson</option>
-                <option value="business">Unternehmen</option>
+                <option value="private" style={optionStyle}>Privatperson</option>
+                <option value="business" style={optionStyle}>Unternehmen</option>
               </select>
             </label>
 
@@ -591,10 +591,10 @@ export default function AccountPage() {
                   onChange={(event) => setLanguage(event.target.value)}
                   style={selectStyle}
                 >
-                  <option value="de">Deutsch</option>
-                  <option value="en">English</option>
-                  <option value="fr">Français</option>
-                  <option value="tr">Türkçe</option>
+                  <option value="de" style={optionStyle}>Deutsch</option>
+                  <option value="en" style={optionStyle}>English</option>
+                  <option value="fr" style={optionStyle}>Français</option>
+                  <option value="tr" style={optionStyle}>Türkçe</option>
                 </select>
               </label>
             </div>
@@ -1066,7 +1066,16 @@ const inputStyle: React.CSSProperties = {
 const selectStyle: React.CSSProperties = {
   ...inputStyle,
   appearance: "none",
+  backgroundColor: "rgba(255,255,255,0.05)",
+  color: "#ffffff",
+  colorScheme: "dark",
 };
+
+const optionStyle: React.CSSProperties = {
+  background: "#111827",
+  color: "#ffffff",
+};
+
 
 const errorStyle: React.CSSProperties = {
   borderRadius: 22,
