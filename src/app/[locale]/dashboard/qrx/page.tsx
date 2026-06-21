@@ -19,6 +19,8 @@ type BusinessCategory =
   | "sehenswuerdigkeit"
   | "sonstiges";
 
+type QrxTab = "own" | "saved";
+
 const BUSINESS_CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string }> = [
   { value: "praxis_gesundheit", label: "Praxis & Gesundheit" },
   { value: "gastronomie", label: "Gastronomie" },
@@ -52,6 +54,11 @@ type QrxEntry = {
   follower_count: number | null;
   created_at: string | null;
   deleted_at?: string | null;
+};
+
+type SavedQrxRow = {
+  qrx_id: string | null;
+  qr_x_entries: QrxEntry | null;
 };
 
 function getLocaleFromParams(value: unknown) {
@@ -91,17 +98,19 @@ export default function DashboardQrxPage() {
   const params = useParams();
   const locale = getLocaleFromParams(params?.locale);
 
-  const [items, setItems] = useState<QrxEntry[]>([]);
+  const [activeTab, setActiveTab] = useState<QrxTab>("own");
+  const [ownItems, setOwnItems] = useState<QrxEntry[]>([]);
+  const [savedItems, setSavedItems] = useState<QrxEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    void loadMyQrx();
+    void loadQrx();
   }, []);
 
-  async function loadMyQrx() {
+  async function loadQrx() {
     setLoading(true);
     setErrorText(null);
 
@@ -117,27 +126,58 @@ export default function DashboardQrxPage() {
     }
 
     if (!user) {
-      setItems([]);
+      setOwnItems([]);
+      setSavedItems([]);
       setErrorText("Bitte melde dich zuerst an, um deine QR-X zu sehen.");
       setLoading(false);
       return;
     }
 
-    const { data, error } = await supabase
-      .from("qr_x_entries")
-      .select(
-        "id,title,company_name,description,type,category,verified,cover_image_url,logo_url,location_name,views_total,follower_count,created_at,deleted_at"
-      )
-      .eq("owner_user_id", user.id)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .returns<QrxEntry[]>();
+    const [ownRes, savedRes] = await Promise.all([
+      supabase
+        .from("qr_x_entries")
+        .select(
+          "id,title,company_name,description,type,category,verified,cover_image_url,logo_url,location_name,views_total,follower_count,created_at,deleted_at"
+        )
+        .eq("owner_user_id", user.id)
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .returns<QrxEntry[]>(),
 
-    if (error) {
-      setErrorText(error.message);
-      setItems([]);
+      supabase
+        .from("qrx_saves")
+        .select(`
+          qrx_id,
+          qr_x_entries (
+            id,title,company_name,description,type,category,verified,
+            cover_image_url,logo_url,location_name,views_total,
+            follower_count,created_at,deleted_at
+          )
+        `)
+        .eq("user_id", user.id)
+        .is("qr_x_entries.deleted_at", null)
+        .returns<SavedQrxRow[]>(),
+    ]);
+
+    if (ownRes.error) {
+      setErrorText(ownRes.error.message);
+      setOwnItems([]);
     } else {
-      setItems(data ?? []);
+      setOwnItems(ownRes.data ?? []);
+    }
+
+    if (savedRes.error) {
+      setErrorText(savedRes.error.message);
+      setSavedItems([]);
+    } else {
+      const mapped =
+        (savedRes.data ?? [])
+          .map((row) => row.qr_x_entries)
+          .filter((entry): entry is QrxEntry => Boolean(entry))
+          .filter((entry) => !entry.deleted_at)
+          .filter((entry) => entry.id && !(ownRes.data ?? []).some((own) => own.id === entry.id));
+
+      setSavedItems(mapped);
     }
 
     setLoading(false);
@@ -171,7 +211,7 @@ export default function DashboardQrxPage() {
     }
   }
 
-  async function handleDelete(entry: QrxEntry) {
+  async function handleDeleteOwn(entry: QrxEntry) {
     const title = getQrxTitle(entry);
 
     const confirmed = window.confirm(
@@ -211,7 +251,8 @@ export default function DashboardQrxPage() {
         throw new Error(response.error || "QR-X konnte nicht gelöscht werden.");
       }
 
-      setItems((current) => current.filter((item) => item.id !== entry.id));
+      setOwnItems((current) => current.filter((item) => item.id !== entry.id));
+      setSavedItems((current) => current.filter((item) => item.id !== entry.id));
     } catch (error) {
       console.error("QR-X DELETE ERROR", error);
       const message = error instanceof Error ? error.message : "QR-X konnte nicht gelöscht werden.";
@@ -222,18 +263,61 @@ export default function DashboardQrxPage() {
     }
   }
 
+  async function handleRemoveSaved(entry: QrxEntry) {
+    const confirmed = window.confirm(
+      `Möchtest du diesen gespeicherten QR-X entfernen?\n\n${getQrxTitle(entry)}`,
+    );
+
+    if (!confirmed) return;
+
+    setDeletingId(entry.id);
+    setErrorText(null);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) throw new Error("Bitte melde dich erneut an.");
+
+      const { error } = await supabase
+        .from("qrx_saves")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("qrx_id", entry.id);
+
+      if (error) throw error;
+
+      setSavedItems((current) => current.filter((item) => item.id !== entry.id));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "QR-X konnte nicht entfernt werden.";
+      setErrorText(message);
+      alert(message);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  const items = activeTab === "own" ? ownItems : savedItems;
+
   const stats = useMemo(() => {
     const business = items.filter((item) => item.type === "business").length;
     const normal = items.length - business;
     const verified = items.filter((item) => item.verified).length;
 
     return [
-      { label: "Alle QR-X", value: items.length, icon: "▣" },
+      { label: activeTab === "own" ? "Eigene QR-X" : "Gespeicherte QR-X", value: items.length, icon: "▣" },
       { label: "Business QR-X", value: business, icon: "🏢" },
       { label: "Normale QR-X", value: normal, icon: "⌗" },
       { label: "Verifiziert", value: verified, icon: "✓" },
     ];
-  }, [items]);
+  }, [items, activeTab]);
+
+  const sectionTitle = activeTab === "own" ? "Deine erstellten QR-X" : "Deine gespeicherten QR-X";
+  const sectionText =
+    activeTab === "own"
+      ? "Alle QR-X aus deinem Konto, sortiert nach dem neuesten Eintrag."
+      : "Alle QR-X, denen du folgst. Änderungen werden automatisch mit der App synchronisiert.";
 
   return (
     <main className={styles.page}>
@@ -253,8 +337,7 @@ export default function DashboardQrxPage() {
           <span className={styles.kicker}>Meine QR-X</span>
           <h1>Meine QR-X</h1>
           <p>
-            Verwalte deine erstellten QR-X bequem im Browser. Öffnen, Teilen und Bearbeiten
-            funktionieren jetzt als erste schlanke Web-Version.
+            Verwalte deine eigenen QR-X und gespeicherten QR-X bequem im Browser.
           </p>
         </div>
 
@@ -266,6 +349,34 @@ export default function DashboardQrxPage() {
             Zurück zum Dashboard
           </Link>
         </div>
+      </section>
+
+      <section
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto 18px",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 12,
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => setActiveTab("own")}
+          style={tabButtonStyle(activeTab === "own")}
+        >
+          Eigene QR-X
+          <span style={tabBadgeStyle}>{ownItems.length}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("saved")}
+          style={tabButtonStyle(activeTab === "saved")}
+        >
+          Gespeicherte QR-X
+          <span style={tabBadgeStyle}>{savedItems.length}</span>
+        </button>
       </section>
 
       <section className={styles.statsGrid} aria-label="Meine QR-X Kennzahlen">
@@ -293,8 +404,8 @@ export default function DashboardQrxPage() {
       >
         <div className={styles.cardHeader}>
           <div>
-            <h2>Deine erstellten QR-X</h2>
-            <p>Alle QR-X aus deinem Konto, sortiert nach dem neuesten Eintrag.</p>
+            <h2>{sectionTitle}</h2>
+            <p>{sectionText}</p>
           </div>
           <span>{loading ? "Lädt ..." : `${items.length} Einträge`}</span>
         </div>
@@ -309,6 +420,7 @@ export default function DashboardQrxPage() {
               color: "#fecaca",
               fontWeight: 850,
               lineHeight: 1.55,
+              marginBottom: 14,
             }}
           >
             {errorText}
@@ -332,14 +444,22 @@ export default function DashboardQrxPage() {
             <div>
               <div style={{ fontSize: 44, marginBottom: 12 }}>▣</div>
               <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 24 }}>
-                Noch keine QR-X erstellt
+                {activeTab === "own" ? "Noch keine QR-X erstellt" : "Noch keine QR-X gespeichert"}
               </h3>
               <p style={{ margin: "0 auto 18px", color: "#94a3b8", maxWidth: 520, lineHeight: 1.6 }}>
-                Sobald du deinen ersten QR-X erstellt hast, erscheint er hier in deiner Web-Verwaltung.
+                {activeTab === "own"
+                  ? "Sobald du deinen ersten QR-X erstellt hast, erscheint er hier in deiner Web-Verwaltung."
+                  : "Sobald du einem QR-X folgst, erscheint er hier automatisch."}
               </p>
-              <Link href={`/${locale}/dashboard/qrx/new`} className={styles.primaryButton}>
-                + QR-X erstellen
-              </Link>
+              {activeTab === "own" ? (
+                <Link href={`/${locale}/dashboard/qrx/new`} className={styles.primaryButton}>
+                  + QR-X erstellen
+                </Link>
+              ) : (
+                <Link href={`/${locale}/explore`} className={styles.primaryButton}>
+                  Explore öffnen
+                </Link>
+              )}
             </div>
           </div>
         ) : null}
@@ -628,28 +748,46 @@ export default function DashboardQrxPage() {
                         {copiedId === entry.id ? "Kopiert" : "Teilen"}
                       </button>
 
-                      <Link
-                        href={editHref}
-                        className={styles.secondaryButton}
-                      >
-                        Bearbeiten
-                      </Link>
+                      {activeTab === "own" ? (
+                        <>
+                          <Link href={editHref} className={styles.secondaryButton}>
+                            Bearbeiten
+                          </Link>
 
-                      <button
-                        type="button"
-                        onClick={() => void handleDelete(entry)}
-                        className={styles.secondaryButton}
-                        disabled={deletingId === entry.id}
-                        style={{
-                          cursor: deletingId === entry.id ? "not-allowed" : "pointer",
-                          border: "1px solid rgba(248,113,113,0.35)",
-                          background: "rgba(239,68,68,0.14)",
-                          color: "#fecaca",
-                          opacity: deletingId === entry.id ? 0.72 : 1,
-                        }}
-                      >
-                        {deletingId === entry.id ? "Löscht …" : "🗑️ Löschen"}
-                      </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteOwn(entry)}
+                            className={styles.secondaryButton}
+                            disabled={deletingId === entry.id}
+                            style={{
+                              cursor: deletingId === entry.id ? "not-allowed" : "pointer",
+                              border: "1px solid rgba(248,113,113,0.35)",
+                              background: "rgba(239,68,68,0.14)",
+                              color: "#fecaca",
+                              opacity: deletingId === entry.id ? 0.72 : 1,
+                            }}
+                          >
+                            {deletingId === entry.id ? "Löscht …" : "🗑️ Löschen"}
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => void handleRemoveSaved(entry)}
+                          className={styles.secondaryButton}
+                          disabled={deletingId === entry.id}
+                          style={{
+                            gridColumn: "1 / -1",
+                            cursor: deletingId === entry.id ? "not-allowed" : "pointer",
+                            border: "1px solid rgba(248,113,113,0.35)",
+                            background: "rgba(239,68,68,0.14)",
+                            color: "#fecaca",
+                            opacity: deletingId === entry.id ? 0.72 : 1,
+                          }}
+                        >
+                          {deletingId === entry.id ? "Entfernt …" : "✕ Aus gespeicherten entfernen"}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </article>
@@ -661,3 +799,35 @@ export default function DashboardQrxPage() {
     </main>
   );
 }
+
+function tabButtonStyle(active: boolean): React.CSSProperties {
+  return {
+    minHeight: 58,
+    borderRadius: 20,
+    border: active ? "1px solid rgba(147,197,253,0.35)" : "1px solid rgba(255,255,255,0.08)",
+    background: active
+      ? "linear-gradient(135deg, rgba(37,99,235,0.78), rgba(124,58,237,0.78))"
+      : "rgba(255,255,255,0.045)",
+    color: "#ffffff",
+    cursor: "pointer",
+    fontWeight: 950,
+    fontSize: 15,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  };
+}
+
+const tabBadgeStyle: React.CSSProperties = {
+  minWidth: 28,
+  height: 28,
+  borderRadius: 999,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "rgba(255,255,255,0.16)",
+  color: "#ffffff",
+  fontSize: 13,
+  fontWeight: 950,
+};

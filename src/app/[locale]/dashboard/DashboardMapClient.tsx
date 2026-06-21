@@ -36,9 +36,7 @@ type QrxEntry = {
 type UserScan = {
   id: string;
   name: string | null;
-  title?: string | null;
-  url?: string | null;
-  kind?: string | null;
+  data: string | null;
   latitude: number | null;
   longitude: number | null;
 };
@@ -160,7 +158,7 @@ async function ensureLeaflet(): Promise<LeafletApi | null> {
 
 function buildPopup(point: MapPoint) {
   const href = point.href
-    ? `<a href="${escapeAttr(point.href)}" style="display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:13px;background:linear-gradient(180deg,#0d1726 0%,#17304d 100%);color:#ffffff;text-decoration:none;font-weight:900;font-size:13px;">QR-X öffnen →</a>`
+    ? `<a href="${escapeAttr(point.href)}" style="display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:13px;background:linear-gradient(180deg,#0d1726 0%,#17304d 100%);color:#ffffff;text-decoration:none;font-weight:900;font-size:13px;">Öffnen →</a>`
     : "";
 
   return `
@@ -247,7 +245,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
         supabase
           .from("user_scans")
-          .select("id,name,title,url,kind,latitude,longitude")
+          .select("id,name,data,latitude,longitude")
           .eq("user_id", userId)
           .returns<UserScan[]>(),
       ]);
@@ -302,9 +300,9 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         .filter((scan) => isValidCoordinate(scan.latitude, scan.longitude))
         .map((scan) => ({
           id: `scan-${scan.id}`,
-          title: scan.name?.trim() || scan.title?.trim() || "Normaler Scan",
-          description: scan.url?.trim() || scan.kind?.trim() || "Gespeicherter QR-Code",
-          href: null,
+          title: scan.name?.trim() || "Normaler Scan",
+          description: scan.data?.trim() || "Gespeicherter QR-Code",
+          href: scan.data?.startsWith("http://") || scan.data?.startsWith("https://") ? scan.data : null,
           latitude: scan.latitude as number,
           longitude: scan.longitude as number,
           kind: "scan",
