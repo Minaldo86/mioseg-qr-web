@@ -54,6 +54,11 @@ type QrxEntry = {
   deleted_at?: string | null;
 };
 
+type SavedQrxRow = {
+  qrx_id: string | null;
+  qr_x_entries: QrxEntry | null;
+};
+
 function getLocaleFromParams(value: unknown) {
   if (typeof value === "string" && value.trim()) return value;
   if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim()) return value[0];
@@ -134,10 +139,13 @@ export default function DashboardScansPage() {
         )
       `)
       .eq("user_id", user.id)
-      .is("qr_x_entries.deleted_at", null);
+      .is("qr_x_entries.deleted_at", null)
+      .returns<SavedQrxRow[]>();
 
     const mappedItems =
-      (data ?? []).map((row: any) => row.qr_x_entries).filter(Boolean) as QrxEntry[];
+      (data ?? [])
+        .map((row) => row.qr_x_entries)
+        .filter((entry): entry is QrxEntry => Boolean(entry));
 
     if (error) {
       setErrorText(error.message);
