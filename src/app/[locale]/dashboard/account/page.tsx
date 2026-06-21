@@ -9,10 +9,21 @@ import styles from "../dashboard.module.css";
 
 type ProfileRow = {
   id: string;
-  email: string | null;
+  email?: string | null;
   display_name?: string | null;
   full_name?: string | null;
   created_at?: string | null;
+
+  first_name?: string | null;
+  last_name?: string | null;
+  street?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+  country?: string | null;
+  company_name?: string | null;
+  vat_id?: string | null;
+  language?: string | null;
+  account_type?: string | null;
 
   billing_email?: string | null;
   billing_company?: string | null;
@@ -66,6 +77,19 @@ export default function AccountPage() {
   const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
 
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [street, setStreet] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("DE");
+  const [companyName, setCompanyName] = useState("");
+  const [vatId, setVatId] = useState("");
+  const [language, setLanguage] = useState("de");
+  const [accountType, setAccountType] = useState("private");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState("");
+
   const [billingEmail, setBillingEmail] = useState("");
   const [billingCompany, setBillingCompany] = useState("");
   const [billingName, setBillingName] = useState("");
@@ -91,6 +115,7 @@ export default function AccountPage() {
     setLoading(true);
     setErrorText(null);
     setBillingMessage("");
+    setProfileMessage("");
 
     const {
       data: { user },
@@ -117,18 +142,25 @@ export default function AccountPage() {
       .from("profiles")
       .select("*")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.warn("Profile konnte nicht geladen werden:", error.message);
-      setProfile(null);
-      setLoading(false);
-      return;
     }
 
-    const profileData = data as ProfileRow;
+    const profileData = (data ?? { id: user.id }) as ProfileRow;
 
     setProfile(profileData);
+    setFirstName(profileData.first_name ?? "");
+    setLastName(profileData.last_name ?? "");
+    setStreet(profileData.street ?? "");
+    setPostalCode(profileData.postal_code ?? "");
+    setCity(profileData.city ?? "");
+    setCountry(profileData.country ?? "DE");
+    setCompanyName(profileData.company_name ?? "");
+    setVatId(profileData.vat_id ?? "");
+    setLanguage(profileData.language ?? "de");
+    setAccountType(profileData.account_type ?? "private");
     setBillingEmail(profileData.billing_email ?? user.email ?? "");
     setBillingCompany(profileData.billing_company ?? "");
     setBillingName(profileData.billing_name ?? "");
@@ -226,6 +258,45 @@ export default function AccountPage() {
     }
   }
 
+  async function saveProfile() {
+    if (!userId) return;
+
+    setSavingProfile(true);
+    setProfileMessage("");
+
+    const payload = {
+      first_name: firstName.trim() || null,
+      last_name: lastName.trim() || null,
+      street: street.trim() || null,
+      postal_code: postalCode.trim() || null,
+      city: city.trim() || null,
+      country: normalizeCountryCode(country),
+      company_name: companyName.trim() || null,
+      vat_id: vatId.trim() || null,
+      language: language.trim() || "de",
+      account_type: accountType.trim() || "private",
+    };
+
+    const { error } = await supabase
+      .from("profiles")
+      .upsert(
+        {
+          id: userId,
+          ...payload,
+        },
+        { onConflict: "id" },
+      );
+
+    if (error) {
+      setProfileMessage(`Fehler: ${error.message}`);
+    } else {
+      setProfileMessage("Profil gespeichert.");
+      await loadAccount();
+    }
+
+    setSavingProfile(false);
+  }
+
   async function saveBillingData() {
     if (!userId) return;
 
@@ -257,6 +328,8 @@ export default function AccountPage() {
   }
 
   const displayName =
+    `${firstName} ${lastName}`.trim() ||
+    companyName.trim() ||
     profile?.display_name?.trim() ||
     profile?.full_name?.trim() ||
     billingName.trim() ||
@@ -388,6 +461,189 @@ export default function AccountPage() {
               <InfoRow label="Registriert seit" value={formatDate(createdAt)} />
             </div>
           ) : null}
+        </article>
+
+        <article style={panelStyle}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2>Profil bearbeiten</h2>
+              <p>
+                Diese Angaben werden für dein Konto, Support-Anfragen und spätere
+                Profilfunktionen verwendet. Die Login-E-Mail bleibt in Supabase Auth.
+              </p>
+            </div>
+            <span>Profil</span>
+          </div>
+
+          <div style={{ display: "grid", gap: 12 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+              }}
+            >
+              <label style={labelStyle}>
+                Vorname
+                <input
+                  value={firstName}
+                  onChange={(event) => setFirstName(event.target.value)}
+                  placeholder="Vorname"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Nachname
+                <input
+                  value={lastName}
+                  onChange={(event) => setLastName(event.target.value)}
+                  placeholder="Nachname"
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+
+            <label style={labelStyle}>
+              Kontotyp
+              <select
+                value={accountType}
+                onChange={(event) => setAccountType(event.target.value)}
+                style={selectStyle}
+              >
+                <option value="private">Privatperson</option>
+                <option value="business">Unternehmen</option>
+              </select>
+            </label>
+
+            <label style={labelStyle}>
+              Firma
+              <input
+                value={companyName}
+                onChange={(event) => setCompanyName(event.target.value)}
+                placeholder="Optional"
+                style={inputStyle}
+              />
+            </label>
+
+            <label style={labelStyle}>
+              Straße und Hausnummer
+              <input
+                value={street}
+                onChange={(event) => setStreet(event.target.value)}
+                placeholder="Straße und Hausnummer"
+                style={inputStyle}
+              />
+            </label>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 2fr",
+                gap: 12,
+              }}
+            >
+              <label style={labelStyle}>
+                PLZ
+                <input
+                  value={postalCode}
+                  onChange={(event) => setPostalCode(event.target.value)}
+                  placeholder="PLZ"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Ort
+                <input
+                  value={city}
+                  onChange={(event) => setCity(event.target.value)}
+                  placeholder="Ort"
+                  style={inputStyle}
+                />
+              </label>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+              }}
+            >
+              <label style={labelStyle}>
+                Land
+                <input
+                  value={country}
+                  onChange={(event) =>
+                    setCountry(normalizeCountryCode(event.target.value))
+                  }
+                  placeholder="DE"
+                  maxLength={2}
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Sprache
+                <select
+                  value={language}
+                  onChange={(event) => setLanguage(event.target.value)}
+                  style={selectStyle}
+                >
+                  <option value="de">Deutsch</option>
+                  <option value="en">English</option>
+                  <option value="fr">Français</option>
+                  <option value="tr">Türkçe</option>
+                </select>
+              </label>
+            </div>
+
+            <label style={labelStyle}>
+              USt.-ID
+              <input
+                value={vatId}
+                onChange={(event) => setVatId(event.target.value)}
+                placeholder="Optional, z. B. DE123456789"
+                style={inputStyle}
+              />
+            </label>
+
+            {profileMessage ? (
+              <div
+                style={{
+                  borderRadius: 16,
+                  padding: "12px 14px",
+                  background: profileMessage.startsWith("Fehler")
+                    ? "rgba(239, 68, 68, 0.14)"
+                    : "rgba(34, 197, 94, 0.14)",
+                  border: profileMessage.startsWith("Fehler")
+                    ? "1px solid rgba(252, 165, 165, 0.22)"
+                    : "1px solid rgba(134, 239, 172, 0.22)",
+                  color: profileMessage.startsWith("Fehler")
+                    ? "#fecaca"
+                    : "#bbf7d0",
+                  fontWeight: 850,
+                }}
+              >
+                {profileMessage}
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => void saveProfile()}
+              disabled={savingProfile}
+              className={styles.primaryButton}
+              style={{
+                border: 0,
+                cursor: savingProfile ? "not-allowed" : "pointer",
+                opacity: savingProfile ? 0.72 : 1,
+              }}
+            >
+              {savingProfile ? "Speichert …" : "Profil speichern"}
+            </button>
+          </div>
         </article>
 
         <article style={panelStyle}>
@@ -804,6 +1060,12 @@ const inputStyle: React.CSSProperties = {
   fontWeight: 750,
   outline: "none",
   boxSizing: "border-box",
+};
+
+
+const selectStyle: React.CSSProperties = {
+  ...inputStyle,
+  appearance: "none",
 };
 
 const errorStyle: React.CSSProperties = {
