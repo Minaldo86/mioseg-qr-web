@@ -11,9 +11,6 @@ type UserScan = {
   id: string;
   name: string | null;
   data: string | null;
-  title?: string | null;
-  url?: string | null;
-  kind?: "scan" | "qr-x" | string | null;
   latitude: number | null;
   longitude: number | null;
   created_at: string | null;
@@ -40,11 +37,11 @@ function formatDate(value: string | null) {
 }
 
 function getScanTitle(scan: UserScan) {
-  return scan.name?.trim() || scan.title?.trim() || "Gespeicherter Scan";
+  return scan.name?.trim() || "Gespeicherter Scan";
 }
 
 function getScanTarget(scan: UserScan) {
-  return scan.url?.trim() || scan.data?.trim() || "";
+  return scan.data?.trim() || "";
 }
 
 function hasLocation(scan: UserScan) {
@@ -104,9 +101,8 @@ export default function DashboardScansPage() {
 
     const { data, error } = await supabase
       .from("user_scans")
-      .select("id,name,title,url,data,kind,latitude,longitude,created_at")
+      .select("id,name,data,latitude,longitude,created_at")
       .eq("user_id", user.id)
-      .eq("kind", "scan")
       .order("created_at", { ascending: false })
       .returns<UserScan[]>();
 
