@@ -251,8 +251,27 @@ type PricingConfig = {
   id?: string | number | null;
   launch_discount_enabled?: boolean | null;
   currency?: string | null;
+  free_storage_mb?: number | null;
+  qrx_creation_credit_cost?: number | null;
+  storage_pack_mb?: number | null;
+  storage_pack_credit_cost?: number | null;
+  max_upload_mb?: number | null;
+  max_images_per_qrx?: number | null;
+  max_documents_per_qrx?: number | null;
+  max_updates?: number | null;
   created_at?: string | null;
   updated_at?: string | null;
+};
+
+type PricingConfigDraft = {
+  free_storage_mb: string;
+  qrx_creation_credit_cost: string;
+  storage_pack_mb: string;
+  storage_pack_credit_cost: string;
+  max_upload_mb: string;
+  max_images_per_qrx: string;
+  max_documents_per_qrx: string;
+  max_updates: string;
 };
 
 type PricingPack = {
@@ -1626,6 +1645,16 @@ export default function AdminPage() {
   const [pricingLoading, setPricingLoading] = useState(false);
   const [pricingData, setPricingData] = useState<PricingResult | null>(null);
   const [pricingDrafts, setPricingDrafts] = useState<Record<string, PricingPackDraft>>({});
+  const [pricingConfigDraft, setPricingConfigDraft] = useState<PricingConfigDraft>({
+    free_storage_mb: "2",
+    qrx_creation_credit_cost: "1",
+    storage_pack_mb: "5",
+    storage_pack_credit_cost: "1",
+    max_upload_mb: "50",
+    max_images_per_qrx: "20",
+    max_documents_per_qrx: "20",
+    max_updates: "5",
+  });
   const [pricingSavingId, setPricingSavingId] = useState<string | null>(null);
   const [pricingConfigSaving, setPricingConfigSaving] = useState(false);
   const [pricingMessage, setPricingMessage] = useState<string | null>(null);
@@ -1866,10 +1895,23 @@ export default function AdminPage() {
 
       const packs = Array.isArray(data?.pricingPacks) ? data.pricingPacks : [];
 
+      const loadedConfig = data?.pricingConfig ?? null;
+
       setPricingData({
-        pricingConfig: data?.pricingConfig ?? null,
+        pricingConfig: loadedConfig,
         pricingPacks: packs,
         limits: data?.limits ?? undefined,
+      });
+
+      setPricingConfigDraft({
+        free_storage_mb: String(Number(loadedConfig?.free_storage_mb ?? 2)),
+        qrx_creation_credit_cost: String(Number(loadedConfig?.qrx_creation_credit_cost ?? 1)),
+        storage_pack_mb: String(Number(loadedConfig?.storage_pack_mb ?? 5)),
+        storage_pack_credit_cost: String(Number(loadedConfig?.storage_pack_credit_cost ?? 1)),
+        max_upload_mb: String(Number(loadedConfig?.max_upload_mb ?? 50)),
+        max_images_per_qrx: String(Number(loadedConfig?.max_images_per_qrx ?? 20)),
+        max_documents_per_qrx: String(Number(loadedConfig?.max_documents_per_qrx ?? 20)),
+        max_updates: String(Number(loadedConfig?.max_updates ?? 5)),
       });
 
       setPricingDrafts(
@@ -1918,6 +1960,14 @@ export default function AdminPage() {
         body: JSON.stringify({
           type: "config",
           launch_discount_enabled: nextValue,
+          free_storage_mb: Number(pricingConfigDraft.free_storage_mb || 2),
+          qrx_creation_credit_cost: Number(pricingConfigDraft.qrx_creation_credit_cost || 1),
+          storage_pack_mb: Number(pricingConfigDraft.storage_pack_mb || 5),
+          storage_pack_credit_cost: Number(pricingConfigDraft.storage_pack_credit_cost || 1),
+          max_upload_mb: Number(pricingConfigDraft.max_upload_mb || 50),
+          max_images_per_qrx: Number(pricingConfigDraft.max_images_per_qrx || 20),
+          max_documents_per_qrx: Number(pricingConfigDraft.max_documents_per_qrx || 20),
+          max_updates: Number(pricingConfigDraft.max_updates || 5),
         }),
       });
 
@@ -1953,6 +2003,75 @@ export default function AdminPage() {
         [field]: value,
       },
     }));
+  };
+
+  const handlePricingConfigDraftChange = (field: keyof PricingConfigDraft, value: string) => {
+    setPricingConfigDraft((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const parsePricingConfigNumber = (field: keyof PricingConfigDraft, label: string, minValue: number) => {
+    const value = Number(pricingConfigDraft[field]);
+
+    if (!Number.isInteger(value) || value < minValue) {
+      throw new Error(`${label} muss eine ganze Zahl ab ${minValue} sein.`);
+    }
+
+    return value;
+  };
+
+  const handleSavePricingConfig = async () => {
+    try {
+      if (!pricingData?.pricingConfig) {
+        throw new Error("Preis-Konfiguration ist noch nicht geladen.");
+      }
+
+      const payload = {
+        free_storage_mb: parsePricingConfigNumber("free_storage_mb", "Freier Speicher", 0),
+        qrx_creation_credit_cost: parsePricingConfigNumber("qrx_creation_credit_cost", "QR-X Erstellung", 0),
+        storage_pack_mb: parsePricingConfigNumber("storage_pack_mb", "Speicherpaket-Größe", 1),
+        storage_pack_credit_cost: parsePricingConfigNumber("storage_pack_credit_cost", "Speicherpaket-Kosten", 1),
+        max_upload_mb: parsePricingConfigNumber("max_upload_mb", "Max. Upload", 1),
+        max_images_per_qrx: parsePricingConfigNumber("max_images_per_qrx", "Max. Bilder", 0),
+        max_documents_per_qrx: parsePricingConfigNumber("max_documents_per_qrx", "Max. Dateien", 0),
+        max_updates: parsePricingConfigNumber("max_updates", "Max. Updates", 0),
+      };
+
+      const confirmed = window.confirm(
+        `Plattform-Konfiguration wirklich speichern?\n\nFreier Speicher: ${payload.free_storage_mb} MB\nQR-X Erstellung: ${payload.qrx_creation_credit_cost} Credit(s)\nSpeicherpaket: ${payload.storage_pack_mb} MB = ${payload.storage_pack_credit_cost} Credit(s)`
+      );
+
+      if (!confirmed) return;
+
+      setPricingConfigSaving(true);
+      setPricingMessage(null);
+
+      const res = await fetch("/api/admin/credits", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "config",
+          ...payload,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Plattform-Konfiguration konnte nicht gespeichert werden.");
+      }
+
+      setPricingMessage("Plattform-Konfiguration wurde gespeichert.");
+      await fetchPricing();
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : "Plattform-Konfiguration konnte nicht gespeichert werden.");
+    } finally {
+      setPricingConfigSaving(false);
+    }
   };
 
   const handleSavePricingPack = async (pack: PricingPack) => {
@@ -4560,6 +4679,18 @@ if (refundAmount && refundAmount > 0) {
                 </div>
 
                 <div style={styles.metricCard}>
+                  <div style={styles.metricLabel}>QR-X Erstellung</div>
+                  <div style={styles.metricValue}>{pricingData.pricingConfig?.qrx_creation_credit_cost ?? 1} Credit</div>
+                  <div style={styles.metricHint}>Kosten für die Erstellung eines QR-X.</div>
+                </div>
+
+                <div style={styles.metricCard}>
+                  <div style={styles.metricLabel}>Freier Speicher</div>
+                  <div style={styles.metricValue}>{pricingData.pricingConfig?.free_storage_mb ?? 2} MB</div>
+                  <div style={styles.metricHint}>Kostenloser Speicher pro QR-X vor Zusatzpaketen.</div>
+                </div>
+
+                <div style={styles.metricCard}>
                   <div style={styles.metricLabel}>{tAdmin("prices_daily_limit_card")}</div>
                   <div style={styles.metricValue}>
                     {pricingData.limits
@@ -4567,6 +4698,116 @@ if (refundAmount && refundAmount > 0) {
                       : "–"}
                   </div>
                   <div style={styles.metricHint}>{tAdmin("prices_daily_limit_hint")}</div>
+                </div>
+              </div>
+
+              <div style={styles.ticketItem}>
+                <div style={styles.ticketTop}>
+                  <div>
+                    <div style={styles.ticketTitle}>Plattform-Konfiguration</div>
+                    <div style={styles.ticketMeta}>
+                      Zentrale Werte für QR-X-Erstellung, freien Speicher, Speicherpakete und Upload-Limits.
+                    </div>
+                  </div>
+                  <div style={styles.ticketStatusReview}>Zentral</div>
+                </div>
+
+                <div style={{ ...styles.formGrid, marginTop: 12 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 10 }}>
+                    <label style={styles.filterLabel}>
+                      Freier Speicher in MB
+                      <input
+                        value={pricingConfigDraft.free_storage_mb}
+                        onChange={(e) => handlePricingConfigDraftChange("free_storage_mb", e.target.value)}
+                        inputMode="numeric"
+                        style={styles.input}
+                      />
+                    </label>
+
+                    <label style={styles.filterLabel}>
+                      QR-X Erstellung in Credits
+                      <input
+                        value={pricingConfigDraft.qrx_creation_credit_cost}
+                        onChange={(e) => handlePricingConfigDraftChange("qrx_creation_credit_cost", e.target.value)}
+                        inputMode="numeric"
+                        style={styles.input}
+                      />
+                    </label>
+
+                    <label style={styles.filterLabel}>
+                      Speicherpaket in MB
+                      <input
+                        value={pricingConfigDraft.storage_pack_mb}
+                        onChange={(e) => handlePricingConfigDraftChange("storage_pack_mb", e.target.value)}
+                        inputMode="numeric"
+                        style={styles.input}
+                      />
+                    </label>
+
+                    <label style={styles.filterLabel}>
+                      Credits pro Speicherpaket
+                      <input
+                        value={pricingConfigDraft.storage_pack_credit_cost}
+                        onChange={(e) => handlePricingConfigDraftChange("storage_pack_credit_cost", e.target.value)}
+                        inputMode="numeric"
+                        style={styles.input}
+                      />
+                    </label>
+
+                    <label style={styles.filterLabel}>
+                      Max. Upload in MB
+                      <input
+                        value={pricingConfigDraft.max_upload_mb}
+                        onChange={(e) => handlePricingConfigDraftChange("max_upload_mb", e.target.value)}
+                        inputMode="numeric"
+                        style={styles.input}
+                      />
+                    </label>
+
+                    <label style={styles.filterLabel}>
+                      Max. Bilder pro QR-X
+                      <input
+                        value={pricingConfigDraft.max_images_per_qrx}
+                        onChange={(e) => handlePricingConfigDraftChange("max_images_per_qrx", e.target.value)}
+                        inputMode="numeric"
+                        style={styles.input}
+                      />
+                    </label>
+
+                    <label style={styles.filterLabel}>
+                      Max. Dateien pro QR-X
+                      <input
+                        value={pricingConfigDraft.max_documents_per_qrx}
+                        onChange={(e) => handlePricingConfigDraftChange("max_documents_per_qrx", e.target.value)}
+                        inputMode="numeric"
+                        style={styles.input}
+                      />
+                    </label>
+
+                    <label style={styles.filterLabel}>
+                      Max. News/Updates
+                      <input
+                        value={pricingConfigDraft.max_updates}
+                        onChange={(e) => handlePricingConfigDraftChange("max_updates", e.target.value)}
+                        inputMode="numeric"
+                        style={styles.input}
+                      />
+                    </label>
+                  </div>
+
+                  <div style={styles.bottomRow}>
+                    <button
+                      type="button"
+                      onClick={handleSavePricingConfig}
+                      disabled={pricingConfigSaving}
+                      style={{
+                        ...styles.creditButton,
+                        opacity: pricingConfigSaving ? 0.65 : 1,
+                      }}
+                    >
+                      {pricingConfigSaving ? "Speichere…" : "Plattform-Konfiguration speichern"}
+                    </button>
+                  </div>
                 </div>
               </div>
 

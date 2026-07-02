@@ -153,6 +153,14 @@ type PricingPack = {
 type PricingConfig = {
   currency: string | null;
   launch_discount_enabled: boolean | null;
+  free_storage_mb?: number | null;
+  qrx_creation_credit_cost?: number | null;
+  storage_pack_mb?: number | null;
+  storage_pack_credit_cost?: number | null;
+  max_upload_mb?: number | null;
+  max_images_per_qrx?: number | null;
+  max_documents_per_qrx?: number | null;
+  max_updates?: number | null;
 };
 
 const FALLBACK_PACKAGES: PricingPack[] = [
@@ -201,6 +209,14 @@ export default function CreditsPage() {
   const [pricingConfig, setPricingConfig] = useState<PricingConfig | null>({
     currency: "EUR",
     launch_discount_enabled: true,
+    free_storage_mb: 2,
+    qrx_creation_credit_cost: 1,
+    storage_pack_mb: 5,
+    storage_pack_credit_cost: 1,
+    max_upload_mb: 50,
+    max_images_per_qrx: 20,
+    max_documents_per_qrx: 20,
+    max_updates: 5,
   });
 
   useEffect(() => {
@@ -233,6 +249,14 @@ export default function CreditsPage() {
       setPricingConfig({
         currency: data?.pricingConfig?.currency || "EUR",
         launch_discount_enabled: Boolean(data?.pricingConfig?.launch_discount_enabled),
+        free_storage_mb: Number(data?.pricingConfig?.free_storage_mb ?? 2),
+        qrx_creation_credit_cost: Number(data?.pricingConfig?.qrx_creation_credit_cost ?? 1),
+        storage_pack_mb: Number(data?.pricingConfig?.storage_pack_mb ?? 5),
+        storage_pack_credit_cost: Number(data?.pricingConfig?.storage_pack_credit_cost ?? 1),
+        max_upload_mb: Number(data?.pricingConfig?.max_upload_mb ?? 50),
+        max_images_per_qrx: Number(data?.pricingConfig?.max_images_per_qrx ?? 20),
+        max_documents_per_qrx: Number(data?.pricingConfig?.max_documents_per_qrx ?? 20),
+        max_updates: Number(data?.pricingConfig?.max_updates ?? 5),
       });
     } catch (error) {
       console.warn("Pricing load error:", error);
@@ -298,11 +322,19 @@ export default function CreditsPage() {
   const stats = useMemo(
     () => [
       { label: "Aktuelle Credits", value: credits, icon: "💳" },
-      { label: "QR-X Erstellung", value: "1 Credit", icon: "▣" },
-      { label: "Freier Speicher", value: "2 MB", icon: "☁️" },
+      {
+        label: "QR-X Erstellung",
+        value: `${Number(pricingConfig?.qrx_creation_credit_cost ?? 1)} Credit`,
+        icon: "▣",
+      },
+      {
+        label: "Freier Speicher",
+        value: `${Number(pricingConfig?.free_storage_mb ?? 2)} MB`,
+        icon: "☁️",
+      },
       { label: "Pakete", value: pricingPacks.length, icon: "🛒" },
     ],
-    [credits, pricingPacks.length]
+    [credits, pricingPacks.length, pricingConfig?.qrx_creation_credit_cost, pricingConfig?.free_storage_mb]
   );
 
   async function handleStripeCheckout(pack: PricingPack) {
@@ -399,7 +431,8 @@ export default function CreditsPage() {
           <h1>Credits verwalten</h1>
           <p>
             Behalte dein Guthaben im Blick und kaufe neue Credits direkt über Stripe.
-            Credits werden für QR-X-Erstellung und zusätzlichen Speicher nach deinem aktuellen Preismodell genutzt.
+            Credits werden für die Erstellung von QR-X und für zusätzlichen Speicher genutzt.
+            Die Werte werden zentral im Adminbereich verwaltet.
           </p>
         </div>
 

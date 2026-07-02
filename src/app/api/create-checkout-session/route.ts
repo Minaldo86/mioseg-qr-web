@@ -7,6 +7,14 @@ export const dynamic = "force-dynamic";
 type PricingConfig = {
   launch_discount_enabled?: boolean | null;
   currency?: string | null;
+  free_storage_mb?: number | null;
+  qrx_creation_credit_cost?: number | null;
+  storage_pack_mb?: number | null;
+  storage_pack_credit_cost?: number | null;
+  max_upload_mb?: number | null;
+  max_images_per_qrx?: number | null;
+  max_documents_per_qrx?: number | null;
+  max_updates?: number | null;
 };
 
 type PricingPack = {
@@ -64,7 +72,20 @@ function getOrigin(req: Request) {
 
 function asPricingConfig(value: unknown): PricingConfig | null {
   if (!value || typeof value !== "object") return null;
-  return value as PricingConfig;
+  const raw = value as PricingConfig;
+
+  return {
+    launch_discount_enabled: Boolean(raw.launch_discount_enabled),
+    currency: raw.currency || "EUR",
+    free_storage_mb: Number(raw.free_storage_mb ?? 2),
+    qrx_creation_credit_cost: Number(raw.qrx_creation_credit_cost ?? 1),
+    storage_pack_mb: Number(raw.storage_pack_mb ?? 5),
+    storage_pack_credit_cost: Number(raw.storage_pack_credit_cost ?? 1),
+    max_upload_mb: Number(raw.max_upload_mb ?? 50),
+    max_images_per_qrx: Number(raw.max_images_per_qrx ?? 20),
+    max_documents_per_qrx: Number(raw.max_documents_per_qrx ?? 20),
+    max_updates: Number(raw.max_updates ?? 5),
+  };
 }
 
 function asPricingPacks(value: unknown): PricingPack[] {
