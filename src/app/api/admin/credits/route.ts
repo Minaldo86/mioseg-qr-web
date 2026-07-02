@@ -285,6 +285,18 @@ export async function PATCH(req: Request) {
         .from("qrx_pricing_config")
         .update({
           launch_discount_enabled: launchDiscountEnabled,
+
+          free_storage_mb: Number(body?.free_storage_mb ?? existingConfig.free_storage_mb),
+          qrx_creation_credit_cost: Number(body?.qrx_creation_credit_cost ?? existingConfig.qrx_creation_credit_cost),
+
+          storage_pack_mb: Number(body?.storage_pack_mb ?? existingConfig.storage_pack_mb),
+          storage_pack_credit_cost: Number(body?.storage_pack_credit_cost ?? existingConfig.storage_pack_credit_cost),
+
+          max_upload_mb: Number(body?.max_upload_mb ?? existingConfig.max_upload_mb),
+          max_images_per_qrx: Number(body?.max_images_per_qrx ?? existingConfig.max_images_per_qrx),
+          max_documents_per_qrx: Number(body?.max_documents_per_qrx ?? existingConfig.max_documents_per_qrx),
+          max_updates: Number(body?.max_updates ?? existingConfig.max_updates),
+
           updated_at: new Date().toISOString(),
         })
         .eq("id", existingConfig.id)
