@@ -61,6 +61,7 @@ declare global {
   interface Window {
     L?: LeafletApi;
     focusMarker?: (id: string) => void;
+    previewMarker?: (id: string) => void;
   }
 }
 
@@ -174,9 +175,9 @@ function dispatchActiveMapPoint(id: string) {
   );
 }
 
-function dispatchInactiveMapPoint(id: string) {
+function dispatchScrollToMapCard(id: string) {
   window.dispatchEvent(
-    new CustomEvent("mioseg-inactive-qrx", {
+    new CustomEvent("mioseg-scroll-qrx-card", {
       detail: { activeId: id },
     })
   );
@@ -232,13 +233,6 @@ export default function ExploreMapClient({
 
       mapRef.current = map;
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap",
-        maxZoom: 19,
-      }).addTo(map);
-
-      const bounds: [number, number][] = [];
-
       const activatePoint = (point: MapPoint, options?: { openPopup?: boolean; scrollCard?: boolean }) => {
         activeIdRef.current = point.id;
         const marker = markersRef.current[point.id];
@@ -247,23 +241,16 @@ export default function ExploreMapClient({
         dispatchActiveMapPoint(point.id);
         dispatchVisibleMapPoints(map, markersRef.current, point.id);
 
-        if (options?.openPopup && marker) {
-          marker.openPopup();
-        }
-
-        if (options?.scrollCard && typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("mioseg-scroll-qrx-card", {
-              detail: { activeId: point.id },
-            })
-          );
-        }
+        if (options?.openPopup && marker) marker.openPopup();
+        if (options?.scrollCard) dispatchScrollToMapCard(point.id);
       };
 
-      const deactivatePoint = (point: MapPoint) => {
-        if (activeIdRef.current === point.id) return;
-        dispatchInactiveMapPoint(point.id);
-      };
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap",
+        maxZoom: 19,
+      }).addTo(map);
+
+      const bounds: [number, number][] = [];
 
       if (hasUserLocation && userLat != null && userLng != null) {
         const userIcon = L.divIcon({
@@ -324,15 +311,11 @@ html: `
         });
 
         marker.on("click", () => {
-          activatePoint(point, { openPopup: false, scrollCard: true });
+          activatePoint(point, { scrollCard: true });
         });
 
         marker.on("mouseover", () => {
-          activatePoint(point, { openPopup: false, scrollCard: false });
-        });
-
-        marker.on("mouseout", () => {
-          deactivatePoint(point);
+          activatePoint(point, { scrollCard: false });
         });
 
         bounds.push([point.latitude, point.longitude]);
@@ -378,12 +361,18 @@ html: `
           setActiveMarkerElement(id);
           dispatchActiveMapPoint(id);
           dispatchVisibleMapPoints(map, markersRef.current, id);
-          window.dispatchEvent(
-            new CustomEvent("mioseg-scroll-qrx-card", {
-              detail: { activeId: id },
-            })
-          );
+          dispatchScrollToMapCard(id);
         }, 260);
+      };
+
+      window.previewMarker = (id: string) => {
+        const marker = markersRef.current[id];
+        if (!marker) return;
+
+        activeIdRef.current = id;
+        setActiveMarkerElement(id);
+        dispatchActiveMapPoint(id);
+        dispatchVisibleMapPoints(map, markersRef.current, id);
       };
     };
 
@@ -392,6 +381,7 @@ html: `
     return () => {
       cancelled = true;
       window.focusMarker = undefined;
+      window.previewMarker = undefined;
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -400,6 +390,130 @@ html: `
       activeIdRef.current = null;
     };
   }, [points, hasUserLocation, userLat, userLng]);
+
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
+    const safeId = (id: string) => {
+      if (typeof CSS !== "undefined" && typeof CSS.escape === "function") return CSS.escape(id);
+      return id.replace(/"/g, "\\\"");
+    };
+
+    const getCards = (id: string) =>
+      Array.from(
+        document.querySelectorAll<HTMLElement>(
+          `[data-qrx-card="${safeId(id)}"], [data-visible-map-card="${safeId(id)}"], [data-new-qrx-card="${safeId(id)}"]`
+        )
+      );
+
+    const clearActiveCards = () => {
+      document
+        .querySelectorAll<HTMLElement>(
+          ".mioseg-qrx-card.is-map-active, [data-visible-map-card].is-map-active, [data-new-qrx-card].is-map-active"
+        )
+        .forEach((element) => element.classList.remove("is-map-active"));
+    };
+
+    const setActiveCard = (id: string | null, shouldScroll: boolean) => {
+      if (!id) return;
+
+      clearActiveCards();
+
+      const cards = getCards(id);
+      cards.forEach((element) => {
+        element.classList.add("is-map-active");
+        const article = element.matches(".mioseg-qrx-card")
+          ? element
+          : element.querySelector<HTMLElement>(".mioseg-qrx-card");
+        article?.classList.add("is-map-active");
+      });
+
+      if (shouldScroll && cards[0]) {
+        cards[0].scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+      }
+
+      const activeBox = document.getElementById("activeMapQrx");
+      const activeTitle = document.getElementById("activeMapQrxTitle");
+      const activeText = document.getElementById("activeMapQrxText");
+      const visibleCard = document.querySelector<HTMLElement>(`[data-visible-map-card="${safeId(id)}"]`);
+
+      if (activeBox && visibleCard) {
+        activeBox.style.display = "";
+        if (activeTitle) activeTitle.textContent = visibleCard.getAttribute("data-visible-title") || "QR-X ausgewählt";
+
+        const category = visibleCard.getAttribute("data-visible-category") || "";
+        const followers = visibleCard.getAttribute("data-visible-followers-label") || "";
+        const views = visibleCard.getAttribute("data-visible-views-label") || "";
+        const social = visibleCard.getAttribute("data-visible-social-label") || "";
+
+        if (activeText) {
+          activeText.textContent = [category, followers, views, social].filter(Boolean).join(" · ");
+        }
+      }
+    };
+
+    const onActive = (event: Event) => {
+      const id = (event as CustomEvent<{ activeId?: string | null }>).detail?.activeId ?? null;
+      setActiveCard(id, false);
+    };
+
+    const onScrollToCard = (event: Event) => {
+      const id = (event as CustomEvent<{ activeId?: string | null }>).detail?.activeId ?? null;
+      setActiveCard(id, true);
+    };
+
+    const onVisible = (event: Event) => {
+      const detail = (event as CustomEvent<{ visibleIds?: string[]; activeId?: string | null }>).detail;
+      const ids = Array.isArray(detail?.visibleIds) ? detail.visibleIds : [];
+
+      const visibleCount = document.getElementById("visibleMapCount");
+      const newCount = document.getElementById("newMapCount");
+      const empty = document.getElementById("visibleMapEmpty");
+      const scope = document.getElementById("newMapScopeLabel");
+
+      if (visibleCount) visibleCount.textContent = String(ids.length);
+      if (newCount) newCount.textContent = String(ids.length);
+      if (scope) scope.textContent = ids.length > 0 ? "Aktueller Kartenausschnitt" : "Keine Treffer im Ausschnitt";
+      if (empty) empty.style.display = ids.length === 0 ? "" : "none";
+
+      document.querySelectorAll<HTMLElement>("[data-visible-map-card], [data-new-qrx-card]").forEach((element) => {
+        const id = element.getAttribute("data-visible-map-card") || element.getAttribute("data-new-qrx-card");
+        element.style.display = ids.length === 0 || (id != null && ids.includes(id)) ? "" : "none";
+      });
+
+      if (detail?.activeId) setActiveCard(detail.activeId, false);
+    };
+
+    const onMapMoving = (event: Event) => {
+      const isMoving = Boolean((event as CustomEvent<{ isMoving?: boolean }>).detail?.isMoving);
+      const notice = document.getElementById("mapMovingNotice");
+      notice?.classList.toggle("is-visible", isMoving);
+    };
+
+    const handleCardMouseEnter = (event: Event) => {
+      const target = event.currentTarget as HTMLElement;
+      const id = target.getAttribute("data-focus-marker");
+      if (!id) return;
+      window.previewMarker?.(id);
+    };
+
+    const focusTargets = Array.from(document.querySelectorAll<HTMLElement>("[data-focus-marker]"));
+    focusTargets.forEach((element) => element.addEventListener("mouseenter", handleCardMouseEnter));
+
+    window.addEventListener("mioseg-active-qrx", onActive);
+    window.addEventListener("mioseg-scroll-qrx-card", onScrollToCard);
+    window.addEventListener("mioseg-visible-qrx", onVisible);
+    window.addEventListener("mioseg-map-moving", onMapMoving);
+
+    return () => {
+      focusTargets.forEach((element) => element.removeEventListener("mouseenter", handleCardMouseEnter));
+      window.removeEventListener("mioseg-active-qrx", onActive);
+      window.removeEventListener("mioseg-scroll-qrx-card", onScrollToCard);
+      window.removeEventListener("mioseg-visible-qrx", onVisible);
+      window.removeEventListener("mioseg-map-moving", onMapMoving);
+    };
+  }, [points]);
 
   return (
     <div

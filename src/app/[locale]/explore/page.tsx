@@ -370,11 +370,6 @@ export default async function ExplorePage({
       <div
         key={key}
         data-focus-marker={entry.id}
-        onMouseEnter={() => {
-          if (entry.location_lat != null && entry.location_lng != null && typeof window !== "undefined") {
-            window.focusMarker?.(entry.id);
-          }
-        }}
         style={{
           height: "100%",
           cursor: entry.location_lat != null && entry.location_lng != null ? "pointer" : "default",
@@ -2708,6 +2703,61 @@ nav,
   }
 }
 
+
+
+.mioseg-map-section,
+.mioseg-discover-section,
+.mioseg-nearby-section,
+.mioseg-new-section {
+  width: min(1240px, calc(100% - 32px));
+  max-width: 1240px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+.mioseg-qrx-card,
+[data-visible-map-card],
+[data-new-qrx-card] {
+  transition: transform 190ms ease, box-shadow 190ms ease, border-color 190ms ease, filter 190ms ease;
+}
+
+.mioseg-qrx-card.is-map-active,
+[data-visible-map-card].is-map-active .mioseg-qrx-card,
+[data-new-qrx-card].is-map-active .mioseg-qrx-card {
+  transform: translateY(-4px) scale(1.012);
+  border-color: rgba(245,197,66,0.95) !important;
+  box-shadow: 0 24px 68px rgba(224,161,6,0.18), 0 16px 46px rgba(14,23,38,0.11) !important;
+}
+
+[data-visible-map-card].is-map-active::before,
+[data-new-qrx-card].is-map-active::before {
+  content: "Gerade auf der Karte ausgewählt";
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #9a4f00;
+  border: 1px solid #fed7aa;
+  font-size: 12px;
+  font-weight: 950;
+  box-shadow: 0 10px 24px rgba(224,161,6,0.14);
+}
+
+.mioseg-map-moving-notice {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.mioseg-map-moving-notice.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
           `.trim(),
         }}
       />
@@ -3545,99 +3595,6 @@ nav,
 })();`.trim(),
         }}
       />
-
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-(function(){
-  function getCards(id){
-    return Array.from(document.querySelectorAll('[data-qrx-card="'+id+'"], [data-visible-map-card="'+id+'"], [data-new-qrx-card="'+id+'"]'));
-  }
-
-  function clearActive(){
-    document.querySelectorAll('.mioseg-qrx-card.is-map-active, [data-visible-map-card].is-map-active, [data-new-qrx-card].is-map-active').forEach(function(el){
-      el.classList.remove('is-map-active');
-    });
-  }
-
-  function setActive(id, shouldScroll){
-    if(!id) return;
-    clearActive();
-
-    var cards = getCards(id);
-    cards.forEach(function(el){
-      el.classList.add('is-map-active');
-      var article = el.matches('.mioseg-qrx-card') ? el : el.querySelector('.mioseg-qrx-card');
-      if(article) article.classList.add('is-map-active');
-    });
-
-    var first = cards[0];
-    if(shouldScroll && first){
-      first.scrollIntoView({ behavior:'smooth', block:'center', inline:'nearest' });
-    }
-
-    var activeBox = document.getElementById('activeMapQrx');
-    var activeTitle = document.getElementById('activeMapQrxTitle');
-    var activeText = document.getElementById('activeMapQrxText');
-    var visibleCard = document.querySelector('[data-visible-map-card="'+id+'"]');
-
-    if(activeBox && visibleCard){
-      activeBox.style.display = '';
-      if(activeTitle) activeTitle.textContent = visibleCard.getAttribute('data-visible-title') || 'QR-X ausgewählt';
-
-      var category = visibleCard.getAttribute('data-visible-category') || '';
-      var followers = visibleCard.getAttribute('data-visible-followers-label') || '';
-      var views = visibleCard.getAttribute('data-visible-views-label') || '';
-      var social = visibleCard.getAttribute('data-visible-social-label') || '';
-
-      if(activeText){
-        activeText.textContent = [category, followers, views, social].filter(Boolean).join(' · ');
-      }
-    }
-  }
-
-  window.addEventListener('mioseg-active-qrx', function(event){
-    var id = event && event.detail ? event.detail.activeId : null;
-    setActive(id, false);
-  });
-
-  window.addEventListener('mioseg-scroll-qrx-card', function(event){
-    var id = event && event.detail ? event.detail.activeId : null;
-    setActive(id, true);
-  });
-
-  window.addEventListener('mioseg-visible-qrx', function(event){
-    var ids = event && event.detail && Array.isArray(event.detail.visibleIds) ? event.detail.visibleIds : [];
-    var visibleCount = document.getElementById('visibleMapCount');
-    var newCount = document.getElementById('newMapCount');
-    var empty = document.getElementById('visibleMapEmpty');
-    var scope = document.getElementById('newMapScopeLabel');
-
-    if(visibleCount) visibleCount.textContent = String(ids.length);
-    if(newCount) newCount.textContent = String(ids.length);
-    if(scope) scope.textContent = ids.length > 0 ? 'Aktueller Kartenausschnitt' : 'Keine Treffer im Ausschnitt';
-    if(empty) empty.style.display = ids.length === 0 ? '' : 'none';
-
-    document.querySelectorAll('[data-visible-map-card], [data-new-qrx-card]').forEach(function(el){
-      var id = el.getAttribute('data-visible-map-card') || el.getAttribute('data-new-qrx-card');
-      el.style.display = ids.length === 0 || ids.indexOf(id) >= 0 ? '' : 'none';
-    });
-
-    if(event.detail && event.detail.activeId) {
-      setActive(event.detail.activeId, false);
-    }
-  });
-
-  window.addEventListener('mioseg-map-moving', function(event){
-    var notice = document.getElementById('mapMovingNotice');
-    if(!notice) return;
-    notice.classList.toggle('is-visible', Boolean(event && event.detail && event.detail.isMoving));
-  });
-})();
-          `.trim(),
-        }}
-      />
-
     </div>
   );
 }
