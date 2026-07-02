@@ -140,12 +140,52 @@ function getStatusStyle(status: string | null): React.CSSProperties {
   };
 }
 
-const PACKAGES = [
-  { credits: 10, price: 5.99, regularPrice: 9.99, label: "Launch" },
-  { credits: 25, price: 12.99, regularPrice: 19.99, label: "Beliebt" },
-  { credits: 50, price: 22.99, regularPrice: 34.99, label: "Pro" },
-  { credits: 100, price: 39.99, regularPrice: 59.99, label: "Best Value" },
+type PricingPack = {
+  id: string;
+  credits: number;
+  price_cents_launch: number | null;
+  price_cents_regular: number | null;
+  badge: string | null;
+  is_active?: boolean | null;
+  sort_order?: number | null;
+};
+
+type PricingConfig = {
+  currency: string | null;
+  launch_discount_enabled: boolean | null;
+};
+
+const FALLBACK_PACKAGES: PricingPack[] = [
+  { id: "p10", credits: 10, price_cents_launch: 599, price_cents_regular: 999, badge: "Launch", is_active: true, sort_order: 1 },
+  { id: "p25", credits: 25, price_cents_launch: 1299, price_cents_regular: 1999, badge: "Beliebt", is_active: true, sort_order: 2 },
+  { id: "p50", credits: 50, price_cents_launch: 2299, price_cents_regular: 3499, badge: "Pro", is_active: true, sort_order: 3 },
+  { id: "p100", credits: 100, price_cents_launch: 3999, price_cents_regular: 5999, badge: "Best Value", is_active: true, sort_order: 4 },
 ];
+
+function getPackPriceCents(pack: PricingPack, config: PricingConfig | null) {
+  const useLaunchPrice = Boolean(config?.launch_discount_enabled);
+  const launch = Number(pack.price_cents_launch ?? 0);
+  const regular = Number(pack.price_cents_regular ?? 0);
+
+  if (useLaunchPrice && Number.isFinite(launch) && launch > 0) return launch;
+  if (Number.isFinite(regular) && regular > 0) return regular;
+  return Number.isFinite(launch) && launch > 0 ? launch : 0;
+}
+
+function getPackRegularCents(pack: PricingPack) {
+  const regular = Number(pack.price_cents_regular ?? 0);
+  return Number.isFinite(regular) && regular > 0 ? regular : 0;
+}
+
+function getPackBadge(pack: PricingPack) {
+  const badge = pack.badge?.trim();
+  if (badge) return badge;
+  if (pack.id === "p10") return "Launch";
+  if (pack.id === "p25") return "Beliebt";
+  if (pack.id === "p50") return "Pro";
+  if (pack.id === "p100") return "Best Value";
+  return "Paket";
+}
 
 export default function CreditsPage() {
   const params = useParams();
@@ -155,12 +195,49 @@ export default function CreditsPage() {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
-  const [checkoutLoading, setCheckoutLoading] = useState<number | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [pricingPacks, setPricingPacks] = useState<PricingPack[]>(FALLBACK_PACKAGES);
+  const [pricingConfig, setPricingConfig] = useState<PricingConfig | null>({
+    currency: "EUR",
+    launch_discount_enabled: true,
+  });
 
   useEffect(() => {
     void loadCredits();
+    void loadPricing();
   }, []);
+
+  async function loadPricing() {
+    try {
+      const response = await fetch("/api/create-checkout-session", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Preise konnten nicht geladen werden.");
+      }
+
+      const packs = Array.isArray(data?.pricingPacks) ? data.pricingPacks : [];
+      const activePacks = packs
+        .filter((pack: PricingPack) => pack?.id && pack?.credits && pack.is_active !== false)
+        .sort((a: PricingPack, b: PricingPack) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0));
+
+      if (activePacks.length > 0) {
+        setPricingPacks(activePacks);
+      }
+
+      setPricingConfig({
+        currency: data?.pricingConfig?.currency || "EUR",
+        launch_discount_enabled: Boolean(data?.pricingConfig?.launch_discount_enabled),
+      });
+    } catch (error) {
+      console.warn("Pricing load error:", error);
+    }
+  }
 
   async function loadCredits() {
     setLoading(true);
@@ -223,14 +300,14 @@ export default function CreditsPage() {
       { label: "Aktuelle Credits", value: credits, icon: "💳" },
       { label: "Kosten pro QR-X", value: "1", icon: "▣" },
       { label: "Freier Speicher", value: "15 MB", icon: "☁️" },
-      { label: "Pakete", value: PACKAGES.length, icon: "🛒" },
+      { label: "Pakete", value: pricingPacks.length, icon: "🛒" },
     ],
-    [credits]
+    [credits, pricingPacks.length]
   );
 
-  async function handleStripeCheckout(creditAmount: number) {
+  async function handleStripeCheckout(pack: PricingPack) {
     try {
-      setCheckoutLoading(creditAmount);
+      setCheckoutLoading(pack.id);
 
       const {
         data: { user },
@@ -241,14 +318,7 @@ export default function CreditsPage() {
         return;
       }
 
-      const packMap: Record<number, string> = {
-        10: "p10",
-        25: "p25",
-        50: "p50",
-        100: "p100",
-      };
-
-      const packId = packMap[creditAmount];
+      const packId = pack.id;
 
       if (!packId) {
         throw new Error("Dieses Credit-Paket ist nicht bekannt.");
@@ -369,15 +439,16 @@ export default function CreditsPage() {
           <div className={styles.cardHeader}>
             <div>
               <h2>Credit-Pakete</h2>
-              <p>Wähle ein Paket und starte den sicheren Checkout über Stripe.</p>
+              <p>Wähle ein Paket und starte den sicheren Checkout über Stripe. Die Preise werden live aus der Admin-Konfiguration geladen.</p>
             </div>
             <span>Pay-per-Use</span>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
-            {PACKAGES.map((item) => (
+            {pricingPacks.map((pack) => {
+              return (
               <div
-                key={item.credits}
+                key={pack.id}
                 style={{
                   borderRadius: 24,
                   padding: 18,
@@ -402,7 +473,7 @@ export default function CreditsPage() {
                   >
                     Launch
                   </span>
-                  {item.label !== "Launch" ? (
+                  {getPackBadge(pack) !== "Launch" ? (
                     <span
                       style={{
                         display: "inline-flex",
@@ -410,46 +481,51 @@ export default function CreditsPage() {
                         alignItems: "center",
                         borderRadius: 999,
                         padding: "0 10px",
-                        background: item.credits === 25 ? "#fff7ed" : "rgba(255,255,255,0.06)",
-                        color: item.credits === 25 ? "#9a4f00" : "#cbd5e1",
+                        background: pack.id === "p25" ? "#fff7ed" : "rgba(255,255,255,0.06)",
+                        color: pack.id === "p25" ? "#9a4f00" : "#cbd5e1",
                         fontSize: 12,
                         fontWeight: 950,
                       }}
                     >
-                      {item.label}
+                      {getPackBadge(pack)}
                     </span>
                   ) : null}
                 </div>
 
                 <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 30, fontWeight: 950 }}>
-                  {item.credits} Credits
+                  {pack.credits} Credits
                 </h3>
 
                 <p style={{ margin: "0 0 16px", color: "#94a3b8", lineHeight: 1.55 }}>
-                  <strong style={{ color: "#ffffff", fontSize: 22 }}>{item.price.toFixed(2).replace(".", ",")} €</strong>{" "}
-                  <span style={{ textDecoration: "line-through", opacity: 0.65 }}>
-                    {item.regularPrice.toFixed(2).replace(".", ",")} €
-                  </span>
+                  <strong style={{ color: "#ffffff", fontSize: 22 }}>
+                    {formatEuro(getPackPriceCents(pack, pricingConfig), pricingConfig?.currency ?? "EUR")}
+                  </strong>{" "}
+                  {getPackRegularCents(pack) > getPackPriceCents(pack, pricingConfig) ? (
+                    <span style={{ textDecoration: "line-through", opacity: 0.65 }}>
+                      {formatEuro(getPackRegularCents(pack), pricingConfig?.currency ?? "EUR")}
+                    </span>
+                  ) : null}
                   <br />
                   inkl. Rechnung für deine Unterlagen.
                 </p>
 
                 <button
                   type="button"
-                  onClick={() => void handleStripeCheckout(item.credits)}
-                  disabled={checkoutLoading === item.credits}
+                  onClick={() => void handleStripeCheckout(pack)}
+                  disabled={checkoutLoading === pack.id}
                   className={styles.primaryButton}
                   style={{
                     width: "100%",
                     border: 0,
-                    cursor: checkoutLoading === item.credits ? "not-allowed" : "pointer",
-                    opacity: checkoutLoading === item.credits ? 0.72 : 1,
+                    cursor: checkoutLoading === pack.id ? "not-allowed" : "pointer",
+                    opacity: checkoutLoading === pack.id ? 0.72 : 1,
                   }}
                 >
-                  {checkoutLoading === item.credits ? "Weiter zu Stripe..." : "Credits kaufen"}
+                  {checkoutLoading === pack.id ? "Weiter zu Stripe..." : "Credits kaufen"}
                 </button>
               </div>
-            ))}
+            );
+            })}
           </div>
         </article>
 
