@@ -354,6 +354,16 @@ export default async function ExplorePage({
         getExploreRankScore(a, getFollowerCountForEntry(a), getViewTotalForEntry(a))
     );
 
+  const newMapEntries = items
+    .filter((entry) => entry.location_lat != null && entry.location_lng != null)
+    .sort((a, b) => {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bTime - aTime;
+    });
+
+  const nearbyTabEntries = hasUserLocation ? nearbyItems : [];
+
   const renderExploreCard = (
     entry: ExploreEntry,
     opts?: { keyPrefix?: string; distanceLabel?: string | null }
@@ -909,8 +919,7 @@ export default async function ExplorePage({
 
       <nav className="mioseg-explore-section-nav" aria-label="Explore Bereiche">
         <a href="#explore-map">🗺️ Karte</a>
-        <a href="#visibleMapResults">🔥 Beliebt</a>
-        <a href="#explore-results">🆕 Neu</a>
+        <a href="#explore-hub">🔥 Ergebnisse</a>
       </nav>
 
       <section
@@ -1142,247 +1151,200 @@ export default async function ExplorePage({
           <ExploreMapClient points={mapPoints} hasUserLocation={hasUserLocation} userLat={userLat} userLng={userLng} />
         </div>
 
-        {mapVisibleEntries.length > 0 ? (
-          <div className="mioseg-discover-subsection mioseg-trending-subsection mioseg-equal-result-section">
-            <div className="mioseg-section-topline mioseg-subsection-topline">
-              <span>02</span>
-              <strong>Beliebt</strong>
-              <em>Ranking im sichtbaren Kartenausschnitt</em>
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "20px", flexWrap: "wrap", alignItems: "flex-end", marginBottom: "22px" }}>
-              <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
-                <span className="mioseg-section-anchor">🔥 Beliebt im Kartenausschnitt</span>
-                <h2 className={styles.sectionTitle} style={{ fontSize: "30px" }}>Beliebte QR-X, die du gerade auf der Karte siehst</h2>
-                <p className={styles.sectionText}>
-                  Die Reihenfolge basiert auf sichtbarem Kartenbereich, Followern, Aufrufen, Verifizierung und Aktualität.
-                </p>
-              </div>
-
-              <div
-                style={{
-                  minHeight: "46px",
-                  padding: "0 16px",
-                  borderRadius: "999px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  background: "#0d1726",
-                  color: "#ffffff",
-                  fontSize: "13px",
-                  fontWeight: 900,
-                  boxShadow: "0 14px 30px rgba(13, 23, 38, 0.18)",
-                }}
-              >
-                👑 Top QR-X zuerst
-              </div>
-            </div>
-
-            <div
-              id="activeMapQrx"
-              className={styles.compareCardFeatured}
-              style={{
-                display: "none",
-                borderRadius: "30px",
-                marginBottom: "20px",
-                background: "linear-gradient(180deg, #0d1726 0%, #17304d 100%)",
-              }}
-            >
-              <div className={styles.compareLabelFeatured}>Gerade ausgewählt</div>
-              <h3 id="activeMapQrxTitle" className={styles.compareTitleFeatured}>QR-X ausgewählt</h3>
-              <p id="activeMapQrxText" style={{ margin: 0, color: "#dbe7f6", lineHeight: 1.7 }}>
-                Wähle einen Marker oder tippe auf eine QR-X Karte, um den passenden Eintrag hier hervorzuheben.
+        <div id="explore-hub" className="mioseg-explore-hub">
+          <div className="mioseg-explore-hub-head">
+            <div>
+              <span className="mioseg-section-anchor">Ergebnisse im aktuellen Kartenausschnitt</span>
+              <h2 className={styles.sectionTitle} style={{ fontSize: "30px", marginTop: "14px" }}>
+                Wähle, welche QR-X du sehen möchtest
+              </h2>
+              <p className={styles.sectionText}>
+                Standardmäßig zeigen wir die beliebtesten Einträge. Du kannst jederzeit auf Nähe oder neue QR-X wechseln.
               </p>
             </div>
 
-            <div id="visibleMapEmpty" className={styles.compareCard} style={{ display: "none", borderRadius: "28px" }}>
-              <h3 className={styles.compareTitle}>Keine QR-X im sichtbaren Bereich</h3>
-              <p className={styles.featureText}>
-                Verschiebe die Karte oder zoome heraus, um wieder Business QR-X im aktuellen Kartenausschnitt zu sehen.
-              </p>
+            <div className="mioseg-live-section-pills">
+              <span><strong id="visibleMapCount">{mapPoints.length}</strong> sichtbar</span>
+              <span>{hasUserLocation ? "📍 Standort aktiv" : "📍 Standort optional"}</span>
+              <span id="newMapScopeLabel">Aktueller Kartenausschnitt</span>
             </div>
-
-            <div id="visibleMapResults" className={styles.valueGrid}>
-              {mapVisibleEntries.map((entry, index) => (
-                <div
-                  key={`visible-wrap-${entry.id}`}
-                  data-visible-map-card={entry.id}
-                  data-visible-title={getEntryTitle(entry)}
-                  data-visible-category={getCategoryLabel(entry.category)}
-                  data-visible-followers={getFollowerCountForEntry(entry)}
-                  data-visible-followers-label={formatFollowerCount(getFollowerCountForEntry(entry))}
-                  data-visible-views={getViewTotalForEntry(entry)}
-                  data-visible-views-label={formatViewCount(getViewTotalForEntry(entry))}
-                  data-visible-social-label={
-                    getSocialProofBadges(
-                      entry,
-                      getFollowerCountForEntry(entry),
-                      getViewTotalForEntry(entry),
-                      getUniqueViewCountForEntry(entry)
-                    )[0]?.label ?? ""
-                  }
-                  data-visible-score={getExploreRankScore(entry, getFollowerCountForEntry(entry), getViewTotalForEntry(entry))}
-                  style={{ order: index, display: index < INITIAL_VISIBLE_QRX ? "" : "none" }}
-                >
-                  {index === 0 ? (
-                    <div
-                      style={{
-                        marginBottom: "12px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "8px",
-                        minHeight: "34px",
-                        padding: "0 12px",
-                        borderRadius: "999px",
-                        background: "#fff7ed",
-                        color: "#9a4f00",
-                        fontSize: "12px",
-                        fontWeight: 900,
-                        border: "1px solid #fed7aa",
-                      }}
-                    >
-                      👑 Aktuell stärkstes Profil
-                    </div>
-                  ) : null}
-                  {renderExploreCard(entry, { keyPrefix: "map-visible" })}
-                </div>
-              ))}
-            </div>
-
-            {mapVisibleEntries.length > INITIAL_VISIBLE_QRX ? (
-              <div style={{ display: "flex", justifyContent: "center", marginTop: "28px" }}>
-                <button
-                  type="button"
-                  id="showMoreVisibleQrx"
-                  className={styles.primaryButton}
-                  style={{ border: 0, cursor: "pointer" }}
-                >
-                  Mehr anzeigen ({mapVisibleEntries.length - INITIAL_VISIBLE_QRX}+)
-                </button>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-      </section>
-
-      {hasUserLocation && nearbyItems.length > 0 ? (
-        <section className={`${styles.section} mioseg-discover-section mioseg-nearby-section`}>
-          <div className="mioseg-section-topline">
-            <span>03</span>
-            <strong>In deiner Nähe</strong>
-            <em>Nach Entfernung sortiert</em>
-          </div>
-          <div className={styles.sectionIntro}>
-            <span className={styles.sectionEyebrow}>In deiner Nähe</span>
-            <h2 className={styles.sectionTitle}>Die nächsten Business QR-X</h2>
-            <p className={styles.sectionText}>
-              Diese Einträge wurden anhand deines aktuellen Standorts nach Entfernung sortiert.
-            </p>
           </div>
 
-          <div className={styles.valueGrid}>
-            {nearbyItems.map((entry) =>
-              renderExploreCard(entry, {
-                keyPrefix: "nearby",
-                distanceLabel: `📍 ${formatDistance(entry.distanceKm)}`,
-              })
-            )}
-          </div>
-        </section>
-      ) : null}
+          <input className="mioseg-explore-tab-input" type="radio" name="miosegExploreTab" id="miosegTabPopular" defaultChecked />
+          <input className="mioseg-explore-tab-input" type="radio" name="miosegExploreTab" id="miosegTabNearby" />
+          <input className="mioseg-explore-tab-input" type="radio" name="miosegExploreTab" id="miosegTabNew" />
 
-      <section
-        id="explore-results"
-        className={`${styles.sectionAlt} mioseg-discover-section mioseg-new-section mioseg-equal-result-section`}
-        style={{
-          background: "linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(247,250,252,0.99) 100%)",
-          border: "1px solid rgba(218, 228, 240, 0.86)",
-          boxShadow: "0 22px 62px rgba(14, 23, 38, 0.055)",
-        }}
-      >
-        <div className="mioseg-section-topline">
-          <span>04</span>
-          <strong>Neu</strong>
-          <em>Automatisch aus dem aktuellen Kartenausschnitt</em>
-        </div>
-        <div className="mioseg-live-section-head">
-          <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
-            <span className="mioseg-section-anchor">🆕 Neu im Kartenausschnitt</span>
-            <h2 className={styles.sectionTitle}>Was gerade in diesem Bereich neu ist</h2>
-            <p className={styles.sectionText}>
-              Bewege oder zoome die Karte. Diese Liste zeigt automatisch die neuesten QR-X aus dem aktuell sichtbaren Bereich.
-            </p>
+          <div className="mioseg-explore-tabs" aria-label="Explore Ergebnis-Tabs">
+            <label htmlFor="miosegTabPopular" className="mioseg-explore-tab mioseg-tab-popular">
+              <strong>🔥 Beliebt <span data-tab-count="popular">{mapVisibleEntries.length}</span></strong>
+              <em>Ranking im Kartenausschnitt</em>
+            </label>
+
+            <label htmlFor="miosegTabNearby" className={`mioseg-explore-tab mioseg-tab-nearby ${hasUserLocation ? "" : "is-disabled"}`}>
+              <strong>📍 In deiner Nähe <span data-tab-count="nearby">{nearbyTabEntries.length}</span></strong>
+              <em>{hasUserLocation ? "Nach Entfernung sortiert" : "Standort aktivieren"}</em>
+            </label>
+
+            <label htmlFor="miosegTabNew" className="mioseg-explore-tab mioseg-tab-new">
+              <strong>🆕 Neu <span data-tab-count="new">{newMapEntries.length}</span></strong>
+              <em>Gerade erstellt</em>
+            </label>
           </div>
 
-          <div className="mioseg-live-section-pills">
-            <span><strong id="newMapCount">{items.length}</strong> neue Treffer</span>
-            <span id="newMapScopeLabel">Aktueller Kartenausschnitt</span>
-          </div>
-        </div>
-
-        {error ? (
-          <div className={styles.compareCardFeatured} style={{ borderRadius: "30px" }}>
-            <div className={styles.compareLabelFeatured}>Fehlerzustand</div>
-            <h3 className={styles.compareTitleFeatured}>Fehler beim Laden</h3>
-            <p style={{ margin: 0, color: "#dbe7f6", lineHeight: 1.7 }}>
-              Die Explore-Einträge konnten gerade nicht geladen werden. Technische Meldung: {error.message}
-            </p>
-          </div>
-        ) : items.length === 0 ? (
           <div
-            className={styles.compareCard}
+            id="activeMapQrx"
+            className={styles.compareCardFeatured}
             style={{
+              display: "none",
               borderRadius: "30px",
-              textAlign: "center",
-              padding: "42px 26px",
-              background: "linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%)",
+              marginBottom: "20px",
+              background: "linear-gradient(180deg, #0d1726 0%, #17304d 100%)",
             }}
           >
-            <div style={{ fontSize: "46px", marginBottom: "12px" }}>🔎</div>
-            <h3 className={styles.compareTitle}>Keine passenden Business QR-X gefunden</h3>
-            <p className={styles.featureText} style={{ maxWidth: "620px", margin: "0 auto 18px" }}>
-              Es gibt aktuell keine Einträge, die zu deiner Suche oder Kategorie passen. Entferne den Filter oder versuche
-              einen allgemeineren Suchbegriff.
+            <div className={styles.compareLabelFeatured}>QR-X aktuell ausgewählt</div>
+            <h3 id="activeMapQrxTitle" className={styles.compareTitleFeatured}>QR-X ausgewählt</h3>
+            <p id="activeMapQrxText" style={{ margin: 0, color: "#dbe7f6", lineHeight: 1.7 }}>
+              Wähle einen Marker, um den passenden Eintrag hier hervorzuheben.
             </p>
-            <Link href={explorePath} className={styles.primaryButton}>
-              Alle Einträge anzeigen
-            </Link>
           </div>
-        ) : (
-  <>
-    <div id="newQrxGrid" className={styles.valueGrid}>
-      {items.map((entry, index) => (
-        <div
-          key={entry.id}
-          data-new-qrx-card={entry.id}
-          data-new-created={entry.created_at ? new Date(entry.created_at).getTime() : 0}
-          style={{ display: index < INITIAL_VISIBLE_QRX ? "" : "none" }}
-        >
-          {renderExploreCard(entry)}
-        </div>
-      ))}
-    </div>
 
-    {items.length > INITIAL_VISIBLE_QRX ? (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginTop: "30px",
-        }}
-      >
-        <button
-          type="button"
-          id="showMoreNewQrx"
-          className={styles.primaryButton}
-          style={{ border: 0, cursor: "pointer" }}
-        >
-          Mehr anzeigen ({items.length - INITIAL_VISIBLE_QRX}+)
-        </button>
-      </div>
-    ) : null}
-  </>
-)}
+          <div id="visibleMapEmpty" className={styles.compareCard} style={{ display: "none", borderRadius: "28px" }}>
+            <h3 className={styles.compareTitle}>Keine QR-X im sichtbaren Bereich</h3>
+            <p className={styles.featureText}>
+              Verschiebe die Karte oder zoome heraus, um wieder Business QR-X im aktuellen Kartenausschnitt zu sehen.
+            </p>
+          </div>
+
+          <div className="mioseg-explore-tab-panels">
+            <section className="mioseg-explore-tab-panel mioseg-panel-popular" aria-label="Beliebt im Kartenausschnitt">
+              <div className="mioseg-panel-title-row">
+                <div>
+                  <h3>🔥 Beliebt im Kartenausschnitt</h3>
+                  <p>Sortiert nach Followern, Aufrufen, Verifizierung und Aktualität.</p>
+                </div>
+                <span>👑 Top QR-X zuerst</span>
+              </div>
+
+              {mapVisibleEntries.length > 0 ? (
+                <div id="visibleMapResults" className={styles.valueGrid}>
+                  {mapVisibleEntries.map((entry, index) => (
+                    <div
+                      key={`visible-wrap-${entry.id}`}
+                      data-visible-map-card={entry.id}
+                      data-visible-title={getEntryTitle(entry)}
+                      data-visible-category={getCategoryLabel(entry.category)}
+                      data-visible-followers={getFollowerCountForEntry(entry)}
+                      data-visible-followers-label={formatFollowerCount(getFollowerCountForEntry(entry))}
+                      data-visible-views={getViewTotalForEntry(entry)}
+                      data-visible-views-label={formatViewCount(getViewTotalForEntry(entry))}
+                      data-visible-social-label={
+                        getSocialProofBadges(
+                          entry,
+                          getFollowerCountForEntry(entry),
+                          getViewTotalForEntry(entry),
+                          getUniqueViewCountForEntry(entry)
+                        )[0]?.label ?? ""
+                      }
+                      data-visible-score={getExploreRankScore(entry, getFollowerCountForEntry(entry), getViewTotalForEntry(entry))}
+                      style={{ order: index, display: index < INITIAL_VISIBLE_QRX ? "" : "none" }}
+                    >
+                      {renderExploreCard(entry, { keyPrefix: "map-visible" })}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={styles.compareCard} style={{ borderRadius: "28px" }}>
+                  <h3 className={styles.compareTitle}>Keine beliebten QR-X gefunden</h3>
+                  <p className={styles.featureText}>Verschiebe die Karte oder ändere deine Filter.</p>
+                </div>
+              )}
+
+              {mapVisibleEntries.length > INITIAL_VISIBLE_QRX ? (
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "28px" }}>
+                  <button type="button" id="showMoreVisibleQrx" className={styles.primaryButton} style={{ border: 0, cursor: "pointer" }}>
+                    Mehr anzeigen ({mapVisibleEntries.length - INITIAL_VISIBLE_QRX}+)
+                  </button>
+                </div>
+              ) : null}
+            </section>
+
+            <section className="mioseg-explore-tab-panel mioseg-panel-nearby" aria-label="In deiner Nähe">
+              <div className="mioseg-panel-title-row">
+                <div>
+                  <h3>📍 In deiner Nähe</h3>
+                  <p>{hasUserLocation ? "Nach Entfernung zu deinem Standort sortiert." : "Aktiviere deinen Standort, um QR-X in deiner Nähe zu sehen."}</p>
+                </div>
+                <span>{hasUserLocation ? "📍 Standort aktiv" : "Standort optional"}</span>
+              </div>
+
+              {hasUserLocation && nearbyTabEntries.length > 0 ? (
+                <div className={styles.valueGrid}>
+                  {nearbyTabEntries.map((entry) =>
+                    renderExploreCard(entry, {
+                      keyPrefix: "nearby-tab",
+                      distanceLabel: `📍 ${formatDistance(entry.distanceKm)}`,
+                    })
+                  )}
+                </div>
+              ) : (
+                <div className={styles.compareCard} style={{ borderRadius: "28px" }}>
+                  <h3 className={styles.compareTitle}>Standort aktivieren</h3>
+                  <p className={styles.featureText}>
+                    Klicke auf „In meiner Nähe“, damit die nächsten Business QR-X direkt hier angezeigt werden.
+                  </p>
+                </div>
+              )}
+            </section>
+
+            <section className="mioseg-explore-tab-panel mioseg-panel-new" aria-label="Neue QR-X">
+              <div className="mioseg-panel-title-row">
+                <div>
+                  <h3>🆕 Neu im Kartenausschnitt</h3>
+                  <p>Die neuesten Business QR-X im aktuellen Kartenbereich.</p>
+                </div>
+                <span><strong id="newMapCount">{newMapEntries.length}</strong> neue Treffer</span>
+              </div>
+
+              {error ? (
+                <div className={styles.compareCardFeatured} style={{ borderRadius: "30px" }}>
+                  <div className={styles.compareLabelFeatured}>Fehlerzustand</div>
+                  <h3 className={styles.compareTitleFeatured}>Fehler beim Laden</h3>
+                  <p style={{ margin: 0, color: "#dbe7f6", lineHeight: 1.7 }}>
+                    Die Explore-Einträge konnten gerade nicht geladen werden. Technische Meldung: {error.message}
+                  </p>
+                </div>
+              ) : newMapEntries.length === 0 ? (
+                <div className={styles.compareCard} style={{ borderRadius: "28px" }}>
+                  <h3 className={styles.compareTitle}>Keine neuen QR-X gefunden</h3>
+                  <p className={styles.featureText}>Verschiebe die Karte oder ändere deine Filter.</p>
+                </div>
+              ) : (
+                <>
+                  <div id="newQrxGrid" className={styles.valueGrid}>
+                    {newMapEntries.map((entry, index) => (
+                      <div
+                        key={`new-${entry.id}`}
+                        data-new-qrx-card={entry.id}
+                        data-new-created={entry.created_at ? new Date(entry.created_at).getTime() : 0}
+                        style={{ display: index < INITIAL_VISIBLE_QRX ? "" : "none" }}
+                      >
+                        {renderExploreCard(entry, { keyPrefix: "new-tab" })}
+                      </div>
+                    ))}
+                  </div>
+
+                  {newMapEntries.length > INITIAL_VISIBLE_QRX ? (
+                    <div style={{ display: "flex", justifyContent: "center", marginTop: "30px" }}>
+                      <button type="button" id="showMoreNewQrx" className={styles.primaryButton} style={{ border: 0, cursor: "pointer" }}>
+                        Mehr anzeigen ({newMapEntries.length - INITIAL_VISIBLE_QRX}+)
+                      </button>
+                    </div>
+                  ) : null}
+                </>
+              )}
+            </section>
+          </div>
+        </div>
       </section>
 
       <style
@@ -2756,6 +2718,203 @@ nav,
 .mioseg-map-moving-notice.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+
+
+.mioseg-explore-hub {
+  margin-top: 30px;
+  border-radius: 32px;
+  padding: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(248,251,254,0.96) 100%);
+  border: 1px solid rgba(218,228,240,0.9);
+  box-shadow: 0 22px 60px rgba(14,23,38,0.075);
+}
+
+.mioseg-explore-hub-head {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 18px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.mioseg-explore-tab-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mioseg-explore-tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+  padding: 8px;
+  border-radius: 26px;
+  background: #eef4fb;
+  border: 1px solid #dce8f4;
+}
+
+.mioseg-explore-tab {
+  position: relative;
+  z-index: 1;
+  min-height: 74px;
+  border-radius: 20px;
+  padding: 13px 14px;
+  display: grid;
+  gap: 4px;
+  cursor: pointer;
+  background: #ffffff;
+  border: 1px solid rgba(218,228,240,0.92);
+  box-shadow: 0 10px 24px rgba(14,23,38,0.045);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.mioseg-explore-tab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(14,23,38,0.08);
+}
+
+.mioseg-explore-tab strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #0d1726;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.mioseg-explore-tab strong span {
+  min-width: 28px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef4fb;
+  color: #28496f;
+  font-size: 12px;
+}
+
+.mioseg-explore-tab em {
+  font-style: normal;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.mioseg-explore-tab.is-disabled {
+  opacity: 0.72;
+}
+
+#miosegTabPopular:checked ~ .mioseg-explore-tabs .mioseg-tab-popular,
+#miosegTabNearby:checked ~ .mioseg-explore-tabs .mioseg-tab-nearby,
+#miosegTabNew:checked ~ .mioseg-explore-tabs .mioseg-tab-new {
+  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
+  border-color: #f5c542;
+  box-shadow: 0 18px 44px rgba(13,23,38,0.18);
+  transform: translateY(-2px);
+}
+
+#miosegTabPopular:checked ~ .mioseg-explore-tabs .mioseg-tab-popular strong,
+#miosegTabNearby:checked ~ .mioseg-explore-tabs .mioseg-tab-nearby strong,
+#miosegTabNew:checked ~ .mioseg-explore-tabs .mioseg-tab-new strong {
+  color: #ffffff;
+}
+
+#miosegTabPopular:checked ~ .mioseg-explore-tabs .mioseg-tab-popular em,
+#miosegTabNearby:checked ~ .mioseg-explore-tabs .mioseg-tab-nearby em,
+#miosegTabNew:checked ~ .mioseg-explore-tabs .mioseg-tab-new em {
+  color: rgba(255,255,255,0.72);
+}
+
+#miosegTabPopular:checked ~ .mioseg-explore-tabs .mioseg-tab-popular strong span,
+#miosegTabNearby:checked ~ .mioseg-explore-tabs .mioseg-tab-nearby strong span,
+#miosegTabNew:checked ~ .mioseg-explore-tabs .mioseg-tab-new strong span {
+  background: rgba(255,255,255,0.16);
+  color: #ffffff;
+}
+
+.mioseg-explore-tab-panels {
+  position: relative;
+}
+
+.mioseg-explore-tab-panel {
+  display: none;
+  animation: miosegExplorePanelIn 180ms ease both;
+}
+
+#miosegTabPopular:checked ~ .mioseg-explore-tab-panels .mioseg-panel-popular,
+#miosegTabNearby:checked ~ .mioseg-explore-tab-panels .mioseg-panel-nearby,
+#miosegTabNew:checked ~ .mioseg-explore-tab-panels .mioseg-panel-new {
+  display: block;
+}
+
+.mioseg-panel-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+
+.mioseg-panel-title-row h3 {
+  margin: 0 0 6px;
+  color: #0d1726;
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: -0.35px;
+}
+
+.mioseg-panel-title-row p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.mioseg-panel-title-row > span {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0d1726;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 950;
+  box-shadow: 0 14px 30px rgba(13,23,38,0.16);
+}
+
+@keyframes miosegExplorePanelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 800px) {
+  .mioseg-explore-hub {
+    padding: 16px;
+    border-radius: 26px;
+  }
+
+  .mioseg-explore-hub-head {
+    grid-template-columns: 1fr;
+  }
+
+  .mioseg-explore-tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .mioseg-explore-tab {
+    min-height: 64px;
+  }
 }
 
           `.trim(),
