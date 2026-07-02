@@ -25,6 +25,7 @@ type LeafletMarker = {
   addTo: (map: LeafletMap) => LeafletMarker;
   bindPopup: (html: string, options?: { maxWidth?: number; className?: string }) => LeafletMarker;
   openPopup: () => LeafletMarker;
+  closePopup?: () => LeafletMarker;
   getLatLng: () => LeafletLatLng;
   on: (eventName: string, handler: () => void) => LeafletMarker;
 };
@@ -173,11 +174,19 @@ function dispatchActiveMapPoint(id: string) {
   );
 }
 
-function setActiveMarkerElement(id: string) {
+function dispatchInactiveMapPoint(id: string) {
+  window.dispatchEvent(
+    new CustomEvent("mioseg-inactive-qrx", {
+      detail: { activeId: id },
+    })
+  );
+}
+
+function setActiveMarkerElement(id: string | null) {
   if (typeof document === "undefined") return;
 
   document.querySelectorAll<HTMLElement>("[data-mioseg-marker]").forEach((element) => {
-    element.classList.toggle("is-active", element.getAttribute("data-mioseg-marker") === id);
+    element.classList.toggle("is-active", Boolean(id) && element.getAttribute("data-mioseg-marker") === id);
   });
 }
 
@@ -200,6 +209,7 @@ export default function ExploreMapClient({
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<Record<string, LeafletMarker>>({});
+  const activeIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -228,6 +238,32 @@ export default function ExploreMapClient({
       }).addTo(map);
 
       const bounds: [number, number][] = [];
+
+      const activatePoint = (point: MapPoint, options?: { openPopup?: boolean; scrollCard?: boolean }) => {
+        activeIdRef.current = point.id;
+        const marker = markersRef.current[point.id];
+
+        setActiveMarkerElement(point.id);
+        dispatchActiveMapPoint(point.id);
+        dispatchVisibleMapPoints(map, markersRef.current, point.id);
+
+        if (options?.openPopup && marker) {
+          marker.openPopup();
+        }
+
+        if (options?.scrollCard && typeof window !== "undefined") {
+          window.dispatchEvent(
+            new CustomEvent("mioseg-scroll-qrx-card", {
+              detail: { activeId: point.id },
+            })
+          );
+        }
+      };
+
+      const deactivatePoint = (point: MapPoint) => {
+        if (activeIdRef.current === point.id) return;
+        dispatchInactiveMapPoint(point.id);
+      };
 
       if (hasUserLocation && userLat != null && userLng != null) {
         const userIcon = L.divIcon({
@@ -284,15 +320,19 @@ html: `
         markersRef.current[point.id] = marker;
         marker.bindPopup(buildPopup(point), { maxWidth: 290, className: "miosegExplorePopup" });
         marker.on("popupopen", () => {
-          setActiveMarkerElement(point.id);
-          dispatchActiveMapPoint(point.id);
-          dispatchVisibleMapPoints(map, markersRef.current, point.id);
+          activatePoint(point, { scrollCard: true });
         });
 
         marker.on("click", () => {
-          setActiveMarkerElement(point.id);
-          dispatchActiveMapPoint(point.id);
-          dispatchVisibleMapPoints(map, markersRef.current, point.id);
+          activatePoint(point, { openPopup: false, scrollCard: true });
+        });
+
+        marker.on("mouseover", () => {
+          activatePoint(point, { openPopup: false, scrollCard: false });
+        });
+
+        marker.on("mouseout", () => {
+          deactivatePoint(point);
         });
 
         bounds.push([point.latitude, point.longitude]);
@@ -335,8 +375,14 @@ html: `
 
         window.setTimeout(() => {
           marker.openPopup();
+          setActiveMarkerElement(id);
           dispatchActiveMapPoint(id);
           dispatchVisibleMapPoints(map, markersRef.current, id);
+          window.dispatchEvent(
+            new CustomEvent("mioseg-scroll-qrx-card", {
+              detail: { activeId: id },
+            })
+          );
         }, 260);
       };
     };
@@ -351,6 +397,7 @@ html: `
         mapRef.current = null;
       }
       markersRef.current = {};
+      activeIdRef.current = null;
     };
   }, [points, hasUserLocation, userLat, userLng]);
 

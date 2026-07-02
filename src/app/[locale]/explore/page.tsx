@@ -370,6 +370,11 @@ export default async function ExplorePage({
       <div
         key={key}
         data-focus-marker={entry.id}
+        onMouseEnter={() => {
+          if (entry.location_lat != null && entry.location_lng != null && typeof window !== "undefined") {
+            window.focusMarker?.(entry.id);
+          }
+        }}
         style={{
           height: "100%",
           cursor: entry.location_lat != null && entry.location_lng != null ? "pointer" : "default",
@@ -377,7 +382,8 @@ export default async function ExplorePage({
       >
         <Link href={`/qrx/${entry.id}`} style={{ textDecoration: "none", color: "inherit" }}>
           <article
-            className={styles.valueCard}
+            className={`${styles.valueCard} mioseg-qrx-card`}
+            data-qrx-card={entry.id}
             style={{
               height: "100%",
               padding: "12px",
@@ -408,6 +414,8 @@ export default async function ExplorePage({
                 <img
                   src={image}
                   alt={getEntryTitle(entry)}
+                  loading="lazy"
+                  decoding="async"
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
               ) : (
@@ -917,8 +925,9 @@ export default async function ExplorePage({
           position: "relative",
           zIndex: 1,
           overflow: "hidden",
-          width: "100%",
-          maxWidth: "100%",
+          width: "min(1240px, calc(100% - 32px))",
+          maxWidth: "1240px",
+          margin: "0 auto",
           boxSizing: "border-box",
           background: "linear-gradient(180deg, rgba(255,255,255,0.94) 0%, rgba(241,246,251,0.98) 100%)",
           border: "1px solid rgba(218, 228, 240, 0.9)",
@@ -3536,6 +3545,99 @@ nav,
 })();`.trim(),
         }}
       />
+
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+(function(){
+  function getCards(id){
+    return Array.from(document.querySelectorAll('[data-qrx-card="'+id+'"], [data-visible-map-card="'+id+'"], [data-new-qrx-card="'+id+'"]'));
+  }
+
+  function clearActive(){
+    document.querySelectorAll('.mioseg-qrx-card.is-map-active, [data-visible-map-card].is-map-active, [data-new-qrx-card].is-map-active').forEach(function(el){
+      el.classList.remove('is-map-active');
+    });
+  }
+
+  function setActive(id, shouldScroll){
+    if(!id) return;
+    clearActive();
+
+    var cards = getCards(id);
+    cards.forEach(function(el){
+      el.classList.add('is-map-active');
+      var article = el.matches('.mioseg-qrx-card') ? el : el.querySelector('.mioseg-qrx-card');
+      if(article) article.classList.add('is-map-active');
+    });
+
+    var first = cards[0];
+    if(shouldScroll && first){
+      first.scrollIntoView({ behavior:'smooth', block:'center', inline:'nearest' });
+    }
+
+    var activeBox = document.getElementById('activeMapQrx');
+    var activeTitle = document.getElementById('activeMapQrxTitle');
+    var activeText = document.getElementById('activeMapQrxText');
+    var visibleCard = document.querySelector('[data-visible-map-card="'+id+'"]');
+
+    if(activeBox && visibleCard){
+      activeBox.style.display = '';
+      if(activeTitle) activeTitle.textContent = visibleCard.getAttribute('data-visible-title') || 'QR-X ausgewählt';
+
+      var category = visibleCard.getAttribute('data-visible-category') || '';
+      var followers = visibleCard.getAttribute('data-visible-followers-label') || '';
+      var views = visibleCard.getAttribute('data-visible-views-label') || '';
+      var social = visibleCard.getAttribute('data-visible-social-label') || '';
+
+      if(activeText){
+        activeText.textContent = [category, followers, views, social].filter(Boolean).join(' · ');
+      }
+    }
+  }
+
+  window.addEventListener('mioseg-active-qrx', function(event){
+    var id = event && event.detail ? event.detail.activeId : null;
+    setActive(id, false);
+  });
+
+  window.addEventListener('mioseg-scroll-qrx-card', function(event){
+    var id = event && event.detail ? event.detail.activeId : null;
+    setActive(id, true);
+  });
+
+  window.addEventListener('mioseg-visible-qrx', function(event){
+    var ids = event && event.detail && Array.isArray(event.detail.visibleIds) ? event.detail.visibleIds : [];
+    var visibleCount = document.getElementById('visibleMapCount');
+    var newCount = document.getElementById('newMapCount');
+    var empty = document.getElementById('visibleMapEmpty');
+    var scope = document.getElementById('newMapScopeLabel');
+
+    if(visibleCount) visibleCount.textContent = String(ids.length);
+    if(newCount) newCount.textContent = String(ids.length);
+    if(scope) scope.textContent = ids.length > 0 ? 'Aktueller Kartenausschnitt' : 'Keine Treffer im Ausschnitt';
+    if(empty) empty.style.display = ids.length === 0 ? '' : 'none';
+
+    document.querySelectorAll('[data-visible-map-card], [data-new-qrx-card]').forEach(function(el){
+      var id = el.getAttribute('data-visible-map-card') || el.getAttribute('data-new-qrx-card');
+      el.style.display = ids.length === 0 || ids.indexOf(id) >= 0 ? '' : 'none';
+    });
+
+    if(event.detail && event.detail.activeId) {
+      setActive(event.detail.activeId, false);
+    }
+  });
+
+  window.addEventListener('mioseg-map-moving', function(event){
+    var notice = document.getElementById('mapMovingNotice');
+    if(!notice) return;
+    notice.classList.toggle('is-visible', Boolean(event && event.detail && event.detail.isMoving));
+  });
+})();
+          `.trim(),
+        }}
+      />
+
     </div>
   );
 }

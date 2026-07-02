@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
+import { getBestMediaUrl } from "@/lib/media";
 import styles from "../dashboard.module.css";
 
 type BusinessCategory =
@@ -39,6 +40,15 @@ function getBusinessCategoryLabel(value: string | null | undefined) {
   return BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value)?.label ?? value;
 }
 
+type QrxMedia = {
+  id:string;
+  url:string|null;
+  original_url?:string|null;
+  large_url?:string|null;
+  medium_url?:string|null;
+  thumb_url?:string|null;
+};
+
 type QrxEntry = {
   id: string;
   title: string | null;
@@ -48,7 +58,11 @@ type QrxEntry = {
   category: BusinessCategory | null;
   verified: boolean | null;
   cover_image_url: string | null;
+  cover_media_id?: string | null;
+  cover_media?: QrxMedia|QrxMedia[]|null;
   logo_url: string | null;
+  logo_media_id?: string | null;
+  logo_media?: QrxMedia|QrxMedia[]|null;
   location_name: string | null;
   views_total: number | null;
   follower_count: number | null;
@@ -73,6 +87,16 @@ function getQrxTitle(entry: QrxEntry) {
 
 function getQrxText(entry: QrxEntry) {
   return entry.description?.trim() || entry.location_name?.trim() || "QR-X auf mioseg qr";
+}
+
+
+function getQrxCardImage(entry: QrxEntry) {
+  const cover=getBestMediaUrl(entry.cover_media,"card");
+  if(cover) return cover;
+  if(entry.cover_image_url?.trim()) return entry.cover_image_url.trim();
+  const logo=getBestMediaUrl(entry.logo_media,"card");
+  if(logo) return logo;
+  return entry.logo_url?.trim()||null;
 }
 
 function formatNumber(value: number | null | undefined) {
@@ -137,7 +161,7 @@ export default function DashboardQrxPage() {
       supabase
         .from("qr_x_entries")
         .select(
-          "id,title,company_name,description,type,category,verified,cover_image_url,logo_url,location_name,views_total,follower_count,created_at,deleted_at"
+          "id,title,company_name,description,type,category,verified,cover_image_url,cover_media_id,cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url),logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,follower_count,created_at,deleted_at"
         )
         .eq("owner_user_id", user.id)
         .is("deleted_at", null)
@@ -150,7 +174,8 @@ export default function DashboardQrxPage() {
           qrx_id,
           qr_x_entries (
             id,title,company_name,description,type,category,verified,
-            cover_image_url,logo_url,location_name,views_total,
+            cover_image_url,cover_media_id,cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url),
+            logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,
             follower_count,created_at,deleted_at
           )
         `)
@@ -492,7 +517,7 @@ export default function DashboardQrxPage() {
           >
             {items.map((entry) => {
               const title = getQrxTitle(entry);
-              const image = entry.cover_image_url?.trim() || entry.logo_url?.trim() || null;
+              const image = getQrxCardImage(entry);
               const isBusiness = entry.type === "business";
               const categoryLabel = getBusinessCategoryLabel(entry.category);
               const openHref = `/qrx/${entry.id}`;
@@ -520,6 +545,8 @@ export default function DashboardQrxPage() {
                   >
                     {image ? (
                       <img
+                        loading="lazy"
+                        decoding="async"
                         src={image}
                         alt={title}
                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
