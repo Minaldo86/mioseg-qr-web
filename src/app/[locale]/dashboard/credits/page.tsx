@@ -298,8 +298,8 @@ export default function CreditsPage() {
   const stats = useMemo(
     () => [
       { label: "Aktuelle Credits", value: credits, icon: "💳" },
-      { label: "Kosten pro QR-X", value: "1", icon: "▣" },
-      { label: "Freier Speicher", value: "15 MB", icon: "☁️" },
+      { label: "QR-X Erstellung", value: "1 Credit", icon: "▣" },
+      { label: "Freier Speicher", value: "2 MB", icon: "☁️" },
       { label: "Pakete", value: pricingPacks.length, icon: "🛒" },
     ],
     [credits, pricingPacks.length]
@@ -399,7 +399,7 @@ export default function CreditsPage() {
           <h1>Credits verwalten</h1>
           <p>
             Behalte dein Guthaben im Blick und kaufe neue Credits direkt über Stripe.
-            1 Credit entspricht 1 Euro.
+            Credits werden für QR-X-Erstellung und zusätzlichen Speicher nach deinem aktuellen Preismodell genutzt.
           </p>
         </div>
 
