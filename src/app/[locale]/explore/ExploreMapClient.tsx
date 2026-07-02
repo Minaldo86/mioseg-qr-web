@@ -369,10 +369,12 @@ html: `
         const marker = markersRef.current[id];
         if (!marker) return;
 
-        activeIdRef.current = id;
+        // Wichtig:
+        // Hover über Ergebnis-Karten darf NICHT den aktiven QR-X-Bereich ändern.
+        // Sonst entsteht unten im Bereich "Gerade auf der Karte ausgewählt"
+        // ein Flimmern/Wechseln, sobald die Maus über Karten bewegt wird.
+        // Deshalb hier nur den Marker optisch hervorheben.
         setActiveMarkerElement(id);
-        dispatchActiveMapPoint(id);
-        dispatchVisibleMapPoints(map, markersRef.current, id);
       };
     };
 
