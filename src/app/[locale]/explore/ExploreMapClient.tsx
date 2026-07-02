@@ -12,6 +12,7 @@ type MapPoint = {
   followerCount: number;
   viewCount: number;
   href: string;
+  // Bereits durch Media Engine optimierte URL, bevorzugt Thumbnail/Card-Bild.
   coverUrl: string | null;
   locationName: string | null;
   latitude: number;
@@ -111,7 +112,7 @@ function buildPopup(point: MapPoint) {
   const imageHtml = point.coverUrl
     ? `<div style="height:118px;border-radius:18px;overflow:hidden;background:#eef4fb;margin-bottom:12px;"><img src="${escapeAttr(
         point.coverUrl
-      )}" alt="${escapeAttr(point.title)}" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>`
+      )}" alt="${escapeAttr(point.title)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" /></div>`
     : `<div style="height:92px;border-radius:18px;background:linear-gradient(180deg,#edf3f9 0%,#dfe8f2 100%);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:12px;">${escapeHtml(
         point.categoryIcon
       )}</div>`;

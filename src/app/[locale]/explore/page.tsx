@@ -1,6 +1,7 @@
 import Link from "next/link";
 import styles from "../home-page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { getBestMediaUrl } from "@/lib/media";
 import ExploreMapClient from "./ExploreMapClient";
 
 type BusinessCategory =
@@ -15,6 +16,15 @@ type BusinessCategory =
   | "sehenswuerdigkeit"
   | "sonstiges";
 
+type ExploreMedia = {
+  id: string;
+  url: string | null;
+  original_url?: string | null;
+  large_url?: string | null;
+  medium_url?: string | null;
+  thumb_url?: string | null;
+};
+
 type ExploreEntry = {
   id: string;
   title: string | null;
@@ -24,7 +34,11 @@ type ExploreEntry = {
   type: "normal" | "business" | null;
   verified: boolean | null;
   cover_image_url: string | null;
+  cover_media_id?: string | null;
+  cover_media?: ExploreMedia | ExploreMedia[] | null;
   logo_url: string | null;
+  logo_media_id?: string | null;
+  logo_media?: ExploreMedia | ExploreMedia[] | null;
   location_name: string | null;
   location_lat: number | null;
   location_lng: number | null;
@@ -71,6 +85,22 @@ function getEntryTitle(entry: ExploreEntry) {
 
 function getEntryText(entry: ExploreEntry) {
   return entry.description?.trim() || entry.location_name?.trim() || "Business QR-X auf mioseg qr";
+}
+
+function getExploreImage(entry: ExploreEntry, purpose: "card" | "map" | "hero" = "card") {
+  const coverFromMedia = getBestMediaUrl(entry.cover_media, purpose);
+  if (coverFromMedia) return coverFromMedia;
+
+  const legacyCover = entry.cover_image_url?.trim();
+  if (legacyCover) return legacyCover;
+
+  const logoFromMedia = getBestMediaUrl(entry.logo_media, purpose);
+  if (logoFromMedia) return logoFromMedia;
+
+  const legacyLogo = entry.logo_url?.trim();
+  if (legacyLogo) return legacyLogo;
+
+  return null;
 }
 
 function buildExploreHref(locale: string, category: string, q: string) {
@@ -220,7 +250,7 @@ export default async function ExplorePage({
   const { data, error } = await supabase
     .from("qr_x_entries")
     .select(
-      "id, title, description, company_name, category, type, verified, cover_image_url, logo_url, location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost"
+      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost"
     )
     .eq("type", "business")
     .order("created_at", { ascending: false })
@@ -308,7 +338,7 @@ export default async function ExplorePage({
       followerCount: getFollowerCountForEntry(entry),
       viewCount: getViewTotalForEntry(entry),
       href: `/qrx/${entry.id}`,
-      coverUrl: entry.cover_image_url || entry.logo_url || null,
+      coverUrl: getExploreImage(entry, "map"),
       locationName: entry.location_name ?? null,
       latitude: entry.location_lat as number,
       longitude: entry.location_lng as number,
@@ -328,7 +358,7 @@ export default async function ExplorePage({
     entry: ExploreEntry,
     opts?: { keyPrefix?: string; distanceLabel?: string | null }
   ) => {
-    const image = entry.cover_image_url || entry.logo_url || null;
+    const image = getExploreImage(entry, "card");
     const key = `${opts?.keyPrefix ?? "card"}-${entry.id}`;
     const createdLabel = formatDate(entry.created_at);
     const followerCount = getFollowerCountForEntry(entry);
