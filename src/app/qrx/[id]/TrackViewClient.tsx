@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 
+const VIEW_DEDUPE_MS = 6 * 60 * 60 * 1000;
+
 function getOrCreateVisitorId(): string {
   try {
     const key = "miosegqr_visitor_id_v1";
@@ -29,11 +31,12 @@ export default function TrackViewClient({ qrxId }: { qrxId: string }) {
         if (!qrxId) return;
 
         const visitorId = getOrCreateVisitorId();
+        const dedupeKey = `miosegqr_viewed_${qrxId}`;
+        const last = Number(localStorage.getItem(dedupeKey) ?? "0");
+        const now = Date.now();
 
-        // Wichtig:
-        // Web ruft die Statistik-Engine bewusst bei jedem Öffnen auf.
-        // Dadurch kann views_total jeden echten Öffnungsvorgang zählen.
-        // views_unique_total bleibt serverseitig durch viewerKey geschützt.
+        if (last && Number.isFinite(last) && now - last < VIEW_DEDUPE_MS) return;
+
         const res = await fetch("/api/qrx/track-view", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -45,9 +48,8 @@ export default function TrackViewClient({ qrxId }: { qrxId: string }) {
 
         if (cancelled) return;
 
-        if (!res.ok) {
-          const text = await res.text().catch(() => "");
-          console.warn("track-view failed:", res.status, text);
+        if (res.ok) {
+          localStorage.setItem(dedupeKey, String(now));
         }
       } catch {
         // Tracking darf nie die UI kaputt machen.

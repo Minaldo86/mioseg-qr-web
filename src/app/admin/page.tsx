@@ -957,6 +957,183 @@ const styles = {
     gap: 12,
     marginBottom: 18,
   } as const,
+  storageDashboard: {
+    borderRadius: 28,
+    background:
+      "radial-gradient(circle at top left, rgba(245,197,66,0.18), transparent 36%), linear-gradient(180deg, #0f172a 0%, #0b1324 100%)",
+    border: "1px solid #26364f",
+    padding: 20,
+    marginBottom: 18,
+    boxShadow: "0 22px 70px rgba(0,0,0,0.22)",
+  } as const,
+  storageHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 14,
+    flexWrap: "wrap" as const,
+    marginBottom: 16,
+  } as const,
+  storageEyebrow: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "7px 11px",
+    borderRadius: 999,
+    background: "rgba(245,197,66,0.13)",
+    border: "1px solid rgba(245,197,66,0.26)",
+    color: "#fde68a",
+    fontSize: 12,
+    fontWeight: 900,
+    marginBottom: 10,
+  } as const,
+  storageTitle: {
+    margin: 0,
+    color: "#f8fafc",
+    fontSize: 26,
+    fontWeight: 950,
+    letterSpacing: -0.35,
+  } as const,
+  storageSubtitle: {
+    margin: "8px 0 0",
+    color: "#9fb1c8",
+    fontSize: 14,
+    lineHeight: 1.55,
+    maxWidth: 780,
+  } as const,
+  storageStatusBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    borderRadius: 999,
+    padding: "9px 12px",
+    background: "#10291c",
+    border: "1px solid #14532d",
+    color: "#bbf7d0",
+    fontSize: 12,
+    fontWeight: 900,
+    whiteSpace: "nowrap" as const,
+  } as const,
+  storageMetricGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+    gap: 12,
+    marginBottom: 12,
+  } as const,
+  storageMetricCard: {
+    position: "relative" as const,
+    overflow: "hidden",
+    borderRadius: 20,
+    background: "linear-gradient(180deg, #111c31 0%, #0d1728 100%)",
+    border: "1px solid #2a3952",
+    padding: 16,
+    minHeight: 132,
+  } as const,
+  storageMetricIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 14,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "#0b1324",
+    border: "1px solid #2a3952",
+    marginBottom: 12,
+    fontSize: 19,
+  } as const,
+  storageMetricLabel: {
+    color: "#93a5bd",
+    fontSize: 12,
+    fontWeight: 900,
+    marginBottom: 7,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.45,
+  } as const,
+  storageMetricValue: {
+    color: "#f8fafc",
+    fontSize: 26,
+    fontWeight: 950,
+    letterSpacing: -0.35,
+  } as const,
+  storageMetricHint: {
+    color: "#9fb1c8",
+    fontSize: 12,
+    lineHeight: 1.45,
+    marginTop: 7,
+  } as const,
+  storageSectionGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: 12,
+    marginTop: 12,
+  } as const,
+  storagePanel: {
+    borderRadius: 22,
+    background: "#0b1324",
+    border: "1px solid #243044",
+    padding: 16,
+  } as const,
+  storagePanelTitle: {
+    margin: "0 0 12px",
+    color: "#e2e8f0",
+    fontSize: 15,
+    fontWeight: 950,
+  } as const,
+  storageMiniGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 10,
+  } as const,
+  storageMiniCard: {
+    borderRadius: 16,
+    background: "#111827",
+    border: "1px solid #243044",
+    padding: 12,
+  } as const,
+  storageMiniLabel: {
+    color: "#93a5bd",
+    fontSize: 11,
+    fontWeight: 900,
+    marginBottom: 6,
+  } as const,
+  storageMiniValue: {
+    color: "#f8fafc",
+    fontSize: 18,
+    fontWeight: 950,
+  } as const,
+  storageProgressTrack: {
+    height: 12,
+    borderRadius: 999,
+    overflow: "hidden",
+    background: "#111827",
+    border: "1px solid #243044",
+    marginTop: 12,
+  } as const,
+  storageProgressBar: {
+    height: "100%",
+    width: "0%",
+    borderRadius: 999,
+    background: "linear-gradient(90deg, #f5c542, #22c55e)",
+  } as const,
+  storageTodoList: {
+    display: "grid",
+    gap: 8,
+    marginTop: 8,
+  } as const,
+  storageTodoItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 10,
+    alignItems: "center",
+    borderRadius: 14,
+    border: "1px solid #243044",
+    background: "#111827",
+    padding: "10px 12px",
+    color: "#cbd5e1",
+    fontSize: 12,
+    fontWeight: 800,
+  } as const,
+
   metricCard: {
     borderRadius: 18,
     background: "#0f172a",
@@ -3057,6 +3234,126 @@ if (refundAmount && refundAmount > 0) {
   };
 
 
+  const storagePrimaryMetrics = [
+    {
+      icon: "💾",
+      label: "Originalspeicher",
+      value: "Live folgt",
+      hint: "Summe aller hochgeladenen Originaldateien aus qr_x_media.original_bytes.",
+    },
+    {
+      icon: "⚡",
+      label: "Optimierter Speicher",
+      value: "Live folgt",
+      hint: "Summe aller optimierten Varianten, die an Nutzer ausgeliefert werden.",
+    },
+    {
+      icon: "📉",
+      label: "Gesamte Ersparnis",
+      value: "Live folgt",
+      hint: "Differenz zwischen Originalen und optimierten Medien.",
+    },
+    {
+      icon: "📊",
+      label: "Komprimierungsrate",
+      value: "Live folgt",
+      hint: "Prozentuale Speicherersparnis durch die Media Engine.",
+    },
+  ];
+
+  const storageLiveMetrics = [
+    { label: "Bilder gesamt", value: "—" },
+    { label: "Dateien gesamt", value: "—" },
+    { label: "Optimierte Medien", value: "—" },
+    { label: "Fehler / Queue", value: "—" },
+  ];
+
+  const storagePerformanceMetrics = [
+    { label: "Ø Original", value: "—" },
+    { label: "Ø Optimiert", value: "—" },
+    { label: "Ø Ersparnis", value: "—" },
+    { label: "Größte Datei", value: "—" },
+  ];
+
+  const renderStorageAndMediaDashboard = () => (
+    <section style={styles.storageDashboard} aria-label="Storage and Media Dashboard">
+      <div style={styles.storageHeader}>
+        <div>
+          <div style={styles.storageEyebrow}>Phase 2A.1 · Storage & Media</div>
+          <h2 style={styles.storageTitle}>Storage & Media Dashboard</h2>
+          <p style={styles.storageSubtitle}>
+            Übersicht über Originalspeicher, optimierte Medien und Einsparungen der Media Engine.
+            In diesem Schritt ist die Oberfläche vorbereitet; die Live-Daten werden anschließend aus Supabase angebunden.
+          </p>
+        </div>
+
+        <div style={styles.storageStatusBadge}>✅ Oberfläche vorbereitet</div>
+      </div>
+
+      <div style={styles.storageMetricGrid}>
+        {storagePrimaryMetrics.map((metric) => (
+          <div key={metric.label} style={styles.storageMetricCard}>
+            <div style={styles.storageMetricIcon}>{metric.icon}</div>
+            <div style={styles.storageMetricLabel}>{metric.label}</div>
+            <div style={styles.storageMetricValue}>{metric.value}</div>
+            <div style={styles.storageMetricHint}>{metric.hint}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={styles.storageSectionGrid}>
+        <div style={styles.storagePanel}>
+          <h3 style={styles.storagePanelTitle}>Live Media Statistik</h3>
+          <div style={styles.storageMiniGrid}>
+            {storageLiveMetrics.map((metric) => (
+              <div key={metric.label} style={styles.storageMiniCard}>
+                <div style={styles.storageMiniLabel}>{metric.label}</div>
+                <div style={styles.storageMiniValue}>{metric.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={styles.storagePanel}>
+          <h3 style={styles.storagePanelTitle}>Performance</h3>
+          <div style={styles.storageMiniGrid}>
+            {storagePerformanceMetrics.map((metric) => (
+              <div key={metric.label} style={styles.storageMiniCard}>
+                <div style={styles.storageMiniLabel}>{metric.label}</div>
+                <div style={styles.storageMiniValue}>{metric.value}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={styles.storagePanel}>
+          <h3 style={styles.storagePanelTitle}>Nächste Datenanbindung</h3>
+          <div style={styles.storageTodoList}>
+            <div style={styles.storageTodoItem}>
+              <span>qr_x_media aggregieren</span>
+              <span>bereit</span>
+            </div>
+            <div style={styles.storageTodoItem}>
+              <span>Original vs. optimiert berechnen</span>
+              <span>bereit</span>
+            </div>
+            <div style={styles.storageTodoItem}>
+              <span>Fehler / Queue anzeigen</span>
+              <span>bereit</span>
+            </div>
+          </div>
+          <div style={styles.storageProgressTrack}>
+            <div style={styles.storageProgressBar} />
+          </div>
+          <div style={styles.storageMetricHint}>
+            Danach können Diagramme, Reprocessing und monatliche Ersparnisse ergänzt werden.
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+
   return (
     <main style={styles.page}>
       <div style={styles.container}>
@@ -3075,6 +3372,8 @@ if (refundAmount && refundAmount > 0) {
             <option value="en">{tAdmin("language_en")}</option>
           </select>
         </div>
+
+        {renderStorageAndMediaDashboard()}
 
         <div style={styles.tabsWrap}>
           {adminTabs.map((tab) => (
