@@ -311,6 +311,29 @@ type StorageMediaStats = {
     averageSavingsPercent: number;
     largestOriginalBytes: number;
   };
+  topLargest: Array<{
+    id: string;
+    qrx_id: string | null;
+    filename: string | null;
+    type: string | null;
+    processing_status: string | null;
+    originalBytes: number;
+    optimizedBytes: number;
+    savedBytes: number;
+    savingsPercent: number;
+  }>;
+  topSavings: Array<{
+    id: string;
+    qrx_id: string | null;
+    filename: string | null;
+    type: string | null;
+    processing_status: string | null;
+    originalBytes: number;
+    optimizedBytes: number;
+    savedBytes: number;
+    savingsPercent: number;
+  }>;
+  statusCounts: Record<string, number>;
   updatedAt: string;
 };
 
@@ -1154,6 +1177,67 @@ const styles = {
     fontSize: 12,
     fontWeight: 800,
   } as const,
+  storageDetailGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
+    gap: 12,
+    marginTop: 12,
+  } as const,
+  storageTable: {
+    width: "100%",
+    borderCollapse: "collapse" as const,
+    minWidth: 680,
+  } as const,
+  storageTableWrap: {
+    width: "100%",
+    overflowX: "auto",
+    borderRadius: 16,
+    border: "1px solid #243044",
+    background: "#0b1324",
+  } as const,
+  storageTableTh: {
+    textAlign: "left" as const,
+    color: "#93a5bd",
+    padding: "10px 10px",
+    fontSize: 11,
+    fontWeight: 950,
+    borderBottom: "1px solid #243044",
+    whiteSpace: "nowrap" as const,
+  } as const,
+  storageTableTd: {
+    color: "#e2e8f0",
+    padding: "10px 10px",
+    fontSize: 12,
+    borderBottom: "1px solid #172133",
+    verticalAlign: "top" as const,
+    whiteSpace: "nowrap" as const,
+  } as const,
+  storageFilename: {
+    display: "inline-block",
+    maxWidth: 220,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap" as const,
+    color: "#f8fafc",
+    fontWeight: 850,
+  } as const,
+  storageStatusPill: {
+    display: "inline-flex",
+    alignItems: "center",
+    borderRadius: 999,
+    padding: "5px 8px",
+    background: "#111827",
+    border: "1px solid #243044",
+    color: "#cbd5e1",
+    fontSize: 11,
+    fontWeight: 900,
+  } as const,
+  storageHealthGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+    gap: 10,
+    marginTop: 10,
+  } as const,
 
   metricCard: {
     borderRadius: 18,
@@ -1924,6 +2008,48 @@ export default function AdminPage() {
     const num = Number(value ?? 0);
     if (!Number.isFinite(num)) return "0";
     return new Intl.NumberFormat("de-DE").format(Math.round(num));
+  };
+
+  const formatStorageStatus = (value: string | null | undefined) => {
+    const status = String(value || "unknown").toLowerCase();
+    if (status === "ready" || status === "done" || status === "optimized") return "Optimiert";
+    if (status === "pending") return "Wartet";
+    if (status === "processing") return "In Verarbeitung";
+    if (status === "failed" || status === "error") return "Fehler";
+    return status === "unknown" ? "Unbekannt" : status;
+  };
+
+  const getStorageStatusStyle = (value: string | null | undefined) => {
+    const status = String(value || "").toLowerCase();
+
+    if (status === "failed" || status === "error") {
+      return {
+        ...styles.storageStatusPill,
+        background: "#3f1111",
+        border: "1px solid #991b1b",
+        color: "#fecaca",
+      };
+    }
+
+    if (status === "pending" || status === "processing") {
+      return {
+        ...styles.storageStatusPill,
+        background: "#2c1806",
+        border: "1px solid #854d0e",
+        color: "#fde68a",
+      };
+    }
+
+    if (status === "ready" || status === "done" || status === "optimized") {
+      return {
+        ...styles.storageStatusPill,
+        background: "#10291c",
+        border: "1px solid #14532d",
+        color: "#bbf7d0",
+      };
+    }
+
+    return styles.storageStatusPill;
   };
 
   const fetchStorageMediaStats = async () => {
@@ -3365,6 +3491,58 @@ if (refundAmount && refundAmount > 0) {
 
   const storageSavingsProgress = Math.max(0, Math.min(100, Number(storageTotals?.savingsPercent ?? 0)));
 
+  const renderStorageMediaTable = (
+    title: string,
+    description: string,
+    rows: StorageMediaStats["topLargest"]
+  ) => (
+    <div style={styles.storagePanel}>
+      <h3 style={styles.storagePanelTitle}>{title}</h3>
+      <p style={{ ...styles.storageMetricHint, marginTop: -4, marginBottom: 12 }}>{description}</p>
+
+      {rows.length === 0 ? (
+        <div style={styles.stateCard}>Noch keine Media-Daten vorhanden.</div>
+      ) : (
+        <div style={styles.storageTableWrap}>
+          <table style={styles.storageTable}>
+            <thead>
+              <tr>
+                <th style={styles.storageTableTh}>Datei</th>
+                <th style={styles.storageTableTh}>Typ</th>
+                <th style={styles.storageTableTh}>Original</th>
+                <th style={styles.storageTableTh}>Optimiert</th>
+                <th style={styles.storageTableTh}>Ersparnis</th>
+                <th style={styles.storageTableTh}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((item) => (
+                <tr key={`${title}-${item.id}`}>
+                  <td style={styles.storageTableTd}>
+                    <span title={item.filename || item.id} style={styles.storageFilename}>
+                      {item.filename || item.id}
+                    </span>
+                  </td>
+                  <td style={styles.storageTableTd}>{item.type || "–"}</td>
+                  <td style={styles.storageTableTd}>{formatBytes(item.originalBytes)}</td>
+                  <td style={styles.storageTableTd}>{formatBytes(item.optimizedBytes)}</td>
+                  <td style={styles.storageTableTd}>
+                    {formatBytes(item.savedBytes)} · {formatPercent(item.savingsPercent)}
+                  </td>
+                  <td style={styles.storageTableTd}>
+                    <span style={getStorageStatusStyle(item.processing_status)}>
+                      {formatStorageStatus(item.processing_status)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
   const renderStorageAndMediaDashboard = () => (
     <section style={styles.storageDashboard} aria-label="Storage and Media Dashboard">
       <div style={styles.storageHeader}>
@@ -3455,6 +3633,41 @@ if (refundAmount && refundAmount > 0) {
           </div>
           <div style={styles.storageMetricHint}>
             Danach können Diagramme, Reprocessing und monatliche Ersparnisse ergänzt werden.
+          </div>
+        </div>
+      </div>
+
+      <div style={styles.storageDetailGrid}>
+        {renderStorageMediaTable(
+          "Größte Medien",
+          "Die größten Originaldateien. Diese Dateien sind besonders wichtig für Speicheroptimierung.",
+          storageMediaStats?.topLargest ?? []
+        )}
+
+        {renderStorageMediaTable(
+          "Größte Einsparungen",
+          "Medien mit der größten absoluten Speicherersparnis durch Optimierung.",
+          storageMediaStats?.topSavings ?? []
+        )}
+      </div>
+
+      <div style={styles.storageSectionGrid}>
+        <div style={styles.storagePanel}>
+          <h3 style={styles.storagePanelTitle}>Media Health</h3>
+          <div style={styles.storageHealthGrid}>
+            {Object.entries(storageMediaStats?.statusCounts ?? {}).length === 0 ? (
+              <div style={styles.storageMiniCard}>
+                <div style={styles.storageMiniLabel}>Status</div>
+                <div style={styles.storageMiniValue}>—</div>
+              </div>
+            ) : (
+              Object.entries(storageMediaStats?.statusCounts ?? {}).map(([status, count]) => (
+                <div key={status} style={styles.storageMiniCard}>
+                  <div style={styles.storageMiniLabel}>{formatStorageStatus(status)}</div>
+                  <div style={styles.storageMiniValue}>{formatNumber(count)}</div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
