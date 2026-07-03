@@ -293,6 +293,27 @@ type PricingPackDraft = {
   is_active: boolean;
 };
 
+type StorageMediaStats = {
+  ok: boolean;
+  totals: {
+    mediaCount: number;
+    imageCount: number;
+    fileCount: number;
+    optimizedCount: number;
+    processingCount: number;
+    failedCount: number;
+    originalBytes: number;
+    optimizedBytes: number;
+    savedBytes: number;
+    savingsPercent: number;
+    averageOriginalBytes: number;
+    averageOptimizedBytes: number;
+    averageSavingsPercent: number;
+    largestOriginalBytes: number;
+  };
+  updatedAt: string;
+};
+
 
 type FinanceInvoiceEntry = {
   id: string;
@@ -1872,6 +1893,62 @@ export default function AdminPage() {
   const [reportedQrx, setReportedQrx] = useState<QrxAdminItem[]>([]);
   const [reportedQrxLoading, setReportedQrxLoading] = useState(false);
   const [reviewingQrxId, setReviewingQrxId] = useState<string | null>(null);
+  const [storageMediaStats, setStorageMediaStats] = useState<StorageMediaStats | null>(null);
+  const [storageMediaLoading, setStorageMediaLoading] = useState(false);
+  const [storageMediaError, setStorageMediaError] = useState<string | null>(null);
+
+  const formatBytes = (bytes: number | null | undefined) => {
+    const value = Number(bytes ?? 0);
+    if (!Number.isFinite(value) || value <= 0) return "0 B";
+
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let size = value;
+    let unitIndex = 0;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size = size / 1024;
+      unitIndex += 1;
+    }
+
+    const fractionDigits = unitIndex === 0 ? 0 : size >= 100 ? 0 : size >= 10 ? 1 : 2;
+    return `${size.toFixed(fractionDigits).replace(".", ",")} ${units[unitIndex]}`;
+  };
+
+  const formatPercent = (value: number | null | undefined) => {
+    const num = Number(value ?? 0);
+    if (!Number.isFinite(num)) return "0 %";
+    return `${num.toFixed(num >= 10 ? 1 : 2).replace(".", ",")} %`;
+  };
+
+  const formatNumber = (value: number | null | undefined) => {
+    const num = Number(value ?? 0);
+    if (!Number.isFinite(num)) return "0";
+    return new Intl.NumberFormat("de-DE").format(Math.round(num));
+  };
+
+  const fetchStorageMediaStats = async () => {
+    try {
+      setStorageMediaLoading(true);
+      setStorageMediaError(null);
+
+      const res = await fetch("/api/admin/media-stats", { cache: "no-store" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Media-Statistiken konnten nicht geladen werden.");
+      }
+
+      setStorageMediaStats(data as StorageMediaStats);
+    } catch (error) {
+      console.error("fetchStorageMediaStats error:", error);
+      setStorageMediaError(
+        error instanceof Error ? error.message : "Media-Statistiken konnten nicht geladen werden."
+      );
+    } finally {
+      setStorageMediaLoading(false);
+    }
+  };
+
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>("overview");
 
   const [adminLanguage, setAdminLanguage] = useState<AdminLanguage>("de");
@@ -3234,46 +3311,59 @@ if (refundAmount && refundAmount > 0) {
   };
 
 
+  useEffect(() => {
+    void fetchStorageMediaStats();
+  }, []);
+
+  const storageTotals = storageMediaStats?.totals;
+
   const storagePrimaryMetrics = [
     {
       icon: "💾",
       label: "Originalspeicher",
-      value: "Live folgt",
+      value: storageMediaLoading ? "Lade…" : formatBytes(storageTotals?.originalBytes),
       hint: "Summe aller hochgeladenen Originaldateien aus qr_x_media.original_bytes.",
     },
     {
       icon: "⚡",
       label: "Optimierter Speicher",
-      value: "Live folgt",
-      hint: "Summe aller optimierten Varianten, die an Nutzer ausgeliefert werden.",
+      value: storageMediaLoading ? "Lade…" : formatBytes(storageTotals?.optimizedBytes),
+      hint: "Summe der optimierten Medien, die an Nutzer ausgeliefert werden.",
     },
     {
       icon: "📉",
       label: "Gesamte Ersparnis",
-      value: "Live folgt",
+      value: storageMediaLoading ? "Lade…" : formatBytes(storageTotals?.savedBytes),
       hint: "Differenz zwischen Originalen und optimierten Medien.",
     },
     {
       icon: "📊",
       label: "Komprimierungsrate",
-      value: "Live folgt",
+      value: storageMediaLoading ? "Lade…" : formatPercent(storageTotals?.savingsPercent),
       hint: "Prozentuale Speicherersparnis durch die Media Engine.",
     },
   ];
 
   const storageLiveMetrics = [
-    { label: "Bilder gesamt", value: "—" },
-    { label: "Dateien gesamt", value: "—" },
-    { label: "Optimierte Medien", value: "—" },
-    { label: "Fehler / Queue", value: "—" },
+    { label: "Bilder gesamt", value: storageMediaLoading ? "…" : formatNumber(storageTotals?.imageCount) },
+    { label: "Dateien gesamt", value: storageMediaLoading ? "…" : formatNumber(storageTotals?.fileCount) },
+    { label: "Optimierte Medien", value: storageMediaLoading ? "…" : formatNumber(storageTotals?.optimizedCount) },
+    {
+      label: "Fehler / Queue",
+      value: storageMediaLoading
+        ? "…"
+        : `${formatNumber(storageTotals?.failedCount)} / ${formatNumber(storageTotals?.processingCount)}`,
+    },
   ];
 
   const storagePerformanceMetrics = [
-    { label: "Ø Original", value: "—" },
-    { label: "Ø Optimiert", value: "—" },
-    { label: "Ø Ersparnis", value: "—" },
-    { label: "Größte Datei", value: "—" },
+    { label: "Ø Original", value: storageMediaLoading ? "…" : formatBytes(storageTotals?.averageOriginalBytes) },
+    { label: "Ø Optimiert", value: storageMediaLoading ? "…" : formatBytes(storageTotals?.averageOptimizedBytes) },
+    { label: "Ø Ersparnis", value: storageMediaLoading ? "…" : formatPercent(storageTotals?.averageSavingsPercent) },
+    { label: "Größte Datei", value: storageMediaLoading ? "…" : formatBytes(storageTotals?.largestOriginalBytes) },
   ];
+
+  const storageSavingsProgress = Math.max(0, Math.min(100, Number(storageTotals?.savingsPercent ?? 0)));
 
   const renderStorageAndMediaDashboard = () => (
     <section style={styles.storageDashboard} aria-label="Storage and Media Dashboard">
@@ -3283,12 +3373,30 @@ if (refundAmount && refundAmount > 0) {
           <h2 style={styles.storageTitle}>Storage & Media Dashboard</h2>
           <p style={styles.storageSubtitle}>
             Übersicht über Originalspeicher, optimierte Medien und Einsparungen der Media Engine.
-            In diesem Schritt ist die Oberfläche vorbereitet; die Live-Daten werden anschließend aus Supabase angebunden.
+            Die Kennzahlen werden direkt aus qr_x_media berechnet.
           </p>
         </div>
 
-        <div style={styles.storageStatusBadge}>✅ Oberfläche vorbereitet</div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={fetchStorageMediaStats}
+            disabled={storageMediaLoading}
+            style={styles.smallButton}
+          >
+            {storageMediaLoading ? "Lade…" : "Media-Daten aktualisieren"}
+          </button>
+          <div style={styles.storageStatusBadge}>
+            {storageMediaError ? "⚠️ Fehler" : storageMediaStats ? "✅ Live-Daten aktiv" : "✅ Oberfläche vorbereitet"}
+          </div>
+        </div>
       </div>
+
+      {storageMediaError ? (
+        <div style={styles.stateCard}>
+          Media-Statistiken konnten nicht geladen werden: {storageMediaError}
+        </div>
+      ) : null}
 
       <div style={styles.storageMetricGrid}>
         {storagePrimaryMetrics.map((metric) => (
@@ -3331,19 +3439,19 @@ if (refundAmount && refundAmount > 0) {
           <div style={styles.storageTodoList}>
             <div style={styles.storageTodoItem}>
               <span>qr_x_media aggregieren</span>
-              <span>bereit</span>
+              <span>{storageMediaStats ? "aktiv" : "bereit"}</span>
             </div>
             <div style={styles.storageTodoItem}>
               <span>Original vs. optimiert berechnen</span>
-              <span>bereit</span>
+              <span>{storageMediaStats ? "aktiv" : "bereit"}</span>
             </div>
             <div style={styles.storageTodoItem}>
               <span>Fehler / Queue anzeigen</span>
-              <span>bereit</span>
+              <span>{storageMediaStats ? "aktiv" : "bereit"}</span>
             </div>
           </div>
           <div style={styles.storageProgressTrack}>
-            <div style={styles.storageProgressBar} />
+            <div style={{ ...styles.storageProgressBar, width: `${storageSavingsProgress}%` }} />
           </div>
           <div style={styles.storageMetricHint}>
             Danach können Diagramme, Reprocessing und monatliche Ersparnisse ergänzt werden.
