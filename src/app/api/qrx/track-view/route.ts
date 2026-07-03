@@ -34,9 +34,11 @@ export async function POST(req: Request) {
 
     const supabase = getSupabase();
 
-    const { data, error } = await supabase.rpc("qrx_track_unique_view", {
+    const { data, error } = await supabase.rpc("track_qrx_view", {
       p_qrx_id: qrxId,
-      p_visitor_hash: visitorHash,
+      p_viewer_key: visitorHash,
+      p_source: "web",
+      p_user_agent: req.headers.get("user-agent") ?? null,
     });
 
     if (error) {
