@@ -145,10 +145,24 @@ function formatDate(value: string | null) {
   if (Number.isNaN(date.getTime())) return null;
   return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", year: "numeric" }).format(date);
 }
+function formatExactMetric(value: number | null | undefined) {
+  const count = Math.max(0, Number(value ?? 0));
+  return new Intl.NumberFormat("de-DE").format(count);
+}
+
 function formatCompactMetric(value: number | null | undefined) {
   const count = Math.max(0, Number(value ?? 0));
-  if (count >= 1000000) return `${(count / 1000000).toFixed(count >= 10000000 ? 0 : 1).replace(".", ",")} Mio.`;
-  if (count >= 1000) return `${(count / 1000).toFixed(count >= 10000 ? 0 : 1).replace(".", ",")} Tsd.`;
+
+  if (count >= 1000000) {
+    const valueInMillions = count / 1000000;
+    return `${valueInMillions.toFixed(count >= 10000000 ? 0 : 1).replace(".", ",")} M`;
+  }
+
+  if (count >= 1000) {
+    const valueInThousands = count / 1000;
+    return `${valueInThousands.toFixed(count >= 10000 ? 0 : 1).replace(".", ",")} K`;
+  }
+
   return String(count);
 }
 
@@ -160,6 +174,16 @@ function formatFollowerCount(value: number | null | undefined) {
 function formatViewCount(value: number | null | undefined) {
   const count = Math.max(0, Number(value ?? 0));
   return `${formatCompactMetric(count)} ${count === 1 ? "Aufruf" : "Aufrufe"}`;
+}
+
+function formatFollowerCountExact(value: number | null | undefined) {
+  const count = Math.max(0, Number(value ?? 0));
+  return `${formatExactMetric(count)} ${count === 1 ? "Follower" : "Follower"}`;
+}
+
+function formatViewCountExact(value: number | null | undefined) {
+  const count = Math.max(0, Number(value ?? 0));
+  return `${formatExactMetric(count)} ${count === 1 ? "Aufruf" : "Aufrufe"}`;
 }
 
 function getExploreRankScore(entry: ExploreEntry, followerCount: number, viewCount: number) {
@@ -598,6 +622,8 @@ export default async function ExplorePage({
                 ) : null}
 
                 <span
+                  title={formatFollowerCountExact(followerCount)}
+                  aria-label={formatFollowerCountExact(followerCount)}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -614,6 +640,8 @@ export default async function ExplorePage({
                 </span>
 
                 <span
+                  title={`${formatViewCountExact(viewCount)}${uniqueViewCount > 0 ? ` · ${formatExactMetric(uniqueViewCount)} eindeutige Besucher` : ""}`}
+                  aria-label={`${formatViewCountExact(viewCount)}${uniqueViewCount > 0 ? ` · ${formatExactMetric(uniqueViewCount)} eindeutige Besucher` : ""}`}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -834,11 +862,15 @@ export default async function ExplorePage({
                 <div className={styles.factLabel}>verifizierte Profile</div>
               </div>
               <div className={styles.factCard}>
-                <div className={styles.factNumber}>{formatFollowerCount(totalFollowerCount).replace(" Follower", "")}</div>
+                <div className={styles.factNumber} title={formatFollowerCountExact(totalFollowerCount)}>
+                  {formatFollowerCount(totalFollowerCount).replace(" Follower", "")}
+                </div>
                 <div className={styles.factLabel}>Follower insgesamt</div>
               </div>
               <div className={styles.factCard}>
-                <div className={styles.factNumber}>{formatCompactMetric(totalViewCount)}</div>
+                <div className={styles.factNumber} title={formatViewCountExact(totalViewCount)}>
+                  {formatCompactMetric(totalViewCount)}
+                </div>
                 <div className={styles.factLabel}>Aufrufe insgesamt</div>
               </div>
             </div>
@@ -2915,6 +2947,12 @@ nav,
   .mioseg-explore-tab {
     min-height: 64px;
   }
+}
+
+
+
+[title] {
+  cursor: help;
 }
 
           `.trim(),
