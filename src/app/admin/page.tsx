@@ -2145,6 +2145,9 @@ export default function AdminPage() {
   const [mediaJobsLoading, setMediaJobsLoading] = useState(false);
   const [mediaJobsProcessing, setMediaJobsProcessing] = useState(false);
   const [mediaJobsMessage, setMediaJobsMessage] = useState<string | null>(null);
+  const [mediaQueueAutoRun, setMediaQueueAutoRun] = useState(false);
+  const [mediaQueueAutoRefresh, setMediaQueueAutoRefresh] = useState(false);
+  const [mediaQueueLastRunAt, setMediaQueueLastRunAt] = useState<string | null>(null);
 
   const formatBytes = (bytes: number | null | undefined) => {
     const value = Number(bytes ?? 0);
@@ -3615,6 +3618,27 @@ if (refundAmount && refundAmount > 0) {
     void fetchMediaJobs();
   }, []);
 
+  useEffect(() => {
+    if (!mediaQueueAutoRefresh) return;
+
+    const timer = window.setInterval(() => {
+      void fetchMediaJobs();
+      void fetchStorageMediaStats();
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [mediaQueueAutoRefresh]);
+
+  useEffect(() => {
+    if (!mediaQueueAutoRun) return;
+
+    const timer = window.setInterval(() => {
+      void runMediaQueueBatch(3);
+    }, 6000);
+
+    return () => window.clearInterval(timer);
+  }, [mediaQueueAutoRun, mediaJobsProcessing]);
+
   const storageTotals = storageMediaStats?.totals;
 
   const storagePrimaryMetrics = [
@@ -3774,11 +3798,55 @@ if (refundAmount && refundAmount > 0) {
         throw new Error(data?.error || "Media Job konnte nicht verarbeitet werden.");
       }
 
+      setMediaQueueLastRunAt(new Date().toISOString());
       setMediaJobsMessage(data?.processed ? "Ein Media Job wurde verarbeitet." : "Keine wartenden Media Jobs vorhanden.");
       await fetchMediaJobs();
       await fetchStorageMediaStats();
+
+      return Boolean(data?.processed);
     } catch (error) {
       setMediaJobsMessage(error instanceof Error ? error.message : "Media Job konnte nicht verarbeitet werden.");
+      return false;
+    } finally {
+      setMediaJobsProcessing(false);
+    }
+  };
+
+  const runMediaQueueBatch = async (maxJobs = 5) => {
+    if (mediaJobsProcessing) return;
+
+    try {
+      setMediaJobsProcessing(true);
+      setMediaJobsMessage(null);
+
+      let processedCount = 0;
+
+      for (let index = 0; index < maxJobs; index += 1) {
+        const res = await fetch("/api/admin/media-jobs/process", {
+          method: "POST",
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data?.error || "Media Job konnte nicht verarbeitet werden.");
+        }
+
+        if (!data?.processed) break;
+        processedCount += 1;
+      }
+
+      setMediaQueueLastRunAt(new Date().toISOString());
+      setMediaJobsMessage(
+        processedCount > 0
+          ? `${processedCount} Media Job(s) wurden verarbeitet.`
+          : "Keine wartenden Media Jobs vorhanden."
+      );
+
+      await fetchMediaJobs();
+      await fetchStorageMediaStats();
+    } catch (error) {
+      setMediaJobsMessage(error instanceof Error ? error.message : "Media Queue konnte nicht verarbeitet werden.");
     } finally {
       setMediaJobsProcessing(false);
     }
@@ -3911,54 +3979,106 @@ if (refundAmount && refundAmount > 0) {
 
   const renderMediaJobsPanel = () => {
     const summary = mediaJobsData?.summary;
+    const queued = Number(summary?.queued ?? 0);
+    const processing = Number(summary?.processing ?? 0);
+    const failed = Number(summary?.failed ?? 0);
+    const workerState = mediaJobsProcessing ? "Working" : queued > 0 ? "Idle · Jobs warten" : "Idle";
+    const lastRunLabel = mediaQueueLastRunAt
+      ? new Date(mediaQueueLastRunAt).toLocaleTimeString("de-DE")
+      : "Noch nicht gestartet";
 
     return (
       <div style={styles.storagePanel}>
         <div style={styles.storageDetailHeader}>
           <div>
-            <h3 style={styles.storagePanelTitle}>Media Queue</h3>
+            <h3 style={styles.storagePanelTitle}>Media Queue Manager</h3>
             <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
-              Warteschlange für Reprocessing, spätere Bulk-Jobs und Media Engine Aufgaben.
+              Kontrolliere die Warteschlange für Reprocessing, spätere Bulk-Jobs und Media Engine Aufgaben.
             </p>
           </div>
 
           <div style={styles.storageActionRow}>
             <button
               type="button"
-              onClick={fetchMediaJobs}
-              disabled={mediaJobsLoading}
-              style={styles.smallButton}
+              onClick={() => setMediaQueueAutoRun((value) => !value)}
+              style={mediaQueueAutoRun ? styles.approveButton : styles.storageWarningButton}
             >
-              {mediaJobsLoading ? "Lade…" : "Jobs aktualisieren"}
+              {mediaQueueAutoRun ? "🟢 Auto Queue: EIN" : "⚪ Auto Queue: AUS"}
             </button>
+
             <button
               type="button"
-              onClick={processNextMediaJob}
-              disabled={mediaJobsProcessing}
-              style={styles.storageWarningButton}
+              onClick={() => setMediaQueueAutoRefresh((value) => !value)}
+              style={mediaQueueAutoRefresh ? styles.approveButton : styles.smallButton}
             >
-              {mediaJobsProcessing ? "Verarbeitet…" : "Nächsten Job verarbeiten"}
+              {mediaQueueAutoRefresh ? "↻ Auto Refresh: EIN" : "↻ Auto Refresh: AUS"}
             </button>
           </div>
         </div>
 
         <div style={styles.storageHealthGrid}>
           <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Worker Status</div>
+            <div style={styles.storageMiniValue}>{workerState}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Letzter Lauf</div>
+            <div style={styles.storageMiniValue}>{lastRunLabel}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Offen</div>
+            <div style={styles.storageMiniValue}>{formatNumber(queued)}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Fehler</div>
+            <div style={styles.storageMiniValue}>{formatNumber(failed)}</div>
+          </div>
+        </div>
+
+        <div style={{ ...styles.storageHealthGrid, marginBottom: 12 }}>
+          <div style={styles.storageMiniCard}>
             <div style={styles.storageMiniLabel}>Queued</div>
             <div style={styles.storageMiniValue}>{formatNumber(summary?.queued)}</div>
           </div>
           <div style={styles.storageMiniCard}>
             <div style={styles.storageMiniLabel}>Processing</div>
-            <div style={styles.storageMiniValue}>{formatNumber(summary?.processing)}</div>
+            <div style={styles.storageMiniValue}>{formatNumber(processing)}</div>
           </div>
           <div style={styles.storageMiniCard}>
             <div style={styles.storageMiniLabel}>Done</div>
             <div style={styles.storageMiniValue}>{formatNumber(summary?.done)}</div>
           </div>
           <div style={styles.storageMiniCard}>
-            <div style={styles.storageMiniLabel}>Failed</div>
-            <div style={styles.storageMiniValue}>{formatNumber(summary?.failed)}</div>
+            <div style={styles.storageMiniLabel}>Geladen</div>
+            <div style={styles.storageMiniValue}>{formatNumber(summary?.totalLoaded)}</div>
           </div>
+        </div>
+
+        <div style={styles.storageActionRow}>
+          <button
+            type="button"
+            onClick={fetchMediaJobs}
+            disabled={mediaJobsLoading}
+            style={styles.smallButton}
+          >
+            {mediaJobsLoading ? "Lade…" : "Jobs aktualisieren"}
+          </button>
+          <button
+            type="button"
+            onClick={processNextMediaJob}
+            disabled={mediaJobsProcessing}
+            style={styles.storageWarningButton}
+          >
+            {mediaJobsProcessing ? "Verarbeitet…" : "Nächsten Job verarbeiten"}
+          </button>
+          <button
+            type="button"
+            onClick={() => void runMediaQueueBatch(5)}
+            disabled={mediaJobsProcessing}
+            style={styles.refreshButton}
+          >
+            {mediaJobsProcessing ? "Batch läuft…" : "Bis zu 5 Jobs verarbeiten"}
+          </button>
         </div>
 
         {mediaJobsMessage ? <div style={styles.storageDetailHintBox}>{mediaJobsMessage}</div> : null}
