@@ -293,6 +293,34 @@ type PricingPackDraft = {
   is_active: boolean;
 };
 
+type MediaJobEntry = {
+  id: string;
+  media_id: string;
+  qrx_id: string | null;
+  job_type: string | null;
+  status: string | null;
+  reason: string | null;
+  attempts: number | null;
+  processing_error: string | null;
+  created_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  updated_at: string | null;
+};
+
+type MediaJobsResult = {
+  ok: boolean;
+  jobs: MediaJobEntry[];
+  summary: {
+    totalLoaded: number;
+    queued: number;
+    processing: number;
+    done: number;
+    failed: number;
+  };
+  updatedAt: string;
+};
+
 type StorageMediaItem = {
   id: string;
   qrx_id: string | null;
@@ -2113,6 +2141,10 @@ export default function AdminPage() {
   const [selectedStorageMedia, setSelectedStorageMedia] = useState<StorageMediaItem | null>(null);
   const [storageReprocessWorkingId, setStorageReprocessWorkingId] = useState<string | null>(null);
   const [storageReprocessMessage, setStorageReprocessMessage] = useState<string | null>(null);
+  const [mediaJobsData, setMediaJobsData] = useState<MediaJobsResult | null>(null);
+  const [mediaJobsLoading, setMediaJobsLoading] = useState(false);
+  const [mediaJobsProcessing, setMediaJobsProcessing] = useState(false);
+  const [mediaJobsMessage, setMediaJobsMessage] = useState<string | null>(null);
 
   const formatBytes = (bytes: number | null | undefined) => {
     const value = Number(bytes ?? 0);
@@ -3580,6 +3612,7 @@ if (refundAmount && refundAmount > 0) {
 
   useEffect(() => {
     void fetchStorageMediaStats();
+    void fetchMediaJobs();
   }, []);
 
   const storageTotals = storageMediaStats?.totals;
@@ -3706,6 +3739,51 @@ if (refundAmount && refundAmount > 0) {
     </div>
   );
 
+  const fetchMediaJobs = async () => {
+    try {
+      setMediaJobsLoading(true);
+      setMediaJobsMessage(null);
+
+      const res = await fetch("/api/admin/media-jobs", { cache: "no-store" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Media Jobs konnten nicht geladen werden.");
+      }
+
+      setMediaJobsData(data as MediaJobsResult);
+    } catch (error) {
+      setMediaJobsMessage(error instanceof Error ? error.message : "Media Jobs konnten nicht geladen werden.");
+    } finally {
+      setMediaJobsLoading(false);
+    }
+  };
+
+  const processNextMediaJob = async () => {
+    try {
+      setMediaJobsProcessing(true);
+      setMediaJobsMessage(null);
+
+      const res = await fetch("/api/admin/media-jobs/process", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Media Job konnte nicht verarbeitet werden.");
+      }
+
+      setMediaJobsMessage(data?.processed ? "Ein Media Job wurde verarbeitet." : "Keine wartenden Media Jobs vorhanden.");
+      await fetchMediaJobs();
+      await fetchStorageMediaStats();
+    } catch (error) {
+      setMediaJobsMessage(error instanceof Error ? error.message : "Media Job konnte nicht verarbeitet werden.");
+    } finally {
+      setMediaJobsProcessing(false);
+    }
+  };
+
   const handleReprocessStorageMedia = async (media: StorageMediaItem) => {
     try {
       setStorageReprocessWorkingId(media.id);
@@ -3723,8 +3801,9 @@ if (refundAmount && refundAmount > 0) {
         throw new Error(data?.error || "Reprocessing konnte nicht gestartet werden.");
       }
 
-      setStorageReprocessMessage(`Reprocessing wurde für ${media.filename || media.id} gestartet.`);
+      setStorageReprocessMessage(`Reprocessing-Job wurde für ${media.filename || media.id} angelegt.`);
       await fetchStorageMediaStats();
+      await fetchMediaJobs();
 
       setSelectedStorageMedia((prev) =>
         prev?.id === media.id ? { ...prev, processing_status: "queued" } : prev
@@ -3826,6 +3905,104 @@ if (refundAmount && refundAmount > 0) {
             Dadurch wird dieselbe Media Engine genutzt wie beim normalen Upload.
           </div>
         )}
+      </div>
+    );
+  };
+
+  const renderMediaJobsPanel = () => {
+    const summary = mediaJobsData?.summary;
+
+    return (
+      <div style={styles.storagePanel}>
+        <div style={styles.storageDetailHeader}>
+          <div>
+            <h3 style={styles.storagePanelTitle}>Media Queue</h3>
+            <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
+              Warteschlange für Reprocessing, spätere Bulk-Jobs und Media Engine Aufgaben.
+            </p>
+          </div>
+
+          <div style={styles.storageActionRow}>
+            <button
+              type="button"
+              onClick={fetchMediaJobs}
+              disabled={mediaJobsLoading}
+              style={styles.smallButton}
+            >
+              {mediaJobsLoading ? "Lade…" : "Jobs aktualisieren"}
+            </button>
+            <button
+              type="button"
+              onClick={processNextMediaJob}
+              disabled={mediaJobsProcessing}
+              style={styles.storageWarningButton}
+            >
+              {mediaJobsProcessing ? "Verarbeitet…" : "Nächsten Job verarbeiten"}
+            </button>
+          </div>
+        </div>
+
+        <div style={styles.storageHealthGrid}>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Queued</div>
+            <div style={styles.storageMiniValue}>{formatNumber(summary?.queued)}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Processing</div>
+            <div style={styles.storageMiniValue}>{formatNumber(summary?.processing)}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Done</div>
+            <div style={styles.storageMiniValue}>{formatNumber(summary?.done)}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Failed</div>
+            <div style={styles.storageMiniValue}>{formatNumber(summary?.failed)}</div>
+          </div>
+        </div>
+
+        {mediaJobsMessage ? <div style={styles.storageDetailHintBox}>{mediaJobsMessage}</div> : null}
+
+        <div style={{ ...styles.storageTableWrap, marginTop: 12 }}>
+          <table style={styles.storageTable}>
+            <thead>
+              <tr>
+                <th style={styles.storageTableTh}>Job</th>
+                <th style={styles.storageTableTh}>Media</th>
+                <th style={styles.storageTableTh}>Status</th>
+                <th style={styles.storageTableTh}>Versuche</th>
+                <th style={styles.storageTableTh}>Grund</th>
+                <th style={styles.storageTableTh}>Erstellt</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(mediaJobsData?.jobs ?? []).slice(0, 12).map((job) => (
+                <tr key={job.id}>
+                  <td style={styles.storageTableTd}>
+                    <span style={styles.storageFilename} title={job.id}>{job.id}</span>
+                  </td>
+                  <td style={styles.storageTableTd}>
+                    <span style={styles.storageFilename} title={job.media_id}>{job.media_id}</span>
+                  </td>
+                  <td style={styles.storageTableTd}>
+                    <span style={getStorageStatusStyle(job.status)}>{formatStorageStatus(job.status)}</span>
+                  </td>
+                  <td style={styles.storageTableTd}>{formatNumber(job.attempts)}</td>
+                  <td style={styles.storageTableTd}>{job.reason || "–"}</td>
+                  <td style={styles.storageTableTd}>
+                    {job.created_at ? new Date(job.created_at).toLocaleString("de-DE") : "–"}
+                  </td>
+                </tr>
+              ))}
+
+              {(mediaJobsData?.jobs ?? []).length === 0 ? (
+                <tr>
+                  <td style={styles.storageTableTd} colSpan={6}>Noch keine Media Jobs vorhanden.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
       </div>
     );
   };
@@ -4030,6 +4207,8 @@ if (refundAmount && refundAmount > 0) {
 
         {renderStorageMediaDetailPanel()}
       </div>
+
+      {renderMediaJobsPanel()}
 
       <div style={styles.storageDetailGrid}>
         {renderStorageMediaTable(

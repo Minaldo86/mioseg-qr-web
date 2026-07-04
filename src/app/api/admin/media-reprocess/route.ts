@@ -5,6 +5,7 @@ export const runtime = "nodejs";
 
 type MediaRow = {
   id: string;
+  qrx_id: string | null;
   type: string | null;
   mime_type: string | null;
 };
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
 
     const { data: media, error: mediaErr } = await supabase
       .from("qr_x_media")
-      .select("id, type, mime_type")
+      .select("id, qrx_id, type, mime_type")
       .eq("id", mediaId)
       .maybeSingle<MediaRow>();
 
@@ -75,29 +76,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: updateErr.message }, { status: 500 });
     }
 
-    const { error: invokeErr } = await supabase.functions.invoke("qrx-media-process-image", {
-      body: {
-        mediaId,
+    const { data: job, error: jobErr } = await supabase
+      .from("qrx_media_jobs")
+      .insert({
+        media_id: mediaId,
+        qrx_id: media.qrx_id,
+        job_type: "reprocess",
+        status: "queued",
         reason: "admin_reprocess",
-      },
-    });
+        attempts: 0,
+        processing_error: null,
+      })
+      .select("id, media_id, qrx_id, job_type, status, reason, attempts, created_at")
+      .single();
 
-    if (invokeErr) {
-      return NextResponse.json(
-        {
-          ok: true,
-          queued: true,
-          warning: invokeErr.message,
-          media: updated,
-        },
-        { status: 200 }
-      );
+    if (jobErr) {
+      return NextResponse.json({ error: jobErr.message }, { status: 500 });
     }
 
     return NextResponse.json({
       ok: true,
       queued: true,
       media: updated,
+      job,
     });
   } catch (error) {
     return NextResponse.json(
