@@ -2145,6 +2145,7 @@ export default function AdminPage() {
   const [mediaJobsLoading, setMediaJobsLoading] = useState(false);
   const [mediaJobsProcessing, setMediaJobsProcessing] = useState(false);
   const [mediaJobsMessage, setMediaJobsMessage] = useState<string | null>(null);
+  const [mediaJobRetryWorkingId, setMediaJobRetryWorkingId] = useState<string | null>(null);
   const [mediaQueueAutoRun, setMediaQueueAutoRun] = useState(false);
   const [mediaQueueAutoRefresh, setMediaQueueAutoRefresh] = useState(false);
   const [mediaQueueLastRunAt, setMediaQueueLastRunAt] = useState<string | null>(null);
@@ -3977,6 +3978,35 @@ if (refundAmount && refundAmount > 0) {
     );
   };
 
+  const retryFailedMediaJob = async (jobId: string) => {
+    try {
+      setMediaJobRetryWorkingId(jobId);
+      setMediaJobsMessage(null);
+
+      const res = await fetch("/api/admin/media-jobs/retry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Media Job konnte nicht erneut gestartet werden.");
+      }
+
+      setMediaJobsMessage("Fehlgeschlagener Media Job wurde zurück in die Queue gesetzt.");
+      await fetchMediaJobs();
+      await fetchStorageMediaStats();
+    } catch (error) {
+      setMediaJobsMessage(
+        error instanceof Error ? error.message : "Media Job konnte nicht erneut gestartet werden."
+      );
+    } finally {
+      setMediaJobRetryWorkingId(null);
+    }
+  };
+
   const renderMediaJobsPanel = () => {
     const summary = mediaJobsData?.summary;
     const queued = Number(summary?.queued ?? 0);
@@ -4093,6 +4123,7 @@ if (refundAmount && refundAmount > 0) {
                 <th style={styles.storageTableTh}>Versuche</th>
                 <th style={styles.storageTableTh}>Grund</th>
                 <th style={styles.storageTableTh}>Erstellt</th>
+                <th style={styles.storageTableTh}>Aktionen</th>
               </tr>
             </thead>
             <tbody>
@@ -4112,12 +4143,26 @@ if (refundAmount && refundAmount > 0) {
                   <td style={styles.storageTableTd}>
                     {job.created_at ? new Date(job.created_at).toLocaleString("de-DE") : "–"}
                   </td>
+                  <td style={styles.storageTableTd}>
+                    {String(job.status || "").toLowerCase() === "failed" ? (
+                      <button
+                        type="button"
+                        onClick={() => void retryFailedMediaJob(job.id)}
+                        disabled={mediaJobRetryWorkingId === job.id}
+                        style={styles.storageWarningButton}
+                      >
+                        {mediaJobRetryWorkingId === job.id ? "Retry…" : "Retry"}
+                      </button>
+                    ) : (
+                      <span style={styles.subtleText}>–</span>
+                    )}
+                  </td>
                 </tr>
               ))}
 
               {(mediaJobsData?.jobs ?? []).length === 0 ? (
                 <tr>
-                  <td style={styles.storageTableTd} colSpan={6}>Noch keine Media Jobs vorhanden.</td>
+                  <td style={styles.storageTableTd} colSpan={7}>Noch keine Media Jobs vorhanden.</td>
                 </tr>
               ) : null}
             </tbody>
