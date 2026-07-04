@@ -2111,6 +2111,8 @@ export default function AdminPage() {
   const [storageMediaMinMb, setStorageMediaMinMb] = useState("10");
   const [storageMediaSort, setStorageMediaSort] = useState("largest");
   const [selectedStorageMedia, setSelectedStorageMedia] = useState<StorageMediaItem | null>(null);
+  const [storageReprocessWorkingId, setStorageReprocessWorkingId] = useState<string | null>(null);
+  const [storageReprocessMessage, setStorageReprocessMessage] = useState<string | null>(null);
 
   const formatBytes = (bytes: number | null | undefined) => {
     const value = Number(bytes ?? 0);
@@ -3686,11 +3688,12 @@ if (refundAmount && refundAmount > 0) {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setSelectedStorageMedia(item)}
+                        onClick={() => void handleReprocessStorageMedia(item)}
+                        disabled={storageReprocessWorkingId === item.id}
                         style={styles.storageWarningButton}
-                        title="Reprocessing vorbereiten"
+                        title="Reprocessing starten"
                       >
-                        🔄 Reprocess
+                        {storageReprocessWorkingId === item.id ? "Läuft…" : "🔄 Reprocess"}
                       </button>
                     </div>
                   </td>
@@ -3702,6 +3705,38 @@ if (refundAmount && refundAmount > 0) {
       )}
     </div>
   );
+
+  const handleReprocessStorageMedia = async (media: StorageMediaItem) => {
+    try {
+      setStorageReprocessWorkingId(media.id);
+      setStorageReprocessMessage(null);
+
+      const res = await fetch("/api/admin/media-reprocess", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mediaId: media.id }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Reprocessing konnte nicht gestartet werden.");
+      }
+
+      setStorageReprocessMessage(`Reprocessing wurde für ${media.filename || media.id} gestartet.`);
+      await fetchStorageMediaStats();
+
+      setSelectedStorageMedia((prev) =>
+        prev?.id === media.id ? { ...prev, processing_status: "queued" } : prev
+      );
+    } catch (error) {
+      setStorageReprocessMessage(
+        error instanceof Error ? error.message : "Reprocessing konnte nicht gestartet werden."
+      );
+    } finally {
+      setStorageReprocessWorkingId(null);
+    }
+  };
 
   const renderStorageMediaDetailPanel = () => {
     if (!selectedStorageMedia) {
@@ -3738,8 +3773,13 @@ if (refundAmount && refundAmount > 0) {
           </div>
 
           <div style={styles.storageActionRow}>
-            <button type="button" style={styles.storageWarningButton}>
-              🔄 Reprocessing vorbereiten
+            <button
+              type="button"
+              onClick={() => void handleReprocessStorageMedia(selectedStorageMedia)}
+              disabled={storageReprocessWorkingId === selectedStorageMedia.id}
+              style={styles.storageWarningButton}
+            >
+              {storageReprocessWorkingId === selectedStorageMedia.id ? "Läuft…" : "🔄 Reprocessing starten"}
             </button>
             <button type="button" onClick={() => setSelectedStorageMedia(null)} style={styles.smallButton}>
               Schließen
@@ -3778,10 +3818,14 @@ if (refundAmount && refundAmount > 0) {
           </div>
         </div>
 
-        <div style={styles.storageDetailHintBox}>
-          Hinweis: Die Schaltfläche „Reprocessing vorbereiten“ ist aktuell bewusst noch ohne direkte Serveraktion.
-          Im nächsten Schritt können wir eine sichere API ergänzen, die einzelne Medien erneut in die Optimierungswarteschlange legt.
-        </div>
+        {storageReprocessMessage ? (
+          <div style={styles.storageDetailHintBox}>{storageReprocessMessage}</div>
+        ) : (
+          <div style={styles.storageDetailHintBox}>
+            Reprocessing setzt dieses Medium auf „queued“ und startet anschließend den bestehenden Image-Processor.
+            Dadurch wird dieselbe Media Engine genutzt wie beim normalen Upload.
+          </div>
+        )}
       </div>
     );
   };
