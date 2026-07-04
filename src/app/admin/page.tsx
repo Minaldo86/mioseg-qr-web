@@ -293,6 +293,18 @@ type PricingPackDraft = {
   is_active: boolean;
 };
 
+type StorageMediaItem = {
+  id: string;
+  qrx_id: string | null;
+  filename: string | null;
+  type: string | null;
+  processing_status: string | null;
+  originalBytes: number;
+  optimizedBytes: number;
+  savedBytes: number;
+  savingsPercent: number;
+};
+
 type StorageMediaStats = {
   ok: boolean;
   totals: {
@@ -311,28 +323,9 @@ type StorageMediaStats = {
     averageSavingsPercent: number;
     largestOriginalBytes: number;
   };
-  topLargest: Array<{
-    id: string;
-    qrx_id: string | null;
-    filename: string | null;
-    type: string | null;
-    processing_status: string | null;
-    originalBytes: number;
-    optimizedBytes: number;
-    savedBytes: number;
-    savingsPercent: number;
-  }>;
-  topSavings: Array<{
-    id: string;
-    qrx_id: string | null;
-    filename: string | null;
-    type: string | null;
-    processing_status: string | null;
-    originalBytes: number;
-    optimizedBytes: number;
-    savedBytes: number;
-    savingsPercent: number;
-  }>;
+  topLargest: StorageMediaItem[];
+  topSavings: StorageMediaItem[];
+  mediaItems: StorageMediaItem[];
   statusCounts: Record<string, number>;
   updatedAt: string;
 };
@@ -1238,6 +1231,48 @@ const styles = {
     gap: 10,
     marginTop: 10,
   } as const,
+  storageFilterGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: 10,
+    marginTop: 12,
+    marginBottom: 12,
+  } as const,
+  storageFilterLabel: {
+    display: "grid",
+    gap: 6,
+    color: "#93a5bd",
+    fontSize: 12,
+    fontWeight: 900,
+  } as const,
+  storageFilterInput: {
+    width: "100%",
+    borderRadius: 12,
+    border: "1px solid #2d3f59",
+    background: "#0b1324",
+    color: "#f8fafc",
+    padding: "10px 11px",
+    fontSize: 13,
+    boxSizing: "border-box" as const,
+    outline: "none",
+  } as const,
+  storageFilterSelect: {
+    width: "100%",
+    borderRadius: 12,
+    border: "1px solid #2d3f59",
+    background: "#0b1324",
+    color: "#f8fafc",
+    padding: "10px 11px",
+    fontSize: 13,
+    boxSizing: "border-box" as const,
+    outline: "none",
+  } as const,
+  storageFilterActions: {
+    display: "flex",
+    gap: 10,
+    alignItems: "end",
+    flexWrap: "wrap" as const,
+  } as const,
 
   metricCard: {
     borderRadius: 18,
@@ -1980,6 +2015,11 @@ export default function AdminPage() {
   const [storageMediaStats, setStorageMediaStats] = useState<StorageMediaStats | null>(null);
   const [storageMediaLoading, setStorageMediaLoading] = useState(false);
   const [storageMediaError, setStorageMediaError] = useState<string | null>(null);
+  const [storageMediaSearch, setStorageMediaSearch] = useState("");
+  const [storageMediaTypeFilter, setStorageMediaTypeFilter] = useState("all");
+  const [storageMediaStatusFilter, setStorageMediaStatusFilter] = useState("all");
+  const [storageMediaMinMb, setStorageMediaMinMb] = useState("10");
+  const [storageMediaSort, setStorageMediaSort] = useState("largest");
 
   const formatBytes = (bytes: number | null | undefined) => {
     const value = Number(bytes ?? 0);
@@ -2057,7 +2097,15 @@ export default function AdminPage() {
       setStorageMediaLoading(true);
       setStorageMediaError(null);
 
-      const res = await fetch("/api/admin/media-stats", { cache: "no-store" });
+      const params = new URLSearchParams();
+      if (storageMediaSearch.trim()) params.set("search", storageMediaSearch.trim());
+      if (storageMediaTypeFilter !== "all") params.set("type", storageMediaTypeFilter);
+      if (storageMediaStatusFilter !== "all") params.set("status", storageMediaStatusFilter);
+      if (storageMediaMinMb.trim()) params.set("minMb", storageMediaMinMb.trim());
+      params.set("sort", storageMediaSort);
+
+      const query = params.toString();
+      const res = await fetch(`/api/admin/media-stats${query ? `?${query}` : ""}`, { cache: "no-store" });
       const data = await res.json();
 
       if (!res.ok) {
@@ -3494,7 +3542,7 @@ if (refundAmount && refundAmount > 0) {
   const renderStorageMediaTable = (
     title: string,
     description: string,
-    rows: StorageMediaStats["topLargest"]
+    rows: StorageMediaItem[]
   ) => (
     <div style={styles.storagePanel}>
       <h3 style={styles.storagePanelTitle}>{title}</h3>
@@ -3635,6 +3683,111 @@ if (refundAmount && refundAmount > 0) {
             Danach können Diagramme, Reprocessing und monatliche Ersparnisse ergänzt werden.
           </div>
         </div>
+      </div>
+
+      <div style={styles.storagePanel}>
+        <h3 style={styles.storagePanelTitle}>Speicherfresser finden</h3>
+        <p style={{ ...styles.storageMetricHint, marginTop: -4, marginBottom: 12 }}>
+          Filtere große Dateien, fehlerhafte Medien oder Dateien mit besonders hohem Einsparpotenzial.
+        </p>
+
+        <div style={styles.storageFilterGrid}>
+          <label style={styles.storageFilterLabel}>
+            Suche
+            <input
+              value={storageMediaSearch}
+              onChange={(event) => setStorageMediaSearch(event.target.value)}
+              placeholder="Dateiname oder QR-X-ID…"
+              style={styles.storageFilterInput}
+            />
+          </label>
+
+          <label style={styles.storageFilterLabel}>
+            Typ
+            <select
+              value={storageMediaTypeFilter}
+              onChange={(event) => setStorageMediaTypeFilter(event.target.value)}
+              style={styles.storageFilterSelect}
+            >
+              <option value="all">Alle</option>
+              <option value="image">Bilder</option>
+              <option value="logo">Logos</option>
+              <option value="file">Dateien</option>
+            </select>
+          </label>
+
+          <label style={styles.storageFilterLabel}>
+            Status
+            <select
+              value={storageMediaStatusFilter}
+              onChange={(event) => setStorageMediaStatusFilter(event.target.value)}
+              style={styles.storageFilterSelect}
+            >
+              <option value="all">Alle</option>
+              <option value="ready">Optimiert / Ready</option>
+              <option value="pending">Wartet</option>
+              <option value="processing">In Verarbeitung</option>
+              <option value="failed">Fehler</option>
+              <option value="unknown">Unbekannt</option>
+            </select>
+          </label>
+
+          <label style={styles.storageFilterLabel}>
+            Mindestgröße in MB
+            <input
+              value={storageMediaMinMb}
+              onChange={(event) => setStorageMediaMinMb(event.target.value)}
+              placeholder="z. B. 10"
+              inputMode="decimal"
+              style={styles.storageFilterInput}
+            />
+          </label>
+
+          <label style={styles.storageFilterLabel}>
+            Sortierung
+            <select
+              value={storageMediaSort}
+              onChange={(event) => setStorageMediaSort(event.target.value)}
+              style={styles.storageFilterSelect}
+            >
+              <option value="largest">Größte Originaldateien</option>
+              <option value="savings">Größte Einsparungen</option>
+              <option value="worst">Schlechteste Komprimierung</option>
+              <option value="failed">Fehler zuerst</option>
+            </select>
+          </label>
+
+          <div style={styles.storageFilterActions}>
+            <button
+              type="button"
+              onClick={fetchStorageMediaStats}
+              disabled={storageMediaLoading}
+              style={styles.refreshButton}
+            >
+              {storageMediaLoading ? "Filter lädt…" : "Filter anwenden"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setStorageMediaSearch("");
+                setStorageMediaTypeFilter("all");
+                setStorageMediaStatusFilter("all");
+                setStorageMediaMinMb("10");
+                setStorageMediaSort("largest");
+                setTimeout(() => void fetchStorageMediaStats(), 0);
+              }}
+              style={styles.smallButton}
+            >
+              Zurücksetzen
+            </button>
+          </div>
+        </div>
+
+        {renderStorageMediaTable(
+          "Gefilterte Speicherfresser",
+          "Bis zu 100 passende Medien nach deinen Filtern.",
+          storageMediaStats?.mediaItems ?? []
+        )}
       </div>
 
       <div style={styles.storageDetailGrid}>
