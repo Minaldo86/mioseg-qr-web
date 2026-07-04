@@ -1273,6 +1273,96 @@ const styles = {
     alignItems: "end",
     flexWrap: "wrap" as const,
   } as const,
+  storageActionRow: {
+    display: "flex",
+    gap: 8,
+    alignItems: "center",
+    flexWrap: "wrap" as const,
+  } as const,
+  storageIconButton: {
+    border: "1px solid #2d3f59",
+    borderRadius: 10,
+    background: "#172133",
+    color: "#f8fafc",
+    padding: "8px 10px",
+    fontWeight: 900,
+    cursor: "pointer",
+    fontSize: 12,
+  } as const,
+  storageWarningButton: {
+    border: "1px solid #854d0e",
+    borderRadius: 10,
+    background: "#2c1806",
+    color: "#fde68a",
+    padding: "8px 10px",
+    fontWeight: 900,
+    cursor: "pointer",
+    fontSize: 12,
+  } as const,
+  storageDetailPanel: {
+    borderRadius: 22,
+    background: "linear-gradient(180deg, #101b30 0%, #0b1324 100%)",
+    border: "1px solid #2a3952",
+    padding: 16,
+    marginTop: 12,
+  } as const,
+  storageDetailHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+    flexWrap: "wrap" as const,
+    marginBottom: 14,
+  } as const,
+  storageDetailTitle: {
+    margin: 0,
+    color: "#f8fafc",
+    fontSize: 18,
+    fontWeight: 950,
+    letterSpacing: -0.2,
+  } as const,
+  storageDetailSub: {
+    margin: "6px 0 0",
+    color: "#93a5bd",
+    fontSize: 12,
+    lineHeight: 1.45,
+    wordBreak: "break-word" as const,
+  } as const,
+  storageDetailGridInner: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: 10,
+  } as const,
+  storageDetailMetric: {
+    borderRadius: 16,
+    border: "1px solid #243044",
+    background: "#111827",
+    padding: 12,
+  } as const,
+  storageDetailLabel: {
+    color: "#93a5bd",
+    fontSize: 11,
+    fontWeight: 950,
+    marginBottom: 6,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.4,
+  } as const,
+  storageDetailValue: {
+    color: "#f8fafc",
+    fontSize: 16,
+    fontWeight: 950,
+    wordBreak: "break-word" as const,
+  } as const,
+  storageDetailHintBox: {
+    borderRadius: 16,
+    border: "1px solid #243044",
+    background: "#0b1324",
+    padding: 12,
+    color: "#9fb1c8",
+    fontSize: 12,
+    lineHeight: 1.55,
+    marginTop: 12,
+  } as const,
 
   metricCard: {
     borderRadius: 18,
@@ -2020,6 +2110,7 @@ export default function AdminPage() {
   const [storageMediaStatusFilter, setStorageMediaStatusFilter] = useState("all");
   const [storageMediaMinMb, setStorageMediaMinMb] = useState("10");
   const [storageMediaSort, setStorageMediaSort] = useState("largest");
+  const [selectedStorageMedia, setSelectedStorageMedia] = useState<StorageMediaItem | null>(null);
 
   const formatBytes = (bytes: number | null | undefined) => {
     const value = Number(bytes ?? 0);
@@ -3561,6 +3652,7 @@ if (refundAmount && refundAmount > 0) {
                 <th style={styles.storageTableTh}>Optimiert</th>
                 <th style={styles.storageTableTh}>Ersparnis</th>
                 <th style={styles.storageTableTh}>Status</th>
+                <th style={styles.storageTableTh}>Aktionen</th>
               </tr>
             </thead>
             <tbody>
@@ -3582,6 +3674,26 @@ if (refundAmount && refundAmount > 0) {
                       {formatStorageStatus(item.processing_status)}
                     </span>
                   </td>
+                  <td style={styles.storageTableTd}>
+                    <div style={styles.storageActionRow}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStorageMedia(item)}
+                        style={styles.storageIconButton}
+                        title="Details anzeigen"
+                      >
+                        👁 Details
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStorageMedia(item)}
+                        style={styles.storageWarningButton}
+                        title="Reprocessing vorbereiten"
+                      >
+                        🔄 Reprocess
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -3590,6 +3702,89 @@ if (refundAmount && refundAmount > 0) {
       )}
     </div>
   );
+
+  const renderStorageMediaDetailPanel = () => {
+    if (!selectedStorageMedia) {
+      return (
+        <div style={styles.storageDetailPanel}>
+          <div style={styles.storageDetailHeader}>
+            <div>
+              <h3 style={styles.storageDetailTitle}>Media Detailpanel</h3>
+              <p style={styles.storageDetailSub}>
+                Wähle in der Tabelle eine Datei über „Details“ aus, um Speicherwerte, QR-X-ID und Status genauer zu prüfen.
+              </p>
+            </div>
+          </div>
+          <div style={styles.storageDetailHintBox}>
+            Noch keine Datei ausgewählt. Das Panel ist vorbereitet für spätere Funktionen wie Reprocessing,
+            Cache leeren, Download-Analyse und Traffic-Verursacher.
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div style={styles.storageDetailPanel}>
+        <div style={styles.storageDetailHeader}>
+          <div>
+            <h3 style={styles.storageDetailTitle}>
+              {selectedStorageMedia.filename || "Unbenanntes Medium"}
+            </h3>
+            <p style={styles.storageDetailSub}>
+              Media-ID: {selectedStorageMedia.id}
+              <br />
+              QR-X-ID: {selectedStorageMedia.qrx_id || "–"}
+            </p>
+          </div>
+
+          <div style={styles.storageActionRow}>
+            <button type="button" style={styles.storageWarningButton}>
+              🔄 Reprocessing vorbereiten
+            </button>
+            <button type="button" onClick={() => setSelectedStorageMedia(null)} style={styles.smallButton}>
+              Schließen
+            </button>
+          </div>
+        </div>
+
+        <div style={styles.storageDetailGridInner}>
+          <div style={styles.storageDetailMetric}>
+            <div style={styles.storageDetailLabel}>Typ</div>
+            <div style={styles.storageDetailValue}>{selectedStorageMedia.type || "–"}</div>
+          </div>
+          <div style={styles.storageDetailMetric}>
+            <div style={styles.storageDetailLabel}>Status</div>
+            <div style={styles.storageDetailValue}>
+              <span style={getStorageStatusStyle(selectedStorageMedia.processing_status)}>
+                {formatStorageStatus(selectedStorageMedia.processing_status)}
+              </span>
+            </div>
+          </div>
+          <div style={styles.storageDetailMetric}>
+            <div style={styles.storageDetailLabel}>Originalgröße</div>
+            <div style={styles.storageDetailValue}>{formatBytes(selectedStorageMedia.originalBytes)}</div>
+          </div>
+          <div style={styles.storageDetailMetric}>
+            <div style={styles.storageDetailLabel}>Optimierte Größe</div>
+            <div style={styles.storageDetailValue}>{formatBytes(selectedStorageMedia.optimizedBytes)}</div>
+          </div>
+          <div style={styles.storageDetailMetric}>
+            <div style={styles.storageDetailLabel}>Ersparnis</div>
+            <div style={styles.storageDetailValue}>{formatBytes(selectedStorageMedia.savedBytes)}</div>
+          </div>
+          <div style={styles.storageDetailMetric}>
+            <div style={styles.storageDetailLabel}>Ersparnis in %</div>
+            <div style={styles.storageDetailValue}>{formatPercent(selectedStorageMedia.savingsPercent)}</div>
+          </div>
+        </div>
+
+        <div style={styles.storageDetailHintBox}>
+          Hinweis: Die Schaltfläche „Reprocessing vorbereiten“ ist aktuell bewusst noch ohne direkte Serveraktion.
+          Im nächsten Schritt können wir eine sichere API ergänzen, die einzelne Medien erneut in die Optimierungswarteschlange legt.
+        </div>
+      </div>
+    );
+  };
 
   const renderStorageAndMediaDashboard = () => (
     <section style={styles.storageDashboard} aria-label="Storage and Media Dashboard">
@@ -3788,6 +3983,8 @@ if (refundAmount && refundAmount > 0) {
           "Bis zu 100 passende Medien nach deinen Filtern.",
           storageMediaStats?.mediaItems ?? []
         )}
+
+        {renderStorageMediaDetailPanel()}
       </div>
 
       <div style={styles.storageDetailGrid}>
