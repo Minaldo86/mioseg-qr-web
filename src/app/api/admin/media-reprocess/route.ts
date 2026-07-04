@@ -3,6 +3,16 @@ import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 
+type MediaRow = {
+  id: string;
+  type: string | null;
+  mime_type: string | null;
+};
+
+type RequestBody = {
+  mediaId?: unknown;
+};
+
 function getSupabaseAdmin() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -18,8 +28,8 @@ function getSupabaseAdmin() {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const mediaId = typeof body?.mediaId === "string" ? body.mediaId.trim() : "";
+    const body = (await req.json().catch(() => ({}))) as RequestBody;
+    const mediaId = typeof body.mediaId === "string" ? body.mediaId.trim() : "";
 
     if (!mediaId) {
       return NextResponse.json({ error: "Missing mediaId" }, { status: 400 });
@@ -31,7 +41,7 @@ export async function POST(req: Request) {
       .from("qr_x_media")
       .select("id, type, mime_type")
       .eq("id", mediaId)
-      .maybeSingle();
+      .maybeSingle<MediaRow>();
 
     if (mediaErr) {
       return NextResponse.json({ error: mediaErr.message }, { status: 500 });
@@ -41,8 +51,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Media not found" }, { status: 404 });
     }
 
-    const mimeType = String((media as any).mime_type || "");
-    const type = String((media as any).type || "");
+    const mimeType = String(media.mime_type || "");
+    const type = String(media.type || "");
 
     if (!mimeType.startsWith("image/") || type === "file") {
       return NextResponse.json(
