@@ -308,6 +308,21 @@ type MediaJobEntry = {
   updated_at: string | null;
 };
 
+type BulkMediaPreviewResult = {
+  ok: boolean;
+  dryRun: boolean;
+  matchedCount: number;
+  sample?: Array<{
+    id: string;
+    qrx_id: string | null;
+    filename: string | null;
+    type: string | null;
+    mime_type: string | null;
+    processing_status: string | null;
+    original_bytes: number | null;
+  }>;
+};
+
 type MediaJobsResult = {
   ok: boolean;
   jobs: MediaJobEntry[];
@@ -2146,6 +2161,14 @@ export default function AdminPage() {
   const [mediaJobsProcessing, setMediaJobsProcessing] = useState(false);
   const [mediaJobsMessage, setMediaJobsMessage] = useState<string | null>(null);
   const [mediaJobRetryWorkingId, setMediaJobRetryWorkingId] = useState<string | null>(null);
+  const [bulkMediaType, setBulkMediaType] = useState("image");
+  const [bulkMediaStatus, setBulkMediaStatus] = useState("failed");
+  const [bulkMediaMinMb, setBulkMediaMinMb] = useState("0");
+  const [bulkMediaSearch, setBulkMediaSearch] = useState("");
+  const [bulkMediaLimit, setBulkMediaLimit] = useState("100");
+  const [bulkMediaPreview, setBulkMediaPreview] = useState<BulkMediaPreviewResult | null>(null);
+  const [bulkMediaWorking, setBulkMediaWorking] = useState(false);
+  const [bulkMediaMessage, setBulkMediaMessage] = useState<string | null>(null);
   const [mediaQueueAutoRun, setMediaQueueAutoRun] = useState(false);
   const [mediaQueueAutoRefresh, setMediaQueueAutoRefresh] = useState(false);
   const [mediaQueueLastRunAt, setMediaQueueLastRunAt] = useState<string | null>(null);
@@ -3978,6 +4001,69 @@ if (refundAmount && refundAmount > 0) {
     );
   };
 
+  const buildBulkMediaPayload = (dryRun: boolean) => ({
+    type: bulkMediaType,
+    status: bulkMediaStatus,
+    minMb: bulkMediaMinMb,
+    search: bulkMediaSearch,
+    limit: bulkMediaLimit,
+    dryRun,
+  });
+
+  const previewBulkMediaJobs = async () => {
+    try {
+      setBulkMediaWorking(true);
+      setBulkMediaMessage(null);
+
+      const res = await fetch("/api/admin/media-jobs/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildBulkMediaPayload(true)),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Bulk-Vorschau konnte nicht geladen werden.");
+      }
+
+      setBulkMediaPreview(data as BulkMediaPreviewResult);
+      setBulkMediaMessage(`${formatNumber(data?.matchedCount)} Medien passen zu den Filtern.`);
+    } catch (error) {
+      setBulkMediaMessage(error instanceof Error ? error.message : "Bulk-Vorschau konnte nicht geladen werden.");
+    } finally {
+      setBulkMediaWorking(false);
+    }
+  };
+
+  const createBulkMediaJobs = async () => {
+    try {
+      setBulkMediaWorking(true);
+      setBulkMediaMessage(null);
+
+      const res = await fetch("/api/admin/media-jobs/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildBulkMediaPayload(false)),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Bulk-Reprocess konnte nicht gestartet werden.");
+      }
+
+      setBulkMediaMessage(`${formatNumber(data?.createdCount)} Bulk Job(s) wurden angelegt.`);
+      await fetchMediaJobs();
+      await fetchStorageMediaStats();
+      await previewBulkMediaJobs();
+    } catch (error) {
+      setBulkMediaMessage(error instanceof Error ? error.message : "Bulk-Reprocess konnte nicht gestartet werden.");
+    } finally {
+      setBulkMediaWorking(false);
+    }
+  };
+
   const retryFailedMediaJob = async (jobId: string) => {
     try {
       setMediaJobRetryWorkingId(jobId);
@@ -4006,6 +4092,145 @@ if (refundAmount && refundAmount > 0) {
       setMediaJobRetryWorkingId(null);
     }
   };
+
+  const renderBulkMediaJobsPanel = () => (
+    <div style={styles.storagePanel}>
+      <div style={styles.storageDetailHeader}>
+        <div>
+          <h3 style={styles.storagePanelTitle}>Bulk Media Jobs</h3>
+          <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
+            Erzeuge viele Reprocess-Jobs auf einmal. Die Queue verarbeitet sie danach kontrolliert nacheinander.
+          </p>
+        </div>
+      </div>
+
+      <div style={styles.storageFilterGrid}>
+        <label style={styles.storageFilterLabel}>
+          Typ
+          <select
+            value={bulkMediaType}
+            onChange={(event) => setBulkMediaType(event.target.value)}
+            style={styles.storageFilterSelect}
+          >
+            <option value="all">Alle Bilder/Logos</option>
+            <option value="image">Nur Bilder</option>
+            <option value="logo">Nur Logos</option>
+          </select>
+        </label>
+
+        <label style={styles.storageFilterLabel}>
+          Status
+          <select
+            value={bulkMediaStatus}
+            onChange={(event) => setBulkMediaStatus(event.target.value)}
+            style={styles.storageFilterSelect}
+          >
+            <option value="failed">Nur fehlgeschlagene</option>
+            <option value="queued">Nur wartende</option>
+            <option value="ready">Bereits optimierte</option>
+            <option value="not_optimized">Noch nicht optimierte</option>
+            <option value="all">Alle</option>
+          </select>
+        </label>
+
+        <label style={styles.storageFilterLabel}>
+          Mindestgröße MB
+          <input
+            value={bulkMediaMinMb}
+            onChange={(event) => setBulkMediaMinMb(event.target.value)}
+            inputMode="decimal"
+            style={styles.storageFilterInput}
+          />
+        </label>
+
+        <label style={styles.storageFilterLabel}>
+          Limit
+          <input
+            value={bulkMediaLimit}
+            onChange={(event) => setBulkMediaLimit(event.target.value)}
+            inputMode="numeric"
+            style={styles.storageFilterInput}
+          />
+        </label>
+
+        <label style={styles.storageFilterLabel}>
+          Suche
+          <input
+            value={bulkMediaSearch}
+            onChange={(event) => setBulkMediaSearch(event.target.value)}
+            placeholder="Dateiname oder QR-X-ID…"
+            style={styles.storageFilterInput}
+          />
+        </label>
+
+        <div style={styles.storageFilterActions}>
+          <button
+            type="button"
+            onClick={previewBulkMediaJobs}
+            disabled={bulkMediaWorking}
+            style={styles.smallButton}
+          >
+            {bulkMediaWorking ? "Lade…" : "Vorschau"}
+          </button>
+          <button
+            type="button"
+            onClick={createBulkMediaJobs}
+            disabled={bulkMediaWorking}
+            style={styles.storageWarningButton}
+          >
+            {bulkMediaWorking ? "Erstelle…" : "Bulk-Reprocess starten"}
+          </button>
+        </div>
+      </div>
+
+      {bulkMediaMessage ? <div style={styles.storageDetailHintBox}>{bulkMediaMessage}</div> : null}
+
+      {bulkMediaPreview ? (
+        <div style={{ ...styles.storageTableWrap, marginTop: 12 }}>
+          <table style={styles.storageTable}>
+            <thead>
+              <tr>
+                <th style={styles.storageTableTh}>Datei</th>
+                <th style={styles.storageTableTh}>Typ</th>
+                <th style={styles.storageTableTh}>Status</th>
+                <th style={styles.storageTableTh}>Original</th>
+                <th style={styles.storageTableTh}>QR-X</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(bulkMediaPreview.sample ?? []).map((item) => (
+                <tr key={item.id}>
+                  <td style={styles.storageTableTd}>
+                    <span style={styles.storageFilename} title={item.filename || item.id}>
+                      {item.filename || item.id}
+                    </span>
+                  </td>
+                  <td style={styles.storageTableTd}>{item.type || "–"}</td>
+                  <td style={styles.storageTableTd}>
+                    <span style={getStorageStatusStyle(item.processing_status)}>
+                      {formatStorageStatus(item.processing_status)}
+                    </span>
+                  </td>
+                  <td style={styles.storageTableTd}>{formatBytes(item.original_bytes)}</td>
+                  <td style={styles.storageTableTd}>
+                    <span style={styles.storageFilename} title={item.qrx_id || ""}>
+                      {item.qrx_id || "–"}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+
+              {(bulkMediaPreview.sample ?? []).length === 0 ? (
+                <tr>
+                  <td style={styles.storageTableTd} colSpan={5}>Keine passenden Medien gefunden.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+    </div>
+  );
 
   const renderMediaJobsPanel = () => {
     const summary = mediaJobsData?.summary;
@@ -4372,6 +4597,8 @@ if (refundAmount && refundAmount > 0) {
 
         {renderStorageMediaDetailPanel()}
       </div>
+
+      {renderBulkMediaJobsPanel()}
 
       {renderMediaJobsPanel()}
 
