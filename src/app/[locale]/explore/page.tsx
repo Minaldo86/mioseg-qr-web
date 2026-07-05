@@ -49,6 +49,7 @@ type ExploreEntry = {
   manual_follower_boost: number | null;
   manual_view_boost: number | null;
   manual_unique_view_boost: number | null;
+  force_original_quality: boolean | null;
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -274,7 +275,7 @@ export default async function ExplorePage({
   const { data, error } = await supabase
     .from("qr_x_entries")
     .select(
-      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost"
+      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost, force_original_quality"
     )
     .eq("type", "business")
     .order("created_at", { ascending: false })

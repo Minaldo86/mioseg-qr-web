@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import { getBestMediaUrl, getMediaById } from "@/lib/media";
 import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard/dashboard.module.css";
 
@@ -60,7 +61,10 @@ type QrxEntry = {
   suspended: boolean | null;
   deleted_at: string | null;
   cover_image_url: string | null;
+  cover_media_id?: string | null;
   logo_url: string | null;
+  logo_media_id?: string | null;
+  force_original_quality?: boolean | null;
   location_name: string | null;
   cta_phone: string | null;
   cta_website: string | null;
@@ -77,6 +81,10 @@ type QrxMedia = {
   url: string;
   filename: string | null;
   bytes?: number | null;
+  original_url?: string | null;
+  large_url?: string | null;
+  medium_url?: string | null;
+  thumb_url?: string | null;
 };
 
 type TransferHistoryItem = {
@@ -209,7 +217,7 @@ export default function PublicQrxDetailPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,description,news,type,category,verified,suspended,deleted_at,cover_image_url,logo_url,location_name,cta_phone,cta_website,cta_email,cta_navigation,views_total,follower_count,created_at",
+          "id,owner_user_id,title,company_name,description,news,type,category,verified,suspended,deleted_at,cover_image_url,cover_media_id,logo_url,logo_media_id,force_original_quality,location_name,cta_phone,cta_website,cta_email,cta_navigation,views_total,follower_count,created_at",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -225,7 +233,7 @@ export default function PublicQrxDetailPage() {
 
       const { data: mediaData, error: mediaError } = await supabase
         .from("qr_x_media")
-        .select("id,type,url,filename,bytes")
+        .select("id,type,url,filename,bytes,original_url,large_url,medium_url,thumb_url")
         .eq("qrx_id", qrxId)
         .returns<QrxMedia[]>();
 
@@ -428,8 +436,17 @@ export default function PublicQrxDetailPage() {
     entry?.description?.trim() ||
     entry?.location_name?.trim() ||
     "QR-X auf mioseg qr";
-  const cover = entry?.cover_image_url?.trim() || null;
-  const logo = entry?.logo_url?.trim() || null;
+  const forceOriginalQuality = Boolean(entry?.force_original_quality);
+  const coverMedia = getMediaById(media, entry?.cover_media_id);
+  const logoMedia = getMediaById(media, entry?.logo_media_id);
+  const cover =
+    getBestMediaUrl({ media: coverMedia, purpose: "hero", forceOriginal: forceOriginalQuality }) ||
+    entry?.cover_image_url?.trim() ||
+    null;
+  const logo =
+    getBestMediaUrl({ media: logoMedia, purpose: "medium", forceOriginal: forceOriginalQuality }) ||
+    entry?.logo_url?.trim() ||
+    null;
   const isBusiness = entry?.type === "business";
   const website = normalizeUrl(entry?.cta_website ?? null);
   const navigation = normalizeNavigationUrl(entry?.cta_navigation ?? null);
@@ -438,9 +455,12 @@ export default function PublicQrxDetailPage() {
     () => normalizeNewsItems(entry?.news),
     [entry?.news],
   );
-  const imageMedia = media.filter(
-    (item) => item.type === "image" && item.url !== logo && item.url !== cover,
-  );
+  const imageMedia = media.filter((item) => {
+    const isLogoById = !!entry?.logo_media_id && item.id === entry.logo_media_id;
+    const isCoverById = !!entry?.cover_media_id && item.id === entry.cover_media_id;
+    const urls = [item.url, item.original_url, item.large_url, item.medium_url, item.thumb_url];
+    return item.type === "image" && !isLogoById && !isCoverById && !urls.includes(logo) && !urls.includes(cover);
+  });
   const fileMedia = media.filter((item) => item.type === "file");
   const isOwner = Boolean(
     entry?.owner_user_id &&
@@ -804,13 +824,13 @@ export default function PublicQrxDetailPage() {
                 {imageMedia.map((item) => (
                   <a
                     key={item.id}
-                    href={item.url}
+                    href={getBestMediaUrl({ media: item, purpose: "fullscreen", forceOriginal: forceOriginalQuality }) || item.url}
                     target="_blank"
                     rel="noreferrer"
                     style={galleryItemStyle}
                   >
                     <img
-                      src={item.url}
+                      src={getBestMediaUrl({ media: item, purpose: "gallery", forceOriginal: forceOriginalQuality }) || item.url}
                       alt={item.filename ?? "QR-X Bild"}
                       style={galleryImageStyle}
                     />

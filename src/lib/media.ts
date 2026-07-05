@@ -36,6 +36,12 @@ export type BestMediaUrlOptions = {
   forceOriginal?: boolean | null;
 };
 
+export type DownloadMediaUrlOptions = {
+  isOwner?: boolean;
+  allowOriginalForOwner?: boolean;
+  forceOriginal?: boolean | null;
+};
+
 export function normalizeMedia<T extends MediaLike>(media: T | T[] | null | undefined): T | null {
   if (Array.isArray(media)) return media[0] ?? null;
   return media ?? null;
@@ -99,8 +105,7 @@ export function getBestMediaUrl(
   const media = normalizeMedia(mediaInput);
   if (!media) return null;
 
-  // Wichtig:
-  // Explore, Karten und Listen dürfen niemals Originalbilder laden.
+  // Wichtig: Explore, Karten und Listen dürfen niemals Originalbilder laden.
   // Auch dann nicht, wenn force_original_quality aktiv ist.
   if (purpose === "thumb" || purpose === "card" || purpose === "map") {
     return getThumbUrl(media);
@@ -161,7 +166,17 @@ export function getDetailMediaUrl(
   return getBestMediaUrl({ media, purpose: "detail", forceOriginal });
 }
 
-export function getDownloadMediaUrl(media: MediaLike | MediaLike[] | null | undefined) {
+export function getDownloadMediaUrl(
+  media: MediaLike | MediaLike[] | null | undefined,
+  opts?: DownloadMediaUrlOptions
+) {
+  // Backward compatibility:
+  // allowOriginalForOwner=false wird z. B. in der App für normales Öffnen genutzt.
+  // Dann liefern wir keine Originaldatei, sondern die große optimierte Variante.
+  if (opts?.allowOriginalForOwner === false && !opts?.forceOriginal) {
+    return getBestMediaUrl({ media, purpose: "fullscreen", forceOriginal: false });
+  }
+
   return getBestMediaUrl({ media, purpose: "download" });
 }
 
