@@ -1407,6 +1407,36 @@ const styles = {
     lineHeight: 1.55,
     marginTop: 12,
   } as const,
+  qualityExceptionBox: {
+    marginTop: 14,
+    borderRadius: 16,
+    border: "1px solid #854d0e",
+    background: "linear-gradient(180deg, #2c1806 0%, #1c1207 100%)",
+    padding: 16,
+  } as const,
+  qualityExceptionTitle: {
+    margin: "0 0 6px",
+    color: "#fde68a",
+    fontSize: 15,
+    fontWeight: 950,
+  } as const,
+  qualityExceptionText: {
+    margin: 0,
+    color: "#fed7aa",
+    fontSize: 12,
+    lineHeight: 1.55,
+  } as const,
+  qualityExceptionStatus: {
+    display: "inline-flex",
+    alignItems: "center",
+    borderRadius: 999,
+    padding: "7px 10px",
+    background: "#0b1324",
+    border: "1px solid #2d3f59",
+    color: "#f8fafc",
+    fontWeight: 900,
+    fontSize: 12,
+  } as const,
 
   metricCard: {
     borderRadius: 18,
@@ -2137,13 +2167,13 @@ export default function AdminPage() {
   const [qrxAdminItem, setQrxAdminItem] = useState<QrxAdminItem | null>(null);
   const [qrxSuspendReason, setQrxSuspendReason] = useState("");
   const [qrxActionWorking, setQrxActionWorking] = useState(false);
-  const [qrxQualityWorking, setQrxQualityWorking] = useState(false);
-  const [qrxQualityMessage, setQrxQualityMessage] = useState<string | null>(null);
   const [qrxStatsFollowerBoost, setQrxStatsFollowerBoost] = useState("0");
   const [qrxStatsViewBoost, setQrxStatsViewBoost] = useState("0");
   const [qrxStatsUniqueViewBoost, setQrxStatsUniqueViewBoost] = useState("0");
   const [qrxStatsWorking, setQrxStatsWorking] = useState(false);
   const [qrxStatsMessage, setQrxStatsMessage] = useState<string | null>(null);
+  const [qrxQualityWorking, setQrxQualityWorking] = useState(false);
+  const [qrxQualityMessage, setQrxQualityMessage] = useState<string | null>(null);
   const [qrxReportDetails, setQrxReportDetails] = useState<Record<string, QrxAdminItem>>({});
   const [reportedQrx, setReportedQrx] = useState<QrxAdminItem[]>([]);
   const [reportedQrxLoading, setReportedQrxLoading] = useState(false);
@@ -2301,6 +2331,7 @@ export default function AdminPage() {
     setQrxStatsViewBoost(String(Math.max(0, Number(qrx?.manual_view_boost ?? 0))));
     setQrxStatsUniqueViewBoost(String(Math.max(0, Number(qrx?.manual_unique_view_boost ?? 0))));
     setQrxStatsMessage(null);
+    setQrxQualityMessage(null);
   };
 
   const todayIsoDate = new Date().toISOString().slice(0, 10);
@@ -2505,7 +2536,7 @@ export default function AdminPage() {
             price_cents_regular:
               typeof pack.price_cents_regular === "number" ? String(pack.price_cents_regular) : "",
             badge: pack.badge || "",
-            is_active: Boolean(pack.is_active),
+            is_active: pack.is_active ? true : false,
           };
           return acc;
         }, {})
@@ -2761,7 +2792,7 @@ export default function AdminPage() {
       new Set(
         ticketList
           .map((ticket) => ticket.qrx_id)
-          .filter((qrxId): qrxId is string => Boolean(qrxId))
+          .filter((qrxId): qrxId is string => typeof qrxId === "string" && qrxId.length > 0)
       )
     ).slice(0, 20);
 
@@ -3430,16 +3461,16 @@ if (refundAmount && refundAmount > 0) {
             `/api/admin/qrx-quality?qrxId=${encodeURIComponent(loadedQrx.id)}`,
             { cache: "no-store" }
           );
+          const qualityData = await qualityRes.json();
 
-          if (qualityRes.ok) {
-            const qualityData = await qualityRes.json();
+          if (qualityRes.ok && qualityData?.qrx) {
             loadedQrx = {
               ...loadedQrx,
-              force_original_quality: Boolean(qualityData?.force_original_quality),
+              force_original_quality: qualityData.qrx.force_original_quality ? true : false,
             };
           }
         } catch (qualityError) {
-          console.warn("qrx quality load warning:", qualityError);
+          console.warn("qrx-quality load skipped:", qualityError);
         }
       }
 
@@ -3447,59 +3478,11 @@ if (refundAmount && refundAmount > 0) {
       syncQrxStatsDraft(loadedQrx ?? null);
       setQrxLookupId(loadedQrx?.id || qrxId);
       setQrxSuspendReason(loadedQrx?.suspended_reason || "");
-      setQrxQualityMessage(null);
     } catch (error: unknown) {
       console.error("handleQrxLookup error:", error);
       alert(error instanceof Error ? error.message : "QR-X konnte nicht geladen werden.");
     } finally {
       setQrxLookupLoading(false);
-    }
-  };
-
-  const handleToggleQrxOriginalQuality = async () => {
-    if (!qrxAdminItem?.id) return;
-
-    try {
-      setQrxQualityWorking(true);
-      setQrxQualityMessage(null);
-
-      const nextValue = qrxAdminItem.force_original_quality !== true;
-
-      const res = await fetch("/api/admin/qrx-quality", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          qrxId: qrxAdminItem.id,
-          forceOriginal: nextValue,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data?.error || "Originalqualität konnte nicht geändert werden.");
-      }
-
-      setQrxAdminItem((prev) =>
-        prev ? { ...prev, force_original_quality: Boolean(data.force_original_quality) } : prev
-      );
-
-      setQrxQualityMessage(
-        data.force_original_quality
-          ? "Originalqualität wurde für diesen QR-X aktiviert."
-          : "Originalqualität wurde für diesen QR-X deaktiviert."
-      );
-    } catch (error: unknown) {
-      console.error("handleToggleQrxOriginalQuality error:", error);
-      setQrxQualityMessage(
-        error instanceof Error
-          ? error.message
-          : "Originalqualität konnte nicht geändert werden."
-      );
-    } finally {
-      setQrxQualityWorking(false);
     }
   };
 
@@ -3540,6 +3523,78 @@ if (refundAmount && refundAmount > 0) {
       alert(error instanceof Error ? error.message : "QR-X konnte nicht als geprüft markiert werden.");
     } finally {
       setReviewingQrxId(null);
+    }
+  };
+
+  const handleSetQrxOriginalQuality = async (forceOriginalQuality: boolean) => {
+    try {
+      if (!qrxAdminItem?.id) {
+        throw new Error("Bitte zuerst einen QR-X laden.");
+      }
+
+      const confirmed = window.confirm(
+        forceOriginalQuality
+          ? `Originalqualität für diesen QR-X erzwingen?
+
+Nur für Ausnahmefälle verwenden. Explore, Karten und Listen bleiben weiterhin optimiert. Detailansicht, Galerie und Vollbild bevorzugen danach Originalbilder.`
+          : `Originalqualität für diesen QR-X wieder ausschalten?
+
+Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
+      );
+
+      if (!confirmed) return;
+
+      setQrxQualityWorking(true);
+      setQrxQualityMessage(null);
+
+      const res = await fetch("/api/admin/qrx-quality", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          qrxId: qrxAdminItem.id,
+          forceOriginalQuality,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Bildqualität konnte nicht geändert werden.");
+      }
+
+      const nextValue = data?.qrx?.force_original_quality ? true : false;
+
+      setQrxAdminItem((prev) =>
+        prev?.id === qrxAdminItem.id
+          ? {
+              ...prev,
+              force_original_quality: nextValue,
+            }
+          : prev
+      );
+
+      setQrxReportDetails((prev) => ({
+        ...prev,
+        [qrxAdminItem.id]: {
+          ...(prev[qrxAdminItem.id] ?? qrxAdminItem),
+          force_original_quality: nextValue,
+        },
+      }));
+
+      setQrxQualityMessage(
+        nextValue
+          ? "Originalqualität ist für diesen QR-X aktiv."
+          : "Optimierte Bildauslieferung ist für diesen QR-X wieder aktiv."
+      );
+
+      await fetchAdminActions();
+    } catch (error: unknown) {
+      console.error("handleSetQrxOriginalQuality error:", error);
+      alert(error instanceof Error ? error.message : "Bildqualität konnte nicht geändert werden.");
+    } finally {
+      setQrxQualityWorking(false);
     }
   };
 
@@ -3899,7 +3954,7 @@ if (refundAmount && refundAmount > 0) {
       await fetchMediaJobs();
       await fetchStorageMediaStats();
 
-      return Boolean(data?.processed);
+      return data?.processed ? true : false;
     } catch (error) {
       setMediaJobsMessage(error instanceof Error ? error.message : "Media Job konnte nicht verarbeitet werden.");
       return false;
@@ -5407,65 +5462,54 @@ if (refundAmount && refundAmount > 0) {
                 <div style={styles.counterBadge}>
                   Score: {qrxAdminItem.report_score ?? 0}
                 </div>
-                <div style={qrxAdminItem.force_original_quality === true ? styles.waitBadge : styles.badge}>
-                  {qrxAdminItem.force_original_quality === true
-                    ? "Originalqualität aktiv"
-                    : "Optimierte Auslieferung"}
-                </div>
               </div>
 
-              <div
-                style={{
-                  marginTop: 14,
-                  borderRadius: 16,
-                  border: qrxAdminItem.force_original_quality === true
-                    ? "1px solid #854d0e"
-                    : "1px solid #223146",
-                  background: qrxAdminItem.force_original_quality === true
-                    ? "#2c1806"
-                    : "#0b1324",
-                  padding: 16,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                  }}
-                >
-                  <div style={{ maxWidth: 780 }}>
-                    <h3 style={{ ...styles.panelTitle, marginBottom: 6 }}>
-                      Bildqualität Ausnahme
-                    </h3>
-                    <p style={{ ...styles.subtleText, marginTop: 0, marginBottom: 0 }}>
-                      Nur bei Bedarf aktivieren. Explore, Karten und Listen bleiben weiterhin schnell
-                      und nutzen kleine Varianten. Detailansicht, Galerie und Vollbild bevorzugen bei
-                      aktiver Ausnahme die Originaldatei.
+              <div style={styles.qualityExceptionBox}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "flex-start" }}>
+                  <div style={{ maxWidth: 760 }}>
+                    <h3 style={styles.qualityExceptionTitle}>Bildqualität Ausnahme</h3>
+                    <p style={styles.qualityExceptionText}>
+                      Standard ist die optimierte Bildauslieferung. Aktiviere Originalqualität nur bei besonderen QR-X,
+                      z. B. wenn ein Premium-Unternehmen hochwertige Fotos ohne Qualitätsverlust in Detailansicht,
+                      Galerie und Vollbild wünscht. Explore, Karten und Listen bleiben weiterhin Thumbnail-sicher.
                     </p>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={handleToggleQrxOriginalQuality}
-                    disabled={qrxQualityWorking}
-                    style={qrxAdminItem.force_original_quality === true ? styles.rejectButton : styles.refreshButton}
-                  >
-                    {qrxQualityWorking
-                      ? "Speichert…"
-                      : qrxAdminItem.force_original_quality === true
-                        ? "Originalqualität deaktivieren"
-                        : "Originalqualität erzwingen"}
-                  </button>
+                  <div style={styles.qualityExceptionStatus}>
+                    {qrxAdminItem.force_original_quality
+                      ? "Originalqualität aktiv"
+                      : "Optimiert aktiv"}
+                  </div>
                 </div>
 
-                {qrxQualityMessage ? (
-                  <div style={{ ...styles.resultBox, marginTop: 12 }}>
-                    {qrxQualityMessage}
-                  </div>
-                ) : null}
+                <div style={styles.bottomRow}>
+                  {qrxAdminItem.force_original_quality ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSetQrxOriginalQuality(false)}
+                      disabled={qrxQualityWorking}
+                      style={{
+                        ...styles.approveButton,
+                        opacity: qrxQualityWorking ? 0.65 : 1,
+                      }}
+                    >
+                      {qrxQualityWorking ? "Speichere…" : "Optimierte Auslieferung wieder aktivieren"}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleSetQrxOriginalQuality(true)}
+                      disabled={qrxQualityWorking}
+                      style={{
+                        ...styles.storageWarningButton,
+                        opacity: qrxQualityWorking ? 0.65 : 1,
+                      }}
+                    >
+                      {qrxQualityWorking ? "Speichere…" : "Originalqualität erzwingen"}
+                    </button>
+                  )}
+                </div>
+
+                {qrxQualityMessage ? <div style={styles.resultBox}>{qrxQualityMessage}</div> : null}
               </div>
 
               <div
@@ -6601,7 +6645,7 @@ if (refundAmount && refundAmount > 0) {
                           <label style={{ ...styles.filterLabel, display: "flex", alignItems: "center", gap: 10 }}>
                             <input
                               type="checkbox"
-                              checked={Boolean(pricingDrafts[pack.id]?.is_active)}
+                              checked={pricingDrafts[pack.id]?.is_active ? true : false}
                               onChange={(e) =>
                                 handlePricingDraftChange(pack.id, "is_active", e.target.checked)
                               }

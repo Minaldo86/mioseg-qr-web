@@ -8,9 +8,9 @@ type QrxQualityRow = {
   force_original_quality: boolean | null;
 };
 
-type PatchBody = {
+type RequestBody = {
   qrxId?: unknown;
-  forceOriginal?: unknown;
+  forceOriginalQuality?: unknown;
 };
 
 function getSupabaseAdmin() {
@@ -26,10 +26,14 @@ function getSupabaseAdmin() {
   });
 }
 
+function getQrxIdFromUrl(req: Request) {
+  const url = new URL(req.url);
+  return String(url.searchParams.get("qrxId") || "").trim();
+}
+
 export async function GET(req: Request) {
   try {
-    const url = new URL(req.url);
-    const qrxId = String(url.searchParams.get("qrxId") || "").trim();
+    const qrxId = getQrxIdFromUrl(req);
 
     if (!qrxId) {
       return NextResponse.json({ error: "Missing qrxId" }, { status: 400 });
@@ -53,8 +57,10 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      id: data.id,
-      force_original_quality: Boolean(data.force_original_quality),
+      qrx: {
+        id: data.id,
+        force_original_quality: data.force_original_quality ? true : false,
+      },
     });
   } catch (error) {
     return NextResponse.json(
@@ -66,19 +72,25 @@ export async function GET(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
-    const body = (await req.json().catch(() => ({}))) as PatchBody;
+    const body = (await req.json().catch(() => ({}))) as RequestBody;
     const qrxId = typeof body.qrxId === "string" ? body.qrxId.trim() : "";
-    const forceOriginal = Boolean(body.forceOriginal);
 
     if (!qrxId) {
       return NextResponse.json({ error: "Missing qrxId" }, { status: 400 });
+    }
+
+    if (typeof body.forceOriginalQuality !== "boolean") {
+      return NextResponse.json(
+        { error: "forceOriginalQuality must be boolean" },
+        { status: 400 }
+      );
     }
 
     const supabase = getSupabaseAdmin();
 
     const { data, error } = await supabase
       .from("qr_x_entries")
-      .update({ force_original_quality: forceOriginal })
+      .update({ force_original_quality: body.forceOriginalQuality })
       .eq("id", qrxId)
       .select("id, force_original_quality")
       .single<QrxQualityRow>();
@@ -89,8 +101,10 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      id: data.id,
-      force_original_quality: Boolean(data.force_original_quality),
+      qrx: {
+        id: data.id,
+        force_original_quality: data.force_original_quality ? true : false,
+      },
     });
   } catch (error) {
     return NextResponse.json(
