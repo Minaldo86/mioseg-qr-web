@@ -3439,6 +3439,7 @@ if (refundAmount && refundAmount > 0) {
         throw new Error("Bitte eine QR-X-ID eingeben.");
       }
 
+      setActiveAdminTab("reports");
       setQrxLookupLoading(true);
       setQrxAdminItem(null);
 
