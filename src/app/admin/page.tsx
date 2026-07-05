@@ -3463,7 +3463,7 @@ if (refundAmount && refundAmount > 0) {
       setQrxQualityWorking(true);
       setQrxQualityMessage(null);
 
-      const nextValue = !Boolean(qrxAdminItem.force_original_quality);
+      const nextValue = qrxAdminItem.force_original_quality !== true;
 
       const res = await fetch("/api/admin/qrx-quality", {
         method: "PATCH",
@@ -5407,8 +5407,8 @@ if (refundAmount && refundAmount > 0) {
                 <div style={styles.counterBadge}>
                   Score: {qrxAdminItem.report_score ?? 0}
                 </div>
-                <div style={Boolean(qrxAdminItem.force_original_quality) ? styles.waitBadge : styles.badge}>
-                  {Boolean(qrxAdminItem.force_original_quality)
+                <div style={qrxAdminItem.force_original_quality === true ? styles.waitBadge : styles.badge}>
+                  {qrxAdminItem.force_original_quality === true
                     ? "Originalqualität aktiv"
                     : "Optimierte Auslieferung"}
                 </div>
@@ -5418,10 +5418,10 @@ if (refundAmount && refundAmount > 0) {
                 style={{
                   marginTop: 14,
                   borderRadius: 16,
-                  border: Boolean(qrxAdminItem.force_original_quality)
+                  border: qrxAdminItem.force_original_quality === true
                     ? "1px solid #854d0e"
                     : "1px solid #223146",
-                  background: Boolean(qrxAdminItem.force_original_quality)
+                  background: qrxAdminItem.force_original_quality === true
                     ? "#2c1806"
                     : "#0b1324",
                   padding: 16,
@@ -5451,11 +5451,11 @@ if (refundAmount && refundAmount > 0) {
                     type="button"
                     onClick={handleToggleQrxOriginalQuality}
                     disabled={qrxQualityWorking}
-                    style={Boolean(qrxAdminItem.force_original_quality) ? styles.rejectButton : styles.refreshButton}
+                    style={qrxAdminItem.force_original_quality === true ? styles.rejectButton : styles.refreshButton}
                   >
                     {qrxQualityWorking
                       ? "Speichert…"
-                      : Boolean(qrxAdminItem.force_original_quality)
+                      : qrxAdminItem.force_original_quality === true
                         ? "Originalqualität deaktivieren"
                         : "Originalqualität erzwingen"}
                   </button>
