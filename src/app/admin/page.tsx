@@ -382,6 +382,7 @@ type MediaTrafficQrxItem = {
   totalBytes: number;
   todayBytes: number;
   monthBytes: number;
+  weekBytes?: number;
   lastSeenAt: string | null;
 };
 
@@ -394,6 +395,7 @@ type MediaTrafficMediaItem = {
   totalBytes: number;
   todayBytes: number;
   monthBytes: number;
+  weekBytes?: number;
   lastSeenAt: string | null;
 };
 
@@ -404,6 +406,7 @@ type MediaTrafficStats = {
     totalBytes: number;
     todayBytes: number;
     monthBytes: number;
+    weekBytes?: number;
     mediaCount: number;
     qrxCount: number;
     estimatedCostCents: number;
@@ -4594,15 +4597,56 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
 
   const renderMediaTrafficDashboard = () => {
     const summary = mediaTrafficStats?.summary;
+    const topQrx = mediaTrafficStats?.topQrx ?? [];
+    const topMedia = mediaTrafficStats?.topMedia ?? [];
+    const maxQrxBytes = Math.max(...topQrx.map((item) => item.totalBytes || 0), 1);
+    const maxMediaBytes = Math.max(...topMedia.map((item) => item.totalBytes || 0), 1);
+    const topQrxOne = topQrx[0];
+    const topMediaOne = topMedia[0];
+    const totalGb = (summary?.totalBytes ?? 0) / 1024 / 1024 / 1024;
+    const estimatedCost = ((summary?.estimatedCostCents ?? 0) / 100).toFixed(2).replace(".", ",");
+
+    const trafficInsightCards = [
+      {
+        label: "Traffic gesamt",
+        value: formatBytes(summary?.totalBytes),
+        hint: "Alle bisher getrackten Medien-Auslieferungen.",
+      },
+      {
+        label: "Heute",
+        value: formatBytes(summary?.todayBytes),
+        hint: "Traffic seit Tagesbeginn.",
+      },
+      {
+        label: "Letzte 7 Tage",
+        value: formatBytes(summary?.weekBytes),
+        hint: "Rollierender Wochenwert für schnelle Ausreißer-Erkennung.",
+      },
+      {
+        label: "Diesen Monat",
+        value: formatBytes(summary?.monthBytes),
+        hint: "Monatswert als Grundlage für Kostenkontrolle.",
+      },
+      {
+        label: "Top QR-X",
+        value: topQrxOne ? formatBytes(topQrxOne.totalBytes) : "–",
+        hint: topQrxOne ? topQrxOne.companyName || topQrxOne.title || topQrxOne.qrxId || "Unbekannt" : "Noch keine Daten.",
+      },
+      {
+        label: "geschätzte Egress-Kosten",
+        value: `${estimatedCost} €`,
+        hint: `${totalGb.toFixed(2).replace(".", ",")} GB · grobe Schätzung, später konfigurierbar.`,
+      },
+    ];
 
     return (
       <div style={styles.storagePanel}>
         <div style={styles.storageDetailHeader}>
           <div>
-            <h3 style={styles.storagePanelTitle}>Traffic-Analyse pro QR-X</h3>
+            <h3 style={styles.storagePanelTitle}>Top-Traffic Dashboard</h3>
             <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
-              Phase 2D.1: Ausgelieferte Medien, Datenvolumen und Top-Verursacher. Die Werte basieren auf
-              qrx_media_traffic_events und wachsen, sobald App/Web die Media-Auslieferung tracken.
+              Phase 2D.2: Zeigt die größten Traffic-Verursacher nach QR-X und einzelnen Medien. So erkennst du früh,
+              welche Profile, Bilder oder Varianten später deine Egress-Kosten treiben.
             </p>
           </div>
           <button
@@ -4618,32 +4662,20 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
         {mediaTrafficError ? <div style={styles.storageDetailHintBox}>⚠️ {mediaTrafficError}</div> : null}
 
         <div style={styles.storageHealthGrid}>
-          <div style={styles.storageMiniCard}>
-            <div style={styles.storageMiniLabel}>Traffic gesamt</div>
-            <div style={styles.storageMiniValue}>{formatBytes(summary?.totalBytes)}</div>
-          </div>
-          <div style={styles.storageMiniCard}>
-            <div style={styles.storageMiniLabel}>Diesen Monat</div>
-            <div style={styles.storageMiniValue}>{formatBytes(summary?.monthBytes)}</div>
-          </div>
-          <div style={styles.storageMiniCard}>
-            <div style={styles.storageMiniLabel}>Heute</div>
-            <div style={styles.storageMiniValue}>{formatBytes(summary?.todayBytes)}</div>
-          </div>
-          <div style={styles.storageMiniCard}>
-            <div style={styles.storageMiniLabel}>Events</div>
-            <div style={styles.storageMiniValue}>{formatNumber(summary?.eventCount)}</div>
-          </div>
-          <div style={styles.storageMiniCard}>
-            <div style={styles.storageMiniLabel}>QR-X mit Traffic</div>
-            <div style={styles.storageMiniValue}>{formatNumber(summary?.qrxCount)}</div>
-          </div>
-          <div style={styles.storageMiniCard}>
-            <div style={styles.storageMiniLabel}>geschätzte Egress-Kosten</div>
-            <div style={styles.storageMiniValue}>
-              {`${((summary?.estimatedCostCents ?? 0) / 100).toFixed(2).replace(".", ",")} €`}
+          {trafficInsightCards.map((card) => (
+            <div key={card.label} style={styles.storageMiniCard}>
+              <div style={styles.storageMiniLabel}>{card.label}</div>
+              <div style={styles.storageMiniValue}>{card.value}</div>
+              <div style={styles.storageMetricHint}>{card.hint}</div>
             </div>
-          </div>
+          ))}
+        </div>
+
+        <div style={{ ...styles.storageDetailHintBox, borderColor: "#854d0e", background: "#2c1806", color: "#fed7aa" }}>
+          <strong style={{ color: "#fde68a" }}>Traffic Health:</strong>{" "}
+          {summary?.eventCount
+            ? `Es wurden ${formatNumber(summary.eventCount)} Media-Events erfasst. Der größte QR-X verursacht ${topQrxOne ? formatBytes(topQrxOne.totalBytes) : "0 B"}.`
+            : "Noch keine echten Media-Traffic-Daten vorhanden. Werte erscheinen, sobald App/Web die Tracking-API beim Bildladen aufrufen."}
         </div>
 
         <div style={styles.storageDetailGrid}>
@@ -4653,28 +4685,40 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
               <table style={styles.storageTable}>
                 <thead>
                   <tr>
+                    <th style={styles.storageTableTh}>Rang</th>
                     <th style={styles.storageTableTh}>QR-X</th>
                     <th style={styles.storageTableTh}>Traffic</th>
-                    <th style={styles.storageTableTh}>Monat</th>
+                    <th style={styles.storageTableTh}>7 Tage</th>
+                    <th style={styles.storageTableTh}>Heute</th>
                     <th style={styles.storageTableTh}>Events</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(mediaTrafficStats?.topQrx ?? []).slice(0, 8).map((item) => (
-                    <tr key={item.qrxId || "unknown-qrx"}>
-                      <td style={styles.storageTableTd}>
-                        <span style={styles.storageFilename} title={item.qrxId || ""}>
-                          {item.companyName || item.title || item.qrxId || "Unbekannt"}
-                        </span>
-                      </td>
-                      <td style={styles.storageTableTd}>{formatBytes(item.totalBytes)}</td>
-                      <td style={styles.storageTableTd}>{formatBytes(item.monthBytes)}</td>
-                      <td style={styles.storageTableTd}>{formatNumber(item.eventCount)}</td>
-                    </tr>
-                  ))}
-                  {(mediaTrafficStats?.topQrx ?? []).length === 0 ? (
+                  {topQrx.slice(0, 12).map((item, index) => {
+                    const width = Math.max(4, Math.round(((item.totalBytes || 0) / maxQrxBytes) * 100));
+                    return (
+                      <tr key={item.qrxId || `unknown-qrx-${index}`}>
+                        <td style={styles.storageTableTd}>{index + 1}</td>
+                        <td style={styles.storageTableTd}>
+                          <div style={{ display: "grid", gap: 6, minWidth: 180 }}>
+                            <span style={styles.storageFilename} title={item.qrxId || ""}>
+                              {item.companyName || item.title || item.qrxId || "Unbekannt"}
+                            </span>
+                            <div style={styles.storageProgressTrack}>
+                              <div style={{ ...styles.storageProgressBar, width: `${width}%` }} />
+                            </div>
+                          </div>
+                        </td>
+                        <td style={styles.storageTableTd}>{formatBytes(item.totalBytes)}</td>
+                        <td style={styles.storageTableTd}>{formatBytes(item.weekBytes)}</td>
+                        <td style={styles.storageTableTd}>{formatBytes(item.todayBytes)}</td>
+                        <td style={styles.storageTableTd}>{formatNumber(item.eventCount)}</td>
+                      </tr>
+                    );
+                  })}
+                  {topQrx.length === 0 ? (
                     <tr>
-                      <td style={styles.storageTableTd} colSpan={4}>Noch keine Traffic-Daten vorhanden.</td>
+                      <td style={styles.storageTableTd} colSpan={6}>Noch keine Traffic-Daten vorhanden.</td>
                     </tr>
                   ) : null}
                 </tbody>
@@ -4688,6 +4732,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
               <table style={styles.storageTable}>
                 <thead>
                   <tr>
+                    <th style={styles.storageTableTh}>Rang</th>
                     <th style={styles.storageTableTh}>Medium</th>
                     <th style={styles.storageTableTh}>Variante</th>
                     <th style={styles.storageTableTh}>Traffic</th>
@@ -4695,25 +4740,51 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
                   </tr>
                 </thead>
                 <tbody>
-                  {(mediaTrafficStats?.topMedia ?? []).slice(0, 8).map((item) => (
-                    <tr key={`${item.mediaId || "unknown"}-${item.variant || "variant"}`}>
-                      <td style={styles.storageTableTd}>
-                        <span style={styles.storageFilename} title={item.mediaId || ""}>
-                          {item.filename || item.mediaId || "Unbekannt"}
-                        </span>
-                      </td>
-                      <td style={styles.storageTableTd}>{item.variant || "–"}</td>
-                      <td style={styles.storageTableTd}>{formatBytes(item.totalBytes)}</td>
-                      <td style={styles.storageTableTd}>{formatNumber(item.eventCount)}</td>
-                    </tr>
-                  ))}
-                  {(mediaTrafficStats?.topMedia ?? []).length === 0 ? (
+                  {topMedia.slice(0, 12).map((item, index) => {
+                    const width = Math.max(4, Math.round(((item.totalBytes || 0) / maxMediaBytes) * 100));
+                    return (
+                      <tr key={`${item.mediaId || "unknown"}-${item.variant || "variant"}-${index}`}>
+                        <td style={styles.storageTableTd}>{index + 1}</td>
+                        <td style={styles.storageTableTd}>
+                          <div style={{ display: "grid", gap: 6, minWidth: 180 }}>
+                            <span style={styles.storageFilename} title={item.mediaId || ""}>
+                              {item.filename || item.mediaId || "Unbekannt"}
+                            </span>
+                            <div style={styles.storageProgressTrack}>
+                              <div style={{ ...styles.storageProgressBar, width: `${width}%` }} />
+                            </div>
+                          </div>
+                        </td>
+                        <td style={styles.storageTableTd}>{item.variant || "–"}</td>
+                        <td style={styles.storageTableTd}>{formatBytes(item.totalBytes)}</td>
+                        <td style={styles.storageTableTd}>{formatNumber(item.eventCount)}</td>
+                      </tr>
+                    );
+                  })}
+                  {topMedia.length === 0 ? (
                     <tr>
-                      <td style={styles.storageTableTd} colSpan={4}>Noch keine Media-Traffic-Daten vorhanden.</td>
+                      <td style={styles.storageTableTd} colSpan={5}>Noch keine Media-Traffic-Daten vorhanden.</td>
                     </tr>
                   ) : null}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.storageDetailGrid}>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Teuerstes Medium</div>
+            <div style={styles.storageMiniValue}>{topMediaOne ? formatBytes(topMediaOne.totalBytes) : "–"}</div>
+            <div style={styles.storageMetricHint}>
+              {topMediaOne ? topMediaOne.filename || topMediaOne.mediaId || "Unbekannt" : "Noch keine Daten."}
+            </div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Tracking-Abdeckung</div>
+            <div style={styles.storageMiniValue}>{formatNumber(summary?.mediaCount)} Medien</div>
+            <div style={styles.storageMetricHint}>
+              {formatNumber(summary?.qrxCount)} QR-X mit mindestens einem Traffic-Event.
             </div>
           </div>
         </div>

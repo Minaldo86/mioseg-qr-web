@@ -9,13 +9,17 @@ type TrafficEventRow = {
   variant: string | null;
   bytes: number | null;
   created_at: string | null;
-  qr_x_entries?: {
-    title: string | null;
-    company_name: string | null;
-  }[] | null;
-  qr_x_media?: {
-    filename: string | null;
-  }[] | null;
+  qr_x_entries?:
+    | {
+        title: string | null;
+        company_name: string | null;
+      }[]
+    | null;
+  qr_x_media?:
+    | {
+        filename: string | null;
+      }[]
+    | null;
 };
 
 type QrxAgg = {
@@ -26,6 +30,7 @@ type QrxAgg = {
   totalBytes: number;
   todayBytes: number;
   monthBytes: number;
+  weekBytes: number;
   lastSeenAt: string | null;
 };
 
@@ -38,6 +43,7 @@ type MediaAgg = {
   totalBytes: number;
   todayBytes: number;
   monthBytes: number;
+  weekBytes: number;
   lastSeenAt: string | null;
 };
 
@@ -67,6 +73,12 @@ function isSameMonth(value: string | null | undefined, startOfMonth: number) {
   return Number.isFinite(time) && time >= startOfMonth;
 }
 
+function isSameWeek(value: string | null | undefined, startOfWeek: number) {
+  if (!value) return false;
+  const time = new Date(value).getTime();
+  return Number.isFinite(time) && time >= startOfWeek;
+}
+
 function maxDate(a: string | null, b: string | null) {
   if (!a) return b;
   if (!b) return a;
@@ -79,6 +91,10 @@ export async function GET() {
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const startOfWeekDate = new Date(now);
+    startOfWeekDate.setDate(now.getDate() - 6);
+    startOfWeekDate.setHours(0, 0, 0, 0);
+    const startOfWeek = startOfWeekDate.getTime();
 
     const { data, error } = await supabase
       .from("qrx_media_traffic_events")
@@ -90,24 +106,25 @@ export async function GET() {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const rows: TrafficEventRow[] = Array.isArray(data)
-      ? (data as unknown as TrafficEventRow[])
-      : [];
+    const rows = (Array.isArray(data) ? data : []) as unknown as TrafficEventRow[];
     const qrxMap = new Map<string, QrxAgg>();
     const mediaMap = new Map<string, MediaAgg>();
 
     let totalBytes = 0;
     let todayBytes = 0;
     let monthBytes = 0;
+    let weekBytes = 0;
 
     for (const row of rows) {
       const bytes = safeBytes(row.bytes);
       const today = isSameDay(row.created_at, startOfDay);
       const month = isSameMonth(row.created_at, startOfMonth);
+      const week = isSameWeek(row.created_at, startOfWeek);
 
       totalBytes += bytes;
       if (today) todayBytes += bytes;
       if (month) monthBytes += bytes;
+      if (week) weekBytes += bytes;
 
       const qrxKey = row.qrx_id || "unknown";
       const qrxExisting = qrxMap.get(qrxKey) ?? {
@@ -118,12 +135,14 @@ export async function GET() {
         totalBytes: 0,
         todayBytes: 0,
         monthBytes: 0,
+        weekBytes: 0,
         lastSeenAt: null,
       };
       qrxExisting.eventCount += 1;
       qrxExisting.totalBytes += bytes;
       if (today) qrxExisting.todayBytes += bytes;
       if (month) qrxExisting.monthBytes += bytes;
+      if (week) qrxExisting.weekBytes += bytes;
       qrxExisting.lastSeenAt = maxDate(qrxExisting.lastSeenAt, row.created_at);
       qrxMap.set(qrxKey, qrxExisting);
 
@@ -137,12 +156,14 @@ export async function GET() {
         totalBytes: 0,
         todayBytes: 0,
         monthBytes: 0,
+        weekBytes: 0,
         lastSeenAt: null,
       };
       mediaExisting.eventCount += 1;
       mediaExisting.totalBytes += bytes;
       if (today) mediaExisting.todayBytes += bytes;
       if (month) mediaExisting.monthBytes += bytes;
+      if (week) mediaExisting.weekBytes += bytes;
       mediaExisting.lastSeenAt = maxDate(mediaExisting.lastSeenAt, row.created_at);
       mediaMap.set(mediaKey, mediaExisting);
     }
@@ -160,6 +181,7 @@ export async function GET() {
         totalBytes,
         todayBytes,
         monthBytes,
+        weekBytes,
         mediaCount: mediaMap.size,
         qrxCount: qrxMap.size,
         estimatedCostCents,
