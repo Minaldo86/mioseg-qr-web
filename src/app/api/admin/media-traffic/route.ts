@@ -72,6 +72,20 @@ type StorageMediaRow = {
   bytes: number | null;
   original_bytes: number | null;
   optimized_bytes: number | null;
+  processing_status?: string | null;
+};
+
+type HealthRecommendation = {
+  id: string;
+  severity: "info" | "warning" | "critical";
+  category: "traffic" | "storage" | "cost" | "quality" | "jobs";
+  title: string;
+  description: string;
+  actionLabel?: string;
+  qrxId?: string | null;
+  mediaId?: string | null;
+  estimatedSavingsBytes?: number;
+  estimatedSavingsCostCents?: number;
 };
 
 type StorageAgg = {
@@ -155,7 +169,7 @@ export async function GET() {
 
     const { data: mediaRowsRaw, error: mediaRowsError } = await supabase
       .from("qr_x_media")
-      .select("id, qrx_id, filename, bytes, original_bytes, optimized_bytes")
+      .select("id, qrx_id, filename, bytes, original_bytes, optimized_bytes, processing_status")
       .limit(20000);
 
     if (mediaRowsError) return NextResponse.json({ error: mediaRowsError.message }, { status: 500 });
@@ -169,12 +183,24 @@ export async function GET() {
     const storageByMedia = new Map<string, StorageAgg>();
 
     let totalStorageBytes = 0;
+    let optimizedMediaCount = 0;
+    let failedMediaCount = 0;
+    let largeOriginalMediaCount = 0;
+    let largeOriginalBytes = 0;
 
     for (const media of storageRows) {
       const originalBytes = safeBytes(media.original_bytes) || safeBytes(media.bytes);
       const optimizedBytes = safeBytes(media.optimized_bytes);
       const storageBytes = originalBytes + optimizedBytes;
       totalStorageBytes += storageBytes;
+
+      const status = String(media.processing_status || "").toLowerCase();
+      if (optimizedBytes > 0 || status === "ready" || status === "done" || status === "optimized") optimizedMediaCount += 1;
+      if (status === "failed" || status === "error") failedMediaCount += 1;
+      if (originalBytes >= 10 * 1024 * 1024) {
+        largeOriginalMediaCount += 1;
+        largeOriginalBytes += originalBytes;
+      }
 
       const qrxKey = media.qrx_id || "unknown";
       storageByQrx.set(qrxKey, (storageByQrx.get(qrxKey) ?? 0) + storageBytes);
@@ -315,10 +341,124 @@ export async function GET() {
     const estimatedStorageCostCents = estimateStorageCostCents(totalStorageBytes);
     const estimatedTotalCostCents = estimatedMonthCostCents + estimatedStorageCostCents;
 
+    const largestMediaSharePercent = totalBytes > 0 ? Math.round((largestMediaBytes / totalBytes) * 1000) / 10 : 0;
+    const originalVariant = topVariants.find((item) => item.variant === "original");
+    const largeVariant = topVariants.find((item) => item.variant === "large");
+    const originalLikeBytes = (originalVariant?.totalBytes ?? 0) + (largeVariant?.totalBytes ?? 0);
+    const originalLikeSharePercent = totalBytes > 0 ? Math.round((originalLikeBytes / totalBytes) * 1000) / 10 : 0;
+    const optimizedSharePercent = storageRows.length > 0 ? Math.round((optimizedMediaCount / storageRows.length) * 1000) / 10 : 0;
+    const failedSharePercent = storageRows.length > 0 ? Math.round((failedMediaCount / storageRows.length) * 1000) / 10 : 0;
+
+    const recommendations: HealthRecommendation[] = [];
+
+    if (failedMediaCount > 0) {
+      recommendations.push({
+        id: "failed-media-jobs",
+        severity: failedMediaCount >= 10 ? "critical" : "warning",
+        category: "jobs",
+        title: "Fehlgeschlagene Medien-Jobs prüfen",
+        description: `${failedMediaCount} Medium/Medien haben einen Fehlerstatus. Starte Retry oder Bulk-Reprocess, damit keine alten Originale unnötig ausgeliefert werden.`,
+        actionLabel: "Failed Jobs öffnen",
+      });
+    }
+
+    if (largestQrxSharePercent >= 40 && topQrx[0]) {
+      recommendations.push({
+        id: "traffic-concentration-qrx",
+        severity: largestQrxSharePercent >= 70 ? "critical" : "warning",
+        category: "traffic",
+        title: "Ein QR-X dominiert den Traffic",
+        description: `${topQrx[0].companyName || topQrx[0].title || topQrx[0].qrxId || "Ein QR-X"} verursacht ${largestQrxSharePercent}% des gesamten Media-Traffics. Prüfe dort Bilder, Originalqualität und Varianten-Auslieferung.`,
+        actionLabel: "QR-X prüfen",
+        qrxId: topQrx[0].qrxId,
+        estimatedSavingsBytes: Math.round(topQrx[0].totalBytes * 0.5),
+        estimatedSavingsCostCents: estimateEgressCostCents(Math.round(topQrx[0].totalBytes * 0.5)),
+      });
+    }
+
+    if (largestMediaSharePercent >= 35 && topMedia[0]) {
+      recommendations.push({
+        id: "traffic-concentration-media",
+        severity: largestMediaSharePercent >= 60 ? "critical" : "warning",
+        category: "traffic",
+        title: "Ein Medium verursacht sehr viel Traffic",
+        description: `${topMedia[0].filename || topMedia[0].mediaId || "Ein Medium"} verursacht ${largestMediaSharePercent}% des Media-Traffics. Prüfe, ob Thumbnail/Medium statt Large/Original ausgeliefert werden sollte.`,
+        actionLabel: "Medium prüfen",
+        mediaId: topMedia[0].mediaId,
+        qrxId: topMedia[0].qrxId,
+        estimatedSavingsBytes: Math.round(topMedia[0].totalBytes * 0.45),
+        estimatedSavingsCostCents: estimateEgressCostCents(Math.round(topMedia[0].totalBytes * 0.45)),
+      });
+    }
+
+    if (originalLikeSharePercent >= 40) {
+      recommendations.push({
+        id: "original-like-delivery",
+        severity: originalLikeSharePercent >= 70 ? "critical" : "warning",
+        category: "quality",
+        title: "Viele große Varianten werden ausgeliefert",
+        description: `${originalLikeSharePercent}% des Traffics entfallen auf Original/Large-Varianten. Für Explore, Karten und Listen sollten weiterhin kleine Varianten genutzt werden.`,
+        actionLabel: "Smart Delivery prüfen",
+        estimatedSavingsBytes: Math.round(originalLikeBytes * 0.55),
+        estimatedSavingsCostCents: estimateEgressCostCents(Math.round(originalLikeBytes * 0.55)),
+      });
+    }
+
+    if (largeOriginalMediaCount > 0) {
+      recommendations.push({
+        id: "large-original-files",
+        severity: largeOriginalMediaCount >= 20 ? "warning" : "info",
+        category: "storage",
+        title: "Große Originaldateien gefunden",
+        description: `${largeOriginalMediaCount} Originaldatei(en) sind größer als 10 MB. Prüfe, ob diese wirklich in Originalqualität benötigt werden oder ob Reprocess reicht.`,
+        actionLabel: "Speicherfresser prüfen",
+        estimatedSavingsBytes: Math.round(largeOriginalBytes * 0.4),
+        estimatedSavingsCostCents: estimateStorageCostCents(Math.round(largeOriginalBytes * 0.4)),
+      });
+    }
+
+    if (estimatedTotalCostCents >= 500) {
+      recommendations.push({
+        id: "monthly-cost-watch",
+        severity: estimatedTotalCostCents >= 2000 ? "critical" : "warning",
+        category: "cost",
+        title: "Monatskosten beobachten",
+        description: `Die geschätzten Monatskosten liegen aktuell bei ${(estimatedTotalCostCents / 100).toFixed(2).replace(".", ",")} €. Prüfe Top-Kosten-QR-X und große Medien.`,
+        actionLabel: "Kostenliste prüfen",
+      });
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push({
+        id: "all-good",
+        severity: "info",
+        category: "storage",
+        title: "Keine akuten Auffälligkeiten",
+        description: rows.length > 0 ? "Traffic, Speicher und Kosten wirken aktuell unauffällig. Behalte die Entwicklung weiter im Blick." : "Noch keine Traffic-Daten vorhanden. Sobald App/Web Media-Events senden, erscheinen hier konkrete Empfehlungen.",
+      });
+    }
+
+    let healthScore = 100;
+    healthScore -= failedMediaCount > 0 ? Math.min(25, failedMediaCount * 2) : 0;
+    healthScore -= largestQrxSharePercent >= 70 ? 25 : largestQrxSharePercent >= 40 ? 12 : 0;
+    healthScore -= largestMediaSharePercent >= 60 ? 18 : largestMediaSharePercent >= 35 ? 9 : 0;
+    healthScore -= originalLikeSharePercent >= 70 ? 18 : originalLikeSharePercent >= 40 ? 8 : 0;
+    healthScore -= estimatedTotalCostCents >= 2000 ? 15 : estimatedTotalCostCents >= 500 ? 6 : 0;
+    healthScore = Math.max(0, Math.min(100, Math.round(healthScore)));
+
+    const healthGrade =
+      healthScore >= 90
+        ? "excellent"
+        : healthScore >= 75
+          ? "healthy"
+          : healthScore >= 55
+            ? "watch"
+            : "critical";
+
     const healthStatus =
-      largestQrxSharePercent >= 70
+      failedMediaCount > 0 || largestQrxSharePercent >= 70 || largestMediaSharePercent >= 60
         ? "critical"
-        : largestQrxSharePercent >= 40
+        : largestQrxSharePercent >= 40 || originalLikeSharePercent >= 40 || estimatedTotalCostCents >= 500
           ? "watch"
           : rows.length > 0
             ? "healthy"
@@ -346,7 +486,18 @@ export async function GET() {
         largestQrxBytes,
         largestMediaBytes,
         largestQrxSharePercent,
+        largestMediaSharePercent,
         averageBytesPerEvent,
+        optimizedMediaCount,
+        optimizedSharePercent,
+        failedMediaCount,
+        failedSharePercent,
+        largeOriginalMediaCount,
+        largeOriginalBytes,
+        originalLikeBytes,
+        originalLikeSharePercent,
+        healthScore,
+        healthGrade,
         healthStatus,
       },
       topQrx,
@@ -356,6 +507,7 @@ export async function GET() {
       topCostQrx,
       topCostMedia,
       topVariants,
+      recommendations,
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {

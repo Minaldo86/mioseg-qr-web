@@ -407,6 +407,19 @@ type MediaTrafficMediaItem = {
   lastSeenAt: string | null;
 };
 
+type MediaHealthRecommendation = {
+  id: string;
+  severity: "info" | "warning" | "critical";
+  category: "traffic" | "storage" | "cost" | "quality" | "jobs";
+  title: string;
+  description: string;
+  actionLabel?: string;
+  qrxId?: string | null;
+  mediaId?: string | null;
+  estimatedSavingsBytes?: number;
+  estimatedSavingsCostCents?: number;
+};
+
 type MediaTrafficStats = {
   ok: boolean;
   summary: {
@@ -429,7 +442,18 @@ type MediaTrafficStats = {
     largestQrxBytes?: number;
     largestMediaBytes?: number;
     largestQrxSharePercent?: number;
+    largestMediaSharePercent?: number;
     averageBytesPerEvent?: number;
+    optimizedMediaCount?: number;
+    optimizedSharePercent?: number;
+    failedMediaCount?: number;
+    failedSharePercent?: number;
+    largeOriginalMediaCount?: number;
+    largeOriginalBytes?: number;
+    originalLikeBytes?: number;
+    originalLikeSharePercent?: number;
+    healthScore?: number;
+    healthGrade?: "excellent" | "healthy" | "watch" | "critical" | string;
     healthStatus?: "empty" | "healthy" | "watch" | "critical" | string;
   };
   topQrx: MediaTrafficQrxItem[];
@@ -447,6 +471,7 @@ type MediaTrafficStats = {
     monthBytes: number;
     sharePercent: number;
   }>;
+  recommendations?: MediaHealthRecommendation[];
   updatedAt: string;
 };
 
@@ -4640,6 +4665,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
     const topCostQrx = mediaTrafficStats?.topCostQrx ?? [];
     const topCostMedia = mediaTrafficStats?.topCostMedia ?? [];
     const topVariants = mediaTrafficStats?.topVariants ?? [];
+    const recommendations = mediaTrafficStats?.recommendations ?? [];
     const maxQrxBytes = Math.max(...topQrx.map((item) => item.totalBytes || 0), 1);
     const maxMediaBytes = Math.max(...topMedia.map((item) => item.totalBytes || 0), 1);
     const topQrxOne = topQrx[0];
@@ -4663,6 +4689,18 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
           : healthStatus === "healthy"
             ? "Gesund · Traffic ist verteilt"
             : "Noch keine Daten";
+    const healthScore = summary?.healthScore ?? 0;
+    const healthGrade = summary?.healthGrade ?? "empty";
+    const healthScoreLabel =
+      healthGrade === "excellent"
+        ? "Exzellent"
+        : healthGrade === "healthy"
+          ? "Gut"
+          : healthGrade === "watch"
+            ? "Beobachten"
+            : healthGrade === "critical"
+              ? "Kritisch"
+              : "Noch keine Daten";
 
     const trafficInsightCards = [
       {
@@ -4721,6 +4759,26 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
         hint: "Durchschnittlich ausgelieferte Datenmenge je Media-Event.",
       },
       {
+        label: "Storage Health Score",
+        value: summary?.eventCount || summary?.totalStorageBytes ? `${healthScore} / 100` : "–",
+        hint: `${healthScoreLabel} · Bewertung aus Traffic-Verteilung, Fehlern, Kosten und großen Varianten.`,
+      },
+      {
+        label: "Optimierte Medien",
+        value: summary?.optimizedSharePercent != null ? `${summary.optimizedSharePercent}%` : "–",
+        hint: `${formatNumber(summary?.optimizedMediaCount)} Medien mit optimiertem Status oder optimierter Größe.`,
+      },
+      {
+        label: "Fehlerhafte Medien",
+        value: formatNumber(summary?.failedMediaCount),
+        hint: summary?.failedMediaCount ? "Bitte Retry/Bulk-Reprocess prüfen." : "Keine fehlerhaften Media-Jobs in der Analyse.",
+      },
+      {
+        label: "Große Originale",
+        value: formatNumber(summary?.largeOriginalMediaCount),
+        hint: `${formatBytes(summary?.largeOriginalBytes)} Originaldaten größer als 10 MB.`,
+      },
+      {
         label: "Traffic Health",
         value: healthLabel,
         hint: `${summary?.largestQrxSharePercent ?? 0}% Anteil beim größten QR-X.`,
@@ -4733,7 +4791,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
           <div>
             <h3 style={styles.storagePanelTitle}>Top-Traffic Dashboard</h3>
             <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
-              Phase 2D.3: Zeigt Traffic, Speicherverbrauch und geschätzte Kosten nach QR-X und Medien. So erkennst du früh,
+              Phase 2D.4: Zeigt Traffic, Speicherverbrauch, geschätzte Kosten und automatische Health-Empfehlungen nach QR-X und Medien. So erkennst du früh,
               welche Profile, Bilder oder Varianten später deine Betriebskosten treiben.
             </p>
           </div>
@@ -4764,6 +4822,42 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
           {summary?.eventCount
             ? `${healthLabel}. Es wurden ${formatNumber(summary.eventCount)} Media-Events erfasst. Der größte QR-X verursacht ${topQrxOne ? formatBytes(topQrxOne.totalBytes) : "0 B"} (${summary.largestQrxSharePercent ?? 0}%).`
             : "Noch keine echten Media-Traffic-Daten vorhanden. Werte erscheinen, sobald App/Web die Tracking-API beim Bildladen aufrufen."}
+        </div>
+
+        <div style={styles.storagePanel}>
+          <div style={styles.storageDetailHeader}>
+            <div>
+              <h3 style={styles.storagePanelTitle}>Storage Health & Empfehlungen</h3>
+              <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
+                Phase 2D.4: Das System bewertet Traffic, Speicher, Kosten und Media-Jobs automatisch und zeigt dir konkrete Handlungsempfehlungen.
+              </p>
+            </div>
+            <span style={styles.storageStatusBadge}>{healthScoreLabel} · {healthScore || 0}/100</span>
+          </div>
+
+          <div style={styles.storageHealthGrid}>
+            {(recommendations.length ? recommendations : []).slice(0, 6).map((item) => {
+              const borderColor = item.severity === "critical" ? "#991b1b" : item.severity === "warning" ? "#854d0e" : "#243044";
+              const bg = item.severity === "critical" ? "#3f1111" : item.severity === "warning" ? "#2c1806" : "#111827";
+              const titleColor = item.severity === "critical" ? "#fecaca" : item.severity === "warning" ? "#fde68a" : "#e2e8f0";
+              return (
+                <div key={item.id} style={{ ...styles.storageMiniCard, borderColor, background: bg }}>
+                  <div style={{ ...styles.storageMiniLabel, color: titleColor }}>
+                    {item.severity === "critical" ? "Kritisch" : item.severity === "warning" ? "Empfehlung" : "Hinweis"} · {item.category}
+                  </div>
+                  <div style={{ ...styles.storageMiniValue, fontSize: 16, color: titleColor }}>{item.title}</div>
+                  <div style={styles.storageMetricHint}>{item.description}</div>
+                  {item.estimatedSavingsBytes || item.estimatedSavingsCostCents ? (
+                    <div style={{ ...styles.storageMetricHint, color: "#bbf7d0" }}>
+                      Potenzial: {item.estimatedSavingsBytes ? formatBytes(item.estimatedSavingsBytes) : "–"}
+                      {item.estimatedSavingsCostCents ? ` · ${formatCost(item.estimatedSavingsCostCents)}` : ""}
+                    </div>
+                  ) : null}
+                  {item.actionLabel ? <div style={{ ...styles.storageMetricHint, fontWeight: 900 }}>{item.actionLabel}</div> : null}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div style={styles.storageDetailGrid}>
