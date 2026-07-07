@@ -374,6 +374,45 @@ type StorageMediaStats = {
   updatedAt: string;
 };
 
+type MediaTrafficQrxItem = {
+  qrxId: string | null;
+  title: string | null;
+  companyName: string | null;
+  eventCount: number;
+  totalBytes: number;
+  todayBytes: number;
+  monthBytes: number;
+  lastSeenAt: string | null;
+};
+
+type MediaTrafficMediaItem = {
+  mediaId: string | null;
+  qrxId: string | null;
+  filename: string | null;
+  variant: string | null;
+  eventCount: number;
+  totalBytes: number;
+  todayBytes: number;
+  monthBytes: number;
+  lastSeenAt: string | null;
+};
+
+type MediaTrafficStats = {
+  ok: boolean;
+  summary: {
+    eventCount: number;
+    totalBytes: number;
+    todayBytes: number;
+    monthBytes: number;
+    mediaCount: number;
+    qrxCount: number;
+    estimatedCostCents: number;
+  };
+  topQrx: MediaTrafficQrxItem[];
+  topMedia: MediaTrafficMediaItem[];
+  updatedAt: string;
+};
+
 
 type FinanceInvoiceEntry = {
   id: string;
@@ -2181,6 +2220,9 @@ export default function AdminPage() {
   const [storageMediaStats, setStorageMediaStats] = useState<StorageMediaStats | null>(null);
   const [storageMediaLoading, setStorageMediaLoading] = useState(false);
   const [storageMediaError, setStorageMediaError] = useState<string | null>(null);
+  const [mediaTrafficStats, setMediaTrafficStats] = useState<MediaTrafficStats | null>(null);
+  const [mediaTrafficLoading, setMediaTrafficLoading] = useState(false);
+  const [mediaTrafficError, setMediaTrafficError] = useState<string | null>(null);
   const [storageMediaSearch, setStorageMediaSearch] = useState("");
   const [storageMediaTypeFilter, setStorageMediaTypeFilter] = useState("all");
   const [storageMediaStatusFilter, setStorageMediaStatusFilter] = useState("all");
@@ -2305,6 +2347,29 @@ export default function AdminPage() {
       );
     } finally {
       setStorageMediaLoading(false);
+    }
+  };
+
+  const fetchMediaTrafficStats = async () => {
+    try {
+      setMediaTrafficLoading(true);
+      setMediaTrafficError(null);
+
+      const res = await fetch("/api/admin/media-traffic", { cache: "no-store" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Traffic-Statistiken konnten nicht geladen werden.");
+      }
+
+      setMediaTrafficStats(data as MediaTrafficStats);
+    } catch (error) {
+      console.error("fetchMediaTrafficStats error:", error);
+      setMediaTrafficError(
+        error instanceof Error ? error.message : "Traffic-Statistiken konnten nicht geladen werden."
+      );
+    } finally {
+      setMediaTrafficLoading(false);
     }
   };
 
@@ -3768,6 +3833,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
   useEffect(() => {
     void fetchStorageMediaStats();
     void fetchMediaJobs();
+    void fetchMediaTrafficStats();
   }, []);
 
   useEffect(() => {
@@ -3776,6 +3842,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
     const timer = window.setInterval(() => {
       void fetchMediaJobs();
       void fetchStorageMediaStats();
+      void fetchMediaTrafficStats();
     }, 5000);
 
     return () => window.clearInterval(timer);
@@ -4525,6 +4592,135 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
     );
   };
 
+  const renderMediaTrafficDashboard = () => {
+    const summary = mediaTrafficStats?.summary;
+
+    return (
+      <div style={styles.storagePanel}>
+        <div style={styles.storageDetailHeader}>
+          <div>
+            <h3 style={styles.storagePanelTitle}>Traffic-Analyse pro QR-X</h3>
+            <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
+              Phase 2D.1: Ausgelieferte Medien, Datenvolumen und Top-Verursacher. Die Werte basieren auf
+              qrx_media_traffic_events und wachsen, sobald App/Web die Media-Auslieferung tracken.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={fetchMediaTrafficStats}
+            disabled={mediaTrafficLoading}
+            style={styles.smallButton}
+          >
+            {mediaTrafficLoading ? "Lade…" : "Traffic aktualisieren"}
+          </button>
+        </div>
+
+        {mediaTrafficError ? <div style={styles.storageDetailHintBox}>⚠️ {mediaTrafficError}</div> : null}
+
+        <div style={styles.storageHealthGrid}>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Traffic gesamt</div>
+            <div style={styles.storageMiniValue}>{formatBytes(summary?.totalBytes)}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Diesen Monat</div>
+            <div style={styles.storageMiniValue}>{formatBytes(summary?.monthBytes)}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Heute</div>
+            <div style={styles.storageMiniValue}>{formatBytes(summary?.todayBytes)}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Events</div>
+            <div style={styles.storageMiniValue}>{formatNumber(summary?.eventCount)}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>QR-X mit Traffic</div>
+            <div style={styles.storageMiniValue}>{formatNumber(summary?.qrxCount)}</div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>geschätzte Egress-Kosten</div>
+            <div style={styles.storageMiniValue}>
+              {`${((summary?.estimatedCostCents ?? 0) / 100).toFixed(2).replace(".", ",")} €`}
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.storageDetailGrid}>
+          <div>
+            <h3 style={styles.storagePanelTitle}>Top QR-X nach Traffic</h3>
+            <div style={styles.storageTableWrap}>
+              <table style={styles.storageTable}>
+                <thead>
+                  <tr>
+                    <th style={styles.storageTableTh}>QR-X</th>
+                    <th style={styles.storageTableTh}>Traffic</th>
+                    <th style={styles.storageTableTh}>Monat</th>
+                    <th style={styles.storageTableTh}>Events</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(mediaTrafficStats?.topQrx ?? []).slice(0, 8).map((item) => (
+                    <tr key={item.qrxId || "unknown-qrx"}>
+                      <td style={styles.storageTableTd}>
+                        <span style={styles.storageFilename} title={item.qrxId || ""}>
+                          {item.companyName || item.title || item.qrxId || "Unbekannt"}
+                        </span>
+                      </td>
+                      <td style={styles.storageTableTd}>{formatBytes(item.totalBytes)}</td>
+                      <td style={styles.storageTableTd}>{formatBytes(item.monthBytes)}</td>
+                      <td style={styles.storageTableTd}>{formatNumber(item.eventCount)}</td>
+                    </tr>
+                  ))}
+                  {(mediaTrafficStats?.topQrx ?? []).length === 0 ? (
+                    <tr>
+                      <td style={styles.storageTableTd} colSpan={4}>Noch keine Traffic-Daten vorhanden.</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h3 style={styles.storagePanelTitle}>Top Medien nach Traffic</h3>
+            <div style={styles.storageTableWrap}>
+              <table style={styles.storageTable}>
+                <thead>
+                  <tr>
+                    <th style={styles.storageTableTh}>Medium</th>
+                    <th style={styles.storageTableTh}>Variante</th>
+                    <th style={styles.storageTableTh}>Traffic</th>
+                    <th style={styles.storageTableTh}>Events</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(mediaTrafficStats?.topMedia ?? []).slice(0, 8).map((item) => (
+                    <tr key={`${item.mediaId || "unknown"}-${item.variant || "variant"}`}>
+                      <td style={styles.storageTableTd}>
+                        <span style={styles.storageFilename} title={item.mediaId || ""}>
+                          {item.filename || item.mediaId || "Unbekannt"}
+                        </span>
+                      </td>
+                      <td style={styles.storageTableTd}>{item.variant || "–"}</td>
+                      <td style={styles.storageTableTd}>{formatBytes(item.totalBytes)}</td>
+                      <td style={styles.storageTableTd}>{formatNumber(item.eventCount)}</td>
+                    </tr>
+                  ))}
+                  {(mediaTrafficStats?.topMedia ?? []).length === 0 ? (
+                    <tr>
+                      <td style={styles.storageTableTd} colSpan={4}>Noch keine Media-Traffic-Daten vorhanden.</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderStorageAndMediaDashboard = () => (
     <section style={styles.storageDashboard} aria-label="Storage and Media Dashboard">
       <div style={styles.storageHeader}>
@@ -4618,6 +4814,8 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
           </div>
         </div>
       </div>
+
+      {renderMediaTrafficDashboard()}
 
       <div style={styles.storagePanel}>
         <h3 style={styles.storagePanelTitle}>Speicherfresser finden</h3>
