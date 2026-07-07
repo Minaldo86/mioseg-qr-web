@@ -4665,6 +4665,47 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
   };
 
   const renderMediaTrafficDashboard = () => {
+    const findStorageMediaById = (mediaId: string | null | undefined) => {
+  if (!mediaId) return null;
+  return (storageMediaStats?.mediaItems ?? []).find((item) => item.id === mediaId) ?? null;
+};
+
+const handleWarningOpenQrx = (qrxId: string | null | undefined) => {
+  if (!qrxId) return;
+  window.open(`https://mioseg-qr.com/qrx/${qrxId}`, "_blank", "noopener,noreferrer");
+};
+
+const handleWarningLoadQrxModeration = async (qrxId: string | null | undefined) => {
+  if (!qrxId) return;
+  await handleQrxLookup(qrxId);
+};
+
+const handleWarningOpenMedia = (mediaId: string | null | undefined) => {
+  const media = findStorageMediaById(mediaId);
+
+  if (!media) {
+    alert("Medium wurde in der aktuellen Speicherliste nicht gefunden. Bitte Storage-Daten aktualisieren.");
+    return;
+  }
+
+  setSelectedStorageMedia(media);
+};
+
+const handleWarningReprocessMedia = async (mediaId: string | null | undefined) => {
+  const media = findStorageMediaById(mediaId);
+
+  if (!media) {
+    alert("Medium wurde in der aktuellen Speicherliste nicht gefunden. Bitte Storage-Daten aktualisieren.");
+    return;
+  }
+
+  await handleReprocessStorageMedia(media);
+};
+
+const handleWarningOpenMediaJobs = async () => {
+  setActiveAdminTab("overview");
+  await fetchMediaJobs();
+};
     const summary = mediaTrafficStats?.summary;
     const topQrx = mediaTrafficStats?.topQrx ?? [];
     const topMedia = mediaTrafficStats?.topMedia ?? [];
@@ -4897,6 +4938,58 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
                       {item.estimatedSavingsCostCents ? ` · ${formatCost(item.estimatedSavingsCostCents)}` : ""}
                     </div>
                   ) : null}
+                  <div style={{ ...styles.storageActionRow, marginTop: 10 }}>
+  {item.qrxId ? (
+    <>
+      <button
+        type="button"
+        onClick={() => handleWarningOpenQrx(item.qrxId)}
+        style={styles.storageIconButton}
+      >
+        QR-X öffnen
+      </button>
+
+      <button
+        type="button"
+        onClick={() => void handleWarningLoadQrxModeration(item.qrxId)}
+        style={styles.storageWarningButton}
+      >
+        In Moderation laden
+      </button>
+    </>
+  ) : null}
+
+  {item.mediaId ? (
+    <>
+      <button
+        type="button"
+        onClick={() => handleWarningOpenMedia(item.mediaId)}
+        style={styles.storageIconButton}
+      >
+        Medium prüfen
+      </button>
+
+      <button
+        type="button"
+        onClick={() => void handleWarningReprocessMedia(item.mediaId)}
+        disabled={storageReprocessWorkingId === item.mediaId}
+        style={styles.storageWarningButton}
+      >
+        {storageReprocessWorkingId === item.mediaId ? "Reprocess…" : "Neu optimieren"}
+      </button>
+    </>
+  ) : null}
+
+  {item.category === "jobs" ? (
+    <button
+      type="button"
+      onClick={() => void handleWarningOpenMediaJobs()}
+      style={styles.storageWarningButton}
+    >
+      Media Jobs öffnen
+    </button>
+  ) : null}
+</div>
                   {item.qrxId || item.mediaId ? (
                     <div style={styles.storageMetricHint}>
                       {item.qrxId ? `QR-X: ${item.qrxId}` : ""}
