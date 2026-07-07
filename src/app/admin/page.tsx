@@ -4908,99 +4908,160 @@ const handleWarningOpenMediaJobs = async () => {
           </div>
 
           <div style={styles.storageHealthGrid}>
-            {(filteredActiveWarnings.length ? filteredActiveWarnings : activeWarnings.length ? [] : [
-              {
-                id: "no-active-warnings-ui",
-                severity: "info" as const,
-                category: "storage" as const,
-                title: "Keine aktiven Warnungen",
-                description: summary?.eventCount
-                  ? "Aktuell wurden keine kritischen oder warnwürdigen Media-Auffälligkeiten erkannt."
-                  : "Noch keine Traffic-Daten vorhanden. Sobald Media-Events eintreffen, werden Warnungen automatisch bewertet.",
-                priority: 0,
-                status: "active" as const,
-                detectedAt: mediaTrafficStats?.updatedAt ?? "",
-              },
-            ]).slice(0, 12).map((item) => {
-              const borderColor = item.severity === "critical" ? "#991b1b" : item.severity === "warning" ? "#854d0e" : "#243044";
-              const bg = item.severity === "critical" ? "#3f1111" : item.severity === "warning" ? "#2c1806" : "#111827";
-              const titleColor = item.severity === "critical" ? "#fecaca" : item.severity === "warning" ? "#fde68a" : "#e2e8f0";
-              return (
-                <div key={item.id} style={{ ...styles.storageMiniCard, borderColor, background: bg }}>
-                  <div style={{ ...styles.storageMiniLabel, color: titleColor }}>
-                    {item.severity === "critical" ? "🔴 Kritisch" : item.severity === "warning" ? "🟡 Warnung" : "🟢 Info"} · {item.category} · Priorität {item.priority ?? 0}
+            {(filteredActiveWarnings.length
+              ? filteredActiveWarnings
+              : activeWarnings.length
+                ? []
+                : [
+                    {
+                      id: "no-active-warnings-ui",
+                      severity: "info" as const,
+                      category: "storage" as const,
+                      title: "Keine aktiven Warnungen",
+                      description: summary?.eventCount
+                        ? "Aktuell wurden keine kritischen oder warnwürdigen Media-Auffälligkeiten erkannt."
+                        : "Noch keine Traffic-Daten vorhanden. Sobald Media-Events eintreffen, werden Warnungen automatisch bewertet.",
+                      priority: 0,
+                      status: "active" as const,
+                      detectedAt: mediaTrafficStats?.updatedAt ?? "",
+                    },
+                  ]
+            )
+              .slice(0, 12)
+              .map((item) => {
+                const borderColor =
+                  item.severity === "critical"
+                    ? "#991b1b"
+                    : item.severity === "warning"
+                      ? "#854d0e"
+                      : "#243044";
+
+                const bg =
+                  item.severity === "critical"
+                    ? "#3f1111"
+                    : item.severity === "warning"
+                      ? "#2c1806"
+                      : "#111827";
+
+                const titleColor =
+                  item.severity === "critical"
+                    ? "#fecaca"
+                    : item.severity === "warning"
+                      ? "#fde68a"
+                      : "#e2e8f0";
+
+                const severityLabel =
+                  item.severity === "critical"
+                    ? "🔴 Kritisch"
+                    : item.severity === "warning"
+                      ? "🟡 Warnung"
+                      : "🟢 Info";
+
+                const hasDirectActions =
+                  Boolean(item.qrxId) || Boolean(item.mediaId) || item.category === "jobs";
+
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      ...styles.storageMiniCard,
+                      borderColor,
+                      background: bg,
+                      display: "grid",
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ ...styles.storageMiniLabel, color: titleColor }}>
+                      {severityLabel} · {item.category} · Priorität {item.priority ?? 0}
+                    </div>
+
+                    <div style={{ ...styles.storageMiniValue, fontSize: 16, color: titleColor }}>
+                      {item.title}
+                    </div>
+
+                    <div style={styles.storageMetricHint}>{item.description}</div>
+
+                    {item.estimatedSavingsBytes || item.estimatedSavingsCostCents ? (
+                      <div style={{ ...styles.storageMetricHint, color: "#bbf7d0" }}>
+                        mögliches Potenzial:{" "}
+                        {item.estimatedSavingsBytes ? formatBytes(item.estimatedSavingsBytes) : ""}
+                        {item.estimatedSavingsCostCents
+                          ? ` · ${formatCost(item.estimatedSavingsCostCents)}`
+                          : ""}
+                      </div>
+                    ) : null}
+
+                    {item.qrxId || item.mediaId ? (
+                      <div style={styles.storageMetricHint}>
+                        {item.qrxId ? `QR-X: ${item.qrxId}` : ""}
+                        {item.qrxId && item.mediaId ? " · " : ""}
+                        {item.mediaId ? `Medium: ${item.mediaId}` : ""}
+                      </div>
+                    ) : null}
+
+                    {hasDirectActions ? (
+                      <div style={{ ...styles.storageActionRow, marginTop: 4 }}>
+                        {item.qrxId ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleWarningOpenQrx(item.qrxId)}
+                              style={styles.storageIconButton}
+                            >
+                              🔍 QR-X öffnen
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => void handleWarningLoadQrxModeration(item.qrxId)}
+                              style={styles.storageWarningButton}
+                            >
+                              🛡 In Moderation
+                            </button>
+                          </>
+                        ) : null}
+
+                        {item.mediaId ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleWarningOpenMedia(item.mediaId)}
+                              style={styles.storageIconButton}
+                            >
+                              🖼 Medium prüfen
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => void handleWarningReprocessMedia(item.mediaId)}
+                              disabled={storageReprocessWorkingId === item.mediaId}
+                              style={styles.storageWarningButton}
+                            >
+                              {storageReprocessWorkingId === item.mediaId
+                                ? "Reprocess…"
+                                : "♻ Neu optimieren"}
+                            </button>
+                          </>
+                        ) : null}
+
+                        {item.category === "jobs" ? (
+                          <button
+                            type="button"
+                            onClick={() => void handleWarningOpenMediaJobs()}
+                            style={styles.storageWarningButton}
+                          >
+                            🧰 Media Jobs öffnen
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : item.actionLabel ? (
+                      <div style={{ ...styles.storageMetricHint, fontWeight: 900 }}>
+                        {item.actionLabel}
+                      </div>
+                    ) : null}
                   </div>
-                  <div style={{ ...styles.storageMiniValue, fontSize: 16, color: titleColor }}>{item.title}</div>
-                  <div style={styles.storageMetricHint}>{item.description}</div>
-                  {item.estimatedSavingsBytes || item.estimatedSavingsCostCents ? (
-                    <div style={{ ...styles.storageMetricHint, color: "#bbf7d0" }}>
-                      mögliches Potenzial: {item.estimatedSavingsBytes ? formatBytes(item.estimatedSavingsBytes) : "–"}
-                      {item.estimatedSavingsCostCents ? ` · ${formatCost(item.estimatedSavingsCostCents)}` : ""}
-                    </div>
-                  ) : null}
-                  <div style={{ ...styles.storageActionRow, marginTop: 10 }}>
-  {item.qrxId ? (
-    <>
-      <button
-        type="button"
-        onClick={() => handleWarningOpenQrx(item.qrxId)}
-        style={styles.storageIconButton}
-      >
-        QR-X öffnen
-      </button>
-
-      <button
-        type="button"
-        onClick={() => void handleWarningLoadQrxModeration(item.qrxId)}
-        style={styles.storageWarningButton}
-      >
-        In Moderation laden
-      </button>
-    </>
-  ) : null}
-
-  {item.mediaId ? (
-    <>
-      <button
-        type="button"
-        onClick={() => handleWarningOpenMedia(item.mediaId)}
-        style={styles.storageIconButton}
-      >
-        Medium prüfen
-      </button>
-
-      <button
-        type="button"
-        onClick={() => void handleWarningReprocessMedia(item.mediaId)}
-        disabled={storageReprocessWorkingId === item.mediaId}
-        style={styles.storageWarningButton}
-      >
-        {storageReprocessWorkingId === item.mediaId ? "Reprocess…" : "Neu optimieren"}
-      </button>
-    </>
-  ) : null}
-
-  {item.category === "jobs" ? (
-    <button
-      type="button"
-      onClick={() => void handleWarningOpenMediaJobs()}
-      style={styles.storageWarningButton}
-    >
-      Media Jobs öffnen
-    </button>
-  ) : null}
-</div>
-                  {item.qrxId || item.mediaId ? (
-                    <div style={styles.storageMetricHint}>
-                      {item.qrxId ? `QR-X: ${item.qrxId}` : ""}
-                      {item.qrxId && item.mediaId ? " · " : ""}
-                      {item.mediaId ? `Medium: ${item.mediaId}` : ""}
-                    </div>
-                  ) : null}
-                  {item.actionLabel ? <div style={{ ...styles.storageMetricHint, fontWeight: 900 }}>{item.actionLabel}</div> : null}
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
 
