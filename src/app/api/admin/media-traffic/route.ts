@@ -88,6 +88,12 @@ type HealthRecommendation = {
   estimatedSavingsCostCents?: number;
 };
 
+type ActiveMediaWarning = HealthRecommendation & {
+  priority: number;
+  status: "active";
+  detectedAt: string;
+};
+
 type StorageAgg = {
   id: string | null;
   qrxId: string | null;
@@ -438,6 +444,45 @@ export async function GET() {
       });
     }
 
+    const activeWarnings: ActiveMediaWarning[] = recommendations
+      .filter((item) => item.severity === "critical" || item.severity === "warning")
+      .map((item) => {
+        const severityPriority = item.severity === "critical" ? 1000 : 500;
+        const categoryPriority =
+          item.category === "traffic"
+            ? 80
+            : item.category === "cost"
+              ? 60
+              : item.category === "jobs"
+                ? 50
+                : item.category === "quality"
+                  ? 40
+                  : 20;
+        const savingsPriority = Math.round((item.estimatedSavingsCostCents ?? 0) / 10);
+
+        return {
+          ...item,
+          priority: severityPriority + categoryPriority + savingsPriority,
+          status: "active" as const,
+          detectedAt: now.toISOString(),
+        };
+      })
+      .sort((a, b) => b.priority - a.priority)
+      .slice(0, 12);
+
+    if (activeWarnings.length === 0 && rows.length > 0) {
+      activeWarnings.push({
+        id: "media-system-healthy",
+        severity: "info",
+        category: "storage",
+        title: "Keine aktiven Warnungen",
+        description: "Aktuell wurden keine kritischen oder warnwürdigen Media-Auffälligkeiten erkannt.",
+        priority: 10,
+        status: "active",
+        detectedAt: now.toISOString(),
+      });
+    }
+
     let healthScore = 100;
     healthScore -= failedMediaCount > 0 ? Math.min(25, failedMediaCount * 2) : 0;
     healthScore -= largestQrxSharePercent >= 70 ? 25 : largestQrxSharePercent >= 40 ? 12 : 0;
@@ -508,6 +553,7 @@ export async function GET() {
       topCostMedia,
       topVariants,
       recommendations,
+      activeWarnings,
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {

@@ -420,6 +420,12 @@ type MediaHealthRecommendation = {
   estimatedSavingsCostCents?: number;
 };
 
+type MediaActiveWarning = MediaHealthRecommendation & {
+  priority: number;
+  status: "active";
+  detectedAt: string;
+};
+
 type MediaTrafficStats = {
   ok: boolean;
   summary: {
@@ -472,6 +478,7 @@ type MediaTrafficStats = {
     sharePercent: number;
   }>;
   recommendations?: MediaHealthRecommendation[];
+  activeWarnings?: MediaActiveWarning[];
   updatedAt: string;
 };
 
@@ -2285,6 +2292,7 @@ export default function AdminPage() {
   const [mediaTrafficStats, setMediaTrafficStats] = useState<MediaTrafficStats | null>(null);
   const [mediaTrafficLoading, setMediaTrafficLoading] = useState(false);
   const [mediaTrafficError, setMediaTrafficError] = useState<string | null>(null);
+  const [mediaWarningFilter, setMediaWarningFilter] = useState<"all" | "critical" | "warning" | "info">("all");
   const [storageMediaSearch, setStorageMediaSearch] = useState("");
   const [storageMediaTypeFilter, setStorageMediaTypeFilter] = useState("all");
   const [storageMediaStatusFilter, setStorageMediaStatusFilter] = useState("all");
@@ -4666,6 +4674,13 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
     const topCostMedia = mediaTrafficStats?.topCostMedia ?? [];
     const topVariants = mediaTrafficStats?.topVariants ?? [];
     const recommendations = mediaTrafficStats?.recommendations ?? [];
+    const activeWarnings = mediaTrafficStats?.activeWarnings ?? [];
+    const filteredActiveWarnings = activeWarnings.filter((item) =>
+      mediaWarningFilter === "all" ? true : item.severity === mediaWarningFilter
+    );
+    const activeCriticalCount = activeWarnings.filter((item) => item.severity === "critical").length;
+    const activeWarningCount = activeWarnings.filter((item) => item.severity === "warning").length;
+    const activeInfoCount = activeWarnings.filter((item) => item.severity === "info").length;
     const maxQrxBytes = Math.max(...topQrx.map((item) => item.totalBytes || 0), 1);
     const maxMediaBytes = Math.max(...topMedia.map((item) => item.totalBytes || 0), 1);
     const topQrxOne = topQrx[0];
@@ -4791,7 +4806,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
           <div>
             <h3 style={styles.storagePanelTitle}>Top-Traffic Dashboard</h3>
             <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
-              Phase 2D.4: Zeigt Traffic, Speicherverbrauch, geschätzte Kosten und automatische Health-Empfehlungen nach QR-X und Medien. So erkennst du früh,
+              Phase 2D.5.1: Zeigt Traffic, Speicherverbrauch, Kosten, Health-Empfehlungen und aktive Warnungen nach QR-X und Medien. So erkennst du früh,
               welche Profile, Bilder oder Varianten später deine Betriebskosten treiben.
             </p>
           </div>
@@ -4822,6 +4837,78 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
           {summary?.eventCount
             ? `${healthLabel}. Es wurden ${formatNumber(summary.eventCount)} Media-Events erfasst. Der größte QR-X verursacht ${topQrxOne ? formatBytes(topQrxOne.totalBytes) : "0 B"} (${summary.largestQrxSharePercent ?? 0}%).`
             : "Noch keine echten Media-Traffic-Daten vorhanden. Werte erscheinen, sobald App/Web die Tracking-API beim Bildladen aufrufen."}
+        </div>
+
+        <div style={styles.storagePanel}>
+          <div style={styles.storageDetailHeader}>
+            <div>
+              <h3 style={styles.storagePanelTitle}>🚨 Aktive Warnungen</h3>
+              <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
+                Phase 2D.5.1: Kritische und warnwürdige Media-Auffälligkeiten werden priorisiert angezeigt. So siehst du sofort, wo du zuerst prüfen solltest.
+              </p>
+            </div>
+            <div style={styles.storageActionRow}>
+              {[
+                { key: "all", label: `Alle (${activeWarnings.length})` },
+                { key: "critical", label: `Kritisch (${activeCriticalCount})` },
+                { key: "warning", label: `Warnung (${activeWarningCount})` },
+                { key: "info", label: `Info (${activeInfoCount})` },
+              ].map((filter) => (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => setMediaWarningFilter(filter.key as "all" | "critical" | "warning" | "info")}
+                  style={mediaWarningFilter === filter.key ? styles.storageWarningButton : styles.storageIconButton}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={styles.storageHealthGrid}>
+            {(filteredActiveWarnings.length ? filteredActiveWarnings : activeWarnings.length ? [] : [
+              {
+                id: "no-active-warnings-ui",
+                severity: "info" as const,
+                category: "storage" as const,
+                title: "Keine aktiven Warnungen",
+                description: summary?.eventCount
+                  ? "Aktuell wurden keine kritischen oder warnwürdigen Media-Auffälligkeiten erkannt."
+                  : "Noch keine Traffic-Daten vorhanden. Sobald Media-Events eintreffen, werden Warnungen automatisch bewertet.",
+                priority: 0,
+                status: "active" as const,
+                detectedAt: mediaTrafficStats?.updatedAt ?? "",
+              },
+            ]).slice(0, 12).map((item) => {
+              const borderColor = item.severity === "critical" ? "#991b1b" : item.severity === "warning" ? "#854d0e" : "#243044";
+              const bg = item.severity === "critical" ? "#3f1111" : item.severity === "warning" ? "#2c1806" : "#111827";
+              const titleColor = item.severity === "critical" ? "#fecaca" : item.severity === "warning" ? "#fde68a" : "#e2e8f0";
+              return (
+                <div key={item.id} style={{ ...styles.storageMiniCard, borderColor, background: bg }}>
+                  <div style={{ ...styles.storageMiniLabel, color: titleColor }}>
+                    {item.severity === "critical" ? "🔴 Kritisch" : item.severity === "warning" ? "🟡 Warnung" : "🟢 Info"} · {item.category} · Priorität {item.priority ?? 0}
+                  </div>
+                  <div style={{ ...styles.storageMiniValue, fontSize: 16, color: titleColor }}>{item.title}</div>
+                  <div style={styles.storageMetricHint}>{item.description}</div>
+                  {item.estimatedSavingsBytes || item.estimatedSavingsCostCents ? (
+                    <div style={{ ...styles.storageMetricHint, color: "#bbf7d0" }}>
+                      mögliches Potenzial: {item.estimatedSavingsBytes ? formatBytes(item.estimatedSavingsBytes) : "–"}
+                      {item.estimatedSavingsCostCents ? ` · ${formatCost(item.estimatedSavingsCostCents)}` : ""}
+                    </div>
+                  ) : null}
+                  {item.qrxId || item.mediaId ? (
+                    <div style={styles.storageMetricHint}>
+                      {item.qrxId ? `QR-X: ${item.qrxId}` : ""}
+                      {item.qrxId && item.mediaId ? " · " : ""}
+                      {item.mediaId ? `Medium: ${item.mediaId}` : ""}
+                    </div>
+                  ) : null}
+                  {item.actionLabel ? <div style={{ ...styles.storageMetricHint, fontWeight: 900 }}>{item.actionLabel}</div> : null}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         <div style={styles.storagePanel}>
