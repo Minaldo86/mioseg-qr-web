@@ -2293,6 +2293,7 @@ export default function AdminPage() {
   const [mediaTrafficLoading, setMediaTrafficLoading] = useState(false);
   const [mediaTrafficError, setMediaTrafficError] = useState<string | null>(null);
   const [mediaWarningFilter, setMediaWarningFilter] = useState<"all" | "critical" | "warning" | "info">("all");
+  const [mediaDashboardSection, setMediaDashboardSection] = useState<"overview" | "traffic" | "storage" | "jobs">("overview");
   const [storageMediaSearch, setStorageMediaSearch] = useState("");
   const [storageMediaTypeFilter, setStorageMediaTypeFilter] = useState("all");
   const [storageMediaStatusFilter, setStorageMediaStatusFilter] = useState("all");
@@ -4908,160 +4909,99 @@ const handleWarningOpenMediaJobs = async () => {
           </div>
 
           <div style={styles.storageHealthGrid}>
-            {(filteredActiveWarnings.length
-              ? filteredActiveWarnings
-              : activeWarnings.length
-                ? []
-                : [
-                    {
-                      id: "no-active-warnings-ui",
-                      severity: "info" as const,
-                      category: "storage" as const,
-                      title: "Keine aktiven Warnungen",
-                      description: summary?.eventCount
-                        ? "Aktuell wurden keine kritischen oder warnwürdigen Media-Auffälligkeiten erkannt."
-                        : "Noch keine Traffic-Daten vorhanden. Sobald Media-Events eintreffen, werden Warnungen automatisch bewertet.",
-                      priority: 0,
-                      status: "active" as const,
-                      detectedAt: mediaTrafficStats?.updatedAt ?? "",
-                    },
-                  ]
-            )
-              .slice(0, 12)
-              .map((item) => {
-                const borderColor =
-                  item.severity === "critical"
-                    ? "#991b1b"
-                    : item.severity === "warning"
-                      ? "#854d0e"
-                      : "#243044";
-
-                const bg =
-                  item.severity === "critical"
-                    ? "#3f1111"
-                    : item.severity === "warning"
-                      ? "#2c1806"
-                      : "#111827";
-
-                const titleColor =
-                  item.severity === "critical"
-                    ? "#fecaca"
-                    : item.severity === "warning"
-                      ? "#fde68a"
-                      : "#e2e8f0";
-
-                const severityLabel =
-                  item.severity === "critical"
-                    ? "🔴 Kritisch"
-                    : item.severity === "warning"
-                      ? "🟡 Warnung"
-                      : "🟢 Info";
-
-                const hasDirectActions =
-                  Boolean(item.qrxId) || Boolean(item.mediaId) || item.category === "jobs";
-
-                return (
-                  <div
-                    key={item.id}
-                    style={{
-                      ...styles.storageMiniCard,
-                      borderColor,
-                      background: bg,
-                      display: "grid",
-                      gap: 10,
-                    }}
-                  >
-                    <div style={{ ...styles.storageMiniLabel, color: titleColor }}>
-                      {severityLabel} · {item.category} · Priorität {item.priority ?? 0}
-                    </div>
-
-                    <div style={{ ...styles.storageMiniValue, fontSize: 16, color: titleColor }}>
-                      {item.title}
-                    </div>
-
-                    <div style={styles.storageMetricHint}>{item.description}</div>
-
-                    {item.estimatedSavingsBytes || item.estimatedSavingsCostCents ? (
-                      <div style={{ ...styles.storageMetricHint, color: "#bbf7d0" }}>
-                        mögliches Potenzial:{" "}
-                        {item.estimatedSavingsBytes ? formatBytes(item.estimatedSavingsBytes) : ""}
-                        {item.estimatedSavingsCostCents
-                          ? ` · ${formatCost(item.estimatedSavingsCostCents)}`
-                          : ""}
-                      </div>
-                    ) : null}
-
-                    {item.qrxId || item.mediaId ? (
-                      <div style={styles.storageMetricHint}>
-                        {item.qrxId ? `QR-X: ${item.qrxId}` : ""}
-                        {item.qrxId && item.mediaId ? " · " : ""}
-                        {item.mediaId ? `Medium: ${item.mediaId}` : ""}
-                      </div>
-                    ) : null}
-
-                    {hasDirectActions ? (
-                      <div style={{ ...styles.storageActionRow, marginTop: 4 }}>
-                        {item.qrxId ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleWarningOpenQrx(item.qrxId)}
-                              style={styles.storageIconButton}
-                            >
-                              🔍 QR-X öffnen
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => void handleWarningLoadQrxModeration(item.qrxId)}
-                              style={styles.storageWarningButton}
-                            >
-                              🛡 In Moderation
-                            </button>
-                          </>
-                        ) : null}
-
-                        {item.mediaId ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleWarningOpenMedia(item.mediaId)}
-                              style={styles.storageIconButton}
-                            >
-                              🖼 Medium prüfen
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => void handleWarningReprocessMedia(item.mediaId)}
-                              disabled={storageReprocessWorkingId === item.mediaId}
-                              style={styles.storageWarningButton}
-                            >
-                              {storageReprocessWorkingId === item.mediaId
-                                ? "Reprocess…"
-                                : "♻ Neu optimieren"}
-                            </button>
-                          </>
-                        ) : null}
-
-                        {item.category === "jobs" ? (
-                          <button
-                            type="button"
-                            onClick={() => void handleWarningOpenMediaJobs()}
-                            style={styles.storageWarningButton}
-                          >
-                            🧰 Media Jobs öffnen
-                          </button>
-                        ) : null}
-                      </div>
-                    ) : item.actionLabel ? (
-                      <div style={{ ...styles.storageMetricHint, fontWeight: 900 }}>
-                        {item.actionLabel}
-                      </div>
-                    ) : null}
+            {(filteredActiveWarnings.length ? filteredActiveWarnings : activeWarnings.length ? [] : [
+              {
+                id: "no-active-warnings-ui",
+                severity: "info" as const,
+                category: "storage" as const,
+                title: "Keine aktiven Warnungen",
+                description: summary?.eventCount
+                  ? "Aktuell wurden keine kritischen oder warnwürdigen Media-Auffälligkeiten erkannt."
+                  : "Noch keine Traffic-Daten vorhanden. Sobald Media-Events eintreffen, werden Warnungen automatisch bewertet.",
+                priority: 0,
+                status: "active" as const,
+                detectedAt: mediaTrafficStats?.updatedAt ?? "",
+              },
+            ]).slice(0, 12).map((item) => {
+              const borderColor = item.severity === "critical" ? "#991b1b" : item.severity === "warning" ? "#854d0e" : "#243044";
+              const bg = item.severity === "critical" ? "#3f1111" : item.severity === "warning" ? "#2c1806" : "#111827";
+              const titleColor = item.severity === "critical" ? "#fecaca" : item.severity === "warning" ? "#fde68a" : "#e2e8f0";
+              return (
+                <div key={item.id} style={{ ...styles.storageMiniCard, borderColor, background: bg }}>
+                  <div style={{ ...styles.storageMiniLabel, color: titleColor }}>
+                    {item.severity === "critical" ? "🔴 Kritisch" : item.severity === "warning" ? "🟡 Warnung" : "🟢 Info"} · {item.category} · Priorität {item.priority ?? 0}
                   </div>
-                );
-              })}
+                  <div style={{ ...styles.storageMiniValue, fontSize: 16, color: titleColor }}>{item.title}</div>
+                  <div style={styles.storageMetricHint}>{item.description}</div>
+                  {item.estimatedSavingsBytes || item.estimatedSavingsCostCents ? (
+                    <div style={{ ...styles.storageMetricHint, color: "#bbf7d0" }}>
+                      mögliches Potenzial: {item.estimatedSavingsBytes ? formatBytes(item.estimatedSavingsBytes) : "–"}
+                      {item.estimatedSavingsCostCents ? ` · ${formatCost(item.estimatedSavingsCostCents)}` : ""}
+                    </div>
+                  ) : null}
+                  <div style={{ ...styles.storageActionRow, marginTop: 10 }}>
+  {item.qrxId ? (
+    <>
+      <button
+        type="button"
+        onClick={() => handleWarningOpenQrx(item.qrxId)}
+        style={styles.storageIconButton}
+      >
+        QR-X öffnen
+      </button>
+
+      <button
+        type="button"
+        onClick={() => void handleWarningLoadQrxModeration(item.qrxId)}
+        style={styles.storageWarningButton}
+      >
+        In Moderation laden
+      </button>
+    </>
+  ) : null}
+
+  {item.mediaId ? (
+    <>
+      <button
+        type="button"
+        onClick={() => handleWarningOpenMedia(item.mediaId)}
+        style={styles.storageIconButton}
+      >
+        Medium prüfen
+      </button>
+
+      <button
+        type="button"
+        onClick={() => void handleWarningReprocessMedia(item.mediaId)}
+        disabled={storageReprocessWorkingId === item.mediaId}
+        style={styles.storageWarningButton}
+      >
+        {storageReprocessWorkingId === item.mediaId ? "Reprocess…" : "Neu optimieren"}
+      </button>
+    </>
+  ) : null}
+
+  {item.category === "jobs" ? (
+    <button
+      type="button"
+      onClick={() => void handleWarningOpenMediaJobs()}
+      style={styles.storageWarningButton}
+    >
+      Media Jobs öffnen
+    </button>
+  ) : null}
+</div>
+                  {item.qrxId || item.mediaId ? (
+                    <div style={styles.storageMetricHint}>
+                      {item.qrxId ? `QR-X: ${item.qrxId}` : ""}
+                      {item.qrxId && item.mediaId ? " · " : ""}
+                      {item.mediaId ? `Medium: ${item.mediaId}` : ""}
+                    </div>
+                  ) : null}
+                  {item.actionLabel ? <div style={{ ...styles.storageMetricHint, fontWeight: 900 }}>{item.actionLabel}</div> : null}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -5485,10 +5425,67 @@ const handleWarningOpenMediaJobs = async () => {
         </div>
       </div>
 
-      {renderMediaTrafficDashboard()}
-
       <div style={styles.storagePanel}>
-        <h3 style={styles.storagePanelTitle}>Speicherfresser finden</h3>
+        <div style={styles.storageDetailHeader}>
+          <div>
+            <h3 style={styles.storagePanelTitle}>Media & Storage Bereiche</h3>
+            <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
+              Der Media-Bereich ist jetzt in Unterbereiche aufgeteilt, damit Übersicht, Preise, Credits, Finanzen und Logs nicht mehr nach unten gedrückt werden.
+            </p>
+          </div>
+        </div>
+
+        <div style={styles.storageActionRow}>
+          {[
+            { key: "overview", label: "Übersicht" },
+            { key: "traffic", label: "Traffic · Kosten · Warnungen" },
+            { key: "storage", label: "Speicherfresser" },
+            { key: "jobs", label: "Media Jobs · Reprocess" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setMediaDashboardSection(tab.key as "overview" | "traffic" | "storage" | "jobs")}
+              style={mediaDashboardSection === tab.key ? styles.storageWarningButton : styles.storageIconButton}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {mediaDashboardSection === "overview" ? (
+        <div style={styles.storagePanel}>
+          <h3 style={styles.storagePanelTitle}>Kurzübersicht</h3>
+          <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
+            Hier bleiben nur die wichtigsten Media-Kennzahlen sichtbar. Tiefe Analysen findest du über die Unterbereiche oben.
+          </p>
+          <div style={styles.storageHealthGrid}>
+            <div style={styles.storageMiniCard}>
+              <div style={styles.storageMiniLabel}>Gesparte Daten</div>
+              <div style={styles.storageMiniValue}>{formatBytes(storageTotals?.savedBytes ?? 0)}</div>
+              <div style={styles.storageMetricHint}>Durch Optimierung eingesparte Speichermenge.</div>
+            </div>
+            <div style={styles.storageMiniCard}>
+              <div style={styles.storageMiniLabel}>Fehlerhafte Medien</div>
+              <div style={styles.storageMiniValue}>{formatNumber(storageTotals?.failedCount ?? 0)}</div>
+              <div style={styles.storageMetricHint}>Bei Fehlern den Bereich „Media Jobs · Reprocess“ öffnen.</div>
+            </div>
+            <div style={styles.storageMiniCard}>
+              <div style={styles.storageMiniLabel}>Traffic diesen Monat</div>
+              <div style={styles.storageMiniValue}>{formatBytes(mediaTrafficStats?.summary?.monthBytes)}</div>
+              <div style={styles.storageMetricHint}>Für Details den Bereich „Traffic · Kosten · Warnungen“ öffnen.</div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {mediaDashboardSection === "traffic" ? renderMediaTrafficDashboard() : null}
+
+      {mediaDashboardSection === "storage" ? (
+        <>
+          <div style={styles.storagePanel}>
+            <h3 style={styles.storagePanelTitle}>Speicherfresser finden</h3>
         <p style={{ ...styles.storageMetricHint, marginTop: -4, marginBottom: 12 }}>
           Filtere große Dateien, fehlerhafte Medien oder Dateien mit besonders hohem Einsparpotenzial.
         </p>
@@ -5594,11 +5591,20 @@ const handleWarningOpenMediaJobs = async () => {
         {renderStorageMediaDetailPanel()}
       </div>
 
-      {renderBulkMediaJobsPanel()}
+        </>
+      ) : null}
 
-      {renderMediaJobsPanel()}
+      {mediaDashboardSection === "jobs" ? (
+        <>
+          {renderBulkMediaJobsPanel()}
 
-      <div style={styles.storageDetailGrid}>
+          {renderMediaJobsPanel()}
+        </>
+      ) : null}
+
+      {mediaDashboardSection === "storage" ? (
+        <>
+          <div style={styles.storageDetailGrid}>
         {renderStorageMediaTable(
           "Größte Medien",
           "Die größten Originaldateien. Diese Dateien sind besonders wichtig für Speicheroptimierung.",
@@ -5612,26 +5618,28 @@ const handleWarningOpenMediaJobs = async () => {
         )}
       </div>
 
-      <div style={styles.storageSectionGrid}>
-        <div style={styles.storagePanel}>
-          <h3 style={styles.storagePanelTitle}>Media Health</h3>
-          <div style={styles.storageHealthGrid}>
-            {Object.entries(storageMediaStats?.statusCounts ?? {}).length === 0 ? (
-              <div style={styles.storageMiniCard}>
-                <div style={styles.storageMiniLabel}>Status</div>
-                <div style={styles.storageMiniValue}>—</div>
+          <div style={styles.storageSectionGrid}>
+            <div style={styles.storagePanel}>
+              <h3 style={styles.storagePanelTitle}>Media Health</h3>
+              <div style={styles.storageHealthGrid}>
+                {Object.entries(storageMediaStats?.statusCounts ?? {}).length === 0 ? (
+                  <div style={styles.storageMiniCard}>
+                    <div style={styles.storageMiniLabel}>Status</div>
+                    <div style={styles.storageMiniValue}>—</div>
+                  </div>
+                ) : (
+                  Object.entries(storageMediaStats?.statusCounts ?? {}).map(([status, count]) => (
+                    <div key={status} style={styles.storageMiniCard}>
+                      <div style={styles.storageMiniLabel}>{formatStorageStatus(status)}</div>
+                      <div style={styles.storageMiniValue}>{formatNumber(count)}</div>
+                    </div>
+                  ))
+                )}
               </div>
-            ) : (
-              Object.entries(storageMediaStats?.statusCounts ?? {}).map(([status, count]) => (
-                <div key={status} style={styles.storageMiniCard}>
-                  <div style={styles.storageMiniLabel}>{formatStorageStatus(status)}</div>
-                  <div style={styles.storageMiniValue}>{formatNumber(count)}</div>
-                </div>
-              ))
-            )}
+            </div>
           </div>
-        </div>
-      </div>
+        </>
+      ) : null}
     </section>
   );
 
@@ -5655,8 +5663,6 @@ const handleWarningOpenMediaJobs = async () => {
           </select>
         </div>
 
-        {renderStorageAndMediaDashboard()}
-
         <div style={styles.tabsWrap}>
           {adminTabs.map((tab) => (
             <button
@@ -5672,6 +5678,8 @@ const handleWarningOpenMediaJobs = async () => {
         </div>
 
         <div style={{ display: activeAdminTab === "overview" ? "block" : "none" }}>
+          {renderStorageAndMediaDashboard()}
+
           <div style={styles.dashboardGrid}>
             <div style={styles.metricCard}>
               <div style={styles.metricLabel}>Offene Verifizierungen</div>
