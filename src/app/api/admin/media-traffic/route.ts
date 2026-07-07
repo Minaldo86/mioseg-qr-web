@@ -12,10 +12,10 @@ type TrafficEventRow = {
   qr_x_entries?: {
     title: string | null;
     company_name: string | null;
-  } | null;
+  }[] | null;
   qr_x_media?: {
     filename: string | null;
-  } | null;
+  }[] | null;
 };
 
 type QrxAgg = {
@@ -90,7 +90,9 @@ export async function GET() {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-    const rows = (Array.isArray(data) ? data : []) as TrafficEventRow[];
+    const rows: TrafficEventRow[] = Array.isArray(data)
+      ? (data as unknown as TrafficEventRow[])
+      : [];
     const qrxMap = new Map<string, QrxAgg>();
     const mediaMap = new Map<string, MediaAgg>();
 
@@ -110,8 +112,8 @@ export async function GET() {
       const qrxKey = row.qrx_id || "unknown";
       const qrxExisting = qrxMap.get(qrxKey) ?? {
         qrxId: row.qrx_id,
-        title: row.qr_x_entries?.title ?? null,
-        companyName: row.qr_x_entries?.company_name ?? null,
+        title: row.qr_x_entries?.[0]?.title ?? null,
+        companyName: row.qr_x_entries?.[0]?.company_name ?? null,
         eventCount: 0,
         totalBytes: 0,
         todayBytes: 0,
@@ -129,7 +131,7 @@ export async function GET() {
       const mediaExisting = mediaMap.get(mediaKey) ?? {
         mediaId: row.media_id,
         qrxId: row.qrx_id,
-        filename: row.qr_x_media?.filename ?? null,
+        filename: row.qr_x_media?.[0]?.filename ?? null,
         variant: row.variant ?? null,
         eventCount: 0,
         totalBytes: 0,
