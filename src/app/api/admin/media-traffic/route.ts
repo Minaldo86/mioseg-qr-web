@@ -47,6 +47,16 @@ type MediaAgg = {
   lastSeenAt: string | null;
 };
 
+type VariantAgg = {
+  variant: string;
+  eventCount: number;
+  totalBytes: number;
+  todayBytes: number;
+  weekBytes: number;
+  monthBytes: number;
+  sharePercent: number;
+};
+
 function getSupabaseAdmin() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -59,6 +69,11 @@ function getSupabaseAdmin() {
 function safeBytes(value: number | null | undefined) {
   const num = Number(value ?? 0);
   return Number.isFinite(num) && num > 0 ? Math.round(num) : 0;
+}
+
+function estimateEgressCostCents(bytes: number) {
+  // Grobe Egress-Schätzung: 0,09 € pro GB. Später kann dieser Wert in eine Pricing-/Config-Tabelle wandern.
+  return Math.round((bytes / 1024 / 1024 / 1024) * 9);
 }
 
 function isSameDay(value: string | null | undefined, startOfDay: number) {
@@ -109,6 +124,7 @@ export async function GET() {
     const rows = (Array.isArray(data) ? data : []) as unknown as TrafficEventRow[];
     const qrxMap = new Map<string, QrxAgg>();
     const mediaMap = new Map<string, MediaAgg>();
+    const variantMap = new Map<string, VariantAgg>();
 
     let totalBytes = 0;
     let todayBytes = 0;
@@ -166,13 +182,54 @@ export async function GET() {
       if (week) mediaExisting.weekBytes += bytes;
       mediaExisting.lastSeenAt = maxDate(mediaExisting.lastSeenAt, row.created_at);
       mediaMap.set(mediaKey, mediaExisting);
+
+      const variantKey = row.variant || "unknown";
+      const variantExisting = variantMap.get(variantKey) ?? {
+        variant: variantKey,
+        eventCount: 0,
+        totalBytes: 0,
+        todayBytes: 0,
+        weekBytes: 0,
+        monthBytes: 0,
+        sharePercent: 0,
+      };
+      variantExisting.eventCount += 1;
+      variantExisting.totalBytes += bytes;
+      if (today) variantExisting.todayBytes += bytes;
+      if (week) variantExisting.weekBytes += bytes;
+      if (month) variantExisting.monthBytes += bytes;
+      variantMap.set(variantKey, variantExisting);
     }
 
     const topQrx = [...qrxMap.values()].sort((a, b) => b.totalBytes - a.totalBytes).slice(0, 25);
     const topMedia = [...mediaMap.values()].sort((a, b) => b.totalBytes - a.totalBytes).slice(0, 25);
+    const topQrxWeek = [...qrxMap.values()].sort((a, b) => b.weekBytes - a.weekBytes).slice(0, 10);
+    const topMediaWeek = [...mediaMap.values()].sort((a, b) => b.weekBytes - a.weekBytes).slice(0, 10);
 
-    // Grobe Egress-Schätzung: 0,09 € pro GB. Nur als Orientierung, echte Supabase-Kosten bitte später konfigurieren.
-    const estimatedCostCents = Math.round((totalBytes / 1024 / 1024 / 1024) * 9);
+    const topVariants = [...variantMap.values()]
+      .map((variant) => ({
+        ...variant,
+        sharePercent: totalBytes > 0 ? Math.round((variant.totalBytes / totalBytes) * 1000) / 10 : 0,
+      }))
+      .sort((a, b) => b.totalBytes - a.totalBytes);
+
+    const largestQrxBytes = topQrx[0]?.totalBytes ?? 0;
+    const largestMediaBytes = topMedia[0]?.totalBytes ?? 0;
+    const largestQrxSharePercent = totalBytes > 0 ? Math.round((largestQrxBytes / totalBytes) * 1000) / 10 : 0;
+    const averageBytesPerEvent = rows.length > 0 ? Math.round(totalBytes / rows.length) : 0;
+    const estimatedCostCents = estimateEgressCostCents(totalBytes);
+    const estimatedTodayCostCents = estimateEgressCostCents(todayBytes);
+    const estimatedWeekCostCents = estimateEgressCostCents(weekBytes);
+    const estimatedMonthCostCents = estimateEgressCostCents(monthBytes);
+
+    const healthStatus =
+      largestQrxSharePercent >= 70
+        ? "critical"
+        : largestQrxSharePercent >= 40
+          ? "watch"
+          : rows.length > 0
+            ? "healthy"
+            : "empty";
 
     return NextResponse.json({
       ok: true,
@@ -185,9 +242,20 @@ export async function GET() {
         mediaCount: mediaMap.size,
         qrxCount: qrxMap.size,
         estimatedCostCents,
+        estimatedTodayCostCents,
+        estimatedWeekCostCents,
+        estimatedMonthCostCents,
+        largestQrxBytes,
+        largestMediaBytes,
+        largestQrxSharePercent,
+        averageBytesPerEvent,
+        healthStatus,
       },
       topQrx,
       topMedia,
+      topQrxWeek,
+      topMediaWeek,
+      topVariants,
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {

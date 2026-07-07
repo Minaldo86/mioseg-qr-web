@@ -410,9 +410,28 @@ type MediaTrafficStats = {
     mediaCount: number;
     qrxCount: number;
     estimatedCostCents: number;
+    estimatedTodayCostCents?: number;
+    estimatedWeekCostCents?: number;
+    estimatedMonthCostCents?: number;
+    largestQrxBytes?: number;
+    largestMediaBytes?: number;
+    largestQrxSharePercent?: number;
+    averageBytesPerEvent?: number;
+    healthStatus?: "empty" | "healthy" | "watch" | "critical" | string;
   };
   topQrx: MediaTrafficQrxItem[];
   topMedia: MediaTrafficMediaItem[];
+  topQrxWeek?: MediaTrafficQrxItem[];
+  topMediaWeek?: MediaTrafficMediaItem[];
+  topVariants?: Array<{
+    variant: string;
+    eventCount: number;
+    totalBytes: number;
+    todayBytes: number;
+    weekBytes: number;
+    monthBytes: number;
+    sharePercent: number;
+  }>;
   updatedAt: string;
 };
 
@@ -4599,12 +4618,28 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
     const summary = mediaTrafficStats?.summary;
     const topQrx = mediaTrafficStats?.topQrx ?? [];
     const topMedia = mediaTrafficStats?.topMedia ?? [];
+    const topQrxWeek = mediaTrafficStats?.topQrxWeek ?? [];
+    const topMediaWeek = mediaTrafficStats?.topMediaWeek ?? [];
+    const topVariants = mediaTrafficStats?.topVariants ?? [];
     const maxQrxBytes = Math.max(...topQrx.map((item) => item.totalBytes || 0), 1);
     const maxMediaBytes = Math.max(...topMedia.map((item) => item.totalBytes || 0), 1);
     const topQrxOne = topQrx[0];
     const topMediaOne = topMedia[0];
+    const topQrxWeekOne = topQrxWeek[0];
+    const topMediaWeekOne = topMediaWeek[0];
     const totalGb = (summary?.totalBytes ?? 0) / 1024 / 1024 / 1024;
     const estimatedCost = ((summary?.estimatedCostCents ?? 0) / 100).toFixed(2).replace(".", ",");
+    const estimatedMonthCost = ((summary?.estimatedMonthCostCents ?? 0) / 100).toFixed(2).replace(".", ",");
+    const estimatedWeekCost = ((summary?.estimatedWeekCostCents ?? 0) / 100).toFixed(2).replace(".", ",");
+    const healthStatus = summary?.healthStatus ?? "empty";
+    const healthLabel =
+      healthStatus === "critical"
+        ? "Kritisch · ein QR-X dominiert den Traffic"
+        : healthStatus === "watch"
+          ? "Beobachten · Traffic konzentriert sich stark"
+          : healthStatus === "healthy"
+            ? "Gesund · Traffic ist verteilt"
+            : "Noch keine Daten";
 
     const trafficInsightCards = [
       {
@@ -4636,6 +4671,21 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
         label: "geschätzte Egress-Kosten",
         value: `${estimatedCost} €`,
         hint: `${totalGb.toFixed(2).replace(".", ",")} GB · grobe Schätzung, später konfigurierbar.`,
+      },
+      {
+        label: "Monatskosten",
+        value: `${estimatedMonthCost} €`,
+        hint: "Geschätzter Egress-Anteil für den aktuellen Monat.",
+      },
+      {
+        label: "Ø pro Event",
+        value: formatBytes(summary?.averageBytesPerEvent),
+        hint: "Durchschnittlich ausgelieferte Datenmenge je Media-Event.",
+      },
+      {
+        label: "Traffic Health",
+        value: healthLabel,
+        hint: `${summary?.largestQrxSharePercent ?? 0}% Anteil beim größten QR-X.`,
       },
     ];
 
@@ -4674,7 +4724,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
         <div style={{ ...styles.storageDetailHintBox, borderColor: "#854d0e", background: "#2c1806", color: "#fed7aa" }}>
           <strong style={{ color: "#fde68a" }}>Traffic Health:</strong>{" "}
           {summary?.eventCount
-            ? `Es wurden ${formatNumber(summary.eventCount)} Media-Events erfasst. Der größte QR-X verursacht ${topQrxOne ? formatBytes(topQrxOne.totalBytes) : "0 B"}.`
+            ? `${healthLabel}. Es wurden ${formatNumber(summary.eventCount)} Media-Events erfasst. Der größte QR-X verursacht ${topQrxOne ? formatBytes(topQrxOne.totalBytes) : "0 B"} (${summary.largestQrxSharePercent ?? 0}%).`
             : "Noch keine echten Media-Traffic-Daten vorhanden. Werte erscheinen, sobald App/Web die Tracking-API beim Bildladen aufrufen."}
         </div>
 
@@ -4768,6 +4818,78 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
                   ) : null}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.storageDetailGrid}>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Wochen-Spitzenreiter QR-X</div>
+            <div style={styles.storageMiniValue}>{topQrxWeekOne ? formatBytes(topQrxWeekOne.weekBytes) : "–"}</div>
+            <div style={styles.storageMetricHint}>
+              {topQrxWeekOne ? topQrxWeekOne.companyName || topQrxWeekOne.title || topQrxWeekOne.qrxId || "Unbekannt" : "Noch keine Wochendaten."}
+            </div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Wochen-Spitzenreiter Medium</div>
+            <div style={styles.storageMiniValue}>{topMediaWeekOne ? formatBytes(topMediaWeekOne.weekBytes) : "–"}</div>
+            <div style={styles.storageMetricHint}>
+              {topMediaWeekOne ? topMediaWeekOne.filename || topMediaWeekOne.mediaId || "Unbekannt" : "Noch keine Wochendaten."}
+            </div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Kosten letzte 7 Tage</div>
+            <div style={styles.storageMiniValue}>{estimatedWeekCost} €</div>
+            <div style={styles.storageMetricHint}>Grobe Egress-Schätzung auf Basis der getrackten Events.</div>
+          </div>
+        </div>
+
+        <div style={styles.storageDetailGrid}>
+          <div>
+            <h3 style={styles.storagePanelTitle}>Traffic nach Varianten</h3>
+            <div style={styles.storageTableWrap}>
+              <table style={styles.storageTable}>
+                <thead>
+                  <tr>
+                    <th style={styles.storageTableTh}>Variante</th>
+                    <th style={styles.storageTableTh}>Traffic</th>
+                    <th style={styles.storageTableTh}>Anteil</th>
+                    <th style={styles.storageTableTh}>7 Tage</th>
+                    <th style={styles.storageTableTh}>Events</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topVariants.slice(0, 8).map((item) => (
+                    <tr key={item.variant}>
+                      <td style={styles.storageTableTd}>{item.variant || "unknown"}</td>
+                      <td style={styles.storageTableTd}>{formatBytes(item.totalBytes)}</td>
+                      <td style={styles.storageTableTd}>{item.sharePercent}%</td>
+                      <td style={styles.storageTableTd}>{formatBytes(item.weekBytes)}</td>
+                      <td style={styles.storageTableTd}>{formatNumber(item.eventCount)}</td>
+                    </tr>
+                  ))}
+
+                  {topVariants.length === 0 ? (
+                    <tr>
+                      <td style={styles.storageTableTd} colSpan={5}>Noch keine Varianten-Daten vorhanden.</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Schnellbewertung</div>
+            <div style={styles.storageMiniValue}>{healthLabel}</div>
+            <div style={styles.storageMetricHint}>
+              {healthStatus === "critical"
+                ? "Prüfe den größten QR-X zeitnah. Ein einzelnes Profil verursacht den Großteil des Traffics."
+                : healthStatus === "watch"
+                  ? "Behalte die Top-QR-X im Blick. Der Traffic ist noch nicht kritisch, aber konzentriert."
+                  : healthStatus === "healthy"
+                    ? "Die Traffic-Verteilung sieht aktuell gesund aus."
+                    : "Sobald Tracking-Events ankommen, erscheint hier eine automatische Bewertung."}
             </div>
           </div>
         </div>
