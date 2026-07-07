@@ -383,6 +383,10 @@ type MediaTrafficQrxItem = {
   todayBytes: number;
   monthBytes: number;
   weekBytes?: number;
+  storageBytes?: number;
+  estimatedTrafficCostCents?: number;
+  estimatedStorageCostCents?: number;
+  estimatedTotalCostCents?: number;
   lastSeenAt: string | null;
 };
 
@@ -396,6 +400,10 @@ type MediaTrafficMediaItem = {
   todayBytes: number;
   monthBytes: number;
   weekBytes?: number;
+  storageBytes?: number;
+  estimatedTrafficCostCents?: number;
+  estimatedStorageCostCents?: number;
+  estimatedTotalCostCents?: number;
   lastSeenAt: string | null;
 };
 
@@ -413,6 +421,11 @@ type MediaTrafficStats = {
     estimatedTodayCostCents?: number;
     estimatedWeekCostCents?: number;
     estimatedMonthCostCents?: number;
+    estimatedStorageCostCents?: number;
+    estimatedTotalCostCents?: number;
+    totalStorageBytes?: number;
+    trafficEgressCostCentsPerGb?: number;
+    storageCostCentsPerGbMonth?: number;
     largestQrxBytes?: number;
     largestMediaBytes?: number;
     largestQrxSharePercent?: number;
@@ -423,6 +436,8 @@ type MediaTrafficStats = {
   topMedia: MediaTrafficMediaItem[];
   topQrxWeek?: MediaTrafficQrxItem[];
   topMediaWeek?: MediaTrafficMediaItem[];
+  topCostQrx?: MediaTrafficQrxItem[];
+  topCostMedia?: MediaTrafficMediaItem[];
   topVariants?: Array<{
     variant: string;
     eventCount: number;
@@ -2469,6 +2484,8 @@ export default function AdminPage() {
       return `${(cents / 100).toFixed(2).replace(".", ",")} ${safeCurrency}`;
     }
   };
+
+  const formatCost = (cents: number | null | undefined) => formatPrice(cents, "EUR");
 
   const findInvoiceForPurchase = (purchase: CreditPurchaseEntry) => {
     return (creditHistory?.invoices ?? []).find((invoice) => {
@@ -4620,6 +4637,8 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
     const topMedia = mediaTrafficStats?.topMedia ?? [];
     const topQrxWeek = mediaTrafficStats?.topQrxWeek ?? [];
     const topMediaWeek = mediaTrafficStats?.topMediaWeek ?? [];
+    const topCostQrx = mediaTrafficStats?.topCostQrx ?? [];
+    const topCostMedia = mediaTrafficStats?.topCostMedia ?? [];
     const topVariants = mediaTrafficStats?.topVariants ?? [];
     const maxQrxBytes = Math.max(...topQrx.map((item) => item.totalBytes || 0), 1);
     const maxMediaBytes = Math.max(...topMedia.map((item) => item.totalBytes || 0), 1);
@@ -4627,10 +4646,14 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
     const topMediaOne = topMedia[0];
     const topQrxWeekOne = topQrxWeek[0];
     const topMediaWeekOne = topMediaWeek[0];
+    const topCostQrxOne = topCostQrx[0];
+    const topCostMediaOne = topCostMedia[0];
     const totalGb = (summary?.totalBytes ?? 0) / 1024 / 1024 / 1024;
     const estimatedCost = ((summary?.estimatedCostCents ?? 0) / 100).toFixed(2).replace(".", ",");
     const estimatedMonthCost = ((summary?.estimatedMonthCostCents ?? 0) / 100).toFixed(2).replace(".", ",");
     const estimatedWeekCost = ((summary?.estimatedWeekCostCents ?? 0) / 100).toFixed(2).replace(".", ",");
+    const estimatedStorageCost = formatCost(summary?.estimatedStorageCostCents);
+    const estimatedTotalCost = formatCost(summary?.estimatedTotalCostCents);
     const healthStatus = summary?.healthStatus ?? "empty";
     const healthLabel =
       healthStatus === "critical"
@@ -4678,6 +4701,21 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
         hint: "Geschätzter Egress-Anteil für den aktuellen Monat.",
       },
       {
+        label: "Speicher gesamt",
+        value: formatBytes(summary?.totalStorageBytes),
+        hint: "Originale plus erzeugte Derivate, soweit in qr_x_media erfasst.",
+      },
+      {
+        label: "Speicherkosten",
+        value: estimatedStorageCost,
+        hint: `Grobe Schätzung bei ${summary?.storageCostCentsPerGbMonth ?? 2} Cent pro GB/Monat.`,
+      },
+      {
+        label: "Gesamtkosten Monat",
+        value: estimatedTotalCost,
+        hint: "Aktueller Monats-Traffic plus geschätzte Speicherkosten.",
+      },
+      {
         label: "Ø pro Event",
         value: formatBytes(summary?.averageBytesPerEvent),
         hint: "Durchschnittlich ausgelieferte Datenmenge je Media-Event.",
@@ -4695,8 +4733,8 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
           <div>
             <h3 style={styles.storagePanelTitle}>Top-Traffic Dashboard</h3>
             <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
-              Phase 2D.2: Zeigt die größten Traffic-Verursacher nach QR-X und einzelnen Medien. So erkennst du früh,
-              welche Profile, Bilder oder Varianten später deine Egress-Kosten treiben.
+              Phase 2D.3: Zeigt Traffic, Speicherverbrauch und geschätzte Kosten nach QR-X und Medien. So erkennst du früh,
+              welche Profile, Bilder oder Varianten später deine Betriebskosten treiben.
             </p>
           </div>
           <button
@@ -4841,6 +4879,110 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
             <div style={styles.storageMiniLabel}>Kosten letzte 7 Tage</div>
             <div style={styles.storageMiniValue}>{estimatedWeekCost} €</div>
             <div style={styles.storageMetricHint}>Grobe Egress-Schätzung auf Basis der getrackten Events.</div>
+          </div>
+        </div>
+
+        <div style={styles.storageDetailGrid}>
+          <div>
+            <h3 style={styles.storagePanelTitle}>Top QR-X nach geschätzten Kosten</h3>
+            <div style={styles.storageTableWrap}>
+              <table style={styles.storageTable}>
+                <thead>
+                  <tr>
+                    <th style={styles.storageTableTh}>Rang</th>
+                    <th style={styles.storageTableTh}>QR-X</th>
+                    <th style={styles.storageTableTh}>Gesamt</th>
+                    <th style={styles.storageTableTh}>Traffic</th>
+                    <th style={styles.storageTableTh}>Storage</th>
+                    <th style={styles.storageTableTh}>Speicher</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topCostQrx.slice(0, 10).map((item, index) => (
+                    <tr key={`cost-qrx-${item.qrxId || index}`}>
+                      <td style={styles.storageTableTd}>{index + 1}</td>
+                      <td style={styles.storageTableTd}>
+                        <span style={styles.storageFilename} title={item.qrxId || ""}>
+                          {item.companyName || item.title || item.qrxId || "Unbekannt"}
+                        </span>
+                      </td>
+                      <td style={styles.storageTableTd}>{formatCost(item.estimatedTotalCostCents)}</td>
+                      <td style={styles.storageTableTd}>{formatCost(item.estimatedTrafficCostCents)}</td>
+                      <td style={styles.storageTableTd}>{formatCost(item.estimatedStorageCostCents)}</td>
+                      <td style={styles.storageTableTd}>{formatBytes(item.storageBytes)}</td>
+                    </tr>
+                  ))}
+
+                  {topCostQrx.length === 0 ? (
+                    <tr>
+                      <td style={styles.storageTableTd} colSpan={6}>Noch keine Kostendaten vorhanden.</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <h3 style={styles.storagePanelTitle}>Top Medien nach geschätzten Kosten</h3>
+            <div style={styles.storageTableWrap}>
+              <table style={styles.storageTable}>
+                <thead>
+                  <tr>
+                    <th style={styles.storageTableTh}>Rang</th>
+                    <th style={styles.storageTableTh}>Medium</th>
+                    <th style={styles.storageTableTh}>Gesamt</th>
+                    <th style={styles.storageTableTh}>Traffic</th>
+                    <th style={styles.storageTableTh}>Storage</th>
+                    <th style={styles.storageTableTh}>Speicher</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topCostMedia.slice(0, 10).map((item, index) => (
+                    <tr key={`cost-media-${item.mediaId || index}-${item.variant || "variant"}`}>
+                      <td style={styles.storageTableTd}>{index + 1}</td>
+                      <td style={styles.storageTableTd}>
+                        <span style={styles.storageFilename} title={item.mediaId || ""}>
+                          {item.filename || item.mediaId || "Unbekannt"}
+                        </span>
+                      </td>
+                      <td style={styles.storageTableTd}>{formatCost(item.estimatedTotalCostCents)}</td>
+                      <td style={styles.storageTableTd}>{formatCost(item.estimatedTrafficCostCents)}</td>
+                      <td style={styles.storageTableTd}>{formatCost(item.estimatedStorageCostCents)}</td>
+                      <td style={styles.storageTableTd}>{formatBytes(item.storageBytes)}</td>
+                    </tr>
+                  ))}
+
+                  {topCostMedia.length === 0 ? (
+                    <tr>
+                      <td style={styles.storageTableTd} colSpan={6}>Noch keine Media-Kostendaten vorhanden.</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.storageDetailGrid}>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Teuerster QR-X</div>
+            <div style={styles.storageMiniValue}>{topCostQrxOne ? formatCost(topCostQrxOne.estimatedTotalCostCents) : "–"}</div>
+            <div style={styles.storageMetricHint}>
+              {topCostQrxOne ? topCostQrxOne.companyName || topCostQrxOne.title || topCostQrxOne.qrxId || "Unbekannt" : "Noch keine Kostendaten."}
+            </div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Teuerstes Medium</div>
+            <div style={styles.storageMiniValue}>{topCostMediaOne ? formatCost(topCostMediaOne.estimatedTotalCostCents) : "–"}</div>
+            <div style={styles.storageMetricHint}>
+              {topCostMediaOne ? topCostMediaOne.filename || topCostMediaOne.mediaId || "Unbekannt" : "Noch keine Kostendaten."}
+            </div>
+          </div>
+          <div style={styles.storageMiniCard}>
+            <div style={styles.storageMiniLabel}>Kostensatz</div>
+            <div style={styles.storageMiniValue}>{summary?.trafficEgressCostCentsPerGb ?? 9} / {summary?.storageCostCentsPerGbMonth ?? 2} Cent</div>
+            <div style={styles.storageMetricHint}>Traffic pro GB / Storage pro GB-Monat. Später konfigurierbar.</div>
           </div>
         </div>
 
