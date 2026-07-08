@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import AdminMediaDashboard, { type AdminMediaDashboardSection } from "./components/AdminMediaDashboard";
 import AdminMediaStorage from "./components/AdminMediaStorage";
+import AdminMediaTraffic from "./components/AdminMediaTraffic";
 
 type VerificationRequest = {
   id: string;
@@ -5621,7 +5622,17 @@ const handleWarningOpenMediaJobs = async () => {
         formatNumber={formatNumber}
       />
 
-      {mediaDashboardSection === "traffic" ? renderMediaTrafficDashboard() : null}
+      {mediaDashboardSection === "traffic" ? (
+        <AdminMediaTraffic
+          styles={styles}
+          mediaTrafficStats={mediaTrafficStats}
+          mediaTrafficLoading={mediaTrafficLoading}
+          onRefresh={fetchMediaTrafficStats}
+          formatBytes={formatBytes}
+          formatNumber={formatNumber}
+          formatCost={formatCost}
+        />
+      ) : null}
 
       {mediaDashboardSection === "storage" ? (
         <AdminMediaStorage
