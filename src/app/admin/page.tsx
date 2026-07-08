@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import AdminMediaDashboard, { type AdminMediaDashboardSection } from "./components/AdminMediaDashboard";
 
 type VerificationRequest = {
   id: string;
@@ -2310,7 +2311,7 @@ export default function AdminPage() {
   const [mediaTrafficLoading, setMediaTrafficLoading] = useState(false);
   const [mediaTrafficError, setMediaTrafficError] = useState<string | null>(null);
   const [mediaWarningFilter, setMediaWarningFilter] = useState<"all" | "critical" | "warning" | "info">("all");
-  const [mediaDashboardSection, setMediaDashboardSection] = useState<"overview" | "traffic" | "storage" | "jobs">("overview");
+  const [mediaDashboardSection, setMediaDashboardSection] = useState<AdminMediaDashboardSection>("overview");
   const [storageMediaSearch, setStorageMediaSearch] = useState("");
   const [storageMediaTypeFilter, setStorageMediaTypeFilter] = useState("all");
   const [storageMediaStatusFilter, setStorageMediaStatusFilter] = useState("all");
@@ -5609,60 +5610,15 @@ const handleWarningOpenMediaJobs = async () => {
         </div>
       </div>
 
-      <div style={styles.storagePanel}>
-        <div style={styles.storageDetailHeader}>
-          <div>
-            <h3 style={styles.storagePanelTitle}>Media & Storage Bereiche</h3>
-            <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
-              Der Media-Bereich ist jetzt in Unterbereiche aufgeteilt, damit Übersicht, Preise, Credits, Finanzen und Logs nicht mehr nach unten gedrückt werden.
-            </p>
-          </div>
-        </div>
-
-        <div style={styles.storageActionRow}>
-          {[
-            { key: "overview", label: "Übersicht" },
-            { key: "traffic", label: "Traffic · Kosten · Warnungen" },
-            { key: "storage", label: "Speicherfresser" },
-            { key: "jobs", label: "Media Jobs · Reprocess" },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setMediaDashboardSection(tab.key as "overview" | "traffic" | "storage" | "jobs")}
-              style={mediaDashboardSection === tab.key ? styles.storageWarningButton : styles.storageIconButton}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {mediaDashboardSection === "overview" ? (
-        <div style={styles.storagePanel}>
-          <h3 style={styles.storagePanelTitle}>Kurzübersicht</h3>
-          <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
-            Hier bleiben nur die wichtigsten Media-Kennzahlen sichtbar. Tiefe Analysen findest du über die Unterbereiche oben.
-          </p>
-          <div style={styles.storageHealthGrid}>
-            <div style={styles.storageMiniCard}>
-              <div style={styles.storageMiniLabel}>Gesparte Daten</div>
-              <div style={styles.storageMiniValue}>{formatBytes(storageTotals?.savedBytes ?? 0)}</div>
-              <div style={styles.storageMetricHint}>Durch Optimierung eingesparte Speichermenge.</div>
-            </div>
-            <div style={styles.storageMiniCard}>
-              <div style={styles.storageMiniLabel}>Fehlerhafte Medien</div>
-              <div style={styles.storageMiniValue}>{formatNumber(storageTotals?.failedCount ?? 0)}</div>
-              <div style={styles.storageMetricHint}>Bei Fehlern den Bereich „Media Jobs · Reprocess“ öffnen.</div>
-            </div>
-            <div style={styles.storageMiniCard}>
-              <div style={styles.storageMiniLabel}>Traffic diesen Monat</div>
-              <div style={styles.storageMiniValue}>{formatBytes(mediaTrafficStats?.summary?.monthBytes)}</div>
-              <div style={styles.storageMetricHint}>Für Details den Bereich „Traffic · Kosten · Warnungen“ öffnen.</div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <AdminMediaDashboard
+        styles={styles}
+        activeSection={mediaDashboardSection}
+        onSectionChange={setMediaDashboardSection}
+        storageTotals={storageTotals}
+        mediaTrafficSummary={mediaTrafficStats?.summary}
+        formatBytes={formatBytes}
+        formatNumber={formatNumber}
+      />
 
       {mediaDashboardSection === "traffic" ? renderMediaTrafficDashboard() : null}
 
