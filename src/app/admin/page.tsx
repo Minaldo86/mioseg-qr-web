@@ -349,6 +349,23 @@ type StorageMediaItem = {
   savingsPercent: number;
 };
 
+type AdminMediaOpenResult = {
+  ok: boolean;
+  id: string;
+  type: string | null;
+  filename: string | null;
+  openUrl?: string | null;
+  downloadUrl?: string | null;
+  variantUrls?: {
+    original?: string | null;
+    large?: string | null;
+    medium?: string | null;
+    thumb?: string | null;
+  };
+};
+
+type MediaOpenVariant = "auto" | "original" | "large" | "medium" | "thumb";
+
 type StorageMediaStats = {
   ok: boolean;
   totals: {
@@ -4010,9 +4027,25 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
               {rows.map((item) => (
                 <tr key={`${title}-${item.id}`}>
                   <td style={styles.storageTableTd}>
-                    <span title={item.filename || item.id} style={styles.storageFilename}>
+                    <button
+                      type="button"
+                      onClick={() => void handleOpenStorageMedia(item)}
+                      title="Bild öffnen bzw. Datei herunterladen"
+                      style={{
+                        ...styles.storageFilename,
+                        border: "none",
+                        background: "transparent",
+                        padding: 0,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        textDecoration: "underline",
+                      }}
+                    >
                       {item.filename || item.id}
-                    </span>
+                    </button>
+                    <div style={{ ...styles.storageMetricHint, marginTop: 4 }}>
+                      {item.qrx_id ? `QR-X: ${item.qrx_id}` : "Ohne QR-X-ID"}
+                    </div>
                   </td>
                   <td style={styles.storageTableTd}>{item.type || "–"}</td>
                   <td style={styles.storageTableTd}>{formatBytes(item.originalBytes)}</td>
@@ -4037,12 +4070,69 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
                       </button>
                       <button
                         type="button"
+                        onClick={() => void handleOpenStorageMedia(item)}
+                        style={styles.storageIconButton}
+                        title="Bild öffnen bzw. Datei herunterladen"
+                      >
+                        👁 Öffnen
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDownloadStorageMedia(item)}
+                        style={styles.storageIconButton}
+                        title="Original herunterladen"
+                      >
+                        ⬇ Download
+                      </button>
+                      {String(item.type || "").toLowerCase() === "image" ? (
+                        <>
+                          <button type="button" onClick={() => void handleOpenStorageMedia(item, "large")} style={styles.storageIconButton} title="Large-Version öffnen">
+                            Large
+                          </button>
+                          <button type="button" onClick={() => void handleOpenStorageMedia(item, "medium")} style={styles.storageIconButton} title="Medium-Version öffnen">
+                            Medium
+                          </button>
+                          <button type="button" onClick={() => void handleOpenStorageMedia(item, "thumb")} style={styles.storageIconButton} title="Thumb-Version öffnen">
+                            Thumb
+                          </button>
+                        </>
+                      ) : null}
+                      {item.qrx_id ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenStorageMediaQrx(item)}
+                            style={styles.storageIconButton}
+                            title="QR-X im Web öffnen"
+                          >
+                            QR-X
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleLoadStorageMediaModeration(item)}
+                            style={styles.storageWarningButton}
+                            title="QR-X in Moderation laden"
+                          >
+                            Moderation
+                          </button>
+                        </>
+                      ) : null}
+                      <button
+                        type="button"
                         onClick={() => void handleReprocessStorageMedia(item)}
                         disabled={storageReprocessWorkingId === item.id}
                         style={styles.storageWarningButton}
                         title="Reprocessing starten"
                       >
                         {storageReprocessWorkingId === item.id ? "Läuft…" : "🔄 Reprocess"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleOpenStorageMediaJobs()}
+                        style={styles.storageIconButton}
+                        title="Media Jobs öffnen"
+                      >
+                        Jobs
                       </button>
                     </div>
                   </td>
@@ -4177,6 +4267,71 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
     }
   };
 
+  const loadAdminMediaOpenData = async (media: StorageMediaItem, variant: MediaOpenVariant = "auto") => {
+    const query = new URLSearchParams({ mediaId: media.id });
+    if (variant !== "auto") query.set("variant", variant);
+
+    const res = await fetch(`/api/admin/media-open?${query.toString()}`, { cache: "no-store" });
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Medium konnte nicht geöffnet werden.");
+    }
+
+    return data as AdminMediaOpenResult;
+  };
+
+  const handleOpenStorageMedia = async (media: StorageMediaItem, variant: MediaOpenVariant = "auto") => {
+    try {
+      const data = await loadAdminMediaOpenData(media, variant);
+      const mediaType = String(data.type || media.type || "").toLowerCase();
+      const targetUrl = mediaType === "image" || variant !== "auto" ? data.openUrl : data.downloadUrl || data.openUrl;
+
+      if (!targetUrl) throw new Error("Für dieses Medium wurde keine URL gefunden.");
+
+      window.open(targetUrl, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Medium konnte nicht geöffnet werden.");
+    }
+  };
+
+  const handleDownloadStorageMedia = async (media: StorageMediaItem) => {
+    try {
+      const data = await loadAdminMediaOpenData(media, "original");
+      const targetUrl = data.downloadUrl || data.openUrl;
+
+      if (!targetUrl) throw new Error("Für dieses Medium wurde keine Download-URL gefunden.");
+
+      window.open(targetUrl, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Medium konnte nicht heruntergeladen werden.");
+    }
+  };
+
+  const handleOpenStorageMediaQrx = (media: StorageMediaItem) => {
+    if (!media.qrx_id) {
+      alert("Dieses Medium hat keine QR-X-ID.");
+      return;
+    }
+
+    window.open(`https://mioseg-qr.com/qrx/${media.qrx_id}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleLoadStorageMediaModeration = async (media: StorageMediaItem) => {
+    if (!media.qrx_id) {
+      alert("Dieses Medium hat keine QR-X-ID.");
+      return;
+    }
+
+    await handleQrxLookup(media.qrx_id);
+  };
+
+  const handleOpenStorageMediaJobs = async () => {
+    setActiveAdminTab("overview");
+    setMediaDashboardSection("jobs");
+    await fetchMediaJobs();
+  };
+
   const renderStorageMediaDetailPanel = () => {
     if (!selectedStorageMedia) {
       return (
@@ -4212,6 +4367,35 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
           </div>
 
           <div style={styles.storageActionRow}>
+            <button
+              type="button"
+              onClick={() => void handleOpenStorageMedia(selectedStorageMedia)}
+              style={styles.storageIconButton}
+              title="Bild/Datei öffnen"
+            >
+              👁 Öffnen
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleDownloadStorageMedia(selectedStorageMedia)}
+              style={styles.storageIconButton}
+              title="Original herunterladen"
+            >
+              ⬇ Download
+            </button>
+            {String(selectedStorageMedia.type || "").toLowerCase() === "image" ? (
+              <>
+                <button type="button" onClick={() => void handleOpenStorageMedia(selectedStorageMedia, "large")} style={styles.storageIconButton}>
+                  Large
+                </button>
+                <button type="button" onClick={() => void handleOpenStorageMedia(selectedStorageMedia, "medium")} style={styles.storageIconButton}>
+                  Medium
+                </button>
+                <button type="button" onClick={() => void handleOpenStorageMedia(selectedStorageMedia, "thumb")} style={styles.storageIconButton}>
+                  Thumb
+                </button>
+              </>
+            ) : null}
             <button
               type="button"
               onClick={() => void handleReprocessStorageMedia(selectedStorageMedia)}
