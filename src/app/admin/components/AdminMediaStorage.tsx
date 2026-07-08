@@ -1,16 +1,30 @@
 "use client";
 
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
+
+type StyleMap = Record<string, unknown>;
+
+export type StorageMediaItem = {
+  id: string;
+  qrx_id: string | null;
+  filename: string | null;
+  type: string | null;
+  processing_status: string | null;
+  originalBytes: number;
+  optimizedBytes: number;
+  savedBytes: number;
+  savingsPercent: number;
+};
 
 type StorageMediaStats = {
-  topLargest?: any[];
-  topSavings?: any[];
-  mediaItems?: any[];
+  topLargest?: StorageMediaItem[];
+  topSavings?: StorageMediaItem[];
+  mediaItems?: StorageMediaItem[];
   statusCounts?: Record<string, number>;
 };
 
 type AdminMediaStorageProps = {
-  styles: Record<string, any>;
+  styles: StyleMap;
   storageMediaStats: StorageMediaStats | null;
   storageMediaLoading: boolean;
   storageMediaSearch: string;
@@ -24,11 +38,15 @@ type AdminMediaStorageProps = {
   storageMediaSort: string;
   setStorageMediaSort: Dispatch<SetStateAction<string>>;
   fetchStorageMediaStats: () => void | Promise<void>;
-  renderStorageMediaTable: (title: string, description: string, items: any[]) => ReactNode;
+  renderStorageMediaTable: (title: string, description: string, items: StorageMediaItem[]) => ReactNode;
   renderStorageMediaDetailPanel: () => ReactNode;
   formatStorageStatus: (status: string) => string;
   formatNumber: (value?: number | null) => string;
 };
+
+function styleOf(styles: StyleMap, key: string): CSSProperties {
+  return (styles[key] ?? {}) as CSSProperties;
+}
 
 export default function AdminMediaStorage({
   styles,
@@ -50,31 +68,33 @@ export default function AdminMediaStorage({
   formatStorageStatus,
   formatNumber,
 }: AdminMediaStorageProps) {
+  const sx = (key: string) => styleOf(styles, key);
+
   return (
     <>
-      <div style={styles.storagePanel}>
-        <h3 style={styles.storagePanelTitle}>Speicherfresser finden</h3>
-        <p style={{ ...styles.storageMetricHint, marginTop: -4, marginBottom: 12 }}>
+      <div style={sx("storagePanel")}>
+        <h3 style={sx("storagePanelTitle")}>Speicherfresser finden</h3>
+        <p style={{ ...sx("storageMetricHint"), marginTop: -4, marginBottom: 12 }}>
           Filtere große Dateien, fehlerhafte Medien oder Dateien mit besonders hohem Einsparpotenzial.
         </p>
 
-        <div style={styles.storageFilterGrid}>
-          <label style={styles.storageFilterLabel}>
+        <div style={sx("storageFilterGrid")}>
+          <label style={sx("storageFilterLabel")}>
             Suche
             <input
               value={storageMediaSearch}
               onChange={(event) => setStorageMediaSearch(event.target.value)}
               placeholder="Dateiname oder QR-X-ID…"
-              style={styles.storageFilterInput}
+              style={sx("storageFilterInput")}
             />
           </label>
 
-          <label style={styles.storageFilterLabel}>
+          <label style={sx("storageFilterLabel")}>
             Typ
             <select
               value={storageMediaTypeFilter}
               onChange={(event) => setStorageMediaTypeFilter(event.target.value)}
-              style={styles.storageFilterSelect}
+              style={sx("storageFilterSelect")}
             >
               <option value="all">Alle</option>
               <option value="image">Bilder</option>
@@ -83,12 +103,12 @@ export default function AdminMediaStorage({
             </select>
           </label>
 
-          <label style={styles.storageFilterLabel}>
+          <label style={sx("storageFilterLabel")}>
             Status
             <select
               value={storageMediaStatusFilter}
               onChange={(event) => setStorageMediaStatusFilter(event.target.value)}
-              style={styles.storageFilterSelect}
+              style={sx("storageFilterSelect")}
             >
               <option value="all">Alle</option>
               <option value="ready">Optimiert / Ready</option>
@@ -99,23 +119,23 @@ export default function AdminMediaStorage({
             </select>
           </label>
 
-          <label style={styles.storageFilterLabel}>
+          <label style={sx("storageFilterLabel")}>
             Mindestgröße in MB
             <input
               value={storageMediaMinMb}
               onChange={(event) => setStorageMediaMinMb(event.target.value)}
               placeholder="z. B. 10"
               inputMode="decimal"
-              style={styles.storageFilterInput}
+              style={sx("storageFilterInput")}
             />
           </label>
 
-          <label style={styles.storageFilterLabel}>
+          <label style={sx("storageFilterLabel")}>
             Sortierung
             <select
               value={storageMediaSort}
               onChange={(event) => setStorageMediaSort(event.target.value)}
-              style={styles.storageFilterSelect}
+              style={sx("storageFilterSelect")}
             >
               <option value="largest">Größte Originaldateien</option>
               <option value="savings">Größte Einsparungen</option>
@@ -124,12 +144,12 @@ export default function AdminMediaStorage({
             </select>
           </label>
 
-          <div style={styles.storageFilterActions}>
+          <div style={sx("storageFilterActions")}>
             <button
               type="button"
-              onClick={fetchStorageMediaStats}
+              onClick={() => void fetchStorageMediaStats()}
               disabled={storageMediaLoading}
-              style={styles.refreshButton}
+              style={sx("refreshButton")}
             >
               {storageMediaLoading ? "Filter lädt…" : "Filter anwenden"}
             </button>
@@ -143,7 +163,7 @@ export default function AdminMediaStorage({
                 setStorageMediaSort("largest");
                 setTimeout(() => void fetchStorageMediaStats(), 0);
               }}
-              style={styles.smallButton}
+              style={sx("smallButton")}
             >
               Zurücksetzen
             </button>
@@ -159,7 +179,7 @@ export default function AdminMediaStorage({
         {renderStorageMediaDetailPanel()}
       </div>
 
-      <div style={styles.storageDetailGrid}>
+      <div style={sx("storageDetailGrid")}>
         {renderStorageMediaTable(
           "Größte Medien",
           "Die größten Originaldateien. Diese Dateien sind besonders wichtig für Speicheroptimierung.",
@@ -173,20 +193,20 @@ export default function AdminMediaStorage({
         )}
       </div>
 
-      <div style={styles.storageSectionGrid}>
-        <div style={styles.storagePanel}>
-          <h3 style={styles.storagePanelTitle}>Media Health</h3>
-          <div style={styles.storageHealthGrid}>
+      <div style={sx("storageSectionGrid")}>
+        <div style={sx("storagePanel")}>
+          <h3 style={sx("storagePanelTitle")}>Media Health</h3>
+          <div style={sx("storageHealthGrid")}>
             {Object.entries(storageMediaStats?.statusCounts ?? {}).length === 0 ? (
-              <div style={styles.storageMiniCard}>
-                <div style={styles.storageMiniLabel}>Status</div>
-                <div style={styles.storageMiniValue}>—</div>
+              <div style={sx("storageMiniCard")}>
+                <div style={sx("storageMiniLabel")}>Status</div>
+                <div style={sx("storageMiniValue")}>—</div>
               </div>
             ) : (
               Object.entries(storageMediaStats?.statusCounts ?? {}).map(([status, count]) => (
-                <div key={status} style={styles.storageMiniCard}>
-                  <div style={styles.storageMiniLabel}>{formatStorageStatus(status)}</div>
-                  <div style={styles.storageMiniValue}>{formatNumber(count)}</div>
+                <div key={status} style={sx("storageMiniCard")}>
+                  <div style={sx("storageMiniLabel")}>{formatStorageStatus(status)}</div>
+                  <div style={sx("storageMiniValue")}>{formatNumber(count)}</div>
                 </div>
               ))
             )}

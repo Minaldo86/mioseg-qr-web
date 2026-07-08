@@ -1,8 +1,10 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import type { CSSProperties, Dispatch, SetStateAction } from "react";
 
 export type AdminMediaDashboardSection = "overview" | "traffic" | "storage" | "jobs";
+
+type StyleMap = Record<string, unknown>;
 
 type StorageTotals = {
   savedBytes?: number | null;
@@ -14,7 +16,7 @@ type MediaTrafficSummary = {
 };
 
 type AdminMediaDashboardProps = {
-  styles: Record<string, any>;
+  styles: StyleMap;
   activeSection: AdminMediaDashboardSection;
   onSectionChange: Dispatch<SetStateAction<AdminMediaDashboardSection>>;
   storageTotals?: StorageTotals | null;
@@ -30,6 +32,10 @@ const MEDIA_TABS: Array<{ key: AdminMediaDashboardSection; label: string }> = [
   { key: "jobs", label: "Media Jobs · Reprocess" },
 ];
 
+function styleOf(styles: StyleMap, key: string): CSSProperties {
+  return (styles[key] ?? {}) as CSSProperties;
+}
+
 export default function AdminMediaDashboard({
   styles,
   activeSection,
@@ -39,26 +45,28 @@ export default function AdminMediaDashboard({
   formatBytes,
   formatNumber,
 }: AdminMediaDashboardProps) {
+  const sx = (key: string) => styleOf(styles, key);
+
   return (
     <>
-      <div style={styles.storagePanel}>
-        <div style={styles.storageDetailHeader}>
+      <div style={sx("storagePanel")}>
+        <div style={sx("storageDetailHeader")}>
           <div>
-            <h3 style={styles.storagePanelTitle}>Media & Storage Bereiche</h3>
-            <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
+            <h3 style={sx("storagePanelTitle")}>Media & Storage Bereiche</h3>
+            <p style={{ ...sx("storageMetricHint"), marginTop: -4 }}>
               Der Media-Bereich ist jetzt in Unterbereiche aufgeteilt, damit Übersicht, Preise, Credits,
               Finanzen und Logs nicht mehr nach unten gedrückt werden.
             </p>
           </div>
         </div>
 
-        <div style={styles.storageActionRow}>
+        <div style={sx("storageActionRow")}>
           {MEDIA_TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => onSectionChange(tab.key)}
-              style={activeSection === tab.key ? styles.storageWarningButton : styles.storageIconButton}
+              style={activeSection === tab.key ? sx("storageWarningButton") : sx("storageIconButton")}
             >
               {tab.label}
             </button>
@@ -67,27 +75,27 @@ export default function AdminMediaDashboard({
       </div>
 
       {activeSection === "overview" ? (
-        <div style={styles.storagePanel}>
-          <h3 style={styles.storagePanelTitle}>Kurzübersicht</h3>
-          <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
+        <div style={sx("storagePanel")}>
+          <h3 style={sx("storagePanelTitle")}>Kurzübersicht</h3>
+          <p style={{ ...sx("storageMetricHint"), marginTop: -4 }}>
             Hier bleiben nur die wichtigsten Media-Kennzahlen sichtbar. Tiefe Analysen findest du über die
             Unterbereiche oben.
           </p>
-          <div style={styles.storageHealthGrid}>
-            <div style={styles.storageMiniCard}>
-              <div style={styles.storageMiniLabel}>Gesparte Daten</div>
-              <div style={styles.storageMiniValue}>{formatBytes(storageTotals?.savedBytes ?? 0)}</div>
-              <div style={styles.storageMetricHint}>Durch Optimierung eingesparte Speichermenge.</div>
+          <div style={sx("storageHealthGrid")}>
+            <div style={sx("storageMiniCard")}>
+              <div style={sx("storageMiniLabel")}>Gesparte Daten</div>
+              <div style={sx("storageMiniValue")}>{formatBytes(storageTotals?.savedBytes ?? 0)}</div>
+              <div style={sx("storageMetricHint")}>Durch Optimierung eingesparte Speichermenge.</div>
             </div>
-            <div style={styles.storageMiniCard}>
-              <div style={styles.storageMiniLabel}>Fehlerhafte Medien</div>
-              <div style={styles.storageMiniValue}>{formatNumber(storageTotals?.failedCount ?? 0)}</div>
-              <div style={styles.storageMetricHint}>Bei Fehlern den Bereich „Media Jobs · Reprocess“ öffnen.</div>
+            <div style={sx("storageMiniCard")}>
+              <div style={sx("storageMiniLabel")}>Fehlerhafte Medien</div>
+              <div style={sx("storageMiniValue")}>{formatNumber(storageTotals?.failedCount ?? 0)}</div>
+              <div style={sx("storageMetricHint")}>Bei Fehlern den Bereich „Media Jobs · Reprocess“ öffnen.</div>
             </div>
-            <div style={styles.storageMiniCard}>
-              <div style={styles.storageMiniLabel}>Traffic diesen Monat</div>
-              <div style={styles.storageMiniValue}>{formatBytes(mediaTrafficSummary?.monthBytes ?? 0)}</div>
-              <div style={styles.storageMetricHint}>
+            <div style={sx("storageMiniCard")}>
+              <div style={sx("storageMiniLabel")}>Traffic diesen Monat</div>
+              <div style={sx("storageMiniValue")}>{formatBytes(mediaTrafficSummary?.monthBytes ?? 0)}</div>
+              <div style={sx("storageMetricHint")}>
                 Für Details den Bereich „Traffic · Kosten · Warnungen“ öffnen.
               </div>
             </div>
