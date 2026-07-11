@@ -3,10 +3,13 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { BulkMediaPreviewResult, MediaJobsResult } from "../types";
 import { formatBytes, formatNumber } from "../utils/mediaFormat";
-
-
-type ApiError = { error?: string };
-type ProcessResult = { processed?: boolean; error?: string };
+import {
+  fetchMediaJobs,
+  processMediaJobBatch,
+  retryMediaJob,
+  runBulkMediaJobs,
+  type BulkMediaRequest,
+} from "../services/mediaJobs.service";
 
 type JobFilter = "all" | "queued" | "processing" | "done" | "failed";
 
@@ -57,9 +60,6 @@ function statusStyle(status?: string | null): CSSProperties {
   return { ...styles.status, background: "#2c1806", borderColor: "#854d0e", color: "#fde68a" };
 }
 
-async function readJson<T>(response: Response): Promise<T> {
-  return (await response.json()) as T;
-}
 
 export default function AdminMediaJobs() {
   const [data, setData] = useState<MediaJobsResult | null>(null);
@@ -87,10 +87,7 @@ export default function AdminMediaJobs() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/admin/media-jobs", { cache: "no-store" });
-      const payload = await readJson<MediaJobsResult & ApiError>(response);
-      if (!response.ok) throw new Error(payload.error || "Media Jobs konnten nicht geladen werden.");
-      setData(payload);
+      setData(await fetchMediaJobs());
     } catch (loadError: unknown) {
       setError(loadError instanceof Error ? loadError.message : "Media Jobs konnten nicht geladen werden.");
     } finally {
@@ -114,14 +111,7 @@ export default function AdminMediaJobs() {
       setProcessing(true);
       setMessage(null);
       setError(null);
-      let processedCount = 0;
-      for (let index = 0; index < maxJobs; index += 1) {
-        const response = await fetch("/api/admin/media-jobs/process", { method: "POST" });
-        const payload = await readJson<ProcessResult>(response);
-        if (!response.ok) throw new Error(payload.error || "Media Job konnte nicht verarbeitet werden.");
-        if (!payload.processed) break;
-        processedCount += 1;
-      }
+      const processedCount = await processMediaJobBatch(maxJobs);
       setLastRunAt(new Date().toISOString());
       setMessage(processedCount > 0 ? `${processedCount} Media Job(s) wurden verarbeitet.` : "Keine wartenden Media Jobs vorhanden.");
       await loadJobs();
@@ -143,13 +133,7 @@ export default function AdminMediaJobs() {
       setRetryWorkingId(jobId);
       setMessage(null);
       setError(null);
-      const response = await fetch("/api/admin/media-jobs/retry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobId }),
-      });
-      const payload = await readJson<ApiError>(response);
-      if (!response.ok) throw new Error(payload.error || "Media Job konnte nicht erneut gestartet werden.");
+      await retryMediaJob(jobId);
       setMessage("Fehlgeschlagener Media Job wurde zurück in die Queue gesetzt.");
       await loadJobs();
     } catch (retryError: unknown) {
@@ -159,7 +143,7 @@ export default function AdminMediaJobs() {
     }
   };
 
-  const bulkPayload = (dryRun: boolean) => ({
+  const bulkPayload = (dryRun: boolean): BulkMediaRequest => ({
     type: bulkType,
     status: bulkStatus,
     minMb: bulkMinMb,
@@ -172,13 +156,7 @@ export default function AdminMediaJobs() {
     try {
       setBulkWorking(true);
       setBulkMessage(null);
-      const response = await fetch("/api/admin/media-jobs/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bulkPayload(true)),
-      });
-      const payload = await readJson<BulkMediaPreviewResult & ApiError>(response);
-      if (!response.ok) throw new Error(payload.error || "Bulk-Vorschau konnte nicht geladen werden.");
+      const payload = await runBulkMediaJobs(bulkPayload(true));
       setBulkPreview(payload);
       setBulkMessage(`${formatNumber(payload.matchedCount)} Medien passen zu den Filtern.`);
     } catch (previewError: unknown) {
@@ -192,13 +170,7 @@ export default function AdminMediaJobs() {
     try {
       setBulkWorking(true);
       setBulkMessage(null);
-      const response = await fetch("/api/admin/media-jobs/bulk", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bulkPayload(false)),
-      });
-      const payload = await readJson<BulkMediaPreviewResult & ApiError>(response);
-      if (!response.ok) throw new Error(payload.error || "Bulk-Reprocess konnte nicht gestartet werden.");
+      const payload = await runBulkMediaJobs(bulkPayload(false));
       setBulkMessage(`${formatNumber(payload.createdCount)} Bulk Job(s) wurden angelegt.`);
       await loadJobs();
       await previewBulk();
