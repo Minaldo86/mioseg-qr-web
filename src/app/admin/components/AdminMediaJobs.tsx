@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import type { BulkMediaPreviewResult, MediaJobsResult } from "../types";
+import { formatBytes, formatNumber } from "../utils/mediaFormat";
 
 
 type ApiError = { error?: string };
@@ -38,23 +39,6 @@ const styles: Record<string, CSSProperties> = {
   previewGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10, marginTop: 12 },
 };
 
-function formatNumber(value?: number | null) {
-  return new Intl.NumberFormat("de-DE").format(Number(value ?? 0));
-}
-
-function formatBytes(value?: number | null) {
-  const bytes = Number(value ?? 0);
-  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let size = bytes;
-  let index = 0;
-  while (size >= 1024 && index < units.length - 1) {
-    size /= 1024;
-    index += 1;
-  }
-  const digits = index === 0 ? 0 : size >= 100 ? 0 : size >= 10 ? 1 : 2;
-  return `${size.toFixed(digits).replace(".", ",")} ${units[index]}`;
-}
 
 function statusLabel(status?: string | null) {
   const value = String(status || "unknown").toLowerCase();

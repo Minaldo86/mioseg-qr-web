@@ -3,12 +3,9 @@
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import AdminMediaWarnings from "./AdminMediaWarnings";
 import type { MediaTrafficStats } from "../types";
-
-
-type MediaOpenResult = {
-  ok: boolean;
-  openUrl?: string | null;
-};
+import { formatBytes, formatCost, formatNumber } from "../utils/mediaFormat";
+import { fetchMediaTrafficStats } from "../services/mediaTraffic.service";
+import { openAdminMedia } from "../services/mediaOpen.service";
 
 const styles: Record<string, CSSProperties> = {
   panel: {
@@ -95,30 +92,6 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-function formatBytes(value?: number | null) {
-  const bytes = Number(value ?? 0);
-  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let size = bytes;
-  let index = 0;
-  while (size >= 1024 && index < units.length - 1) {
-    size /= 1024;
-    index += 1;
-  }
-  const digits = index === 0 ? 0 : size >= 100 ? 0 : size >= 10 ? 1 : 2;
-  return `${size.toFixed(digits).replace(".", ",")} ${units[index]}`;
-}
-
-function formatNumber(value?: number | null) {
-  return new Intl.NumberFormat("de-DE").format(Number(value ?? 0));
-}
-
-function formatCost(value?: number | null) {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-  }).format(Number(value ?? 0) / 100);
-}
 
 function healthLabel(status?: string | null) {
   if (status === "critical") return "Kritisch";
@@ -136,20 +109,8 @@ export default function AdminMediaTraffic() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/admin/media-traffic", {
-        cache: "no-store",
-      });
-      const payload: unknown = await response.json();
-      if (!response.ok) {
-        const message =
-          typeof payload === "object" && payload && "error" in payload
-            ? String((payload as { error?: unknown }).error ?? "")
-            : "";
-        throw new Error(
-          message || "Traffic-Statistiken konnten nicht geladen werden.",
-        );
-      }
-      setData(payload as MediaTrafficStats);
+      const payload = await fetchMediaTrafficStats();
+      setData(payload);
     } catch (loadError: unknown) {
       setError(
         loadError instanceof Error
@@ -172,20 +133,8 @@ export default function AdminMediaTraffic() {
   };
 
   const openMedia = async (mediaId?: string | null) => {
-    if (!mediaId) return;
     try {
-      const response = await fetch(
-        `/api/admin/media-open?mediaId=${encodeURIComponent(mediaId)}`,
-        { cache: "no-store" },
-      );
-      const payload = (await response.json()) as MediaOpenResult & {
-        error?: string;
-      };
-      if (!response.ok || !payload.openUrl)
-        throw new Error(
-          payload.error || "Medium konnte nicht geöffnet werden.",
-        );
-      window.open(payload.openUrl, "_blank", "noopener,noreferrer");
+      await openAdminMedia(mediaId);
     } catch (openError: unknown) {
       window.alert(
         openError instanceof Error

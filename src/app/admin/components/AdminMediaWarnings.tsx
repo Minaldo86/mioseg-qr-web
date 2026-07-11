@@ -6,6 +6,8 @@ import type {
   MediaHealthRecommendation,
   MediaWarningSeverity,
 } from "../types";
+import { formatBytes, formatCost } from "../utils/mediaFormat";
+import { openAdminMedia } from "../services/mediaOpen.service";
 
 
 type WarningFilter = "all" | MediaWarningSeverity;
@@ -14,12 +16,6 @@ type AdminMediaWarningsProps = {
   warnings?: MediaActiveWarning[];
   recommendations?: MediaHealthRecommendation[];
   updatedAt?: string | null;
-};
-
-type MediaOpenResult = {
-  ok: boolean;
-  openUrl?: string | null;
-  error?: string;
 };
 
 const styles: Record<string, CSSProperties> = {
@@ -89,26 +85,6 @@ const styles: Record<string, CSSProperties> = {
   },
 };
 
-function formatBytes(value?: number | null) {
-  const bytes = Number(value ?? 0);
-  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let size = bytes;
-  let index = 0;
-  while (size >= 1024 && index < units.length - 1) {
-    size /= 1024;
-    index += 1;
-  }
-  const digits = index === 0 ? 0 : size >= 100 ? 0 : size >= 10 ? 1 : 2;
-  return `${size.toFixed(digits).replace(".", ",")} ${units[index]}`;
-}
-
-function formatCost(value?: number | null) {
-  return new Intl.NumberFormat("de-DE", {
-    style: "currency",
-    currency: "EUR",
-  }).format(Number(value ?? 0) / 100);
-}
 
 function filterLabel(filter: WarningFilter) {
   if (filter === "all") return "Alle";
@@ -138,19 +114,8 @@ export default function AdminMediaWarnings({
   };
 
   const openMedia = async (mediaId?: string | null) => {
-    if (!mediaId) return;
     try {
-      const response = await fetch(
-        `/api/admin/media-open?mediaId=${encodeURIComponent(mediaId)}`,
-        { cache: "no-store" },
-      );
-      const payload = (await response.json()) as MediaOpenResult;
-      if (!response.ok || !payload.openUrl) {
-        throw new Error(
-          payload.error || "Medium konnte nicht geöffnet werden.",
-        );
-      }
-      window.open(payload.openUrl, "_blank", "noopener,noreferrer");
+      await openAdminMedia(mediaId);
     } catch (openError: unknown) {
       window.alert(
         openError instanceof Error
