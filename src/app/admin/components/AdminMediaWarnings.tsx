@@ -1,32 +1,12 @@
 "use client";
 
 import { useMemo, useState, type CSSProperties } from "react";
+import type {
+  MediaActiveWarning,
+  MediaHealthRecommendation,
+  MediaWarningSeverity,
+} from "../types";
 
-export type MediaWarningSeverity = "info" | "warning" | "critical";
-export type MediaWarningCategory =
-  | "traffic"
-  | "storage"
-  | "cost"
-  | "quality"
-  | "jobs";
-
-export type MediaHealthRecommendation = {
-  id: string;
-  severity: MediaWarningSeverity;
-  category: MediaWarningCategory;
-  title: string;
-  description: string;
-  qrxId?: string | null;
-  mediaId?: string | null;
-  estimatedSavingsBytes?: number;
-  estimatedSavingsCostCents?: number;
-};
-
-export type MediaActiveWarning = MediaHealthRecommendation & {
-  priority: number;
-  status: "active";
-  detectedAt: string;
-};
 
 type WarningFilter = "all" | MediaWarningSeverity;
 

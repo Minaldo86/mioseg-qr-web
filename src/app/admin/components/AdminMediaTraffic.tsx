@@ -1,59 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
-import AdminMediaWarnings, {
-  type MediaActiveWarning,
-  type MediaHealthRecommendation,
-} from "./AdminMediaWarnings";
+import AdminMediaWarnings from "./AdminMediaWarnings";
+import type { MediaTrafficStats } from "../types";
 
-type MediaTrafficSummary = {
-  eventCount?: number | null;
-  totalBytes?: number | null;
-  todayBytes?: number | null;
-  weekBytes?: number | null;
-  monthBytes?: number | null;
-  mediaCount?: number | null;
-  qrxCount?: number | null;
-  estimatedCostCents?: number | null;
-  estimatedMonthCostCents?: number | null;
-  estimatedStorageCostCents?: number | null;
-  estimatedTotalCostCents?: number | null;
-  totalStorageBytes?: number | null;
-  averageBytesPerEvent?: number | null;
-  healthScore?: number | null;
-  healthStatus?: string | null;
-};
-
-type MediaTrafficQrxItem = {
-  qrxId: string | null;
-  title: string | null;
-  companyName: string | null;
-  eventCount: number;
-  totalBytes: number;
-  monthBytes: number;
-  estimatedTotalCostCents?: number;
-};
-
-type MediaTrafficMediaItem = {
-  mediaId: string | null;
-  qrxId: string | null;
-  filename: string | null;
-  variant: string | null;
-  eventCount: number;
-  totalBytes: number;
-  monthBytes: number;
-  estimatedTotalCostCents?: number;
-};
-
-type MediaTrafficStats = {
-  ok: boolean;
-  summary: MediaTrafficSummary;
-  topQrx: MediaTrafficQrxItem[];
-  topMedia: MediaTrafficMediaItem[];
-  recommendations?: MediaHealthRecommendation[];
-  activeWarnings?: MediaActiveWarning[];
-  updatedAt: string;
-};
 
 type MediaOpenResult = {
   ok: boolean;

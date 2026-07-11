@@ -1,54 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import type { BulkMediaPreviewResult, MediaJobsResult } from "../types";
 
-type MediaJobStatus = "queued" | "processing" | "done" | "failed" | string;
-
-type MediaJobEntry = {
-  id: string;
-  media_id: string;
-  qrx_id: string | null;
-  job_type: string | null;
-  status: MediaJobStatus | null;
-  reason: string | null;
-  attempts: number | null;
-  processing_error: string | null;
-  created_at: string | null;
-  started_at: string | null;
-  finished_at: string | null;
-  updated_at: string | null;
-};
-
-type MediaJobsResult = {
-  ok: boolean;
-  jobs: MediaJobEntry[];
-  summary: {
-    totalLoaded: number;
-    queued: number;
-    processing: number;
-    done: number;
-    failed: number;
-  };
-  updatedAt: string;
-};
-
-type BulkPreviewItem = {
-  id: string;
-  qrx_id: string | null;
-  filename: string | null;
-  type: string | null;
-  mime_type: string | null;
-  processing_status: string | null;
-  original_bytes: number | null;
-};
-
-type BulkMediaPreviewResult = {
-  ok: boolean;
-  dryRun: boolean;
-  matchedCount: number;
-  createdCount?: number;
-  sample?: BulkPreviewItem[];
-};
 
 type ApiError = { error?: string };
 type ProcessResult = { processed?: boolean; error?: string };

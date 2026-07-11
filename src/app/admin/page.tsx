@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import AdminMediaDashboard, { type AdminMediaDashboardSection } from "./components/AdminMediaDashboard";
 import AdminMediaStorage from "./components/AdminMediaStorage";
 import AdminMediaTraffic from "./components/AdminMediaTraffic";
+import AdminMediaJobs from "./components/AdminMediaJobs";
 
 type VerificationRequest = {
   id: string;
@@ -5649,13 +5650,7 @@ const handleWarningOpenMediaJobs = async () => {
         />
       ) : null}
 
-      {mediaDashboardSection === "jobs" ? (
-        <>
-          {renderBulkMediaJobsPanel()}
-
-          {renderMediaJobsPanel()}
-        </>
-      ) : null}
+      {mediaDashboardSection === "jobs" ? <AdminMediaJobs /> : null}
 
     </section>
   );
