@@ -5623,15 +5623,7 @@ const handleWarningOpenMediaJobs = async () => {
       />
 
       {mediaDashboardSection === "traffic" ? (
-        <AdminMediaTraffic
-          styles={styles}
-          mediaTrafficStats={mediaTrafficStats}
-          mediaTrafficLoading={mediaTrafficLoading}
-          onRefresh={fetchMediaTrafficStats}
-          formatBytes={formatBytes}
-          formatNumber={formatNumber}
-          formatCost={formatCost}
-        />
+        <AdminMediaTraffic />
       ) : null}
 
       {mediaDashboardSection === "storage" ? (

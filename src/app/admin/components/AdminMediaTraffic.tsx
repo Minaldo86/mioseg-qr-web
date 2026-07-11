@@ -1,8 +1,9 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 
-type StyleMap = Record<string, unknown>;
+type Severity = "info" | "warning" | "critical";
+type WarningFilter = "all" | Severity;
 
 type MediaTrafficSummary = {
   eventCount?: number | null;
@@ -10,15 +11,13 @@ type MediaTrafficSummary = {
   todayBytes?: number | null;
   weekBytes?: number | null;
   monthBytes?: number | null;
+  mediaCount?: number | null;
+  qrxCount?: number | null;
   estimatedCostCents?: number | null;
-  estimatedTodayCostCents?: number | null;
-  estimatedWeekCostCents?: number | null;
   estimatedMonthCostCents?: number | null;
   estimatedStorageCostCents?: number | null;
   estimatedTotalCostCents?: number | null;
   totalStorageBytes?: number | null;
-  largestQrxSharePercent?: number | null;
-  largestMediaSharePercent?: number | null;
   averageBytesPerEvent?: number | null;
   healthScore?: number | null;
   healthStatus?: string | null;
@@ -30,13 +29,8 @@ type MediaTrafficQrxItem = {
   companyName: string | null;
   eventCount: number;
   totalBytes: number;
-  todayBytes: number;
   monthBytes: number;
-  weekBytes?: number;
-  estimatedTrafficCostCents?: number;
-  estimatedStorageCostCents?: number;
   estimatedTotalCostCents?: number;
-  lastSeenAt: string | null;
 };
 
 type MediaTrafficMediaItem = {
@@ -46,18 +40,13 @@ type MediaTrafficMediaItem = {
   variant: string | null;
   eventCount: number;
   totalBytes: number;
-  todayBytes: number;
   monthBytes: number;
-  weekBytes?: number;
-  estimatedTrafficCostCents?: number;
-  estimatedStorageCostCents?: number;
   estimatedTotalCostCents?: number;
-  lastSeenAt: string | null;
 };
 
 type MediaHealthRecommendation = {
   id: string;
-  severity: "info" | "warning" | "critical";
+  severity: Severity;
   category: "traffic" | "storage" | "cost" | "quality" | "jobs";
   title: string;
   description: string;
@@ -73,162 +62,229 @@ type MediaActiveWarning = MediaHealthRecommendation & {
   detectedAt: string;
 };
 
-type MediaTrafficVariantItem = {
-  variant: string;
-  eventCount: number;
-  totalBytes: number;
-  todayBytes: number;
-  weekBytes: number;
-  monthBytes: number;
-  sharePercent: number;
-};
-
 type MediaTrafficStats = {
   ok: boolean;
   summary: MediaTrafficSummary;
   topQrx: MediaTrafficQrxItem[];
   topMedia: MediaTrafficMediaItem[];
-  topQrxWeek?: MediaTrafficQrxItem[];
-  topMediaWeek?: MediaTrafficMediaItem[];
-  topCostQrx?: MediaTrafficQrxItem[];
-  topCostMedia?: MediaTrafficMediaItem[];
-  topVariants?: MediaTrafficVariantItem[];
   recommendations?: MediaHealthRecommendation[];
   activeWarnings?: MediaActiveWarning[];
   updatedAt: string;
 };
 
-type AdminMediaTrafficProps = {
-  styles: StyleMap;
-  mediaTrafficStats: MediaTrafficStats | null;
-  mediaTrafficLoading: boolean;
-  onRefresh: () => void | Promise<void>;
-  formatBytes: (value?: number | null) => string;
-  formatNumber: (value?: number | null) => string;
-  formatCost: (value?: number | null) => string;
+type MediaOpenResult = {
+  ok: boolean;
+  openUrl?: string | null;
 };
 
-function styleOf(styles: StyleMap, key: string): CSSProperties {
-  return (styles[key] ?? {}) as CSSProperties;
+const styles: Record<string, CSSProperties> = {
+  panel: { borderRadius: 22, background: "#0b1324", border: "1px solid #243044", padding: 16 },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", marginBottom: 14 },
+  title: { margin: 0, color: "#e2e8f0", fontSize: 18, fontWeight: 900 },
+  hint: { color: "#9fb1c8", fontSize: 12, lineHeight: 1.5, marginTop: 6 },
+  metricGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 },
+  metricCard: { borderRadius: 18, background: "linear-gradient(180deg, #111c31 0%, #0d1728 100%)", border: "1px solid #2a3952", padding: 15 },
+  label: { color: "#93a5bd", fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: 0.4 },
+  value: { color: "#f8fafc", fontSize: 23, fontWeight: 950, marginTop: 7 },
+  button: { border: "1px solid #2d3f59", borderRadius: 10, background: "#172133", color: "#f8fafc", padding: "9px 11px", fontWeight: 900, cursor: "pointer", fontSize: 12 },
+  warningButton: { border: "1px solid #854d0e", borderRadius: 10, background: "#2c1806", color: "#fde68a", padding: "9px 11px", fontWeight: 900, cursor: "pointer", fontSize: 12 },
+  row: { display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" },
+  sectionGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 12, marginTop: 12 },
+  list: { display: "grid", gap: 8, marginTop: 10 },
+  listItem: { display: "flex", justifyContent: "space-between", gap: 12, borderRadius: 13, border: "1px solid #243044", background: "#111827", padding: "10px 12px", color: "#cbd5e1", fontSize: 12 },
+  error: { borderRadius: 14, border: "1px solid #991b1b", background: "#3f1111", color: "#fecaca", padding: 12, marginBottom: 12 },
+  warningGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 10, marginTop: 12 },
+  warningCard: { borderRadius: 16, padding: 13, border: "1px solid #243044", background: "#111827" },
+};
+
+function formatBytes(value?: number | null) {
+  const bytes = Number(value ?? 0);
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let size = bytes;
+  let index = 0;
+  while (size >= 1024 && index < units.length - 1) {
+    size /= 1024;
+    index += 1;
+  }
+  const digits = index === 0 ? 0 : size >= 100 ? 0 : size >= 10 ? 1 : 2;
+  return `${size.toFixed(digits).replace(".", ",")} ${units[index]}`;
+}
+
+function formatNumber(value?: number | null) {
+  return new Intl.NumberFormat("de-DE").format(Number(value ?? 0));
+}
+
+function formatCost(value?: number | null) {
+  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(Number(value ?? 0) / 100);
 }
 
 function healthLabel(status?: string | null) {
-  if (!status) return "Noch keine Bewertung";
   if (status === "critical") return "Kritisch";
   if (status === "watch") return "Beobachten";
   if (status === "healthy") return "Gesund";
-  if (status === "empty") return "Noch keine Daten";
-  return status;
+  return "Noch keine Daten";
 }
 
-export default function AdminMediaTraffic({
-  styles,
-  mediaTrafficStats,
-  mediaTrafficLoading,
-  onRefresh,
-  formatBytes,
-  formatNumber,
-  formatCost,
-}: AdminMediaTrafficProps) {
-  const sx = (key: string) => styleOf(styles, key);
-  const summary = mediaTrafficStats?.summary;
-  const topQrx = mediaTrafficStats?.topQrx ?? [];
-  const topMedia = mediaTrafficStats?.topMedia ?? [];
-  const warnings = mediaTrafficStats?.activeWarnings ?? [];
-  const recommendations = mediaTrafficStats?.recommendations ?? [];
+export default function AdminMediaTraffic() {
+  const [data, setData] = useState<MediaTrafficStats | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [warningFilter, setWarningFilter] = useState<WarningFilter>("all");
+
+  const loadTraffic = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch("/api/admin/media-traffic", { cache: "no-store" });
+      const payload: unknown = await response.json();
+      if (!response.ok) {
+        const message = typeof payload === "object" && payload && "error" in payload ? String((payload as { error?: unknown }).error ?? "") : "";
+        throw new Error(message || "Traffic-Statistiken konnten nicht geladen werden.");
+      }
+      setData(payload as MediaTrafficStats);
+    } catch (loadError: unknown) {
+      setError(loadError instanceof Error ? loadError.message : "Traffic-Statistiken konnten nicht geladen werden.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadTraffic();
+  }, [loadTraffic]);
+
+  const summary = data?.summary;
+  const warnings = data?.activeWarnings ?? [];
+  const recommendations = data?.recommendations ?? [];
+  const filteredWarnings = useMemo(
+    () => warnings.filter((item) => warningFilter === "all" || item.severity === warningFilter),
+    [warnings, warningFilter]
+  );
+
+  const openQrx = (qrxId?: string | null) => {
+    if (!qrxId) return;
+    window.open(`/qrx/${qrxId}`, "_blank", "noopener,noreferrer");
+  };
+
+  const openMedia = async (mediaId?: string | null) => {
+    if (!mediaId) return;
+    try {
+      const response = await fetch(`/api/admin/media-open?mediaId=${encodeURIComponent(mediaId)}`, { cache: "no-store" });
+      const payload = (await response.json()) as MediaOpenResult & { error?: string };
+      if (!response.ok || !payload.openUrl) throw new Error(payload.error || "Medium konnte nicht geöffnet werden.");
+      window.open(payload.openUrl, "_blank", "noopener,noreferrer");
+    } catch (openError: unknown) {
+      window.alert(openError instanceof Error ? openError.message : "Medium konnte nicht geöffnet werden.");
+    }
+  };
 
   return (
-    <div style={sx("storagePanel")}>
-      <div style={sx("storageDetailHeader")}>
+    <div style={styles.panel}>
+      <div style={styles.header}>
         <div>
-          <h3 style={sx("storagePanelTitle")}>Traffic · Kosten · Warnungen</h3>
-          <p style={{ ...sx("storageMetricHint"), marginTop: -4 }}>
-            Phase 3C ist jetzt als eigenes Traffic-Modul vorbereitet. Die Detailtabellen werden Schritt für
-            Schritt aus der großen Admin-Seite hierher verschoben.
-          </p>
+          <h3 style={styles.title}>Traffic · Kosten · Warnungen</h3>
+          <div style={styles.hint}>Eigenständiges Modul: lädt, aktualisiert und bewertet seine Daten ohne Abhängigkeit von der Admin-Hauptseite.</div>
         </div>
-
-        <button
-          type="button"
-          onClick={() => void onRefresh()}
-          disabled={mediaTrafficLoading}
-          style={mediaTrafficLoading ? sx("disabledSmallButton") : sx("storageWarningButton")}
-        >
-          {mediaTrafficLoading ? "Lade…" : "Traffic aktualisieren"}
+        <button type="button" onClick={() => void loadTraffic()} disabled={loading} style={loading ? styles.button : styles.warningButton}>
+          {loading ? "Lade…" : "Traffic aktualisieren"}
         </button>
       </div>
 
-      <div style={sx("storageMetricGrid")}>
-        <div style={sx("storageMetricCard")}>
-          <div style={sx("storageMetricIcon")}>🌐</div>
-          <div style={sx("storageMetricLabel")}>Traffic gesamt</div>
-          <div style={sx("storageMetricValue")}>{formatBytes(summary?.totalBytes ?? 0)}</div>
-          <div style={sx("storageMetricHint")}>{formatNumber(summary?.eventCount ?? 0)} Events erfasst.</div>
-        </div>
+      {error ? <div style={styles.error}>⚠️ {error}</div> : null}
 
-        <div style={sx("storageMetricCard")}>
-          <div style={sx("storageMetricIcon")}>📅</div>
-          <div style={sx("storageMetricLabel")}>Dieser Monat</div>
-          <div style={sx("storageMetricValue")}>{formatBytes(summary?.monthBytes ?? 0)}</div>
-          <div style={sx("storageMetricHint")}>Heute: {formatBytes(summary?.todayBytes ?? 0)}</div>
-        </div>
-
-        <div style={sx("storageMetricCard")}>
-          <div style={sx("storageMetricIcon")}>💰</div>
-          <div style={sx("storageMetricLabel")}>Geschätzte Kosten</div>
-          <div style={sx("storageMetricValue")}>{formatCost(summary?.estimatedTotalCostCents ?? 0)}</div>
-          <div style={sx("storageMetricHint")}>
-            Traffic: {formatCost(summary?.estimatedMonthCostCents ?? summary?.estimatedCostCents ?? 0)} · Storage:{" "}
-            {formatCost(summary?.estimatedStorageCostCents ?? 0)}
+      <div style={styles.metricGrid}>
+        {[
+          ["Traffic heute", formatBytes(summary?.todayBytes), "Seit Tagesbeginn"],
+          ["Letzte 7 Tage", formatBytes(summary?.weekBytes), "Rollierender Wochenwert"],
+          ["Diesen Monat", formatBytes(summary?.monthBytes), "Aktueller Monatswert"],
+          ["Traffic gesamt", formatBytes(summary?.totalBytes), `${formatNumber(summary?.eventCount)} Events`],
+          ["Gesamtkosten", formatCost(summary?.estimatedTotalCostCents), "Traffic plus Storage"],
+          ["QR-X / Medien", `${formatNumber(summary?.qrxCount)} / ${formatNumber(summary?.mediaCount)}`, "Erfasste Objekte"],
+          ["Health Score", `${formatNumber(summary?.healthScore)} / 100`, healthLabel(summary?.healthStatus)],
+          ["Ø je Event", formatBytes(summary?.averageBytesPerEvent), "Durchschnittliche Auslieferung"],
+        ].map(([label, value, hint]) => (
+          <div key={label} style={styles.metricCard}>
+            <div style={styles.label}>{label}</div>
+            <div style={styles.value}>{value}</div>
+            <div style={styles.hint}>{hint}</div>
           </div>
-        </div>
-
-        <div style={sx("storageMetricCard")}>
-          <div style={sx("storageMetricIcon")}>🩺</div>
-          <div style={sx("storageMetricLabel")}>Health</div>
-          <div style={sx("storageMetricValue")}>{summary?.healthScore ?? 0}/100</div>
-          <div style={sx("storageMetricHint")}>{healthLabel(summary?.healthStatus)}</div>
-        </div>
+        ))}
       </div>
 
-      <div style={sx("storageDetailGrid")}>
-        <div style={sx("storagePanel")}>
-          <h3 style={sx("storagePanelTitle")}>Top QR-X nach Traffic</h3>
-          <div style={sx("storageTodoList")}>
-            {topQrx.slice(0, 5).map((item) => (
-              <div key={item.qrxId ?? item.title ?? "qrx"} style={sx("storageTodoItem")}>
+      <div style={styles.sectionGrid}>
+        <div style={styles.panel}>
+          <h3 style={styles.title}>Top QR-X</h3>
+          <div style={styles.list}>
+            {(data?.topQrx ?? []).slice(0, 8).map((item) => (
+              <button key={item.qrxId ?? item.title ?? "qrx"} type="button" onClick={() => openQrx(item.qrxId)} style={{ ...styles.listItem, cursor: item.qrxId ? "pointer" : "default", textAlign: "left" }}>
                 <span>{item.companyName || item.title || item.qrxId || "Unbekannt"}</span>
                 <span>{formatBytes(item.totalBytes)}</span>
-              </div>
+              </button>
             ))}
-            {topQrx.length === 0 ? <div style={sx("storageMetricHint")}>Noch keine QR-X-Trafficdaten.</div> : null}
+            {(data?.topQrx ?? []).length === 0 ? <div style={styles.hint}>Noch keine QR-X-Trafficdaten.</div> : null}
           </div>
         </div>
 
-        <div style={sx("storagePanel")}>
-          <h3 style={sx("storagePanelTitle")}>Top Medien nach Traffic</h3>
-          <div style={sx("storageTodoList")}>
-            {topMedia.slice(0, 5).map((item) => (
-              <div key={item.mediaId ?? item.filename ?? "media"} style={sx("storageTodoItem")}>
+        <div style={styles.panel}>
+          <h3 style={styles.title}>Top Medien</h3>
+          <div style={styles.list}>
+            {(data?.topMedia ?? []).slice(0, 8).map((item) => (
+              <button key={item.mediaId ?? item.filename ?? "media"} type="button" onClick={() => void openMedia(item.mediaId)} style={{ ...styles.listItem, cursor: item.mediaId ? "pointer" : "default", textAlign: "left" }}>
                 <span>{item.filename || item.mediaId || "Unbekannt"}</span>
                 <span>{formatBytes(item.totalBytes)}</span>
-              </div>
+              </button>
             ))}
-            {topMedia.length === 0 ? <div style={sx("storageMetricHint")}>Noch keine Medien-Trafficdaten.</div> : null}
+            {(data?.topMedia ?? []).length === 0 ? <div style={styles.hint}>Noch keine Medien-Trafficdaten.</div> : null}
           </div>
         </div>
       </div>
 
-      <div style={{ ...sx("storageHealthGrid"), marginTop: 12 }}>
-        <div style={sx("storageMiniCard")}>
-          <div style={sx("storageMiniLabel")}>Aktive Warnungen</div>
-          <div style={sx("storageMiniValue")}>{formatNumber(warnings.length)}</div>
-          <div style={sx("storageMetricHint")}>Details werden im nächsten Migrationsschritt ausgelagert.</div>
+      <div style={{ ...styles.panel, marginTop: 12 }}>
+        <div style={styles.header}>
+          <div>
+            <h3 style={styles.title}>Aktive Warnungen</h3>
+            <div style={styles.hint}>Automatisch priorisierte Auffälligkeiten aus Traffic, Kosten, Qualität und Media-Jobs.</div>
+          </div>
+          <div style={styles.row}>
+            {(["all", "critical", "warning", "info"] as WarningFilter[]).map((filter) => (
+              <button key={filter} type="button" onClick={() => setWarningFilter(filter)} style={warningFilter === filter ? styles.warningButton : styles.button}>
+                {filter === "all" ? `Alle (${warnings.length})` : `${filter} (${warnings.filter((item) => item.severity === filter).length})`}
+              </button>
+            ))}
+          </div>
         </div>
-        <div style={sx("storageMiniCard")}>
-          <div style={sx("storageMiniLabel")}>Empfehlungen</div>
-          <div style={sx("storageMiniValue")}>{formatNumber(recommendations.length)}</div>
-          <div style={sx("storageMetricHint")}>Die Empfehlungskarten folgen im nächsten Schritt.</div>
+
+        <div style={styles.warningGrid}>
+          {(filteredWarnings.length ? filteredWarnings : [{ id: "empty", severity: "info" as const, category: "storage" as const, title: "Keine aktiven Warnungen", description: "Aktuell wurden keine passenden Auffälligkeiten erkannt.", priority: 0, status: "active" as const, detectedAt: data?.updatedAt ?? "" }]).slice(0, 12).map((item) => {
+            const critical = item.severity === "critical";
+            const warning = item.severity === "warning";
+            return (
+              <div key={item.id} style={{ ...styles.warningCard, borderColor: critical ? "#991b1b" : warning ? "#854d0e" : "#243044", background: critical ? "#3f1111" : warning ? "#2c1806" : "#111827" }}>
+                <div style={styles.label}>{item.severity.toUpperCase()} · {item.category}</div>
+                <div style={{ ...styles.value, fontSize: 16 }}>{item.title}</div>
+                <div style={styles.hint}>{item.description}</div>
+                <div style={{ ...styles.row, marginTop: 10 }}>
+                  {item.qrxId ? <button type="button" onClick={() => openQrx(item.qrxId)} style={styles.button}>QR-X öffnen</button> : null}
+                  {item.mediaId ? <button type="button" onClick={() => void openMedia(item.mediaId)} style={styles.button}>Medium öffnen</button> : null}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ ...styles.panel, marginTop: 12 }}>
+        <h3 style={styles.title}>Empfehlungen</h3>
+        <div style={styles.warningGrid}>
+          {recommendations.slice(0, 8).map((item) => (
+            <div key={item.id} style={styles.warningCard}>
+              <div style={styles.label}>{item.category}</div>
+              <div style={{ ...styles.value, fontSize: 16 }}>{item.title}</div>
+              <div style={styles.hint}>{item.description}</div>
+            </div>
+          ))}
+          {recommendations.length === 0 ? <div style={styles.hint}>Aktuell liegen keine Empfehlungen vor.</div> : null}
         </div>
       </div>
     </div>
