@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
-
-type Severity = "info" | "warning" | "critical";
-type WarningFilter = "all" | Severity;
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
+import AdminMediaWarnings, {
+  type MediaActiveWarning,
+  type MediaHealthRecommendation,
+} from "./AdminMediaWarnings";
 
 type MediaTrafficSummary = {
   eventCount?: number | null;
@@ -44,24 +45,6 @@ type MediaTrafficMediaItem = {
   estimatedTotalCostCents?: number;
 };
 
-type MediaHealthRecommendation = {
-  id: string;
-  severity: Severity;
-  category: "traffic" | "storage" | "cost" | "quality" | "jobs";
-  title: string;
-  description: string;
-  qrxId?: string | null;
-  mediaId?: string | null;
-  estimatedSavingsBytes?: number;
-  estimatedSavingsCostCents?: number;
-};
-
-type MediaActiveWarning = MediaHealthRecommendation & {
-  priority: number;
-  status: "active";
-  detectedAt: string;
-};
-
 type MediaTrafficStats = {
   ok: boolean;
   summary: MediaTrafficSummary;
@@ -78,23 +61,88 @@ type MediaOpenResult = {
 };
 
 const styles: Record<string, CSSProperties> = {
-  panel: { borderRadius: 22, background: "#0b1324", border: "1px solid #243044", padding: 16 },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap", marginBottom: 14 },
+  panel: {
+    borderRadius: 22,
+    background: "#0b1324",
+    border: "1px solid #243044",
+    padding: 16,
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+    flexWrap: "wrap",
+    marginBottom: 14,
+  },
   title: { margin: 0, color: "#e2e8f0", fontSize: 18, fontWeight: 900 },
   hint: { color: "#9fb1c8", fontSize: 12, lineHeight: 1.5, marginTop: 6 },
-  metricGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 },
-  metricCard: { borderRadius: 18, background: "linear-gradient(180deg, #111c31 0%, #0d1728 100%)", border: "1px solid #2a3952", padding: 15 },
-  label: { color: "#93a5bd", fontSize: 11, fontWeight: 900, textTransform: "uppercase", letterSpacing: 0.4 },
+  metricGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+    gap: 12,
+  },
+  metricCard: {
+    borderRadius: 18,
+    background: "linear-gradient(180deg, #111c31 0%, #0d1728 100%)",
+    border: "1px solid #2a3952",
+    padding: 15,
+  },
+  label: {
+    color: "#93a5bd",
+    fontSize: 11,
+    fontWeight: 900,
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
   value: { color: "#f8fafc", fontSize: 23, fontWeight: 950, marginTop: 7 },
-  button: { border: "1px solid #2d3f59", borderRadius: 10, background: "#172133", color: "#f8fafc", padding: "9px 11px", fontWeight: 900, cursor: "pointer", fontSize: 12 },
-  warningButton: { border: "1px solid #854d0e", borderRadius: 10, background: "#2c1806", color: "#fde68a", padding: "9px 11px", fontWeight: 900, cursor: "pointer", fontSize: 12 },
+  button: {
+    border: "1px solid #2d3f59",
+    borderRadius: 10,
+    background: "#172133",
+    color: "#f8fafc",
+    padding: "9px 11px",
+    fontWeight: 900,
+    cursor: "pointer",
+    fontSize: 12,
+  },
+  warningButton: {
+    border: "1px solid #854d0e",
+    borderRadius: 10,
+    background: "#2c1806",
+    color: "#fde68a",
+    padding: "9px 11px",
+    fontWeight: 900,
+    cursor: "pointer",
+    fontSize: 12,
+  },
   row: { display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" },
-  sectionGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 12, marginTop: 12 },
+  sectionGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: 12,
+    marginTop: 12,
+  },
   list: { display: "grid", gap: 8, marginTop: 10 },
-  listItem: { display: "flex", justifyContent: "space-between", gap: 12, borderRadius: 13, border: "1px solid #243044", background: "#111827", padding: "10px 12px", color: "#cbd5e1", fontSize: 12 },
-  error: { borderRadius: 14, border: "1px solid #991b1b", background: "#3f1111", color: "#fecaca", padding: 12, marginBottom: 12 },
-  warningGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 10, marginTop: 12 },
-  warningCard: { borderRadius: 16, padding: 13, border: "1px solid #243044", background: "#111827" },
+  listItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    borderRadius: 13,
+    border: "1px solid #243044",
+    background: "#111827",
+    padding: "10px 12px",
+    color: "#cbd5e1",
+    fontSize: 12,
+  },
+  error: {
+    borderRadius: 14,
+    border: "1px solid #991b1b",
+    background: "#3f1111",
+    color: "#fecaca",
+    padding: 12,
+    marginBottom: 12,
+  },
 };
 
 function formatBytes(value?: number | null) {
@@ -116,7 +164,10 @@ function formatNumber(value?: number | null) {
 }
 
 function formatCost(value?: number | null) {
-  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(Number(value ?? 0) / 100);
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+  }).format(Number(value ?? 0) / 100);
 }
 
 function healthLabel(status?: string | null) {
@@ -130,21 +181,31 @@ export default function AdminMediaTraffic() {
   const [data, setData] = useState<MediaTrafficStats | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [warningFilter, setWarningFilter] = useState<WarningFilter>("all");
 
   const loadTraffic = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/admin/media-traffic", { cache: "no-store" });
+      const response = await fetch("/api/admin/media-traffic", {
+        cache: "no-store",
+      });
       const payload: unknown = await response.json();
       if (!response.ok) {
-        const message = typeof payload === "object" && payload && "error" in payload ? String((payload as { error?: unknown }).error ?? "") : "";
-        throw new Error(message || "Traffic-Statistiken konnten nicht geladen werden.");
+        const message =
+          typeof payload === "object" && payload && "error" in payload
+            ? String((payload as { error?: unknown }).error ?? "")
+            : "";
+        throw new Error(
+          message || "Traffic-Statistiken konnten nicht geladen werden.",
+        );
       }
       setData(payload as MediaTrafficStats);
     } catch (loadError: unknown) {
-      setError(loadError instanceof Error ? loadError.message : "Traffic-Statistiken konnten nicht geladen werden.");
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "Traffic-Statistiken konnten nicht geladen werden.",
+      );
     } finally {
       setLoading(false);
     }
@@ -155,13 +216,6 @@ export default function AdminMediaTraffic() {
   }, [loadTraffic]);
 
   const summary = data?.summary;
-  const warnings = data?.activeWarnings ?? [];
-  const recommendations = data?.recommendations ?? [];
-  const filteredWarnings = useMemo(
-    () => warnings.filter((item) => warningFilter === "all" || item.severity === warningFilter),
-    [warnings, warningFilter]
-  );
-
   const openQrx = (qrxId?: string | null) => {
     if (!qrxId) return;
     window.open(`/qrx/${qrxId}`, "_blank", "noopener,noreferrer");
@@ -170,12 +224,24 @@ export default function AdminMediaTraffic() {
   const openMedia = async (mediaId?: string | null) => {
     if (!mediaId) return;
     try {
-      const response = await fetch(`/api/admin/media-open?mediaId=${encodeURIComponent(mediaId)}`, { cache: "no-store" });
-      const payload = (await response.json()) as MediaOpenResult & { error?: string };
-      if (!response.ok || !payload.openUrl) throw new Error(payload.error || "Medium konnte nicht geöffnet werden.");
+      const response = await fetch(
+        `/api/admin/media-open?mediaId=${encodeURIComponent(mediaId)}`,
+        { cache: "no-store" },
+      );
+      const payload = (await response.json()) as MediaOpenResult & {
+        error?: string;
+      };
+      if (!response.ok || !payload.openUrl)
+        throw new Error(
+          payload.error || "Medium konnte nicht geöffnet werden.",
+        );
       window.open(payload.openUrl, "_blank", "noopener,noreferrer");
     } catch (openError: unknown) {
-      window.alert(openError instanceof Error ? openError.message : "Medium konnte nicht geöffnet werden.");
+      window.alert(
+        openError instanceof Error
+          ? openError.message
+          : "Medium konnte nicht geöffnet werden.",
+      );
     }
   };
 
@@ -184,9 +250,17 @@ export default function AdminMediaTraffic() {
       <div style={styles.header}>
         <div>
           <h3 style={styles.title}>Traffic · Kosten · Warnungen</h3>
-          <div style={styles.hint}>Eigenständiges Modul: lädt, aktualisiert und bewertet seine Daten ohne Abhängigkeit von der Admin-Hauptseite.</div>
+          <div style={styles.hint}>
+            Eigenständiges Modul: lädt, aktualisiert und bewertet seine Daten
+            ohne Abhängigkeit von der Admin-Hauptseite.
+          </div>
         </div>
-        <button type="button" onClick={() => void loadTraffic()} disabled={loading} style={loading ? styles.button : styles.warningButton}>
+        <button
+          type="button"
+          onClick={() => void loadTraffic()}
+          disabled={loading}
+          style={loading ? styles.button : styles.warningButton}
+        >
           {loading ? "Lade…" : "Traffic aktualisieren"}
         </button>
       </div>
@@ -195,14 +269,46 @@ export default function AdminMediaTraffic() {
 
       <div style={styles.metricGrid}>
         {[
-          ["Traffic heute", formatBytes(summary?.todayBytes), "Seit Tagesbeginn"],
-          ["Letzte 7 Tage", formatBytes(summary?.weekBytes), "Rollierender Wochenwert"],
-          ["Diesen Monat", formatBytes(summary?.monthBytes), "Aktueller Monatswert"],
-          ["Traffic gesamt", formatBytes(summary?.totalBytes), `${formatNumber(summary?.eventCount)} Events`],
-          ["Gesamtkosten", formatCost(summary?.estimatedTotalCostCents), "Traffic plus Storage"],
-          ["QR-X / Medien", `${formatNumber(summary?.qrxCount)} / ${formatNumber(summary?.mediaCount)}`, "Erfasste Objekte"],
-          ["Health Score", `${formatNumber(summary?.healthScore)} / 100`, healthLabel(summary?.healthStatus)],
-          ["Ø je Event", formatBytes(summary?.averageBytesPerEvent), "Durchschnittliche Auslieferung"],
+          [
+            "Traffic heute",
+            formatBytes(summary?.todayBytes),
+            "Seit Tagesbeginn",
+          ],
+          [
+            "Letzte 7 Tage",
+            formatBytes(summary?.weekBytes),
+            "Rollierender Wochenwert",
+          ],
+          [
+            "Diesen Monat",
+            formatBytes(summary?.monthBytes),
+            "Aktueller Monatswert",
+          ],
+          [
+            "Traffic gesamt",
+            formatBytes(summary?.totalBytes),
+            `${formatNumber(summary?.eventCount)} Events`,
+          ],
+          [
+            "Gesamtkosten",
+            formatCost(summary?.estimatedTotalCostCents),
+            "Traffic plus Storage",
+          ],
+          [
+            "QR-X / Medien",
+            `${formatNumber(summary?.qrxCount)} / ${formatNumber(summary?.mediaCount)}`,
+            "Erfasste Objekte",
+          ],
+          [
+            "Health Score",
+            `${formatNumber(summary?.healthScore)} / 100`,
+            healthLabel(summary?.healthStatus),
+          ],
+          [
+            "Ø je Event",
+            formatBytes(summary?.averageBytesPerEvent),
+            "Durchschnittliche Auslieferung",
+          ],
         ].map(([label, value, hint]) => (
           <div key={label} style={styles.metricCard}>
             <div style={styles.label}>{label}</div>
@@ -217,12 +323,25 @@ export default function AdminMediaTraffic() {
           <h3 style={styles.title}>Top QR-X</h3>
           <div style={styles.list}>
             {(data?.topQrx ?? []).slice(0, 8).map((item) => (
-              <button key={item.qrxId ?? item.title ?? "qrx"} type="button" onClick={() => openQrx(item.qrxId)} style={{ ...styles.listItem, cursor: item.qrxId ? "pointer" : "default", textAlign: "left" }}>
-                <span>{item.companyName || item.title || item.qrxId || "Unbekannt"}</span>
+              <button
+                key={item.qrxId ?? item.title ?? "qrx"}
+                type="button"
+                onClick={() => openQrx(item.qrxId)}
+                style={{
+                  ...styles.listItem,
+                  cursor: item.qrxId ? "pointer" : "default",
+                  textAlign: "left",
+                }}
+              >
+                <span>
+                  {item.companyName || item.title || item.qrxId || "Unbekannt"}
+                </span>
                 <span>{formatBytes(item.totalBytes)}</span>
               </button>
             ))}
-            {(data?.topQrx ?? []).length === 0 ? <div style={styles.hint}>Noch keine QR-X-Trafficdaten.</div> : null}
+            {(data?.topQrx ?? []).length === 0 ? (
+              <div style={styles.hint}>Noch keine QR-X-Trafficdaten.</div>
+            ) : null}
           </div>
         </div>
 
@@ -230,63 +349,32 @@ export default function AdminMediaTraffic() {
           <h3 style={styles.title}>Top Medien</h3>
           <div style={styles.list}>
             {(data?.topMedia ?? []).slice(0, 8).map((item) => (
-              <button key={item.mediaId ?? item.filename ?? "media"} type="button" onClick={() => void openMedia(item.mediaId)} style={{ ...styles.listItem, cursor: item.mediaId ? "pointer" : "default", textAlign: "left" }}>
+              <button
+                key={item.mediaId ?? item.filename ?? "media"}
+                type="button"
+                onClick={() => void openMedia(item.mediaId)}
+                style={{
+                  ...styles.listItem,
+                  cursor: item.mediaId ? "pointer" : "default",
+                  textAlign: "left",
+                }}
+              >
                 <span>{item.filename || item.mediaId || "Unbekannt"}</span>
                 <span>{formatBytes(item.totalBytes)}</span>
               </button>
             ))}
-            {(data?.topMedia ?? []).length === 0 ? <div style={styles.hint}>Noch keine Medien-Trafficdaten.</div> : null}
+            {(data?.topMedia ?? []).length === 0 ? (
+              <div style={styles.hint}>Noch keine Medien-Trafficdaten.</div>
+            ) : null}
           </div>
         </div>
       </div>
 
-      <div style={{ ...styles.panel, marginTop: 12 }}>
-        <div style={styles.header}>
-          <div>
-            <h3 style={styles.title}>Aktive Warnungen</h3>
-            <div style={styles.hint}>Automatisch priorisierte Auffälligkeiten aus Traffic, Kosten, Qualität und Media-Jobs.</div>
-          </div>
-          <div style={styles.row}>
-            {(["all", "critical", "warning", "info"] as WarningFilter[]).map((filter) => (
-              <button key={filter} type="button" onClick={() => setWarningFilter(filter)} style={warningFilter === filter ? styles.warningButton : styles.button}>
-                {filter === "all" ? `Alle (${warnings.length})` : `${filter} (${warnings.filter((item) => item.severity === filter).length})`}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={styles.warningGrid}>
-          {(filteredWarnings.length ? filteredWarnings : [{ id: "empty", severity: "info" as const, category: "storage" as const, title: "Keine aktiven Warnungen", description: "Aktuell wurden keine passenden Auffälligkeiten erkannt.", priority: 0, status: "active" as const, detectedAt: data?.updatedAt ?? "" }]).slice(0, 12).map((item) => {
-            const critical = item.severity === "critical";
-            const warning = item.severity === "warning";
-            return (
-              <div key={item.id} style={{ ...styles.warningCard, borderColor: critical ? "#991b1b" : warning ? "#854d0e" : "#243044", background: critical ? "#3f1111" : warning ? "#2c1806" : "#111827" }}>
-                <div style={styles.label}>{item.severity.toUpperCase()} · {item.category}</div>
-                <div style={{ ...styles.value, fontSize: 16 }}>{item.title}</div>
-                <div style={styles.hint}>{item.description}</div>
-                <div style={{ ...styles.row, marginTop: 10 }}>
-                  {item.qrxId ? <button type="button" onClick={() => openQrx(item.qrxId)} style={styles.button}>QR-X öffnen</button> : null}
-                  {item.mediaId ? <button type="button" onClick={() => void openMedia(item.mediaId)} style={styles.button}>Medium öffnen</button> : null}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div style={{ ...styles.panel, marginTop: 12 }}>
-        <h3 style={styles.title}>Empfehlungen</h3>
-        <div style={styles.warningGrid}>
-          {recommendations.slice(0, 8).map((item) => (
-            <div key={item.id} style={styles.warningCard}>
-              <div style={styles.label}>{item.category}</div>
-              <div style={{ ...styles.value, fontSize: 16 }}>{item.title}</div>
-              <div style={styles.hint}>{item.description}</div>
-            </div>
-          ))}
-          {recommendations.length === 0 ? <div style={styles.hint}>Aktuell liegen keine Empfehlungen vor.</div> : null}
-        </div>
-      </div>
+      <AdminMediaWarnings
+        warnings={data?.activeWarnings ?? []}
+        recommendations={data?.recommendations ?? []}
+        updatedAt={data?.updatedAt}
+      />
     </div>
   );
 }
