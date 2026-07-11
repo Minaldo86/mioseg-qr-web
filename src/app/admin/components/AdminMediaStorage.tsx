@@ -1,27 +1,9 @@
 "use client";
 
 import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
+import type { StorageMediaItem, StorageMediaStats } from "../types";
 
 type StyleMap = Record<string, unknown>;
-
-export type StorageMediaItem = {
-  id: string;
-  qrx_id: string | null;
-  filename: string | null;
-  type: string | null;
-  processing_status: string | null;
-  originalBytes: number;
-  optimizedBytes: number;
-  savedBytes: number;
-  savingsPercent: number;
-};
-
-type StorageMediaStats = {
-  topLargest?: StorageMediaItem[];
-  topSavings?: StorageMediaItem[];
-  mediaItems?: StorageMediaItem[];
-  statusCounts?: Record<string, number>;
-};
 
 type AdminMediaStorageProps = {
   styles: StyleMap;
