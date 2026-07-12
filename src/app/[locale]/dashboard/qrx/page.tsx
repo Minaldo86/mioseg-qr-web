@@ -75,6 +75,14 @@ type SavedQrxRow = {
   qr_x_entries: QrxEntry | null;
 };
 
+
+type QrxMediaAnalyticsSummary = {
+  qrx_id: string;
+  image_views_total: number | string | null;
+  file_opens_total: number | string | null;
+  file_downloads_total: number | string | null;
+};
+
 function getLocaleFromParams(value: unknown) {
   if (typeof value === "string" && value.trim()) return value;
   if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim()) return value[0];
@@ -129,10 +137,55 @@ export default function DashboardQrxPage() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [mediaAnalyticsByQrxId, setMediaAnalyticsByQrxId] = useState<
+    Record<string, QrxMediaAnalyticsSummary>
+  >({});
 
   useEffect(() => {
     void loadQrx();
   }, []);
+
+  async function loadMediaAnalyticsForOwnQrx(items: QrxEntry[]) {
+    if (items.length === 0) {
+      setMediaAnalyticsByQrxId({});
+      return;
+    }
+
+    const results = await Promise.all(
+      items.map(async (item) => {
+        const { data, error } = await supabase.rpc(
+          "get_qrx_media_analytics_summary",
+          {
+            p_qrx_id: item.id,
+          },
+        );
+
+        if (error) {
+          console.warn(
+            `Media Analytics konnten für QR-X ${item.id} nicht geladen werden:`,
+            error,
+          );
+          return null;
+        }
+
+        const rows = (data ?? []) as QrxMediaAnalyticsSummary[];
+        const summary = rows[0];
+
+        return summary
+          ? ([item.id, summary] as const)
+          : null;
+      }),
+    );
+
+    const nextMap: Record<string, QrxMediaAnalyticsSummary> = {};
+
+    for (const result of results) {
+      if (!result) continue;
+      nextMap[result[0]] = result[1];
+    }
+
+    setMediaAnalyticsByQrxId(nextMap);
+  }
 
   async function loadQrx() {
     setLoading(true);
@@ -187,8 +240,11 @@ export default function DashboardQrxPage() {
     if (ownRes.error) {
       setErrorText(ownRes.error.message);
       setOwnItems([]);
+      setMediaAnalyticsByQrxId({});
     } else {
-      setOwnItems(ownRes.data ?? []);
+      const ownData = ownRes.data ?? [];
+      setOwnItems(ownData);
+      await loadMediaAnalyticsForOwnQrx(ownData);
     }
 
     if (savedRes.error) {
@@ -522,6 +578,8 @@ export default function DashboardQrxPage() {
               const categoryLabel = getBusinessCategoryLabel(entry.category);
               const openHref = `/qrx/${entry.id}`;
               const editHref = `/${locale}/dashboard/qrx/${entry.id}/edit`;
+              const mediaHref = `/${locale}/dashboard/qrx/${entry.id}/media`;
+              const mediaAnalytics = mediaAnalyticsByQrxId[entry.id];
 
               return (
                 <article
@@ -721,38 +779,42 @@ export default function DashboardQrxPage() {
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
+                        gridTemplateColumns:
+                          activeTab === "own"
+                            ? "repeat(2, minmax(0, 1fr))"
+                            : "1fr 1fr",
                         gap: 10,
                         marginBottom: 14,
                       }}
                     >
-                      <div
-                        style={{
-                          borderRadius: 18,
-                          padding: 12,
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.07)",
-                        }}
-                      >
-                        <div style={{ color: "#ffffff", fontSize: 20, fontWeight: 950 }}>
-                          {formatNumber(entry.views_total)}
-                        </div>
-                        <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850 }}>Aufrufe</div>
-                      </div>
+                      <MetricCard
+                        value={entry.views_total}
+                        label="QR-X Aufrufe"
+                      />
+                      <MetricCard
+                        value={entry.follower_count}
+                        label="Follower"
+                      />
 
-                      <div
-                        style={{
-                          borderRadius: 18,
-                          padding: 12,
-                          background: "rgba(255,255,255,0.05)",
-                          border: "1px solid rgba(255,255,255,0.07)",
-                        }}
-                      >
-                        <div style={{ color: "#ffffff", fontSize: 20, fontWeight: 950 }}>
-                          {formatNumber(entry.follower_count)}
-                        </div>
-                        <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850 }}>Follower</div>
-                      </div>
+                      {activeTab === "own" ? (
+                        <>
+                          <MetricCard
+                            value={mediaAnalytics?.image_views_total}
+                            label="Bildaufrufe"
+                          />
+                          <MetricCard
+                            value={mediaAnalytics?.file_downloads_total}
+                            label="Downloads"
+                            detail={
+                              mediaAnalytics
+                                ? `${formatNumber(
+                                    Number(mediaAnalytics.file_opens_total ?? 0),
+                                  )} Dateiöffnungen`
+                                : "Analytics werden aufgebaut"
+                            }
+                          />
+                        </>
+                      ) : null}
                     </div>
 
                     <div
@@ -779,6 +841,14 @@ export default function DashboardQrxPage() {
                         <>
                           <Link href={editHref} className={styles.secondaryButton}>
                             Bearbeiten
+                          </Link>
+
+                          <Link
+                            href={mediaHref}
+                            className={styles.secondaryButton}
+                            style={{ gridColumn: "1 / -1" }}
+                          >
+                            📷 Medien & Analytics
                           </Link>
 
                           <button
@@ -824,6 +894,47 @@ export default function DashboardQrxPage() {
         ) : null}
       </section>
     </main>
+  );
+}
+
+function MetricCard({
+  value,
+  label,
+  detail,
+}: {
+  value: number | string | null | undefined;
+  label: string;
+  detail?: string;
+}) {
+  return (
+    <div
+      style={{
+        borderRadius: 18,
+        padding: 12,
+        background: "rgba(255,255,255,0.05)",
+        border: "1px solid rgba(255,255,255,0.07)",
+      }}
+    >
+      <div style={{ color: "#ffffff", fontSize: 20, fontWeight: 950 }}>
+        {formatNumber(Number(value ?? 0))}
+      </div>
+      <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850 }}>
+        {label}
+      </div>
+      {detail ? (
+        <div
+          style={{
+            color: "#64748b",
+            fontSize: 10,
+            fontWeight: 800,
+            lineHeight: 1.35,
+            marginTop: 3,
+          }}
+        >
+          {detail}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
