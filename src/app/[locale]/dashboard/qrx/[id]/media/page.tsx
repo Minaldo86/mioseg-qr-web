@@ -47,6 +47,76 @@ type FinalizeUploadResponse = {
   } | null;
 };
 
+type MediaAnalyticsSummary = {
+  qrx_id: string;
+  media_count: number | string | null;
+  image_views_total: number | string | null;
+  image_views_7d: number | string | null;
+  image_views_30d: number | string | null;
+  unique_image_viewers_total: number | string | null;
+  unique_image_viewers_7d: number | string | null;
+  unique_image_viewers_30d: number | string | null;
+  last_image_view_at: string | null;
+  file_opens_total: number | string | null;
+  file_opens_7d: number | string | null;
+  file_opens_30d: number | string | null;
+  unique_file_openers_total: number | string | null;
+  unique_file_openers_7d: number | string | null;
+  unique_file_openers_30d: number | string | null;
+  last_file_open_at: string | null;
+  file_downloads_total: number | string | null;
+  file_downloads_7d: number | string | null;
+  file_downloads_30d: number | string | null;
+  unique_file_downloaders_total: number | string | null;
+  unique_file_downloaders_7d: number | string | null;
+  unique_file_downloaders_30d: number | string | null;
+  last_file_download_at: string | null;
+  variant_delivery_total: number | string | null;
+  variant_delivery_7d: number | string | null;
+  variant_delivery_30d: number | string | null;
+  thumb_events_total: number | string | null;
+  medium_events_total: number | string | null;
+  large_events_total: number | string | null;
+  original_events_total: number | string | null;
+};
+
+type MediaAnalyticsItem = {
+  media_id: string;
+  media_type: string;
+  filename: string;
+  views_total: number | string | null;
+  views_7d: number | string | null;
+  views_30d: number | string | null;
+  unique_viewers_total: number | string | null;
+  unique_viewers_7d: number | string | null;
+  unique_viewers_30d: number | string | null;
+  last_view_at: string | null;
+  opens_total: number | string | null;
+  opens_7d: number | string | null;
+  opens_30d: number | string | null;
+  unique_openers_total: number | string | null;
+  unique_openers_7d: number | string | null;
+  unique_openers_30d: number | string | null;
+  last_open_at: string | null;
+  downloads_total: number | string | null;
+  downloads_7d: number | string | null;
+  downloads_30d: number | string | null;
+  unique_downloaders_total: number | string | null;
+  unique_downloaders_7d: number | string | null;
+  unique_downloaders_30d: number | string | null;
+  last_download_at: string | null;
+  thumb_events_total: number | string | null;
+  medium_events_total: number | string | null;
+  large_events_total: number | string | null;
+  original_events_total: number | string | null;
+  thumb_events_30d: number | string | null;
+  medium_events_30d: number | string | null;
+  large_events_30d: number | string | null;
+  original_events_30d: number | string | null;
+  total_interactions: number | string | null;
+  last_interaction_at: string | null;
+};
+
 function pickFirstString(...values: Array<unknown>) {
   for (const value of values) {
     if (typeof value === "string" && value.trim().length > 0) {
@@ -89,6 +159,32 @@ function formatBytes(bytes: number | null | undefined) {
   return `${value} B`;
 }
 
+function toAnalyticsNumber(value: number | string | null | undefined) {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+}
+
+function formatAnalyticsNumber(value: number | string | null | undefined) {
+  return new Intl.NumberFormat("de-DE", {
+    maximumFractionDigits: 0,
+  }).format(toAnalyticsNumber(value));
+}
+
+function formatAnalyticsDate(value: string | null | undefined) {
+  if (!value) return "Noch keine Aktivität";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Noch keine Aktivität";
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 function isImageMime(file: File) {
   return file.type.startsWith("image/");
 }
@@ -125,6 +221,11 @@ export default function QrxMediaPage() {
 
   const [entry, setEntry] = useState<QrxEntry | null>(null);
   const [media, setMedia] = useState<QrxMedia[]>([]);
+  const [analyticsSummary, setAnalyticsSummary] =
+    useState<MediaAnalyticsSummary | null>(null);
+  const [analyticsItems, setAnalyticsItems] = useState<MediaAnalyticsItem[]>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -211,6 +312,44 @@ export default function QrxMediaPage() {
     setEntry(entryData);
     setMedia(mediaData ?? []);
     setLoading(false);
+    await loadAnalytics(qrxId);
+  }
+
+
+  async function loadAnalytics(qrxIdInner: string) {
+    setAnalyticsLoading(true);
+    setAnalyticsError(null);
+
+    try {
+      const [summaryResult, itemsResult] = await Promise.all([
+        supabase.rpc("get_qrx_media_analytics_summary", {
+          p_qrx_id: qrxIdInner,
+        }),
+        supabase.rpc("get_qrx_media_analytics_items", {
+          p_qrx_id: qrxIdInner,
+        }),
+      ]);
+
+      if (summaryResult.error) throw summaryResult.error;
+      if (itemsResult.error) throw itemsResult.error;
+
+      const summaryRows = (summaryResult.data ?? []) as MediaAnalyticsSummary[];
+      const itemRows = (itemsResult.data ?? []) as MediaAnalyticsItem[];
+
+      setAnalyticsSummary(summaryRows[0] ?? null);
+      setAnalyticsItems(itemRows);
+    } catch (error) {
+      console.warn("Media analytics load error:", error);
+      setAnalyticsSummary(null);
+      setAnalyticsItems([]);
+      setAnalyticsError(
+        error instanceof Error
+          ? error.message
+          : "Media Analytics konnten nicht geladen werden.",
+      );
+    } finally {
+      setAnalyticsLoading(false);
+    }
   }
 
   async function getAccessToken() {
@@ -520,6 +659,16 @@ export default function QrxMediaPage() {
     }
   }
 
+  const analyticsByMediaId = new Map(
+    analyticsItems.map((item) => [item.media_id, item]),
+  );
+
+  const totalUniqueVisitors = Math.max(
+    toAnalyticsNumber(analyticsSummary?.unique_image_viewers_total),
+    toAnalyticsNumber(analyticsSummary?.unique_file_openers_total),
+    toAnalyticsNumber(analyticsSummary?.unique_file_downloaders_total),
+  );
+
   return (
     <main className={styles.page}>
       <header className={styles.topbar}>
@@ -574,6 +723,116 @@ export default function QrxMediaPage() {
 
         {successText ? (
           <div style={successStyle}>{successText}</div>
+        ) : null}
+
+        {!loading && entry ? (
+          <section style={panelStyle} aria-label="Media Analytics">
+            <div className={styles.cardHeader}>
+              <div>
+                <h2>Media Analytics</h2>
+                <p>
+                  Aufrufe, Öffnungen und Downloads deiner QR-X-Medien. Automatisch
+                  geladene Vorschaubilder werden nicht als Bildaufruf gezählt.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void loadAnalytics(entry.id)}
+                disabled={analyticsLoading}
+                className={styles.secondaryButton}
+                style={{
+                  border: 0,
+                  cursor: analyticsLoading ? "not-allowed" : "pointer",
+                  opacity: analyticsLoading ? 0.72 : 1,
+                }}
+              >
+                {analyticsLoading ? "Aktualisiert …" : "Aktualisieren"}
+              </button>
+            </div>
+
+            {analyticsError ? (
+              <div style={analyticsWarningStyle}>
+                <strong>Analytics konnten nicht geladen werden.</strong>
+                <span>{analyticsError}</span>
+              </div>
+            ) : null}
+
+            <div style={analyticsSummaryGridStyle}>
+              <AnalyticsSummaryCard
+                icon="👁️"
+                label="Bildaufrufe"
+                value={analyticsSummary?.image_views_total}
+                detail={`${formatAnalyticsNumber(
+                  analyticsSummary?.image_views_30d,
+                )} in 30 Tagen`}
+              />
+              <AnalyticsSummaryCard
+                icon="📄"
+                label="Dateiöffnungen"
+                value={analyticsSummary?.file_opens_total}
+                detail={`${formatAnalyticsNumber(
+                  analyticsSummary?.file_opens_30d,
+                )} in 30 Tagen`}
+              />
+              <AnalyticsSummaryCard
+                icon="⬇️"
+                label="Downloads"
+                value={analyticsSummary?.file_downloads_total}
+                detail={`${formatAnalyticsNumber(
+                  analyticsSummary?.file_downloads_30d,
+                )} in 30 Tagen`}
+              />
+              <AnalyticsSummaryCard
+                icon="👤"
+                label="Eindeutige Besucher"
+                value={totalUniqueVisitors}
+                detail="Datenschutzfreundlich gezählt"
+              />
+            </div>
+
+            <div style={analyticsPeriodsGridStyle}>
+              <AnalyticsPeriodCard
+                title="Letzte 7 Tage"
+                rows={[
+                  ["Bildaufrufe", analyticsSummary?.image_views_7d],
+                  ["Dateiöffnungen", analyticsSummary?.file_opens_7d],
+                  ["Downloads", analyticsSummary?.file_downloads_7d],
+                ]}
+              />
+              <AnalyticsPeriodCard
+                title="Letzte 30 Tage"
+                rows={[
+                  ["Bildaufrufe", analyticsSummary?.image_views_30d],
+                  ["Dateiöffnungen", analyticsSummary?.file_opens_30d],
+                  ["Downloads", analyticsSummary?.file_downloads_30d],
+                ]}
+              />
+              <AnalyticsPeriodCard
+                title="Varianten gesamt"
+                rows={[
+                  ["Thumb", analyticsSummary?.thumb_events_total],
+                  ["Medium", analyticsSummary?.medium_events_total],
+                  ["Large", analyticsSummary?.large_events_total],
+                  ["Original", analyticsSummary?.original_events_total],
+                ]}
+              />
+            </div>
+
+            <div style={lastActivityGridStyle}>
+              <AnalyticsActivity
+                label="Letzter Bildaufruf"
+                value={analyticsSummary?.last_image_view_at}
+              />
+              <AnalyticsActivity
+                label="Letzte Dateiöffnung"
+                value={analyticsSummary?.last_file_open_at}
+              />
+              <AnalyticsActivity
+                label="Letzter Download"
+                value={analyticsSummary?.last_file_download_at}
+              />
+            </div>
+          </section>
         ) : null}
 
         {!loading && entry ? (
@@ -717,6 +976,7 @@ export default function QrxMediaPage() {
                       key={item.id}
                       item={item}
                       deletingId={deletingId}
+                      analytics={analyticsByMediaId.get(item.id) ?? null}
                       onDelete={() => void handleDeleteMedia(item.id)}
                     />
                   ))}
@@ -742,6 +1002,7 @@ export default function QrxMediaPage() {
                       key={item.id}
                       item={item}
                       deletingId={deletingId}
+                      analytics={analyticsByMediaId.get(item.id) ?? null}
                       onDelete={() => void handleDeleteMedia(item.id)}
                     />
                   ))}
@@ -800,10 +1061,12 @@ function EmptyBox({ text }: { text: string }) {
 function MediaCard({
   item,
   deletingId,
+  analytics,
   onDelete,
 }: {
   item: QrxMedia;
   deletingId: string | null;
+  analytics: MediaAnalyticsItem | null;
   onDelete: () => void;
 }) {
   return (
@@ -826,6 +1089,7 @@ function MediaCard({
       <div style={{ padding: 12, display: "grid", gap: 10 }}>
         <strong style={{ color: "#ffffff", fontSize: 14, wordBreak: "break-word" }}>{item.filename}</strong>
         <span style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850 }}>{formatBytes(item.bytes)}</span>
+        <MediaItemAnalytics analytics={analytics} kind="image" />
         <a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontSize: 12, fontWeight: 900 }}>
           Bild öffnen
         </a>
@@ -838,10 +1102,12 @@ function MediaCard({
 function FileRow({
   item,
   deletingId,
+  analytics,
   onDelete,
 }: {
   item: QrxMedia;
   deletingId: string | null;
+  analytics: MediaAnalyticsItem | null;
   onDelete: () => void;
 }) {
   return (
@@ -860,12 +1126,136 @@ function FileRow({
       <div style={{ minWidth: 0 }}>
         <strong style={{ color: "#ffffff", wordBreak: "break-word" }}>📄 {item.filename}</strong>
         <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850, marginTop: 4 }}>{formatBytes(item.bytes)}</div>
+        <MediaItemAnalytics analytics={analytics} kind="file" />
         <a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontSize: 12, fontWeight: 900 }}>
           Datei öffnen
         </a>
       </div>
 
       <DeleteButton deleting={deletingId === item.id} onDelete={onDelete} />
+    </div>
+  );
+}
+
+
+function AnalyticsSummaryCard({
+  icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: string;
+  label: string;
+  value: number | string | null | undefined;
+  detail: string;
+}) {
+  return (
+    <article style={analyticsSummaryCardStyle}>
+      <span style={analyticsSummaryIconStyle}>{icon}</span>
+      <div>
+        <strong style={analyticsSummaryValueStyle}>
+          {formatAnalyticsNumber(value)}
+        </strong>
+        <span style={analyticsSummaryLabelStyle}>{label}</span>
+        <small style={analyticsSummaryDetailStyle}>{detail}</small>
+      </div>
+    </article>
+  );
+}
+
+function AnalyticsPeriodCard({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Array<[string, number | string | null | undefined]>;
+}) {
+  return (
+    <article style={analyticsPeriodCardStyle}>
+      <strong style={{ color: "#ffffff" }}>{title}</strong>
+      <div style={{ display: "grid", gap: 8 }}>
+        {rows.map(([label, value]) => (
+          <div key={label} style={analyticsPeriodRowStyle}>
+            <span>{label}</span>
+            <strong>{formatAnalyticsNumber(value)}</strong>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function AnalyticsActivity({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null | undefined;
+}) {
+  return (
+    <div style={analyticsActivityStyle}>
+      <span>{label}</span>
+      <strong>{formatAnalyticsDate(value)}</strong>
+    </div>
+  );
+}
+
+function MediaItemAnalytics({
+  analytics,
+  kind,
+}: {
+  analytics: MediaAnalyticsItem | null;
+  kind: "image" | "file";
+}) {
+  if (!analytics) {
+    return (
+      <div style={mediaAnalyticsEmptyStyle}>
+        Noch keine Analytics für dieses Medium.
+      </div>
+    );
+  }
+
+  const mainRows =
+    kind === "image"
+      ? [
+          ["Aufrufe", analytics.views_total],
+          ["7 Tage", analytics.views_7d],
+          ["30 Tage", analytics.views_30d],
+          ["Eindeutig", analytics.unique_viewers_total],
+        ]
+      : [
+          ["Geöffnet", analytics.opens_total],
+          ["Downloads", analytics.downloads_total],
+          ["Öffnungen 30 Tage", analytics.opens_30d],
+          ["Downloads 30 Tage", analytics.downloads_30d],
+        ];
+
+  return (
+    <div style={mediaAnalyticsBoxStyle}>
+      <div style={mediaAnalyticsGridStyle}>
+        {mainRows.map(([label, value]) => (
+          <div key={label} style={mediaAnalyticsMetricStyle}>
+            <span>{label}</span>
+            <strong>{formatAnalyticsNumber(value)}</strong>
+          </div>
+        ))}
+      </div>
+
+      <div style={mediaAnalyticsVariantStyle}>
+        <span>Thumb {formatAnalyticsNumber(analytics.thumb_events_total)}</span>
+        <span>Medium {formatAnalyticsNumber(analytics.medium_events_total)}</span>
+        <span>Large {formatAnalyticsNumber(analytics.large_events_total)}</span>
+        <span>Original {formatAnalyticsNumber(analytics.original_events_total)}</span>
+      </div>
+
+      <div style={mediaAnalyticsLastStyle}>
+        {kind === "image" ? "Letzter Aufruf" : "Letzte Aktivität"}:{" "}
+        {formatAnalyticsDate(
+          kind === "image"
+            ? analytics.last_view_at
+            : analytics.last_interaction_at,
+        )}
+      </div>
     </div>
   );
 }
@@ -900,27 +1290,6 @@ const panelStyle: React.CSSProperties = {
   padding: 22,
 };
 
-const labelStyle: React.CSSProperties = {
-  display: "grid",
-  gap: 8,
-  color: "#cbd5e1",
-  fontSize: 13,
-  fontWeight: 900,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  minHeight: 52,
-  borderRadius: 16,
-  border: "1px solid rgba(148, 163, 184, 0.22)",
-  background: "rgba(255,255,255,0.07)",
-  color: "#ffffff",
-  padding: "0 14px",
-  fontSize: 15,
-  fontWeight: 800,
-  outline: "none",
-  boxSizing: "border-box",
-};
 
 const fileButtonStyle: React.CSSProperties = {
   minHeight: 52,
@@ -965,6 +1334,161 @@ const selectionInfoStyle: React.CSSProperties = {
   fontWeight: 850,
   lineHeight: 1.55,
   wordBreak: "break-word",
+};
+
+
+const analyticsSummaryGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+  gap: 12,
+};
+
+const analyticsSummaryCardStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+  borderRadius: 20,
+  padding: 15,
+  background: "rgba(255,255,255,0.055)",
+  border: "1px solid rgba(255,255,255,0.085)",
+};
+
+const analyticsSummaryIconStyle: React.CSSProperties = {
+  width: 44,
+  height: 44,
+  display: "grid",
+  placeItems: "center",
+  borderRadius: 16,
+  background: "rgba(59,130,246,0.14)",
+  fontSize: 20,
+};
+
+const analyticsSummaryValueStyle: React.CSSProperties = {
+  display: "block",
+  color: "#ffffff",
+  fontSize: 24,
+  fontWeight: 950,
+};
+
+const analyticsSummaryLabelStyle: React.CSSProperties = {
+  display: "block",
+  color: "#cbd5e1",
+  fontSize: 13,
+  fontWeight: 900,
+};
+
+const analyticsSummaryDetailStyle: React.CSSProperties = {
+  display: "block",
+  color: "#94a3b8",
+  fontSize: 11,
+  fontWeight: 800,
+  marginTop: 3,
+};
+
+const analyticsPeriodsGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: 12,
+  marginTop: 14,
+};
+
+const analyticsPeriodCardStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 12,
+  borderRadius: 20,
+  padding: 15,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.075)",
+};
+
+const analyticsPeriodRowStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 12,
+  color: "#cbd5e1",
+  fontSize: 13,
+  fontWeight: 850,
+};
+
+const lastActivityGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+  gap: 10,
+  marginTop: 14,
+};
+
+const analyticsActivityStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 5,
+  borderRadius: 16,
+  padding: 12,
+  background: "rgba(59,130,246,0.08)",
+  border: "1px solid rgba(147,197,253,0.16)",
+  color: "#94a3b8",
+  fontSize: 12,
+  fontWeight: 850,
+};
+
+const analyticsWarningStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 5,
+  borderRadius: 16,
+  padding: 12,
+  marginBottom: 14,
+  background: "rgba(245,158,11,0.12)",
+  border: "1px solid rgba(253,230,138,0.18)",
+  color: "#fde68a",
+  fontSize: 13,
+  fontWeight: 850,
+};
+
+const mediaAnalyticsBoxStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 8,
+  borderRadius: 14,
+  padding: 10,
+  background: "rgba(59,130,246,0.08)",
+  border: "1px solid rgba(147,197,253,0.14)",
+};
+
+const mediaAnalyticsGridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: 7,
+};
+
+const mediaAnalyticsMetricStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 2,
+  color: "#94a3b8",
+  fontSize: 10,
+  fontWeight: 850,
+};
+
+const mediaAnalyticsVariantStyle: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 7,
+  color: "#bfdbfe",
+  fontSize: 10,
+  fontWeight: 850,
+};
+
+const mediaAnalyticsLastStyle: React.CSSProperties = {
+  color: "#94a3b8",
+  fontSize: 10,
+  fontWeight: 800,
+  lineHeight: 1.45,
+};
+
+const mediaAnalyticsEmptyStyle: React.CSSProperties = {
+  borderRadius: 12,
+  padding: 9,
+  background: "rgba(255,255,255,0.035)",
+  border: "1px solid rgba(255,255,255,0.06)",
+  color: "#94a3b8",
+  fontSize: 11,
+  fontWeight: 800,
 };
 
 const errorStyle: React.CSSProperties = {
