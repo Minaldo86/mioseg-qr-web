@@ -75,6 +75,11 @@ type QrxEntry = {
   created_at: string | null;
 };
 
+type MediaAnalyticsEvent =
+  "image_view" | "file_open" | "file_download" | "variant_delivery";
+
+type MediaVariant = "thumb" | "medium" | "large" | "original";
+
 type QrxMedia = {
   id: string;
   type: "image" | "file" | string;
@@ -178,6 +183,62 @@ function normalizeNewsItems(value: NewsItem[] | null | undefined) {
     });
 }
 
+function getAnalyticsSessionId() {
+  if (typeof window === "undefined") return null;
+
+  const storageKey = "mioseg_qrx_media_session_id";
+  const existing = window.sessionStorage.getItem(storageKey);
+  if (existing) return existing;
+
+  const generated =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  window.sessionStorage.setItem(storageKey, generated);
+  return generated;
+}
+
+function getMediaVariant(
+  mediaItem: QrxMedia,
+  purpose: "gallery" | "fullscreen",
+  forceOriginal: boolean,
+): MediaVariant {
+  if (forceOriginal) return "original";
+
+  if (purpose === "gallery") {
+    if (mediaItem.medium_url) return "medium";
+    if (mediaItem.large_url) return "large";
+    if (mediaItem.thumb_url) return "thumb";
+    return "original";
+  }
+
+  if (mediaItem.large_url) return "large";
+  if (mediaItem.medium_url) return "medium";
+  if (mediaItem.thumb_url) return "thumb";
+  return "original";
+}
+
+function shouldTrackMediaEvent(
+  eventType: MediaAnalyticsEvent,
+  mediaId: string,
+  variant: MediaVariant,
+) {
+  if (typeof window === "undefined") return false;
+
+  const key = `mioseg_media_event:${eventType}:${mediaId}:${variant}`;
+  const now = Date.now();
+  const previous = Number(window.sessionStorage.getItem(key) ?? 0);
+  const dedupeWindowMs = 30 * 60 * 1000;
+
+  if (Number.isFinite(previous) && now - previous < dedupeWindowMs) {
+    return false;
+  }
+
+  window.sessionStorage.setItem(key, String(now));
+  return true;
+}
+
 export default function PublicQrxDetailPage() {
   const params = useParams();
   const locale = getParam(
@@ -233,7 +294,9 @@ export default function PublicQrxDetailPage() {
 
       const { data: mediaData, error: mediaError } = await supabase
         .from("qr_x_media")
-        .select("id,type,url,filename,bytes,original_url,large_url,medium_url,thumb_url")
+        .select(
+          "id,type,url,filename,bytes,original_url,large_url,medium_url,thumb_url",
+        )
         .eq("qrx_id", qrxId)
         .returns<QrxMedia[]>();
 
@@ -396,6 +459,53 @@ export default function PublicQrxDetailPage() {
     }
   }
 
+  async function trackMediaEvent(
+    eventType: MediaAnalyticsEvent,
+    mediaItem: QrxMedia,
+    variant: MediaVariant,
+  ) {
+    if (!qrxId || !mediaItem.id) return;
+    if (!shouldTrackMediaEvent(eventType, mediaItem.id, variant)) return;
+
+    try {
+      await fetch("/api/media/analytics/event", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event_type: eventType,
+          qrx_id: qrxId,
+          media_id: mediaItem.id,
+          media_type: mediaItem.type,
+          variant,
+          session_id: getAnalyticsSessionId(),
+          source: "web_qrx_detail",
+        }),
+        keepalive: true,
+      });
+    } catch (error) {
+      console.warn("media analytics tracking error:", error);
+    }
+  }
+
+  function handleImageOpen(mediaItem: QrxMedia) {
+    const variant = getMediaVariant(
+      mediaItem,
+      "fullscreen",
+      forceOriginalQuality,
+    );
+    void trackMediaEvent("image_view", mediaItem, variant);
+  }
+
+  function handleFileOpen(mediaItem: QrxMedia) {
+    void trackMediaEvent("file_open", mediaItem, "original");
+  }
+
+  function handleFileDownload(mediaItem: QrxMedia) {
+    void trackMediaEvent("file_download", mediaItem, "original");
+  }
+
   async function handleDownloadQrImage() {
     const url = getPublicQrxUrl();
     if (!url) return;
@@ -440,11 +550,19 @@ export default function PublicQrxDetailPage() {
   const coverMedia = getMediaById(media, entry?.cover_media_id);
   const logoMedia = getMediaById(media, entry?.logo_media_id);
   const cover =
-    getBestMediaUrl({ media: coverMedia, purpose: "hero", forceOriginal: forceOriginalQuality }) ||
+    getBestMediaUrl({
+      media: coverMedia,
+      purpose: "hero",
+      forceOriginal: forceOriginalQuality,
+    }) ||
     entry?.cover_image_url?.trim() ||
     null;
   const logo =
-    getBestMediaUrl({ media: logoMedia, purpose: "medium", forceOriginal: forceOriginalQuality }) ||
+    getBestMediaUrl({
+      media: logoMedia,
+      purpose: "medium",
+      forceOriginal: forceOriginalQuality,
+    }) ||
     entry?.logo_url?.trim() ||
     null;
   const isBusiness = entry?.type === "business";
@@ -456,10 +574,24 @@ export default function PublicQrxDetailPage() {
     [entry?.news],
   );
   const imageMedia = media.filter((item) => {
-    const isLogoById = !!entry?.logo_media_id && item.id === entry.logo_media_id;
-    const isCoverById = !!entry?.cover_media_id && item.id === entry.cover_media_id;
-    const urls = [item.url, item.original_url, item.large_url, item.medium_url, item.thumb_url];
-    return item.type === "image" && !isLogoById && !isCoverById && !urls.includes(logo) && !urls.includes(cover);
+    const isLogoById =
+      !!entry?.logo_media_id && item.id === entry.logo_media_id;
+    const isCoverById =
+      !!entry?.cover_media_id && item.id === entry.cover_media_id;
+    const urls = [
+      item.url,
+      item.original_url,
+      item.large_url,
+      item.medium_url,
+      item.thumb_url,
+    ];
+    return (
+      item.type === "image" &&
+      !isLogoById &&
+      !isCoverById &&
+      !urls.includes(logo) &&
+      !urls.includes(cover)
+    );
   });
   const fileMedia = media.filter((item) => item.type === "file");
   const isOwner = Boolean(
@@ -659,7 +791,8 @@ export default function PublicQrxDetailPage() {
                       isOwner || saveLoading || !currentUserId
                         ? "not-allowed"
                         : "pointer",
-                    opacity: isOwner || saveLoading || !currentUserId ? 0.82 : 1,
+                    opacity:
+                      isOwner || saveLoading || !currentUserId ? 0.82 : 1,
                   }}
                 >
                   {isOwner
@@ -824,13 +957,26 @@ export default function PublicQrxDetailPage() {
                 {imageMedia.map((item) => (
                   <a
                     key={item.id}
-                    href={getBestMediaUrl({ media: item, purpose: "fullscreen", forceOriginal: forceOriginalQuality }) || item.url}
+                    href={
+                      getBestMediaUrl({
+                        media: item,
+                        purpose: "fullscreen",
+                        forceOriginal: forceOriginalQuality,
+                      }) || item.url
+                    }
                     target="_blank"
                     rel="noreferrer"
                     style={galleryItemStyle}
+                    onClick={() => handleImageOpen(item)}
                   >
                     <img
-                      src={getBestMediaUrl({ media: item, purpose: "gallery", forceOriginal: forceOriginalQuality }) || item.url}
+                      src={
+                        getBestMediaUrl({
+                          media: item,
+                          purpose: "gallery",
+                          forceOriginal: forceOriginalQuality,
+                        }) || item.url
+                      }
                       alt={item.filename ?? "QR-X Bild"}
                       style={galleryImageStyle}
                     />
@@ -845,16 +991,28 @@ export default function PublicQrxDetailPage() {
               <h3 style={sectionSubTitleStyle}>Dateien</h3>
               <div style={fileListStyle}>
                 {fileMedia.map((item) => (
-                  <a
-                    key={item.id}
-                    href={item.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={fileItemStyle}
-                  >
+                  <div key={item.id} style={fileItemStyle}>
                     <span>📄 {item.filename ?? "Datei öffnen"}</span>
-                    <span>Öffnen</span>
-                  </a>
+                    <span style={fileActionRowStyle}>
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={fileActionLinkStyle}
+                        onClick={() => handleFileOpen(item)}
+                      >
+                        Öffnen
+                      </a>
+                      <a
+                        href={item.url}
+                        download={item.filename ?? undefined}
+                        style={fileActionLinkStyle}
+                        onClick={() => handleFileDownload(item)}
+                      >
+                        Herunterladen
+                      </a>
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -1166,6 +1324,20 @@ const fileItemStyle: CSSProperties = {
   justifyContent: "space-between",
   gap: 12,
   fontWeight: 900,
+};
+
+const fileActionRowStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  flexWrap: "wrap",
+  justifyContent: "flex-end",
+};
+
+const fileActionLinkStyle: CSSProperties = {
+  color: "#bfdbfe",
+  textDecoration: "none",
+  fontWeight: 950,
 };
 
 const actionsLayoutStyle: CSSProperties = {
