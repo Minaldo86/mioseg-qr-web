@@ -139,11 +139,15 @@ export default function MediaInteractionLink({
     const trackingPromise = trackEvent(payload);
 
     if (mode === "open") {
-      const targetWindow = window.open(href, "_blank", "noopener,noreferrer");
       void trackingPromise;
 
-      if (!targetWindow) {
-        window.location.href = href;
+      const targetWindow = window.open("about:blank", "_blank");
+
+      if (targetWindow) {
+        targetWindow.opener = null;
+        targetWindow.location.href = href;
+      } else {
+        window.location.assign(href);
       }
 
       return;
