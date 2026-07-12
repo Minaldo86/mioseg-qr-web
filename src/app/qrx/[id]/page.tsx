@@ -7,6 +7,7 @@ import TrackViewClient from "./TrackViewClient";
 import QrxReportForm from "./QrxReportForm";
 import QrxPasswordGate from "./QrxPasswordGate";
 import QrxCodeCanvas from "./QrxCodeCanvas";
+import MediaInteractionLink from "./MediaInteractionLink";
 
 type NewsItem = { text: string; createdAt: string };
 
@@ -827,12 +828,24 @@ export default async function QrxPage({
           ) : (
             <div style={imageGridStyle}>
               {galleryImages.map((img) => (
-                <a key={img.id} href={img.url} target="_blank" rel="noreferrer" style={imageItemStyle}>
+                <MediaInteractionLink
+                  key={img.id}
+                  qrxId={qrxId}
+                  mediaId={img.id}
+                  mediaType="image"
+                  eventType="image_view"
+                  variant="original"
+                  source="public_qrx_gallery"
+                  href={img.url}
+                  mode="open"
+                  style={imageItemStyle}
+                  ariaLabel={`Bild ${img.filename} öffnen`}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={img.url} alt={img.filename} style={imageThumbStyle} />
                   <span style={imageCaptionStyle}>{img.filename}</span>
                   <span style={imageOpenHintStyle}>Zum Öffnen Bild antippen</span>
-                </a>
+                </MediaInteractionLink>
               ))}
             </div>
           )}
@@ -847,10 +860,42 @@ export default async function QrxPage({
           ) : (
             <div style={fileListStyle}>
               {files.map((f) => (
-                <a key={f.id} href={f.url} target="_blank" rel="noreferrer" style={fileRowStyle}>
-                  <span>📄 {f.filename}</span>
-                  <span>Öffnen</span>
-                </a>
+                <div key={f.id} style={fileRowStyle}>
+                  <span style={fileNameStyle}>📄 {f.filename}</span>
+
+                  <div style={fileActionRowStyle}>
+                    <MediaInteractionLink
+                      qrxId={qrxId}
+                      mediaId={f.id}
+                      mediaType="file"
+                      eventType="file_open"
+                      variant="original"
+                      source="public_qrx_files"
+                      href={f.url}
+                      mode="open"
+                      style={fileActionButtonStyle}
+                      ariaLabel={`Datei ${f.filename} öffnen`}
+                    >
+                      Öffnen
+                    </MediaInteractionLink>
+
+                    <MediaInteractionLink
+                      qrxId={qrxId}
+                      mediaId={f.id}
+                      mediaType="file"
+                      eventType="file_download"
+                      variant="original"
+                      source="public_qrx_files"
+                      href={f.url}
+                      mode="download"
+                      filename={f.filename}
+                      style={fileDownloadButtonStyle}
+                      ariaLabel={`Datei ${f.filename} herunterladen`}
+                    >
+                      ⬇ Herunterladen
+                    </MediaInteractionLink>
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -1345,6 +1390,42 @@ const fileRowStyle: CSSProperties = {
   justifyContent: "space-between",
   gap: 14,
   fontWeight: 850,
+};
+
+const fileNameStyle: CSSProperties = {
+  minWidth: 0,
+  flex: "1 1 auto",
+  wordBreak: "break-word",
+};
+
+const fileActionRowStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  gap: 8,
+  flexWrap: "wrap",
+};
+
+const fileActionButtonStyle: CSSProperties = {
+  minHeight: 38,
+  borderRadius: 12,
+  padding: "0 12px",
+  background: "rgba(255,255,255,0.07)",
+  border: "1px solid rgba(255,255,255,0.09)",
+  color: "#e5edf5",
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontWeight: 850,
+  cursor: "pointer",
+};
+
+const fileDownloadButtonStyle: CSSProperties = {
+  ...fileActionButtonStyle,
+  background: "rgba(59,130,246,0.16)",
+  border: "1px solid rgba(147,197,253,0.22)",
+  color: "#bfdbfe",
 };
 
 const coordinateTextStyle: CSSProperties = {
