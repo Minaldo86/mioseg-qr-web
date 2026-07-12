@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 import styles from "../../../dashboard.module.css";
@@ -24,27 +24,6 @@ type QrxMedia = {
   filename: string;
   bytes: number | null;
   created_at?: string | null;
-};
-
-type MediaUploadKind = "image" | "file" | "logo";
-
-type PrepareUploadResponse = {
-  uploadUrl?: string;
-  signedUrl?: string;
-  signed_url?: string;
-  url?: string;
-  storagePath?: string;
-  storage_path?: string;
-  path?: string;
-};
-
-type FinalizeUploadResponse = {
-  publicUrl?: string;
-  public_url?: string;
-  url?: string;
-  media?: {
-    url?: string | null;
-  } | null;
 };
 
 type MediaAnalyticsSummary = {
@@ -117,33 +96,6 @@ type MediaAnalyticsItem = {
   last_interaction_at: string | null;
 };
 
-function pickFirstString(...values: Array<unknown>) {
-  for (const value of values) {
-    if (typeof value === "string" && value.trim().length > 0) {
-      return value.trim();
-    }
-  }
-
-  return null;
-}
-
-function getFileExtension(file: File) {
-  const fromName = file.name.split(".").pop();
-  if (fromName && fromName.length <= 8) return fromName.toLowerCase();
-
-  const fromType = file.type.split("/").pop();
-  return fromType && fromType.trim() ? fromType : "bin";
-}
-
-function buildUploadFilename(prefix: string, file: File) {
-  const ext = getFileExtension(file).replace(/[^a-z0-9]/gi, "") || "bin";
-  const safePrefix = prefix.replace(/[^a-z0-9_-]/gi, "") || "upload";
-
-  return `${safePrefix}-${Date.now().toString()}-${Math.random()
-    .toString(36)
-    .slice(2, 10)}.${ext}`;
-}
-
 function formatBytes(bytes: number | null | undefined) {
   const value = Number(bytes ?? 0);
   if (!Number.isFinite(value) || value <= 0) return "–";
@@ -185,20 +137,10 @@ function formatAnalyticsDate(value: string | null | undefined) {
   }).format(date);
 }
 
-function isImageMime(file: File) {
-  return file.type.startsWith("image/");
-}
-
-
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
   if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim()) return value[0];
   return fallback;
-}
-
-function toNullable(value: string) {
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
 }
 
 function getTitle(entry: QrxEntry | null) {
@@ -214,9 +156,6 @@ export default function QrxMediaPage() {
   const qrxId = getParam(params?.id as string | string[] | undefined, "");
 
   const [loading, setLoading] = useState(true);
-  const [uploadingBase, setUploadingBase] = useState(false);
-  const [uploadingGallery, setUploadingGallery] = useState(false);
-  const [uploadingFiles, setUploadingFiles] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [entry, setEntry] = useState<QrxEntry | null>(null);
@@ -226,13 +165,6 @@ export default function QrxMediaPage() {
   const [analyticsItems, setAnalyticsItems] = useState<MediaAnalyticsItem[]>([]);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
-
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
-  const [fileUploads, setFileUploads] = useState<File[]>([]);
 
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
@@ -315,7 +247,6 @@ export default function QrxMediaPage() {
     await loadAnalytics(qrxId);
   }
 
-
   async function loadAnalytics(qrxIdInner: string) {
     setAnalyticsLoading(true);
     setAnalyticsError(null);
@@ -349,292 +280,6 @@ export default function QrxMediaPage() {
       );
     } finally {
       setAnalyticsLoading(false);
-    }
-  }
-
-  async function getAccessToken() {
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (error) throw error;
-
-    const token = session?.access_token;
-    if (!token) {
-      throw new Error("Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.");
-    }
-
-    return token;
-  }
-
-  async function prepareUpload(args: {
-    qrxId: string;
-    type: MediaUploadKind;
-    filename: string;
-    mimeType: string;
-    bytes: number;
-  }) {
-    const token = await getAccessToken();
-
-    const { data, error } = await supabase.functions.invoke("qrx-media-prepare-upload", {
-      body: {
-        qrxId: args.qrxId,
-        type: args.type,
-        filename: args.filename,
-        mimeType: args.mimeType,
-        bytes: args.bytes,
-      },
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (error) throw error;
-
-    const response = (data ?? {}) as PrepareUploadResponse;
-    const uploadUrl = pickFirstString(
-      response.uploadUrl,
-      response.signedUrl,
-      response.signed_url,
-      response.url,
-    );
-    const storagePath = pickFirstString(
-      response.storagePath,
-      response.storage_path,
-      response.path,
-    );
-
-    if (!uploadUrl || !storagePath) {
-      throw new Error("Prepare-Upload: uploadUrl oder storagePath fehlt.");
-    }
-
-    return { uploadUrl, storagePath };
-  }
-
-  async function finalizeUpload(args: {
-    qrxId: string;
-    type: MediaUploadKind;
-    filename: string;
-    mimeType: string;
-    bytes: number;
-    storagePath: string;
-  }) {
-    const token = await getAccessToken();
-
-    const { data, error } = await supabase.functions.invoke("qrx-media-finalize-upload", {
-      body: {
-        qrxId: args.qrxId,
-        type: args.type,
-        filename: args.filename,
-        mimeType: args.mimeType,
-        bytes: args.bytes,
-        storagePath: args.storagePath,
-      },
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (error) throw error;
-
-    const response = (data ?? {}) as FinalizeUploadResponse;
-    const publicUrl = pickFirstString(
-      response.publicUrl,
-      response.public_url,
-      response.url,
-      response.media?.url,
-    );
-
-    if (!publicUrl) {
-      throw new Error("Finalize-Upload: publicUrl fehlt.");
-    }
-
-    return { publicUrl };
-  }
-
-  async function uploadMediaFile(args: {
-    file: File;
-    type: MediaUploadKind;
-    prefix: string;
-  }) {
-    if (!entry) throw new Error("QR-X konnte nicht geladen werden.");
-
-    const filename = buildUploadFilename(args.prefix, args.file);
-    const mimeType = args.file.type || "application/octet-stream";
-    const bytes = args.file.size;
-
-    const prepared = await prepareUpload({
-      qrxId: entry.id,
-      type: args.type,
-      filename,
-      mimeType,
-      bytes,
-    });
-
-    const arrayBuffer = await args.file.arrayBuffer();
-    const uploadResponse = await fetch(prepared.uploadUrl, {
-      method: "PUT",
-      headers: { "Content-Type": mimeType },
-      body: arrayBuffer,
-    });
-
-    if (!uploadResponse.ok) {
-      const message = await uploadResponse.text().catch(() => "");
-      throw new Error(
-        `Upload fehlgeschlagen (${uploadResponse.status}): ${message || "Unbekannter Fehler"}`,
-      );
-    }
-
-    const finalized = await finalizeUpload({
-      qrxId: entry.id,
-      type: args.type,
-      filename,
-      mimeType,
-      bytes,
-      storagePath: prepared.storagePath,
-    });
-
-    return finalized.publicUrl;
-  }
-
-  function handleCoverFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0] ?? null;
-    setCoverFile(file);
-
-    if (coverPreview) URL.revokeObjectURL(coverPreview);
-    setCoverPreview(file ? URL.createObjectURL(file) : null);
-  }
-
-  function handleLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0] ?? null;
-    setLogoFile(file);
-
-    if (logoPreview) URL.revokeObjectURL(logoPreview);
-    setLogoPreview(file ? URL.createObjectURL(file) : null);
-  }
-
-  function handleGalleryFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files ?? []).filter(isImageMime);
-    setGalleryFiles(files);
-  }
-
-  function handleFileUploadChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setFileUploads(Array.from(event.target.files ?? []));
-  }
-
-  async function handleUploadBaseImages(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setUploadingBase(true);
-    setErrorText(null);
-    setSuccessText(null);
-
-    try {
-      if (!entry) throw new Error("QR-X konnte nicht geladen werden.");
-      if (!coverFile && !logoFile) {
-        throw new Error("Bitte wähle ein Coverbild oder Logo aus.");
-      }
-
-      const updates: Partial<Pick<QrxEntry, "cover_image_url" | "logo_url">> & {
-        updated_at?: string;
-      } = {
-        updated_at: new Date().toISOString(),
-      };
-
-      if (coverFile) {
-        updates.cover_image_url = await uploadMediaFile({
-          file: coverFile,
-          type: "image",
-          prefix: "cover",
-        });
-      }
-
-      if (logoFile) {
-        updates.logo_url = await uploadMediaFile({
-          file: logoFile,
-          type: "image",
-          prefix: "logo",
-        });
-      }
-
-      const { error } = await supabase
-        .from("qr_x_entries")
-        .update(updates)
-        .eq("id", entry.id)
-        .eq("owner_user_id", entry.owner_user_id);
-
-      if (error) throw error;
-
-      setCoverFile(null);
-      setLogoFile(null);
-      if (coverPreview) URL.revokeObjectURL(coverPreview);
-      if (logoPreview) URL.revokeObjectURL(logoPreview);
-      setCoverPreview(null);
-      setLogoPreview(null);
-
-      setSuccessText("Coverbild und/oder Logo wurden hochgeladen.");
-      router.refresh();
-      await loadMediaPage();
-    } catch (error) {
-      setErrorText(error instanceof Error ? error.message : "Medien konnten nicht hochgeladen werden.");
-    } finally {
-      setUploadingBase(false);
-    }
-  }
-
-  async function handleUploadGalleryImages(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setUploadingGallery(true);
-    setErrorText(null);
-    setSuccessText(null);
-
-    try {
-      if (!entry) throw new Error("QR-X konnte nicht geladen werden.");
-      if (galleryFiles.length === 0) {
-        throw new Error("Bitte wähle mindestens ein Bild aus.");
-      }
-
-      for (const file of galleryFiles) {
-        await uploadMediaFile({
-          file,
-          type: "image",
-          prefix: "gallery",
-        });
-      }
-
-      setGalleryFiles([]);
-      setSuccessText(`${galleryFiles.length} Galerie-Bild(er) wurden hochgeladen.`);
-      await loadMediaPage();
-    } catch (error) {
-      setErrorText(error instanceof Error ? error.message : "Galerie-Bilder konnten nicht hochgeladen werden.");
-    } finally {
-      setUploadingGallery(false);
-    }
-  }
-
-  async function handleUploadFiles(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setUploadingFiles(true);
-    setErrorText(null);
-    setSuccessText(null);
-
-    try {
-      if (!entry) throw new Error("QR-X konnte nicht geladen werden.");
-      if (fileUploads.length === 0) {
-        throw new Error("Bitte wähle mindestens eine Datei aus.");
-      }
-
-      for (const file of fileUploads) {
-        await uploadMediaFile({
-          file,
-          type: "file",
-          prefix: "file",
-        });
-      }
-
-      setFileUploads([]);
-      setSuccessText(`${fileUploads.length} Datei(en) wurden hochgeladen.`);
-      await loadMediaPage();
-    } catch (error) {
-      setErrorText(error instanceof Error ? error.message : "Dateien konnten nicht hochgeladen werden.");
-    } finally {
-      setUploadingFiles(false);
     }
   }
 
@@ -684,10 +329,10 @@ export default function QrxMediaPage() {
 
       <section className={styles.hero}>
         <div>
-          <span className={styles.kicker}>Bilder & Medien</span>
+          <span className={styles.kicker}>Medien & Analytics</span>
           <h1>{getTitle(entry)}</h1>
           <p>
-            Lade Coverbild, Logo, Galerie-Bilder und Dateien direkt im Web hoch. Die Uploads laufen über Supabase Storage und deine QR-X Medienlogik.
+            Analysiere Aufrufe, Öffnungen und Downloads deiner Bilder und Dateien. Neue Medien lädst du ausschließlich über „Basisdaten bearbeiten“ hoch, damit die Credit-Berechnung korrekt durchgeführt wird.
           </p>
         </div>
 
@@ -837,127 +482,6 @@ export default function QrxMediaPage() {
 
         {!loading && entry ? (
           <>
-            <form onSubmit={handleUploadBaseImages} style={panelStyle}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h2>Coverbild & Logo hochladen</h2>
-                  <p>Diese Bilder werden direkt in der QR-X Webansicht verwendet.</p>
-                </div>
-                <span>Basis</span>
-              </div>
-
-              <div style={{ display: "grid", gap: 16 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-                  <div style={uploadBoxStyle}>
-                    <strong style={{ color: "#ffffff" }}>Coverbild</strong>
-                    <p style={smallTextStyle}>Großes Titelbild für deinen QR-X.</p>
-                    {entry.cover_image_url ? <PreviewImage url={entry.cover_image_url} label="Aktuelles Coverbild" /> : null}
-                    {coverPreview ? <PreviewImage url={coverPreview} label="Neue Cover-Vorschau" /> : null}
-                    <label style={fileButtonStyle}>
-                      Coverbild auswählen
-                      <input type="file" accept="image/*" onChange={handleCoverFileChange} style={{ display: "none" }} />
-                    </label>
-                  </div>
-
-                  <div style={uploadBoxStyle}>
-                    <strong style={{ color: "#ffffff" }}>Logo</strong>
-                    <p style={smallTextStyle}>Logo oder Profilbild für den QR-X.</p>
-                    {entry.logo_url ? <PreviewImage url={entry.logo_url} label="Aktuelles Logo" compact /> : null}
-                    {logoPreview ? <PreviewImage url={logoPreview} label="Neue Logo-Vorschau" compact /> : null}
-                    <label style={fileButtonStyle}>
-                      Logo auswählen
-                      <input type="file" accept="image/*" onChange={handleLogoFileChange} style={{ display: "none" }} />
-                    </label>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button
-                    type="submit"
-                    disabled={uploadingBase}
-                    className={styles.primaryButton}
-                    style={{ border: 0, cursor: uploadingBase ? "not-allowed" : "pointer", opacity: uploadingBase ? 0.72 : 1 }}
-                  >
-                    {uploadingBase ? "Lädt hoch …" : "Cover & Logo hochladen"}
-                  </button>
-                </div>
-              </div>
-            </form>
-
-            <form onSubmit={handleUploadGalleryImages} style={panelStyle}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h2>Galerie-Bilder hochladen</h2>
-                  <p>Wähle ein oder mehrere Bilder aus, die später in der QR-X Galerie erscheinen.</p>
-                </div>
-                <span>{media.filter((item) => item.type === "image").length} Bilder</span>
-              </div>
-
-              <div style={{ display: "grid", gap: 16 }}>
-                <label style={fileButtonStyle}>
-                  Bilder auswählen
-                  <input type="file" accept="image/*" multiple onChange={handleGalleryFileChange} style={{ display: "none" }} />
-                </label>
-
-                {galleryFiles.length > 0 ? (
-                  <div style={selectionInfoStyle}>
-                    Ausgewählt: {galleryFiles.map((file) => file.name).join(", ")}
-                  </div>
-                ) : null}
-
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button
-                    type="submit"
-                    disabled={uploadingGallery}
-                    className={styles.primaryButton}
-                    style={{ border: 0, cursor: uploadingGallery ? "not-allowed" : "pointer", opacity: uploadingGallery ? 0.72 : 1 }}
-                  >
-                    {uploadingGallery ? "Lädt hoch …" : "Galerie-Bilder hochladen"}
-                  </button>
-                </div>
-              </div>
-            </form>
-
-            <form onSubmit={handleUploadFiles} style={panelStyle}>
-              <div className={styles.cardHeader}>
-                <div>
-                  <h2>Dateien / PDFs hochladen</h2>
-                  <p>Lade PDFs, Preislisten, Speisekarten oder andere Dateien für deinen QR-X hoch.</p>
-                </div>
-                <span>{media.filter((item) => item.type === "file").length} Dateien</span>
-              </div>
-
-              <div style={{ display: "grid", gap: 16 }}>
-                <label style={fileButtonStyle}>
-                  Dateien auswählen
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.zip,image/*,application/pdf"
-                    onChange={handleFileUploadChange}
-                    style={{ display: "none" }}
-                  />
-                </label>
-
-                {fileUploads.length > 0 ? (
-                  <div style={selectionInfoStyle}>
-                    Ausgewählt: {fileUploads.map((file) => file.name).join(", ")}
-                  </div>
-                ) : null}
-
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <button
-                    type="submit"
-                    disabled={uploadingFiles}
-                    className={styles.primaryButton}
-                    style={{ border: 0, cursor: uploadingFiles ? "not-allowed" : "pointer", opacity: uploadingFiles ? 0.72 : 1 }}
-                  >
-                    {uploadingFiles ? "Lädt hoch …" : "Dateien hochladen"}
-                  </button>
-                </div>
-              </div>
-            </form>
-
             <div style={panelStyle}>
               <div className={styles.cardHeader}>
                 <div>
@@ -1013,28 +537,6 @@ export default function QrxMediaPage() {
         ) : null}
       </section>
     </main>
-  );
-}
-
-function PreviewImage({ url, label, compact }: { url: string; label: string; compact?: boolean }) {
-  return (
-    <div
-      style={{
-        borderRadius: 22,
-        padding: 12,
-        background: "rgba(255,255,255,0.045)",
-        border: "1px solid rgba(255,255,255,0.075)",
-      }}
-    >
-      <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 900, marginBottom: 8 }}>{label}</div>
-      <div style={{ height: compact ? 110 : 210, borderRadius: 16, overflow: "hidden", background: "#e2e8f0" }}>
-        <img
-          src={url}
-          alt={label}
-          style={{ width: "100%", height: "100%", objectFit: compact ? "contain" : "cover", display: "block" }}
-        />
-      </div>
-    </div>
   );
 }
 
@@ -1136,7 +638,6 @@ function FileRow({
     </div>
   );
 }
-
 
 function AnalyticsSummaryCard({
   icon,
@@ -1289,53 +790,6 @@ const panelStyle: React.CSSProperties = {
   boxShadow: "0 22px 62px rgba(0, 0, 0, 0.17)",
   padding: 22,
 };
-
-
-const fileButtonStyle: React.CSSProperties = {
-  minHeight: 52,
-  borderRadius: 16,
-  border: "1px solid rgba(148, 163, 184, 0.22)",
-  background: "rgba(255,255,255,0.07)",
-  color: "#ffffff",
-  padding: "0 16px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-  fontSize: 14,
-  fontWeight: 900,
-  textAlign: "center",
-};
-
-const uploadBoxStyle: React.CSSProperties = {
-  display: "grid",
-  gap: 12,
-  borderRadius: 22,
-  padding: 14,
-  background: "rgba(255,255,255,0.045)",
-  border: "1px solid rgba(255,255,255,0.075)",
-};
-
-const smallTextStyle: React.CSSProperties = {
-  margin: 0,
-  color: "#94a3b8",
-  fontSize: 13,
-  lineHeight: 1.55,
-  fontWeight: 800,
-};
-
-const selectionInfoStyle: React.CSSProperties = {
-  borderRadius: 16,
-  padding: 12,
-  background: "rgba(59,130,246,0.12)",
-  border: "1px solid rgba(147,197,253,0.22)",
-  color: "#bfdbfe",
-  fontSize: 13,
-  fontWeight: 850,
-  lineHeight: 1.55,
-  wordBreak: "break-word",
-};
-
 
 const analyticsSummaryGridStyle: React.CSSProperties = {
   display: "grid",
