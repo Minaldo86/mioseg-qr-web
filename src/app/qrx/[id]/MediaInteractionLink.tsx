@@ -151,22 +151,29 @@ export default function MediaInteractionLink({
 
     await trackingPromise;
 
-    const link = document.createElement("a");
-    link.href = href;
-    link.download = filename?.trim() || "download";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    const downloadUrl = new URL("/api/media/download", window.location.origin);
+    downloadUrl.searchParams.set("qrxId", qrxId);
+    downloadUrl.searchParams.set("mediaId", mediaId);
+
+    if (filename?.trim()) {
+      downloadUrl.searchParams.set("filename", filename.trim());
+    }
+
+    window.location.href = downloadUrl.toString();
   }
 
   return (
     <a
-      href={href}
+      href={
+        mode === "download"
+          ? `/api/media/download?qrxId=${encodeURIComponent(
+              qrxId,
+            )}&mediaId=${encodeURIComponent(mediaId)}`
+          : href
+      }
       onClick={handleClick}
       style={style}
       aria-label={ariaLabel}
-      download={mode === "download" ? filename : undefined}
     >
       {children}
     </a>
