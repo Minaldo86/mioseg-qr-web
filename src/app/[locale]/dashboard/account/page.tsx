@@ -418,11 +418,12 @@ export default function AccountPage() {
       </section>
 
       <section
+        className="mioseg-account-content"
         style={{
-          maxWidth: 980,
-          margin: "0 auto",
+          width: "100%",
           display: "grid",
           gap: 18,
+          boxSizing: "border-box",
         }}
       >
         <article style={panelStyle}>
@@ -476,13 +477,7 @@ export default function AccountPage() {
           </div>
 
           <div style={{ display: "grid", gap: 12 }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-              }}
-            >
+            <div className="mioseg-account-grid-2">
               <label style={labelStyle}>
                 Vorname
                 <input
@@ -536,13 +531,7 @@ export default function AccountPage() {
               />
             </label>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 2fr",
-                gap: 12,
-              }}
-            >
+            <div className="mioseg-account-grid-postal">
               <label style={labelStyle}>
                 PLZ
                 <input
@@ -564,13 +553,7 @@ export default function AccountPage() {
               </label>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-              }}
-            >
+            <div className="mioseg-account-grid-2">
               <label style={labelStyle}>
                 Land
                 <input
@@ -700,13 +683,7 @@ export default function AccountPage() {
               />
             </label>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 2fr",
-                gap: 12,
-              }}
-            >
+            <div className="mioseg-account-grid-postal">
               <label style={labelStyle}>
                 PLZ
                 <input
@@ -906,6 +883,36 @@ export default function AccountPage() {
           </div>
         </article>
       </section>
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+.mioseg-account-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mioseg-account-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mioseg-account-grid-postal {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(0, 2fr);
+  gap: 12px;
+}
+
+@media (max-width: 760px) {
+  .mioseg-account-grid-2,
+  .mioseg-account-grid-postal {
+    grid-template-columns: 1fr;
+  }
+}
+          `.trim(),
+        }}
+      />
     </main>
   );
 }
@@ -1017,7 +1024,9 @@ function RoadmapItem({
 }
 
 const panelStyle: React.CSSProperties = {
-  borderRadius: 30,
+  width: "100%",
+  boxSizing: "border-box",
+  borderRadius: 28,
   background: "rgba(15, 23, 42, 0.82)",
   border: "1px solid rgba(148, 163, 184, 0.16)",
   boxShadow: "0 22px 62px rgba(0, 0, 0, 0.17)",
