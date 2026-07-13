@@ -5,22 +5,25 @@ import { useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 
-type ActivityKind = "created" | "updated" | "saved";
-
 type ActivityItem = {
   id: string;
-  kind: ActivityKind;
   qrxId: string;
   title: string;
   occurredAt: string;
   detail: string;
 };
 
-type OwnQrxRow = {
+type SavedQrxRow = {
+  qrx_id: string;
+  created_at: string;
+};
+
+type QrxEntryRow = {
   id: string;
   title: string | null;
   company_name: string | null;
-  created_at: string;
+  owner_user_id: string | null;
+  deleted_at: string | null;
 };
 
 type QrxUpdateRow = {
@@ -34,13 +37,7 @@ type QrxUpdateRow = {
   changed_files: boolean | null;
 };
 
-type QrxSaveRow = {
-  id: string;
-  qrx_id: string;
-  created_at: string;
-};
-
-function getTitle(row: OwnQrxRow) {
+function getTitle(row: QrxEntryRow) {
   return row.company_name?.trim() || row.title?.trim() || "Unbenannter QR-X";
 }
 
@@ -66,35 +63,8 @@ function buildUpdateDetail(row: QrxUpdateRow) {
   if (row.changed_files) parts.push("Dateien");
 
   return parts.length > 0
-    ? `${parts.join(", ")} aktualisiert`
-    : "QR-X aktualisiert";
-}
-
-function getActivityMeta(kind: ActivityKind) {
-  if (kind === "created") {
-    return {
-      icon: "＋",
-      label: "Erstellt",
-      color: "#93c5fd",
-      background: "rgba(59,130,246,0.12)",
-    };
-  }
-
-  if (kind === "saved") {
-    return {
-      icon: "🔖",
-      label: "Neu gespeichert",
-      color: "#86efac",
-      background: "rgba(34,197,94,0.11)",
-    };
-  }
-
-  return {
-    icon: "↻",
-    label: "Aktualisiert",
-    color: "#fde68a",
-    background: "rgba(245,158,11,0.11)",
-  };
+    ? `${parts.join(", ")} geändert`
+    : "Inhalt geändert";
 }
 
 export default function DashboardActivityClient({
@@ -127,102 +97,97 @@ export default function DashboardActivityClient({
       return;
     }
 
-    const { data: ownRows, error: ownError } = await supabase
-      .from("qr_x_entries")
-      .select("id,title,company_name,created_at")
-      .eq("owner_user_id", user.id)
-      .is("deleted_at", null)
+    const { data: saveRows, error: savesError } = await supabase
+      .from("qrx_saves")
+      .select("qrx_id,created_at")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(20)
-      .returns<OwnQrxRow[]>();
+      .returns<SavedQrxRow[]>();
 
-    if (ownError) {
-      console.warn("Dashboard activities QR-X error:", ownError.message);
+    if (savesError) {
+      console.warn("Dashboard saved QR-X error:", savesError.message);
       setItems([]);
       setLoading(false);
       return;
     }
 
-    const ownQrx = ownRows ?? [];
-    const ownIds = ownQrx.map((row) => row.id);
-    const titleMap = new Map(ownQrx.map((row) => [row.id, getTitle(row)]));
+    const saves = saveRows ?? [];
+    const savedIds = Array.from(
+      new Set(saves.map((row) => row.qrx_id).filter(Boolean)),
+    );
 
-    const createdItems: ActivityItem[] = ownQrx.slice(0, 8).map((row) => ({
-      id: `created-${row.id}-${row.created_at}`,
-      kind: "created",
-      qrxId: row.id,
-      title: getTitle(row),
-      occurredAt: row.created_at,
-      detail: "Neuer QR-X erstellt",
-    }));
-
-    if (ownIds.length === 0) {
-      setItems(createdItems);
+    if (savedIds.length === 0) {
+      setItems([]);
       setLoading(false);
       return;
     }
 
-    const [updatesResult, savesResult] = await Promise.all([
-      supabase
-        .from("qrx_updates")
-        .select(
-          "id,qrx_id,created_at,changed_title,changed_description,changed_news,changed_images,changed_files",
-        )
-        .in("qrx_id", ownIds)
-        .order("created_at", { ascending: false })
-        .limit(20)
-        .returns<QrxUpdateRow[]>(),
+    const savedAtMap = new Map(
+      saves.map((row) => [row.qrx_id, new Date(row.created_at).getTime()]),
+    );
 
-      supabase
-        .from("qrx_saves")
-        .select("id,qrx_id,created_at")
-        .in("qrx_id", ownIds)
-        .order("created_at", { ascending: false })
-        .limit(20)
-        .returns<QrxSaveRow[]>(),
-    ]);
+    const { data: entryRows, error: entriesError } = await supabase
+      .from("qr_x_entries")
+      .select("id,title,company_name,owner_user_id,deleted_at")
+      .in("id", savedIds)
+      .is("deleted_at", null)
+      .returns<QrxEntryRow[]>();
 
-    if (updatesResult.error) {
-      console.warn(
-        "Dashboard activities updates error:",
-        updatesResult.error.message,
-      );
+    if (entriesError) {
+      console.warn("Dashboard saved entries error:", entriesError.message);
+      setItems([]);
+      setLoading(false);
+      return;
     }
 
-    if (savesResult.error) {
-      console.warn(
-        "Dashboard activities saves error:",
-        savesResult.error.message,
-      );
+    const foreignEntries = (entryRows ?? []).filter(
+      (entry) => entry.owner_user_id !== user.id,
+    );
+    const foreignIds = foreignEntries.map((entry) => entry.id);
+
+    if (foreignIds.length === 0) {
+      setItems([]);
+      setLoading(false);
+      return;
     }
 
-    const updateItems: ActivityItem[] = (updatesResult.data ?? []).map((row) => ({
-      id: `updated-${row.id}`,
-      kind: "updated",
-      qrxId: row.qrx_id,
-      title: titleMap.get(row.qrx_id) || "QR-X",
-      occurredAt: row.created_at,
-      detail: buildUpdateDetail(row),
-    }));
+    const titleMap = new Map(
+      foreignEntries.map((entry) => [entry.id, getTitle(entry)]),
+    );
 
-    const saveItems: ActivityItem[] = (savesResult.data ?? []).map((row) => ({
-      id: `saved-${row.id}`,
-      kind: "saved",
-      qrxId: row.qrx_id,
-      title: titleMap.get(row.qrx_id) || "QR-X",
-      occurredAt: row.created_at,
-      detail: "Jemand hat diesen QR-X gespeichert",
-    }));
-
-    const merged = [...createdItems, ...updateItems, ...saveItems]
-      .sort(
-        (a, b) =>
-          new Date(b.occurredAt).getTime() -
-          new Date(a.occurredAt).getTime(),
+    const { data: updateRows, error: updatesError } = await supabase
+      .from("qrx_updates")
+      .select(
+        "id,qrx_id,created_at,changed_title,changed_description,changed_news,changed_images,changed_files",
       )
+      .in("qrx_id", foreignIds)
+      .order("created_at", { ascending: false })
+      .limit(60)
+      .returns<QrxUpdateRow[]>();
+
+    if (updatesError) {
+      console.warn("Dashboard saved updates error:", updatesError.message);
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
+    const activities: ActivityItem[] = (updateRows ?? [])
+      .filter((row) => {
+        const savedAt = savedAtMap.get(row.qrx_id) ?? 0;
+        const updatedAt = new Date(row.created_at).getTime();
+        return Number.isFinite(updatedAt) && updatedAt > savedAt;
+      })
+      .map((row) => ({
+        id: `saved-update-${row.id}`,
+        qrxId: row.qrx_id,
+        title: titleMap.get(row.qrx_id) || "Gespeicherter QR-X",
+        occurredAt: row.created_at,
+        detail: buildUpdateDetail(row),
+      }))
       .slice(0, 12);
 
-    setItems(merged);
+    setItems(activities);
     setLoading(false);
   }
 
@@ -239,7 +204,7 @@ export default function DashboardActivityClient({
           fontWeight: 850,
         }}
       >
-        Aktivitäten werden geladen …
+        Änderungen werden geladen …
       </div>
     );
   }
@@ -257,7 +222,7 @@ export default function DashboardActivityClient({
           fontWeight: 800,
         }}
       >
-        Noch keine Aktivitäten vorhanden.
+        Seit dem Speichern gab es noch keine Änderungen an deinen gespeicherten QR-X.
       </div>
     );
   }
@@ -270,81 +235,79 @@ export default function DashboardActivityClient({
         gap: "10px",
       }}
     >
-      {items.map((item) => {
-        const meta = getActivityMeta(item.kind);
-
-        return (
-          <Link
-            key={item.id}
-            href={`/${locale}/dashboard/qrx/${item.qrxId}/edit`}
+      {items.map((item) => (
+        <Link
+          key={item.id}
+          href={`/qrx/${item.qrxId}`}
+          style={{
+            minHeight: "94px",
+            borderRadius: "20px",
+            padding: "14px",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "12px",
+            background: "rgba(255,255,255,0.045)",
+            border: "1px solid rgba(255,255,255,0.075)",
+            textDecoration: "none",
+          }}
+        >
+          <span
             style={{
-              minHeight: "94px",
-              borderRadius: "20px",
-              padding: "14px",
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "12px",
-              background: "rgba(255,255,255,0.045)",
-              border: "1px solid rgba(255,255,255,0.075)",
-              textDecoration: "none",
+              width: "42px",
+              height: "42px",
+              flex: "0 0 auto",
+              borderRadius: "14px",
+              display: "grid",
+              placeItems: "center",
+              background: "rgba(245,158,11,0.11)",
+              color: "#fde68a",
+              fontSize: "18px",
+              fontWeight: 950,
             }}
           >
+            ↻
+          </span>
+
+          <span style={{ minWidth: 0, flex: 1 }}>
             <span
               style={{
-                width: "42px",
-                height: "42px",
-                flex: "0 0 auto",
-                borderRadius: "14px",
-                display: "grid",
-                placeItems: "center",
-                background: meta.background,
-                color: meta.color,
-                fontSize: "18px",
+                display: "block",
+                color: "#fde68a",
+                fontSize: "10px",
                 fontWeight: 950,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
               }}
             >
-              {meta.icon}
+              Gespeicherter QR-X geändert
             </span>
 
-            <span style={{ minWidth: 0, flex: 1 }}>
-              <span
-                style={{
-                  display: "block",
-                  color: meta.color,
-                  fontSize: "10px",
-                  fontWeight: 950,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                }}
-              >
-                {meta.label}
-              </span>
-              <strong
-                style={{
-                  display: "block",
-                  marginTop: "4px",
-                  color: "#ffffff",
-                  fontSize: "14px",
-                  lineHeight: 1.3,
-                }}
-              >
-                {item.title}
-              </strong>
-              <span
-                style={{
-                  display: "block",
-                  marginTop: "4px",
-                  color: "#94a3b8",
-                  fontSize: "11px",
-                  lineHeight: 1.4,
-                }}
-              >
-                {item.detail} · {formatDate(item.occurredAt)}
-              </span>
+            <strong
+              style={{
+                display: "block",
+                marginTop: "4px",
+                color: "#ffffff",
+                fontSize: "14px",
+                lineHeight: 1.3,
+              }}
+            >
+              {item.title}
+            </strong>
+
+            <span
+              style={{
+                display: "block",
+                marginTop: "4px",
+                color: "#94a3b8",
+                fontSize: "11px",
+                lineHeight: 1.4,
+              }}
+            >
+              {item.detail} · {formatDate(item.occurredAt)}
             </span>
-          </Link>
-        );
-      })}
+          </span>
+        </Link>
+      ))}
     </div>
   );
 }

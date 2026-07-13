@@ -152,6 +152,7 @@ export default async function DashboardPage({ params }: Props) {
         </nav>
       </header>
 
+      <div className="mioseg-dashboard-content">
       <section className={styles.hero}>
         <div>
           <span className={styles.kicker}>Dashboard</span>
@@ -278,7 +279,7 @@ export default async function DashboardPage({ params }: Props) {
               Letzte Aktivitäten
             </h2>
             <p style={{ margin: 0, color: "#94a3b8" }}>
-              Neue QR-X, Aktualisierungen und neue Speicherungen deiner QR-X.
+              Änderungen an QR-X, die du gespeichert hast.
             </p>
           </div>
         </div>
@@ -286,9 +287,16 @@ export default async function DashboardPage({ params }: Props) {
         <DashboardActivityClient locale={locale} />
       </section>
 
+      </div>
+
       <style
         dangerouslySetInnerHTML={{
           __html: `
+.mioseg-dashboard-content {
+  width: min(1280px, calc(100% - 32px));
+  margin: 0 auto;
+}
+
 .mioseg-dashboard-tools {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
