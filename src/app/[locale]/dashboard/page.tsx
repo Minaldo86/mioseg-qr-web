@@ -188,8 +188,9 @@ export default async function DashboardPage({ params }: Props) {
           display: "grid",
           gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
           gap: "12px",
-          marginBottom: "16px",
+          margin: "0 auto 16px",
           width: "100%",
+          maxWidth: "1160px",
         }}
         className="mioseg-dashboard-tools"
       >
@@ -225,7 +226,13 @@ export default async function DashboardPage({ params }: Props) {
         />
       </section>
 
-      <section style={{ width: "100%" }}>
+      <section
+        style={{
+          width: "100%",
+          maxWidth: "1160px",
+          margin: "0 auto",
+        }}
+      >
         <article className={styles.mapCard} style={{ width: "100%" }}>
           <div className={styles.cardHeader}>
             <div>
@@ -241,7 +248,9 @@ export default async function DashboardPage({ params }: Props) {
 
       <section
         style={{
-          marginTop: "16px",
+          width: "100%",
+          maxWidth: "1160px",
+          margin: "16px auto 0",
           borderRadius: "28px",
           padding: "20px",
           background: "rgba(255,255,255,0.035)",
@@ -300,7 +309,6 @@ export default async function DashboardPage({ params }: Props) {
 }
 
 .mioseg-dashboard-content > section {
-  width: 100%;
   box-sizing: border-box;
 }
 
