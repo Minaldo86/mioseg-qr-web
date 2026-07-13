@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type MarkerKind =
@@ -12,13 +12,20 @@ type MarkerKind =
 
 type MapPoint = {
   id: string;
+  rawId: string;
   title: string;
   description: string;
   href: string | null;
+  editHref: string | null;
   latitude: number;
   longitude: number;
   kind: MarkerKind;
   locationName: string | null;
+  category: string | null;
+  verified: boolean;
+  followerCount: number;
+  viewCount: number;
+  coverUrl: string | null;
 };
 
 type QrxEntry = {
@@ -31,6 +38,12 @@ type QrxEntry = {
   location_name: string | null;
   location_lat: number | null;
   location_lng: number | null;
+  category: string | null;
+  verified: boolean | null;
+  follower_count: number | null;
+  views_total: number | null;
+  cover_image_url: string | null;
+  deleted_at: string | null;
 };
 
 type UserScan = {
@@ -47,16 +60,26 @@ type SaveRow = {
 
 type LeafletLatLng = unknown;
 
+type LeafletBounds = {
+  contains: (latLng: LeafletLatLng) => boolean;
+};
+
 type LeafletMarker = {
   addTo: (map: LeafletMap) => LeafletMarker;
   bindPopup: (html: string, options?: { maxWidth?: number; className?: string }) => LeafletMarker;
   getLatLng: () => LeafletLatLng;
   openPopup: () => LeafletMarker;
+  on: (eventName: string, handler: () => void) => LeafletMarker;
 };
 
 type LeafletMap = {
   setView: (center: [number, number] | LeafletLatLng, zoom: number, options?: { animate?: boolean }) => LeafletMap;
   fitBounds: (bounds: [number, number][], options?: { padding?: [number, number]; maxZoom?: number }) => LeafletMap;
+  flyTo?: (center: [number, number] | LeafletLatLng, zoom: number, options?: { animate?: boolean; duration?: number }) => LeafletMap;
+  getZoom?: () => number;
+  getBounds: () => LeafletBounds;
+  on: (eventName: string, handler: () => void) => LeafletMap;
+  off: (eventName: string, handler: () => void) => LeafletMap;
   remove: () => void;
 };
 
@@ -84,6 +107,18 @@ const LEGEND: Array<{ kind: MarkerKind; label: string; color: string }> = [
   { kind: "scan", label: "Blau = Normaler Scan", color: "#2563eb" },
 ];
 
+type FilterMode = "all" | "own" | "saved" | "business" | "normal" | "scan" | "verified";
+
+const FILTERS: Array<{ value: FilterMode; label: string }> = [
+  { value: "all", label: "Alle" },
+  { value: "own", label: "Meine QR-X" },
+  { value: "saved", label: "Gespeicherte" },
+  { value: "business", label: "Business" },
+  { value: "normal", label: "Normal" },
+  { value: "scan", label: "QR-Codes" },
+  { value: "verified", label: "Verifiziert" },
+];
+
 function getLeafletWindow() {
   return window as WindowWithLeaflet;
 }
@@ -106,6 +141,23 @@ function getMarkerColor(kind: MarkerKind) {
 
 function getMarkerLabel(kind: MarkerKind) {
   return LEGEND.find((item) => item.kind === kind)?.label ?? "Marker";
+}
+
+function formatNumber(value: number | null | undefined) {
+  const parsed = Number(value ?? 0);
+  if (!Number.isFinite(parsed)) return "0";
+  return new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.max(0, parsed));
+}
+
+function matchesFilter(point: MapPoint, filter: FilterMode) {
+  if (filter === "all") return true;
+  if (filter === "own") return point.kind === "own_business" || point.kind === "own_normal";
+  if (filter === "saved") return point.kind === "saved_business" || point.kind === "saved_normal";
+  if (filter === "business") return point.kind === "own_business" || point.kind === "saved_business";
+  if (filter === "normal") return point.kind === "own_normal" || point.kind === "saved_normal";
+  if (filter === "scan") return point.kind === "scan";
+  if (filter === "verified") return point.verified;
+  return true;
 }
 
 function getQrxTitle(entry: QrxEntry) {
@@ -207,9 +259,14 @@ function createMarkerHtml(point: MapPoint) {
 export default function DashboardMapClient({ locale }: { locale: string }) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
+  const markersRef = useRef<Record<string, LeafletMarker>>({});
   const [points, setPoints] = useState<MapPoint[]>([]);
+  const [visibleIds, setVisibleIds] = useState<string[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterMode>("all");
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [legendOpen, setLegendOpen] = useState(true);
+  const [legendOpen, setLegendOpen] = useState(false);
 
   useEffect(() => {
     async function loadMapPoints() {
@@ -233,7 +290,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       const [ownQrxRes, savesRes, scansRes] = await Promise.all([
         supabase
           .from("qr_x_entries")
-          .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng")
+          .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at")
           .eq("owner_user_id", userId)
           .returns<QrxEntry[]>(),
 
@@ -261,7 +318,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       if (savedQrxIds.length > 0) {
         const { data, error } = await supabase
           .from("qr_x_entries")
-          .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng")
+          .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at")
           .in("id", savedQrxIds)
           .returns<QrxEntry[]>();
 
@@ -273,13 +330,20 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
         .map((entry) => ({
           id: `own-${entry.id}`,
+          rawId: entry.id,
           title: getQrxTitle(entry),
           description: getQrxDescription(entry),
           href: `/qrx/${entry.id}`,
+          editHref: `/${locale}/dashboard/qrx/${entry.id}/edit`,
           latitude: entry.location_lat as number,
           longitude: entry.location_lng as number,
           kind: entry.type === "business" ? "own_business" : "own_normal",
           locationName: entry.location_name,
+          category: entry.category,
+          verified: Boolean(entry.verified),
+          followerCount: Number(entry.follower_count ?? 0),
+          viewCount: Number(entry.views_total ?? 0),
+          coverUrl: entry.cover_image_url,
         }));
 
       const savedPoints: MapPoint[] = savedQrx
@@ -287,26 +351,40 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
         .map((entry) => ({
           id: `saved-${entry.id}`,
+          rawId: entry.id,
           title: getQrxTitle(entry),
           description: getQrxDescription(entry),
           href: `/qrx/${entry.id}`,
+          editHref: null,
           latitude: entry.location_lat as number,
           longitude: entry.location_lng as number,
           kind: entry.type === "business" ? "saved_business" : "saved_normal",
           locationName: entry.location_name,
+          category: entry.category,
+          verified: Boolean(entry.verified),
+          followerCount: Number(entry.follower_count ?? 0),
+          viewCount: Number(entry.views_total ?? 0),
+          coverUrl: entry.cover_image_url,
         }));
 
       const scanPoints: MapPoint[] = (scansRes.data ?? [])
         .filter((scan) => isValidCoordinate(scan.latitude, scan.longitude))
         .map((scan) => ({
           id: `scan-${scan.id}`,
+          rawId: scan.id,
           title: scan.name?.trim() || "Normaler Scan",
           description: scan.data?.trim() || "Gespeicherter QR-Code",
           href: scan.data?.startsWith("http://") || scan.data?.startsWith("https://") ? scan.data : null,
+          editHref: null,
           latitude: scan.latitude as number,
           longitude: scan.longitude as number,
           kind: "scan",
           locationName: scan.name?.trim() || null,
+          category: null,
+          verified: false,
+          followerCount: 0,
+          viewCount: 0,
+          coverUrl: null,
         }));
 
       setPoints([...ownPoints, ...savedPoints, ...scanPoints]);
@@ -315,6 +393,18 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
     void loadMapPoints();
   }, [locale]);
+
+  const filteredPoints = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return points.filter((point) => {
+      if (!matchesFilter(point, filter)) return false;
+      if (!query) return true;
+      return [point.title, point.description, point.locationName ?? "", point.category ?? ""]
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
+  }, [points, filter, search]);
 
   useEffect(() => {
     if (loading) return;
@@ -331,11 +421,11 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       }
 
       const fallbackCenter: [number, number] =
-        points.length > 0 ? [points[0].latitude, points[0].longitude] : [51.0, 9.0];
+        filteredPoints.length > 0 ? [filteredPoints[0].latitude, filteredPoints[0].longitude] : [51.0, 9.0];
 
       const map = L.map(mapElRef.current, { scrollWheelZoom: true, zoomControl: true }).setView(
         fallbackCenter,
-        points.length > 0 ? 10 : 6
+        filteredPoints.length > 0 ? 10 : 6
       );
 
       mapRef.current = map;
@@ -346,8 +436,17 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       }).addTo(map);
 
       const bounds: [number, number][] = [];
+      markersRef.current = {};
 
-      points.forEach((point) => {
+      const updateVisiblePoints = () => {
+        const mapBounds = map.getBounds();
+        const ids = Object.entries(markersRef.current)
+          .filter(([, marker]) => mapBounds.contains(marker.getLatLng()))
+          .map(([id]) => id);
+        setVisibleIds(ids);
+      };
+
+      filteredPoints.forEach((point) => {
         const icon = L.divIcon({
           className: "",
           html: createMarkerHtml(point),
@@ -355,9 +454,13 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           iconAnchor: [21, 39],
         });
 
-        L.marker([point.latitude, point.longitude], { icon })
+        const marker = L.marker([point.latitude, point.longitude], { icon })
           .addTo(map)
           .bindPopup(buildPopup(point), { maxWidth: 280, className: "miosegDashboardPopup" });
+
+        marker.on("click", () => setActiveId(point.id));
+        marker.on("popupopen", () => setActiveId(point.id));
+        markersRef.current[point.id] = marker;
 
         bounds.push([point.latitude, point.longitude]);
       });
@@ -365,6 +468,10 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       if (bounds.length > 1) {
         map.fitBounds(bounds, { padding: [44, 44], maxZoom: 13 });
       }
+
+      map.on("moveend", updateVisiblePoints);
+      map.on("zoomend", updateVisiblePoints);
+      window.setTimeout(updateVisiblePoints, 250);
     }
 
     void boot();
@@ -376,9 +483,30 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         mapRef.current = null;
       }
     };
-  }, [loading, points]);
+  }, [loading, filteredPoints]);
 
-  const countByKind = points.reduce<Record<MarkerKind, number>>(
+  const visiblePoints = useMemo(() => {
+    if (visibleIds.length === 0) return filteredPoints;
+    const ids = new Set(visibleIds);
+    return filteredPoints.filter((point) => ids.has(point.id));
+  }, [filteredPoints, visibleIds]);
+
+  const focusPoint = (point: MapPoint) => {
+    const map = mapRef.current;
+    const marker = markersRef.current[point.id];
+    if (!map || !marker) return;
+
+    setActiveId(point.id);
+    const zoom = Math.max(15, map.getZoom ? map.getZoom() : 15);
+    if (map.flyTo) {
+      map.flyTo(marker.getLatLng(), zoom, { animate: true, duration: 0.75 });
+    } else {
+      map.setView(marker.getLatLng(), zoom, { animate: true });
+    }
+    window.setTimeout(() => marker.openPopup(), 220);
+  };
+
+  const countByKind = filteredPoints.reduce<Record<MarkerKind, number>>(
     (acc, point) => {
       acc[point.kind] += 1;
       return acc;
@@ -394,54 +522,181 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
   return (
     <div>
-      <div
-        style={{
-          position: "relative",
-          overflow: "hidden",
-          borderRadius: "24px",
-          minHeight: "460px",
-          background: "#edf3f9",
-          border: "1px solid rgba(255,255,255,0.08)",
-        }}
-      >
-        {loading ? (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 5,
-              display: "grid",
-              placeItems: "center",
-              background: "rgba(15, 23, 42, 0.72)",
-              color: "#ffffff",
-              fontWeight: 950,
-            }}
-          >
-            Karte wird geladen …
-          </div>
-        ) : null}
+      <div style={{ display: "grid", gap: 12, marginBottom: 14 }}>
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="QR-X, Ort oder Kategorie suchen …"
+          style={{
+            width: "100%",
+            minHeight: 46,
+            borderRadius: 15,
+            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.045)",
+            color: "#ffffff",
+            padding: "0 14px",
+            outline: "none",
+            fontWeight: 750,
+          }}
+        />
 
-        {!loading && points.length === 0 ? (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 5,
-              display: "grid",
-              placeItems: "center",
-              padding: "24px",
-              textAlign: "center",
-              background: "linear-gradient(135deg, #10213a 0%, #14253c 52%, #0a1424 100%)",
-              color: "#cbd5e1",
-              fontWeight: 850,
-              lineHeight: 1.6,
-            }}
-          >
-            Noch keine QR-X oder Scans mit Standortdaten vorhanden.
-          </div>
-        ) : null}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {FILTERS.map((item) => {
+            const active = filter === item.value;
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setFilter(item.value)}
+                style={{
+                  minHeight: 38,
+                  borderRadius: 999,
+                  border: active ? "1px solid #ffffff" : "1px solid rgba(255,255,255,0.1)",
+                  background: active ? "#ffffff" : "rgba(255,255,255,0.045)",
+                  color: active ? "#0f172a" : "#cbd5e1",
+                  padding: "0 13px",
+                  cursor: "pointer",
+                  fontWeight: 900,
+                  fontSize: 12,
+                }}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-        <div ref={mapElRef} style={{ width: "100%", height: "460px", position: "relative", zIndex: 1 }} />
+      <div className="mioseg-dashboard-map-grid">
+        <div
+          style={{
+            position: "relative",
+            overflow: "hidden",
+            borderRadius: 24,
+            minHeight: 520,
+            background: "#edf3f9",
+            border: "1px solid rgba(255,255,255,0.08)",
+          }}
+        >
+          {loading ? (
+            <div style={{
+              position: "absolute", inset: 0, zIndex: 5, display: "grid", placeItems: "center",
+              background: "rgba(15,23,42,0.72)", color: "#ffffff", fontWeight: 950
+            }}>
+              Karte wird geladen …
+            </div>
+          ) : null}
+
+          {!loading && filteredPoints.length === 0 ? (
+            <div style={{
+              position: "absolute", inset: 0, zIndex: 5, display: "grid", placeItems: "center",
+              padding: 24, textAlign: "center",
+              background: "linear-gradient(135deg,#10213a 0%,#14253c 52%,#0a1424 100%)",
+              color: "#cbd5e1", fontWeight: 850, lineHeight: 1.6
+            }}>
+              Keine passenden QR-X oder Scans mit Standortdaten gefunden.
+            </div>
+          ) : null}
+
+          <div ref={mapElRef} style={{ width: "100%", height: 520, position: "relative", zIndex: 1 }} />
+        </div>
+
+        <aside className="mioseg-dashboard-visible-list">
+          <div style={{
+            padding: 16, borderBottom: "1px solid rgba(255,255,255,0.075)",
+            display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12
+          }}>
+            <div>
+              <strong style={{ color: "#ffffff", fontSize: 18 }}>Sichtbare Einträge</strong>
+              <div style={{ marginTop: 4, color: "#94a3b8", fontSize: 12, fontWeight: 800 }}>
+                Aktueller Kartenausschnitt
+              </div>
+            </div>
+            <span style={{
+              minWidth: 34, height: 34, borderRadius: 999, display: "grid", placeItems: "center",
+              background: "rgba(59,130,246,0.14)", border: "1px solid rgba(147,197,253,0.16)",
+              color: "#bfdbfe", fontWeight: 950
+            }}>
+              {visiblePoints.length}
+            </span>
+          </div>
+
+          <div style={{ flex: 1, overflowY: "auto", padding: 12, display: "grid", alignContent: "start", gap: 10 }}>
+            {visiblePoints.length === 0 ? (
+              <div style={{
+                borderRadius: 18, padding: 18, background: "rgba(255,255,255,0.035)",
+                color: "#94a3b8", lineHeight: 1.55, fontWeight: 800
+              }}>
+                Im aktuellen Ausschnitt ist kein passender Eintrag sichtbar.
+              </div>
+            ) : (
+              visiblePoints.map((point) => {
+                const active = activeId === point.id;
+                return (
+                  <article
+                    key={point.id}
+                    onClick={() => focusPoint(point)}
+                    style={{
+                      cursor: "pointer", borderRadius: 18, padding: 12,
+                      background: active
+                        ? "linear-gradient(180deg,rgba(37,99,235,0.18),rgba(124,58,237,0.12))"
+                        : "rgba(255,255,255,0.045)",
+                      border: active
+                        ? "1px solid rgba(147,197,253,0.34)"
+                        : "1px solid rgba(255,255,255,0.075)",
+                    }}
+                  >
+                    {point.coverUrl ? (
+                      <img
+                        src={point.coverUrl}
+                        alt={point.title}
+                        style={{ width: "100%", height: 92, objectFit: "cover", borderRadius: 14, marginBottom: 10 }}
+                      />
+                    ) : null}
+
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: 999, background: getMarkerColor(point.kind) }} />
+                      <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>
+                        {getMarkerLabel(point.kind)}
+                      </span>
+                    </div>
+
+                    <strong style={{ display: "block", color: "#ffffff", fontSize: 15 }}>
+                      {point.title}
+                    </strong>
+
+                    {point.locationName ? (
+                      <div style={{ marginTop: 5, color: "#94a3b8", fontSize: 12 }}>📍 {point.locationName}</div>
+                    ) : null}
+
+                    <div style={{ marginTop: 8, display: "flex", gap: 9, flexWrap: "wrap", color: "#cbd5e1", fontSize: 11, fontWeight: 800 }}>
+                      {point.verified ? <span>✓ Verifiziert</span> : null}
+                      <span>👥 {formatNumber(point.followerCount)}</span>
+                      <span>👁 {formatNumber(point.viewCount)}</span>
+                    </div>
+
+                    <div
+                      onClick={(event) => event.stopPropagation()}
+                      style={{
+                        marginTop: 10, display: "grid",
+                        gridTemplateColumns: point.editHref ? "1fr 1fr" : "1fr",
+                        gap: 8
+                      }}
+                    >
+                      {point.href ? (
+                        <a href={point.href} className="mioseg-dashboard-list-button primary">Öffnen</a>
+                      ) : null}
+                      {point.editHref ? (
+                        <a href={point.editHref} className="mioseg-dashboard-list-button">Bearbeiten</a>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })
+            )}
+          </div>
+        </aside>
       </div>
 
       <div
@@ -513,6 +768,49 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       <style
         dangerouslySetInnerHTML={{
           __html: `
+.mioseg-dashboard-map-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.mioseg-dashboard-visible-list {
+  min-height: 520px;
+  max-height: 520px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.075);
+  display: flex;
+  flex-direction: column;
+}
+
+.mioseg-dashboard-list-button {
+  min-height: 38px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 900;
+  font-size: 12px;
+}
+
+.mioseg-dashboard-list-button.primary {
+  background: linear-gradient(180deg,#2563eb,#7c3aed);
+  border-color: transparent;
+}
+
+@media (max-width: 980px) {
+  .mioseg-dashboard-map-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .mioseg-dashboard-marker {
   position: relative;
   width: 42px;
