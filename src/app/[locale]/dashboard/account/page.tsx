@@ -350,6 +350,7 @@ export default function AccountPage() {
         </nav>
       </header>
 
+      <div className="mioseg-account-page-content">
       <section className={styles.hero}>
         <div>
           <span className={styles.kicker}>Konto</span>
@@ -884,9 +885,22 @@ export default function AccountPage() {
         </article>
       </section>
 
+      </div>
+
       <style
         dangerouslySetInnerHTML={{
           __html: `
+.mioseg-account-page-content {
+  width: min(1280px, calc(100% - 32px));
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.mioseg-account-page-content > section {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .mioseg-account-content {
   width: 100%;
   box-sizing: border-box;
