@@ -22,7 +22,10 @@ type BusinessCategory =
 
 type QrxTab = "own" | "saved";
 
-const BUSINESS_CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string }> = [
+const BUSINESS_CATEGORY_OPTIONS: Array<{
+  value: BusinessCategory;
+  label: string;
+}> = [
   { value: "praxis_gesundheit", label: "Praxis & Gesundheit" },
   { value: "gastronomie", label: "Gastronomie" },
   { value: "unternehmen", label: "Unternehmen" },
@@ -37,16 +40,19 @@ const BUSINESS_CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string 
 
 function getBusinessCategoryLabel(value: string | null | undefined) {
   if (!value) return null;
-  return BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value)?.label ?? value;
+  return (
+    BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value)?.label ??
+    value
+  );
 }
 
 type QrxMedia = {
-  id:string;
-  url:string|null;
-  original_url?:string|null;
-  large_url?:string|null;
-  medium_url?:string|null;
-  thumb_url?:string|null;
+  id: string;
+  url: string | null;
+  original_url?: string | null;
+  large_url?: string | null;
+  medium_url?: string | null;
+  thumb_url?: string | null;
 };
 
 type QrxEntry = {
@@ -59,10 +65,10 @@ type QrxEntry = {
   verified: boolean | null;
   cover_image_url: string | null;
   cover_media_id?: string | null;
-  cover_media?: QrxMedia|QrxMedia[]|null;
+  cover_media?: QrxMedia | QrxMedia[] | null;
   logo_url: string | null;
   logo_media_id?: string | null;
-  logo_media?: QrxMedia|QrxMedia[]|null;
+  logo_media?: QrxMedia | QrxMedia[] | null;
   location_name: string | null;
   views_total: number | null;
   follower_count: number | null;
@@ -75,7 +81,6 @@ type SavedQrxRow = {
   qr_x_entries: QrxEntry | null;
 };
 
-
 type QrxMediaAnalyticsSummary = {
   qrx_id: string;
   image_views_total: number | string | null;
@@ -85,32 +90,40 @@ type QrxMediaAnalyticsSummary = {
 
 function getLocaleFromParams(value: unknown) {
   if (typeof value === "string" && value.trim()) return value;
-  if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim()) return value[0];
+  if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim())
+    return value[0];
   return "de";
 }
 
 function getQrxTitle(entry: QrxEntry) {
-  return entry.company_name?.trim() || entry.title?.trim() || "Unbenannter QR-X";
+  return (
+    entry.company_name?.trim() || entry.title?.trim() || "Unbenannter QR-X"
+  );
 }
 
 function getQrxText(entry: QrxEntry) {
-  return entry.description?.trim() || entry.location_name?.trim() || "QR-X auf mioseg qr";
+  return (
+    entry.description?.trim() ||
+    entry.location_name?.trim() ||
+    "QR-X auf mioseg qr"
+  );
 }
 
-
 function getQrxCardImage(entry: QrxEntry) {
-  const cover=getBestMediaUrl(entry.cover_media,"card");
-  if(cover) return cover;
-  if(entry.cover_image_url?.trim()) return entry.cover_image_url.trim();
-  const logo=getBestMediaUrl(entry.logo_media,"card");
-  if(logo) return logo;
-  return entry.logo_url?.trim()||null;
+  const cover = getBestMediaUrl(entry.cover_media, "card");
+  if (cover) return cover;
+  if (entry.cover_image_url?.trim()) return entry.cover_image_url.trim();
+  const logo = getBestMediaUrl(entry.logo_media, "card");
+  if (logo) return logo;
+  return entry.logo_url?.trim() || null;
 }
 
 function formatNumber(value: number | null | undefined) {
   const n = Math.max(0, Number(value ?? 0));
-  if (n >= 1000000) return `${(n / 1000000).toFixed(n >= 10000000 ? 0 : 1).replace(".", ",")} Mio.`;
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(".", ",")} Tsd.`;
+  if (n >= 1000000)
+    return `${(n / 1000000).toFixed(n >= 10000000 ? 0 : 1).replace(".", ",")} Mio.`;
+  if (n >= 1000)
+    return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(".", ",")} Tsd.`;
   return String(n);
 }
 
@@ -131,6 +144,7 @@ export default function DashboardQrxPage() {
   const locale = getLocaleFromParams(params?.locale);
 
   const [activeTab, setActiveTab] = useState<QrxTab>("own");
+  const [searchQuery, setSearchQuery] = useState("");
   const [ownItems, setOwnItems] = useState<QrxEntry[]>([]);
   const [savedItems, setSavedItems] = useState<QrxEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -171,9 +185,7 @@ export default function DashboardQrxPage() {
         const rows = (data ?? []) as QrxMediaAnalyticsSummary[];
         const summary = rows[0];
 
-        return summary
-          ? ([item.id, summary] as const)
-          : null;
+        return summary ? ([item.id, summary] as const) : null;
       }),
     );
 
@@ -214,7 +226,7 @@ export default function DashboardQrxPage() {
       supabase
         .from("qr_x_entries")
         .select(
-          "id,title,company_name,description,type,category,verified,cover_image_url,cover_media_id,cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url),logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,follower_count,created_at,deleted_at"
+          "id,title,company_name,description,type,category,verified,cover_image_url,cover_media_id,cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url),logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,follower_count,created_at,deleted_at",
         )
         .eq("owner_user_id", user.id)
         .is("deleted_at", null)
@@ -223,7 +235,8 @@ export default function DashboardQrxPage() {
 
       supabase
         .from("qrx_saves")
-        .select(`
+        .select(
+          `
           qrx_id,
           qr_x_entries (
             id,title,company_name,description,type,category,verified,
@@ -231,7 +244,8 @@ export default function DashboardQrxPage() {
             logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,
             follower_count,created_at,deleted_at
           )
-        `)
+        `,
+        )
         .eq("user_id", user.id)
         .is("qr_x_entries.deleted_at", null)
         .returns<SavedQrxRow[]>(),
@@ -251,12 +265,14 @@ export default function DashboardQrxPage() {
       setErrorText(savedRes.error.message);
       setSavedItems([]);
     } else {
-      const mapped =
-        (savedRes.data ?? [])
-          .map((row) => row.qr_x_entries)
-          .filter((entry): entry is QrxEntry => Boolean(entry))
-          .filter((entry) => !entry.deleted_at)
-          .filter((entry) => entry.id && !(ownRes.data ?? []).some((own) => own.id === entry.id));
+      const mapped = (savedRes.data ?? [])
+        .map((row) => row.qr_x_entries)
+        .filter((entry): entry is QrxEntry => Boolean(entry))
+        .filter((entry) => !entry.deleted_at)
+        .filter(
+          (entry) =>
+            entry.id && !(ownRes.data ?? []).some((own) => own.id === entry.id),
+        );
 
       setSavedItems(mapped);
     }
@@ -314,7 +330,9 @@ export default function DashboardQrxPage() {
 
       const token = session?.access_token;
       if (!token) {
-        throw new Error("Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.");
+        throw new Error(
+          "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+        );
       }
 
       const { data, error } = await supabase.functions.invoke("delete-qrx", {
@@ -327,16 +345,25 @@ export default function DashboardQrxPage() {
 
       if (error) throw error;
 
-      const response = (data ?? {}) as { success?: boolean; error?: string; step?: string };
+      const response = (data ?? {}) as {
+        success?: boolean;
+        error?: string;
+        step?: string;
+      };
       if (response.error || response.success === false) {
         throw new Error(response.error || "QR-X konnte nicht gelöscht werden.");
       }
 
       setOwnItems((current) => current.filter((item) => item.id !== entry.id));
-      setSavedItems((current) => current.filter((item) => item.id !== entry.id));
+      setSavedItems((current) =>
+        current.filter((item) => item.id !== entry.id),
+      );
     } catch (error) {
       console.error("QR-X DELETE ERROR", error);
-      const message = error instanceof Error ? error.message : "QR-X konnte nicht gelöscht werden.";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "QR-X konnte nicht gelöscht werden.";
       setErrorText(message);
       alert(message);
     } finally {
@@ -369,9 +396,14 @@ export default function DashboardQrxPage() {
 
       if (error) throw error;
 
-      setSavedItems((current) => current.filter((item) => item.id !== entry.id));
+      setSavedItems((current) =>
+        current.filter((item) => item.id !== entry.id),
+      );
     } catch (error) {
-      const message = error instanceof Error ? error.message : "QR-X konnte nicht entfernt werden.";
+      const message =
+        error instanceof Error
+          ? error.message
+          : "QR-X konnte nicht entfernt werden.";
       setErrorText(message);
       alert(message);
     } finally {
@@ -381,20 +413,47 @@ export default function DashboardQrxPage() {
 
   const items = activeTab === "own" ? ownItems : savedItems;
 
+  const filteredItems = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return items;
+
+    return items.filter((item) => {
+      const categoryLabel = getBusinessCategoryLabel(item.category) ?? "";
+      const searchableText = [
+        item.title ?? "",
+        item.company_name ?? "",
+        item.description ?? "",
+        item.location_name ?? "",
+        categoryLabel,
+        item.type === "business" ? "business" : "normal",
+        item.verified ? "verifiziert" : "",
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(query);
+    });
+  }, [items, searchQuery]);
+
   const stats = useMemo(() => {
     const business = items.filter((item) => item.type === "business").length;
     const normal = items.length - business;
     const verified = items.filter((item) => item.verified).length;
 
     return [
-      { label: activeTab === "own" ? "Eigene QR-X" : "Gespeicherte QR-X", value: items.length, icon: "▣" },
+      {
+        label: activeTab === "own" ? "Eigene QR-X" : "Gespeicherte QR-X",
+        value: items.length,
+        icon: "▣",
+      },
       { label: "Business QR-X", value: business, icon: "🏢" },
       { label: "Normale QR-X", value: normal, icon: "⌗" },
       { label: "Verifiziert", value: verified, icon: "✓" },
     ];
   }, [items, activeTab]);
 
-  const sectionTitle = activeTab === "own" ? "Deine erstellten QR-X" : "Deine gespeicherten QR-X";
+  const sectionTitle =
+    activeTab === "own" ? "Deine erstellten QR-X" : "Deine gespeicherten QR-X";
   const sectionText =
     activeTab === "own"
       ? "Alle QR-X aus deinem Konto, sortiert nach dem neuesten Eintrag."
@@ -418,15 +477,22 @@ export default function DashboardQrxPage() {
           <span className={styles.kicker}>Meine QR-X</span>
           <h1>Meine QR-X</h1>
           <p>
-            Verwalte deine eigenen QR-X und gespeicherten QR-X bequem im Browser.
+            Verwalte deine eigenen QR-X und gespeicherten QR-X bequem im
+            Browser.
           </p>
         </div>
 
         <div className={styles.heroActions}>
-          <Link href={`/${locale}/dashboard/qrx/new`} className={styles.primaryButton}>
+          <Link
+            href={`/${locale}/dashboard/qrx/new`}
+            className={styles.primaryButton}
+          >
             + QR-X erstellen
           </Link>
-          <Link href={`/${locale}/dashboard`} className={styles.secondaryButton}>
+          <Link
+            href={`/${locale}/dashboard`}
+            className={styles.secondaryButton}
+          >
             Zurück zum Dashboard
           </Link>
         </div>
@@ -443,7 +509,10 @@ export default function DashboardQrxPage() {
       >
         <button
           type="button"
-          onClick={() => setActiveTab("own")}
+          onClick={() => {
+            setActiveTab("own");
+            setSearchQuery("");
+          }}
           style={tabButtonStyle(activeTab === "own")}
         >
           Eigene QR-X
@@ -452,7 +521,10 @@ export default function DashboardQrxPage() {
 
         <button
           type="button"
-          onClick={() => setActiveTab("saved")}
+          onClick={() => {
+            setActiveTab("saved");
+            setSearchQuery("");
+          }}
           style={tabButtonStyle(activeTab === "saved")}
         >
           Gespeicherte QR-X
@@ -488,7 +560,84 @@ export default function DashboardQrxPage() {
             <h2>{sectionTitle}</h2>
             <p>{sectionText}</p>
           </div>
-          <span>{loading ? "Lädt ..." : `${items.length} Einträge`}</span>
+          <span>
+            {loading
+              ? "Lädt ..."
+              : `${filteredItems.length} von ${items.length} Einträgen`}
+          </span>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label
+            htmlFor="qrx-search"
+            style={{
+              display: "block",
+              marginBottom: 8,
+              color: "#cbd5e1",
+              fontSize: 12,
+              fontWeight: 900,
+            }}
+          >
+            QR-X suchen
+          </label>
+          <div style={{ position: "relative" }}>
+            <span
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: 14,
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "#94a3b8",
+                fontSize: 16,
+              }}
+            >
+              🔎
+            </span>
+            <input
+              id="qrx-search"
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Titel, Firma, Ort oder Kategorie suchen …"
+              style={{
+                width: "100%",
+                minHeight: 48,
+                borderRadius: 16,
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.045)",
+                color: "#ffffff",
+                padding: "0 46px 0 44px",
+                outline: "none",
+                fontSize: 14,
+                fontWeight: 750,
+                boxSizing: "border-box",
+              }}
+            />
+            {searchQuery ? (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                aria-label="Suche löschen"
+                style={{
+                  position: "absolute",
+                  right: 10,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 30,
+                  height: 30,
+                  borderRadius: 999,
+                  border: 0,
+                  background: "rgba(255,255,255,0.07)",
+                  color: "#cbd5e1",
+                  cursor: "pointer",
+                  fontWeight: 900,
+                }}
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
         </div>
 
         {errorText ? (
@@ -525,22 +674,65 @@ export default function DashboardQrxPage() {
             <div>
               <div style={{ fontSize: 44, marginBottom: 12 }}>▣</div>
               <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 24 }}>
-                {activeTab === "own" ? "Noch keine QR-X erstellt" : "Noch keine QR-X gespeichert"}
+                {activeTab === "own"
+                  ? "Noch keine QR-X erstellt"
+                  : "Noch keine QR-X gespeichert"}
               </h3>
-              <p style={{ margin: "0 auto 18px", color: "#94a3b8", maxWidth: 520, lineHeight: 1.6 }}>
+              <p
+                style={{
+                  margin: "0 auto 18px",
+                  color: "#94a3b8",
+                  maxWidth: 520,
+                  lineHeight: 1.6,
+                }}
+              >
                 {activeTab === "own"
                   ? "Sobald du deinen ersten QR-X erstellt hast, erscheint er hier in deiner Web-Verwaltung."
                   : "Sobald du einem QR-X folgst, erscheint er hier automatisch."}
               </p>
               {activeTab === "own" ? (
-                <Link href={`/${locale}/dashboard/qrx/new`} className={styles.primaryButton}>
+                <Link
+                  href={`/${locale}/dashboard/qrx/new`}
+                  className={styles.primaryButton}
+                >
                   + QR-X erstellen
                 </Link>
               ) : (
-                <Link href={`/${locale}/explore`} className={styles.primaryButton}>
+                <Link
+                  href={`/${locale}/explore`}
+                  className={styles.primaryButton}
+                >
                   Explore öffnen
                 </Link>
               )}
+            </div>
+          </div>
+        ) : null}
+
+        {!loading &&
+        !errorText &&
+        items.length > 0 &&
+        filteredItems.length === 0 ? (
+          <div
+            style={{
+              borderRadius: 24,
+              minHeight: 220,
+              display: "grid",
+              placeItems: "center",
+              textAlign: "center",
+              padding: 24,
+              background: "rgba(255,255,255,0.035)",
+              border: "1px solid rgba(255,255,255,0.075)",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 40, marginBottom: 10 }}>🔎</div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 22 }}>
+                Kein passender QR-X gefunden
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.6 }}>
+                Prüfe den Suchbegriff oder lösche die Suche.
+              </p>
             </div>
           </div>
         ) : null}
@@ -563,7 +755,7 @@ export default function DashboardQrxPage() {
           </div>
         ) : null}
 
-        {!loading && items.length > 0 ? (
+        {!loading && filteredItems.length > 0 ? (
           <div
             style={{
               display: "grid",
@@ -571,7 +763,7 @@ export default function DashboardQrxPage() {
               gap: 14,
             }}
           >
-            {items.map((entry) => {
+            {filteredItems.map((entry) => {
               const title = getQrxTitle(entry);
               const image = getQrxCardImage(entry);
               const isBusiness = entry.type === "business";
@@ -587,7 +779,8 @@ export default function DashboardQrxPage() {
                   style={{
                     overflow: "hidden",
                     borderRadius: 26,
-                    background: "linear-gradient(180deg, rgba(255,255,255,0.105), rgba(255,255,255,0.045))",
+                    background:
+                      "linear-gradient(180deg, rgba(255,255,255,0.105), rgba(255,255,255,0.045))",
                     border: "1px solid rgba(255,255,255,0.105)",
                     boxShadow: "0 18px 46px rgba(0,0,0,0.14)",
                   }}
@@ -607,7 +800,12 @@ export default function DashboardQrxPage() {
                         decoding="async"
                         src={image}
                         alt={title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                        }}
                       />
                     ) : (
                       <div
@@ -657,7 +855,9 @@ export default function DashboardQrxPage() {
                           color: isBusiness ? "#9a4f00" : "#166534",
                           fontSize: 12,
                           fontWeight: 950,
-                          border: isBusiness ? "1px solid #fed7aa" : "1px solid #bbf7d0",
+                          border: isBusiness
+                            ? "1px solid #fed7aa"
+                            : "1px solid #bbf7d0",
                         }}
                       >
                         {isBusiness ? "🏢 Business QR-X" : "⌗ Normaler QR-X"}
@@ -808,7 +1008,9 @@ export default function DashboardQrxPage() {
                             detail={
                               mediaAnalytics
                                 ? `${formatNumber(
-                                    Number(mediaAnalytics.file_opens_total ?? 0),
+                                    Number(
+                                      mediaAnalytics.file_opens_total ?? 0,
+                                    ),
                                   )} Dateiöffnungen`
                                 : "Analytics werden aufgebaut"
                             }
@@ -839,7 +1041,10 @@ export default function DashboardQrxPage() {
 
                       {activeTab === "own" ? (
                         <>
-                          <Link href={editHref} className={styles.secondaryButton}>
+                          <Link
+                            href={editHref}
+                            className={styles.secondaryButton}
+                          >
                             Bearbeiten
                           </Link>
 
@@ -857,14 +1062,19 @@ export default function DashboardQrxPage() {
                             className={styles.secondaryButton}
                             disabled={deletingId === entry.id}
                             style={{
-                              cursor: deletingId === entry.id ? "not-allowed" : "pointer",
+                              cursor:
+                                deletingId === entry.id
+                                  ? "not-allowed"
+                                  : "pointer",
                               border: "1px solid rgba(248,113,113,0.35)",
                               background: "rgba(239,68,68,0.14)",
                               color: "#fecaca",
                               opacity: deletingId === entry.id ? 0.72 : 1,
                             }}
                           >
-                            {deletingId === entry.id ? "Löscht …" : "🗑️ Löschen"}
+                            {deletingId === entry.id
+                              ? "Löscht …"
+                              : "🗑️ Löschen"}
                           </button>
                         </>
                       ) : (
@@ -875,14 +1085,19 @@ export default function DashboardQrxPage() {
                           disabled={deletingId === entry.id}
                           style={{
                             gridColumn: "1 / -1",
-                            cursor: deletingId === entry.id ? "not-allowed" : "pointer",
+                            cursor:
+                              deletingId === entry.id
+                                ? "not-allowed"
+                                : "pointer",
                             border: "1px solid rgba(248,113,113,0.35)",
                             background: "rgba(239,68,68,0.14)",
                             color: "#fecaca",
                             opacity: deletingId === entry.id ? 0.72 : 1,
                           }}
                         >
-                          {deletingId === entry.id ? "Entfernt …" : "✕ Aus gespeicherten entfernen"}
+                          {deletingId === entry.id
+                            ? "Entfernt …"
+                            : "✕ Aus gespeicherten entfernen"}
                         </button>
                       )}
                     </div>
@@ -942,7 +1157,9 @@ function tabButtonStyle(active: boolean): React.CSSProperties {
   return {
     minHeight: 58,
     borderRadius: 20,
-    border: active ? "1px solid rgba(147,197,253,0.35)" : "1px solid rgba(255,255,255,0.08)",
+    border: active
+      ? "1px solid rgba(147,197,253,0.35)"
+      : "1px solid rgba(255,255,255,0.08)",
     background: active
       ? "linear-gradient(135deg, rgba(37,99,235,0.78), rgba(124,58,237,0.78))"
       : "rgba(255,255,255,0.045)",
