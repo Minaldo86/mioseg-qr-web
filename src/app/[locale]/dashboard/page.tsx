@@ -5,12 +5,83 @@ import { defaultLocale, isValidLocale } from "../../../i18n/config";
 import { getDictionary } from "../../../i18n/get-dictionary";
 import DashboardClient from "./DashboardClient";
 import DashboardMapClient from "./DashboardMapClient";
+import DashboardActivityClient from "./DashboardActivityClient";
 
 type Props = {
   params: Promise<{
     locale: string;
   }>;
 };
+
+function DashboardToolLink({
+  href,
+  icon,
+  title,
+  text,
+}: {
+  href: string;
+  icon: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <Link
+      href={href}
+      style={{
+        minHeight: "86px",
+        borderRadius: "20px",
+        padding: "14px",
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        background: "rgba(255,255,255,0.045)",
+        border: "1px solid rgba(255,255,255,0.075)",
+        textDecoration: "none",
+        transition: "transform 160ms ease, border-color 160ms ease",
+      }}
+    >
+      <span
+        style={{
+          width: "44px",
+          height: "44px",
+          flex: "0 0 auto",
+          borderRadius: "15px",
+          display: "grid",
+          placeItems: "center",
+          background: "#eef4fb",
+          color: "#0f172a",
+          fontSize: "20px",
+        }}
+      >
+        {icon}
+      </span>
+
+      <span style={{ minWidth: 0 }}>
+        <strong
+          style={{
+            display: "block",
+            color: "#ffffff",
+            fontSize: "14px",
+            lineHeight: 1.25,
+          }}
+        >
+          {title}
+        </strong>
+        <span
+          style={{
+            display: "block",
+            marginTop: "4px",
+            color: "#94a3b8",
+            fontSize: "11px",
+            lineHeight: 1.35,
+          }}
+        >
+          {text}
+        </span>
+      </span>
+    </Link>
+  );
+}
 
 export default async function DashboardPage({ params }: Props) {
   const resolvedParams = await params;
@@ -110,7 +181,49 @@ export default async function DashboardPage({ params }: Props) {
         />
       </section>
 
-      <section className={styles.dashboardGrid}>
+      <section
+        aria-label="Dashboard Werkzeuge"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+          gap: "12px",
+          marginBottom: "16px",
+        }}
+        className="mioseg-dashboard-tools"
+      >
+        <DashboardToolLink
+          href={`/${locale}/dashboard/qrx`}
+          icon="▣"
+          title={copy.qrxButton}
+          text="Erstellen und verwalten"
+        />
+        <DashboardToolLink
+          href={`/${locale}/dashboard/scans`}
+          icon="⌗"
+          title={copy.scansButton}
+          text="QR-Codes und QR-X"
+        />
+        <DashboardToolLink
+          href={`/${locale}/dashboard/credits`}
+          icon="💳"
+          title={copy.creditsButton}
+          text="Guthaben verwalten"
+        />
+        <DashboardToolLink
+          href={`/${locale}/dashboard/account`}
+          icon="👤"
+          title={copy.accountButton}
+          text="Konto und Rechnungen"
+        />
+        <DashboardToolLink
+          href={`/${locale}/dashboard/support`}
+          icon="🛟"
+          title={copy.supportButton}
+          text="Kontakt und Hilfe"
+        />
+      </section>
+
+      <section>
         <article className={styles.mapCard}>
           <div className={styles.cardHeader}>
             <div>
@@ -122,51 +235,84 @@ export default async function DashboardPage({ params }: Props) {
 
           <DashboardMapClient locale={locale} />
         </article>
-
-        <aside className={styles.sidePanel}>
-          <Link href={`/${locale}/dashboard/qrx`} className={styles.sideLink}>
-            <span>▣</span>
-            <div>
-              <strong>{copy.qrxButton}</strong>
-              <p>QR-X erstellen, bearbeiten und verwalten.</p>
-            </div>
-          </Link>
-
-          <Link href={`/${locale}/dashboard/scans`} className={styles.sideLink}>
-            <span>⌗</span>
-            <div>
-              <strong>{copy.scansButton}</strong>
-              <p>Gespeicherte QR-Codes und QR-X anzeigen.</p>
-            </div>
-          </Link>
-
-          <Link href={`/${locale}/dashboard/credits`} className={styles.sideLink}>
-            <span>💳</span>
-            <div>
-              <strong>{copy.creditsButton}</strong>
-              <p>Credit-Stand anzeigen und später Credits kaufen.</p>
-            </div>
-          </Link>
-
-
-
-          <Link href={`/${locale}/dashboard/account`} className={styles.sideLink}>
-            <span>👤</span>
-            <div>
-              <strong>{copy.accountButton}</strong>
-              <p>Konto- und Rechnungsdaten verwalten.</p>
-            </div>
-          </Link>
-
-          <Link href={`/${locale}/dashboard/support`} className={styles.sideLink}>
-            <span>🛟</span>
-            <div>
-              <strong>{copy.supportButton}</strong>
-              <p>Kontakt, Hilfe und Support-Anfragen.</p>
-            </div>
-          </Link>
-        </aside>
       </section>
+
+      <section
+        style={{
+          marginTop: "16px",
+          borderRadius: "28px",
+          padding: "20px",
+          background: "rgba(255,255,255,0.035)",
+          border: "1px solid rgba(255,255,255,0.075)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "14px",
+            marginBottom: "16px",
+          }}
+        >
+          <div>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: "28px",
+                borderRadius: "999px",
+                padding: "0 10px",
+                background: "rgba(59,130,246,0.12)",
+                border: "1px solid rgba(147,197,253,0.16)",
+                color: "#bfdbfe",
+                fontSize: "11px",
+                fontWeight: 950,
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+              }}
+            >
+              Live
+            </span>
+            <h2 style={{ margin: "10px 0 4px", color: "#ffffff" }}>
+              Letzte Aktivitäten
+            </h2>
+            <p style={{ margin: 0, color: "#94a3b8" }}>
+              Neue QR-X, Aktualisierungen und neue Speicherungen deiner QR-X.
+            </p>
+          </div>
+        </div>
+
+        <DashboardActivityClient locale={locale} />
+      </section>
+
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+.mioseg-dashboard-tools {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1050px) {
+  .mioseg-dashboard-tools {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .mioseg-dashboard-tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .mioseg-dashboard-tools {
+    grid-template-columns: 1fr !important;
+  }
+}
+          `.trim(),
+        }}
+      />
     </main>
   );
 }
