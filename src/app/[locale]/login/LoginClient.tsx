@@ -140,7 +140,7 @@ export default function LoginClient({ locale }: Props) {
 
     const redirectTo =
       typeof window !== "undefined"
-        ? `${window.location.origin}/${locale}/login`
+        ? `${window.location.origin}/${locale}/reset-password`
         : undefined;
 
     const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
