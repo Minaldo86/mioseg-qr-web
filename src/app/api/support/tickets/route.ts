@@ -74,7 +74,7 @@ async function getAuthenticatedUser(request: Request) {
   return { user, error: null };
 }
 
-async function nextTicketNumber(admin: ReturnType<typeof createClient>) {
+async function nextTicketNumber(admin: any) {
   const year = new Date().getFullYear();
   const prefix = `SUP-${year}-`;
 
@@ -92,7 +92,7 @@ async function nextTicketNumber(admin: ReturnType<typeof createClient>) {
 }
 
 async function writeAdminLog(
-  admin: ReturnType<typeof createClient>,
+  admin: any,
   input: {
     userId: string;
     qrxId: string | null;
