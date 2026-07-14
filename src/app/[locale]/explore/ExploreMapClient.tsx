@@ -503,8 +503,46 @@ html: `
       window.previewMarker?.(id);
     };
 
-    const focusTargets = Array.from(document.querySelectorAll<HTMLElement>("[data-focus-marker]"));
-    focusTargets.forEach((element) => element.addEventListener("mouseenter", handleCardMouseEnter));
+    const handleCardClick = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      const currentTarget = event.currentTarget as HTMLElement;
+
+      // Eigene Aktionen innerhalb der Karte dürfen normal funktionieren.
+      if (
+        target?.closest(
+          'a, button, input, select, textarea, [data-qrx-open-button="true"]',
+        )
+      ) {
+        return;
+      }
+
+      const id = currentTarget.getAttribute("data-focus-marker");
+      if (!id) return;
+
+      // Sofort den ausgewählten QR-X optisch hervorheben.
+      setActiveCard(id, false);
+
+      // Einmal zur Karte scrollen. focusMarker bewegt anschließend nur die Karte
+      // und öffnet das passende Popup, ohne zurück zur Ergebnisliste zu springen.
+      const mapSection = document.getElementById("explore-map");
+      mapSection?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        inline: "nearest",
+      });
+
+      window.setTimeout(() => {
+        window.focusMarker?.(id);
+      }, 180);
+    };
+
+    const focusTargets = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-focus-marker]"),
+    );
+    focusTargets.forEach((element) => {
+      element.addEventListener("mouseenter", handleCardMouseEnter);
+      element.addEventListener("click", handleCardClick);
+    });
 
     window.addEventListener("mioseg-active-qrx", onActive);
     window.addEventListener("mioseg-scroll-qrx-card", onScrollToCard);
@@ -512,7 +550,10 @@ html: `
     window.addEventListener("mioseg-map-moving", onMapMoving);
 
     return () => {
-      focusTargets.forEach((element) => element.removeEventListener("mouseenter", handleCardMouseEnter));
+      focusTargets.forEach((element) => {
+        element.removeEventListener("mouseenter", handleCardMouseEnter);
+        element.removeEventListener("click", handleCardClick);
+      });
       window.removeEventListener("mioseg-active-qrx", onActive);
       window.removeEventListener("mioseg-scroll-qrx-card", onScrollToCard);
       window.removeEventListener("mioseg-visible-qrx", onVisible);
