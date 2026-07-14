@@ -35,6 +35,20 @@ type ProfileRow = {
   billing_vat_id?: string | null;
 };
 
+type InvoiceRow = {
+  id: string;
+  invoice_number: string;
+  created_at: string | null;
+  status: string | null;
+  invoice_type: string | null;
+  amount_cents: number | null;
+  gross_amount_cents: number | null;
+  currency: string | null;
+  pdf_path: string | null;
+  storage_bucket: string | null;
+};
+
+
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
   if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim())
@@ -53,6 +67,62 @@ function formatDate(value: string | null | undefined) {
     month: "short",
     year: "numeric",
   }).format(date);
+}
+
+
+function formatMoney(cents: number | null | undefined, currency: string | null | undefined) {
+  const value = Number(cents ?? 0);
+  const safeValue = Number.isFinite(value) ? value / 100 : 0;
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: (currency || "EUR").toUpperCase(),
+  }).format(safeValue);
+}
+
+function getInvoiceStatusLabel(status: string | null | undefined) {
+  if (status === "sent") return "Versendet";
+  if (status === "created") return "Erstellt";
+  if (status === "creating") return "Wird erstellt";
+  if (status === "failed") return "Fehlgeschlagen";
+  if (status === "refunded") return "Erstattet";
+  return status?.trim() || "Unbekannt";
+}
+
+function getInvoiceStatusStyle(status: string | null | undefined): React.CSSProperties {
+  const success = status === "sent" || status === "created";
+  const failed = status === "failed";
+  const refunded = status === "refunded";
+
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    minHeight: 28,
+    borderRadius: 999,
+    padding: "0 10px",
+    background: failed
+      ? "rgba(239,68,68,0.14)"
+      : refunded
+        ? "rgba(245,158,11,0.14)"
+        : success
+          ? "rgba(34,197,94,0.14)"
+          : "rgba(59,130,246,0.14)",
+    border: failed
+      ? "1px solid rgba(252,165,165,0.22)"
+      : refunded
+        ? "1px solid rgba(253,230,138,0.2)"
+        : success
+          ? "1px solid rgba(134,239,172,0.22)"
+          : "1px solid rgba(147,197,253,0.2)",
+    color: failed
+      ? "#fecaca"
+      : refunded
+        ? "#fde68a"
+        : success
+          ? "#bbf7d0"
+          : "#bfdbfe",
+    fontSize: 11,
+    fontWeight: 900,
+  };
 }
 
 function normalizeCountryCode(value: string) {
@@ -102,6 +172,11 @@ export default function AccountPage() {
   const [savingBilling, setSavingBilling] = useState(false);
   const [billingMessage, setBillingMessage] = useState("");
 
+  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(true);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null);
+
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleteChecked, setDeleteChecked] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -116,6 +191,8 @@ export default function AccountPage() {
     setErrorText(null);
     setBillingMessage("");
     setProfileMessage("");
+    setInvoiceError(null);
+    setLoadingInvoices(true);
 
     const {
       data: { user },
@@ -125,12 +202,14 @@ export default function AccountPage() {
     if (userError) {
       setErrorText(userError.message);
       setLoading(false);
+      setLoadingInvoices(false);
       return;
     }
 
     if (!user) {
       setErrorText("Bitte melde dich zuerst an.");
       setLoading(false);
+      setLoadingInvoices(false);
       return;
     }
 
@@ -147,6 +226,27 @@ export default function AccountPage() {
     if (error) {
       console.warn("Profile konnte nicht geladen werden:", error.message);
     }
+
+    const { data: invoiceRows, error: invoicesError } = await supabase
+      .from("qrx_invoices")
+      .select(
+        "id,invoice_number,created_at,status,invoice_type,amount_cents,gross_amount_cents,currency,pdf_path,storage_bucket",
+      )
+      .eq("user_id", user.id)
+      .eq("invoice_type", "invoice")
+      .order("created_at", { ascending: false })
+      .limit(100)
+      .returns<InvoiceRow[]>();
+
+    if (invoicesError) {
+      console.warn("Rechnungen konnten nicht geladen werden:", invoicesError.message);
+      setInvoices([]);
+      setInvoiceError(invoicesError.message);
+    } else {
+      setInvoices(invoiceRows ?? []);
+    }
+
+    setLoadingInvoices(false);
 
     const profileData = (data ?? { id: user.id }) as ProfileRow;
 
@@ -255,6 +355,57 @@ export default function AccountPage() {
           : "Konto konnte nicht gelöscht werden.";
       setDeleteMessage(message);
       setDeletingAccount(false);
+    }
+  }
+
+  async function handleDownloadInvoice(invoice: InvoiceRow) {
+    if (downloadingInvoiceId) return;
+
+    setDownloadingInvoiceId(invoice.id);
+    setInvoiceError(null);
+
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) throw sessionError;
+      if (!session?.access_token) {
+        throw new Error("Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.");
+      }
+
+      const response = await fetch("/api/account/invoices/download", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ invoiceId: invoice.id }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(payload?.error || "Die Rechnung konnte nicht heruntergeladen werden.");
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `${invoice.invoice_number || "Rechnung"}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+      setInvoiceError(
+        error instanceof Error
+          ? error.message
+          : "Die Rechnung konnte nicht heruntergeladen werden.",
+      );
+    } finally {
+      setDownloadingInvoiceId(null);
     }
   }
 
@@ -404,7 +555,7 @@ export default function AccountPage() {
         <article className={styles.statCard}>
           <div className={styles.statIcon}>🧾</div>
           <div>
-            <div className={styles.statValue}>PDF</div>
+            <div className={styles.statValue}>{loadingInvoices ? "…" : invoices.length}</div>
             <div className={styles.statLabel}>Rechnungen</div>
           </div>
         </article>
@@ -633,6 +784,94 @@ export default function AccountPage() {
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
+              <h2>Meine Rechnungen</h2>
+              <p>
+                Hier findest du deine Rechnungen für Credit-Käufe und kannst
+                verfügbare PDF-Dateien sicher herunterladen.
+              </p>
+            </div>
+            <span>{loadingInvoices ? "Lädt" : `${invoices.length} PDF`}</span>
+          </div>
+
+          {invoiceError ? <div style={errorStyle}>{invoiceError}</div> : null}
+
+          {loadingInvoices ? (
+            <div
+              style={{
+                minHeight: 140,
+                display: "grid",
+                placeItems: "center",
+                color: "#cbd5e1",
+                fontWeight: 900,
+              }}
+            >
+              Rechnungen werden geladen …
+            </div>
+          ) : null}
+
+          {!loadingInvoices && invoices.length === 0 ? (
+            <div style={emptyInvoiceStyle}>
+              <strong style={{ color: "#ffffff" }}>Noch keine Rechnungen vorhanden</strong>
+              <span>
+                Nach einem erfolgreichen Credit-Kauf erscheint die zugehörige
+                Rechnung automatisch hier.
+              </span>
+            </div>
+          ) : null}
+
+          {!loadingInvoices && invoices.length > 0 ? (
+            <div style={{ display: "grid", gap: 10 }}>
+              {invoices.map((invoice) => {
+                const amount = invoice.gross_amount_cents ?? invoice.amount_cents ?? 0;
+                const canDownload =
+                  Boolean(invoice.pdf_path) &&
+                  ["created", "sent", "refunded"].includes(invoice.status || "");
+                const downloading = downloadingInvoiceId === invoice.id;
+
+                return (
+                  <article key={invoice.id} style={invoiceRowStyle}>
+                    <div style={invoiceMainStyle}>
+                      <div style={invoiceIconStyle}>🧾</div>
+                      <div style={{ minWidth: 0 }}>
+                        <strong style={invoiceNumberStyle}>{invoice.invoice_number}</strong>
+                        <div style={invoiceMetaStyle}>
+                          {formatDate(invoice.created_at)} · {formatMoney(amount, invoice.currency)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={invoiceActionsStyle}>
+                      <span style={getInvoiceStatusStyle(invoice.status)}>
+                        {getInvoiceStatusLabel(invoice.status)}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => void handleDownloadInvoice(invoice)}
+                        disabled={!canDownload || downloading}
+                        style={{
+                          ...invoiceDownloadButtonStyle,
+                          cursor: !canDownload || downloading ? "not-allowed" : "pointer",
+                          opacity: !canDownload || downloading ? 0.5 : 1,
+                        }}
+                      >
+                        {downloading
+                          ? "Lädt …"
+                          : canDownload
+                            ? "PDF herunterladen"
+                            : "PDF nicht verfügbar"}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : null}
+        </article>
+
+        <article style={panelStyle}>
+          <div className={styles.cardHeader}>
+            <div>
               <h2>Rechnungsdaten</h2>
               <p>
                 Diese Daten werden für Rechnungen, PDF-Erstellung und den
@@ -773,19 +1012,13 @@ export default function AccountPage() {
             <div>
               <h2>Nächste Konto-Funktionen</h2>
               <p>
-                Diese Bereiche bauen wir nach Stripe und Rechnungserstellung
-                aus.
+                Diese Konto-Bereiche werden als Nächstes weiter ausgebaut.
               </p>
             </div>
             <span>Roadmap</span>
           </div>
 
           <div style={{ display: "grid", gap: 10 }}>
-            <RoadmapItem
-              icon="🧾"
-              title="Rechnungen herunterladen"
-              text="Nach Stripe-Kauf sollen Rechnungen im Konto abrufbar sein."
-            />
             <RoadmapItem
               icon="🏢"
               title="Rechnungsadresse"
@@ -1036,6 +1269,88 @@ function RoadmapItem({
     </div>
   );
 }
+
+const invoiceRowStyle: React.CSSProperties = {
+  width: "100%",
+  boxSizing: "border-box",
+  borderRadius: 20,
+  padding: 14,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 14,
+  flexWrap: "wrap",
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.075)",
+};
+
+const invoiceMainStyle: React.CSSProperties = {
+  minWidth: 0,
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+};
+
+const invoiceIconStyle: React.CSSProperties = {
+  width: 46,
+  height: 46,
+  flex: "0 0 auto",
+  borderRadius: 15,
+  display: "grid",
+  placeItems: "center",
+  background: "linear-gradient(180deg,#ffffff,#dbeafe)",
+  color: "#07101f",
+  fontSize: 20,
+};
+
+const invoiceNumberStyle: React.CSSProperties = {
+  display: "block",
+  color: "#ffffff",
+  fontSize: 15,
+  fontWeight: 950,
+  wordBreak: "break-word",
+};
+
+const invoiceMetaStyle: React.CSSProperties = {
+  marginTop: 4,
+  color: "#94a3b8",
+  fontSize: 12,
+  fontWeight: 750,
+};
+
+const invoiceActionsStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  gap: 10,
+  flexWrap: "wrap",
+};
+
+const invoiceDownloadButtonStyle: React.CSSProperties = {
+  minHeight: 40,
+  border: 0,
+  borderRadius: 13,
+  padding: "0 14px",
+  background: "linear-gradient(180deg,#2563eb,#7c3aed)",
+  color: "#ffffff",
+  fontSize: 12,
+  fontWeight: 950,
+};
+
+const emptyInvoiceStyle: React.CSSProperties = {
+  minHeight: 120,
+  borderRadius: 20,
+  padding: 18,
+  display: "grid",
+  placeItems: "center",
+  gap: 6,
+  textAlign: "center",
+  background: "rgba(255,255,255,0.035)",
+  border: "1px solid rgba(255,255,255,0.06)",
+  color: "#94a3b8",
+  lineHeight: 1.5,
+  fontWeight: 800,
+};
 
 const panelStyle: React.CSSProperties = {
   width: "100%",
