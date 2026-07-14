@@ -1286,25 +1286,6 @@ export default function AccountPage() {
               </button>
             </div>
 
-            <div style={futureSecurityGridStyle}>
-              <div style={futureSecurityItemStyle}>
-                <span>🛡️</span>
-                <div>
-                  <strong>2-Faktor-Authentifizierung</strong>
-                  <p>Wird in einer späteren Sicherheitsphase ergänzt.</p>
-                </div>
-                <span style={comingSoonBadgeStyle}>Demnächst</span>
-              </div>
-
-              <div style={futureSecurityItemStyle}>
-                <span>📱</span>
-                <div>
-                  <strong>Weitere Sitzungen verwalten</strong>
-                  <p>Andere Geräte anzeigen und gezielt abmelden.</p>
-                </div>
-                <span style={comingSoonBadgeStyle}>Demnächst</span>
-              </div>
-            </div>
           </div>
         </article>
 
@@ -1797,35 +1778,8 @@ const securityPrimaryButtonStyle: React.CSSProperties = {
   cursor: "pointer",
 };
 
-const futureSecurityGridStyle: React.CSSProperties = {
-  display: "grid",
-  gap: 10,
-};
 
-const futureSecurityItemStyle: React.CSSProperties = {
-  borderRadius: 18,
-  padding: 14,
-  display: "grid",
-  gridTemplateColumns: "36px minmax(0,1fr) auto",
-  alignItems: "center",
-  gap: 12,
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.06)",
-  color: "#ffffff",
-};
 
-const comingSoonBadgeStyle: React.CSSProperties = {
-  minHeight: 28,
-  borderRadius: 999,
-  padding: "0 10px",
-  display: "inline-flex",
-  alignItems: "center",
-  background: "rgba(245,158,11,0.12)",
-  border: "1px solid rgba(253,230,138,0.16)",
-  color: "#fde68a",
-  fontSize: 10,
-  fontWeight: 900,
-};
 
 const modalBackdropStyle: React.CSSProperties = {
   position: "fixed",
