@@ -48,6 +48,15 @@ type InvoiceRow = {
   storage_bucket: string | null;
 };
 
+type SecurityInfo = {
+  lastSignInAt: string | null;
+  emailConfirmedAt: string | null;
+  provider: string;
+  browser: string;
+  platform: string;
+};
+
+
 
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
@@ -125,6 +134,60 @@ function getInvoiceStatusStyle(status: string | null | undefined): React.CSSProp
   };
 }
 
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return "–";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "–";
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function getBrowserName(userAgent: string) {
+  if (/Edg\//i.test(userAgent)) return "Microsoft Edge";
+  if (/OPR\//i.test(userAgent)) return "Opera";
+  if (/Firefox\//i.test(userAgent)) return "Firefox";
+  if (/Chrome\//i.test(userAgent)) return "Google Chrome";
+  if (/Safari\//i.test(userAgent)) return "Safari";
+  return "Unbekannter Browser";
+}
+
+function getPlatformName(platform: string, userAgent: string) {
+  if (/Windows/i.test(platform) || /Windows/i.test(userAgent)) return "Windows";
+  if (/Mac/i.test(platform) || /Macintosh/i.test(userAgent)) return "macOS";
+  if (/Android/i.test(userAgent)) return "Android";
+  if (/iPhone|iPad|iPod/i.test(userAgent)) return "iOS";
+  if (/Linux/i.test(platform) || /Linux/i.test(userAgent)) return "Linux";
+  return platform || "Unbekanntes Gerät";
+}
+
+function validateNewPassword(value: string) {
+  if (value.length < 8) {
+    return "Das neue Passwort muss mindestens 8 Zeichen lang sein.";
+  }
+
+  if (!/[A-ZÄÖÜ]/.test(value)) {
+    return "Das neue Passwort muss mindestens einen Großbuchstaben enthalten.";
+  }
+
+  if (!/[a-zäöüß]/.test(value)) {
+    return "Das neue Passwort muss mindestens einen Kleinbuchstaben enthalten.";
+  }
+
+  if (!/[0-9]/.test(value)) {
+    return "Das neue Passwort muss mindestens eine Zahl enthalten.";
+  }
+
+  return null;
+}
+
 function normalizeCountryCode(value: string) {
   return value.trim().toUpperCase().slice(0, 2) || "DE";
 }
@@ -177,6 +240,20 @@ export default function AccountPage() {
   const [invoiceError, setInvoiceError] = useState<string | null>(null);
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null);
 
+  const [securityInfo, setSecurityInfo] = useState<SecurityInfo>({
+    lastSignInAt: null,
+    emailConfirmedAt: null,
+    provider: "E-Mail",
+    browser: "Unbekannter Browser",
+    platform: "Unbekanntes Gerät",
+  });
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState("");
+
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleteChecked, setDeleteChecked] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -216,6 +293,22 @@ export default function AccountPage() {
     setUserId(user.id);
     setEmail(user.email ?? "");
     setCreatedAt(user.created_at ?? null);
+
+    const userAgent =
+      typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const platform =
+      typeof navigator !== "undefined" ? navigator.platform : "";
+
+    setSecurityInfo({
+      lastSignInAt: user.last_sign_in_at ?? null,
+      emailConfirmedAt: user.email_confirmed_at ?? null,
+      provider:
+        typeof user.app_metadata?.provider === "string"
+          ? user.app_metadata.provider
+          : "email",
+      browser: getBrowserName(userAgent),
+      platform: getPlatformName(platform, userAgent),
+    });
 
     const { data, error } = await supabase
       .from("profiles")
@@ -406,6 +499,87 @@ export default function AccountPage() {
       );
     } finally {
       setDownloadingInvoiceId(null);
+    }
+  }
+
+  function closePasswordModal() {
+    if (changingPassword) return;
+
+    setPasswordModalOpen(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setRepeatPassword("");
+    setPasswordMessage("");
+  }
+
+  async function handleChangePassword() {
+    if (changingPassword) return;
+
+    setPasswordMessage("");
+
+    if (!email) {
+      setPasswordMessage("Für dieses Konto ist keine E-Mail-Adresse verfügbar.");
+      return;
+    }
+
+    if (!currentPassword) {
+      setPasswordMessage("Bitte gib dein aktuelles Passwort ein.");
+      return;
+    }
+
+    const passwordError = validateNewPassword(newPassword);
+    if (passwordError) {
+      setPasswordMessage(passwordError);
+      return;
+    }
+
+    if (newPassword !== repeatPassword) {
+      setPasswordMessage("Die neuen Passwörter stimmen nicht überein.");
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      setPasswordMessage(
+        "Das neue Passwort muss sich vom aktuellen Passwort unterscheiden.",
+      );
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const { error: reauthError } = await supabase.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      });
+
+      if (reauthError) {
+        throw new Error("Das aktuelle Passwort ist nicht korrekt.");
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      setPasswordMessage("Passwort erfolgreich geändert.");
+
+      window.setTimeout(() => {
+        setPasswordModalOpen(false);
+        setCurrentPassword("");
+        setNewPassword("");
+        setRepeatPassword("");
+        setPasswordMessage("");
+      }, 1400);
+    } catch (error) {
+      setPasswordMessage(
+        error instanceof Error
+          ? error.message
+          : "Das Passwort konnte nicht geändert werden.",
+      );
+    } finally {
+      setChangingPassword(false);
     }
   }
 
@@ -1028,6 +1202,115 @@ export default function AccountPage() {
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
+              <h2>Sicherheit</h2>
+              <p>
+                Prüfe deine aktuelle Anmeldung und ändere bei Bedarf dein
+                Passwort.
+              </p>
+            </div>
+            <span>Sicher</span>
+          </div>
+
+          <div style={{ display: "grid", gap: 14 }}>
+            <div className="mioseg-security-grid">
+              <SecurityInfoCard
+                icon="✉️"
+                label="Login-E-Mail"
+                value={email || "–"}
+                detail={
+                  securityInfo.emailConfirmedAt
+                    ? `Bestätigt am ${formatDateTime(
+                        securityInfo.emailConfirmedAt,
+                      )}`
+                    : "E-Mail noch nicht bestätigt"
+                }
+                positive={Boolean(securityInfo.emailConfirmedAt)}
+              />
+
+              <SecurityInfoCard
+                icon="🔐"
+                label="Login-Provider"
+                value={
+                  securityInfo.provider === "email"
+                    ? "Supabase E-Mail"
+                    : securityInfo.provider
+                }
+                detail="Authentifizierung aktiv"
+                positive
+              />
+
+              <SecurityInfoCard
+                icon="💻"
+                label="Dieses Gerät"
+                value={`${securityInfo.browser} · ${securityInfo.platform}`}
+                detail="Aktuelle Browsersitzung"
+                positive
+              />
+
+              <SecurityInfoCard
+                icon="🕘"
+                label="Letzte Anmeldung"
+                value={formatDateTime(securityInfo.lastSignInAt)}
+                detail="Von Supabase Auth gemeldet"
+                positive
+              />
+            </div>
+
+            <div style={securityActionCardStyle}>
+              <div>
+                <strong style={{ color: "#ffffff", fontSize: 16 }}>
+                  Passwort
+                </strong>
+                <p
+                  style={{
+                    margin: "5px 0 0",
+                    color: "#94a3b8",
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Verwende mindestens acht Zeichen, Groß- und Kleinbuchstaben
+                  sowie eine Zahl.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setPasswordMessage("");
+                  setPasswordModalOpen(true);
+                }}
+                style={securityPrimaryButtonStyle}
+              >
+                Passwort ändern
+              </button>
+            </div>
+
+            <div style={futureSecurityGridStyle}>
+              <div style={futureSecurityItemStyle}>
+                <span>🛡️</span>
+                <div>
+                  <strong>2-Faktor-Authentifizierung</strong>
+                  <p>Wird in einer späteren Sicherheitsphase ergänzt.</p>
+                </div>
+                <span style={comingSoonBadgeStyle}>Demnächst</span>
+              </div>
+
+              <div style={futureSecurityItemStyle}>
+                <span>📱</span>
+                <div>
+                  <strong>Weitere Sitzungen verwalten</strong>
+                  <p>Andere Geräte anzeigen und gezielt abmelden.</p>
+                </div>
+                <span style={comingSoonBadgeStyle}>Demnächst</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article style={panelStyle}>
+          <div className={styles.cardHeader}>
+            <div>
               <h2>Nächste Konto-Funktionen</h2>
               <p>
                 Diese Konto-Bereiche werden als Nächstes weiter ausgebaut.
@@ -1041,11 +1324,6 @@ export default function AccountPage() {
               icon="🏢"
               title="Rechnungsadresse"
               text="Firma, Name, Straße, PLZ, Ort und Land für korrekte Rechnungen."
-            />
-            <RoadmapItem
-              icon="🔐"
-              title="Sicherheit"
-              text="Passwort ändern, Sitzung prüfen und später Account löschen."
             />
             <RoadmapItem
               icon="🛟"
@@ -1138,6 +1416,122 @@ export default function AccountPage() {
 
       </div>
 
+      {passwordModalOpen ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="password-modal-title"
+          style={modalBackdropStyle}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closePasswordModal();
+            }
+          }}
+        >
+          <div style={modalCardStyle}>
+            <div style={modalHeaderStyle}>
+              <div>
+                <span style={modalKickerStyle}>SICHERHEIT</span>
+                <h2
+                  id="password-modal-title"
+                  style={{ margin: "7px 0 0", color: "#ffffff" }}
+                >
+                  Passwort ändern
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={closePasswordModal}
+                disabled={changingPassword}
+                aria-label="Fenster schließen"
+                style={modalCloseButtonStyle}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ display: "grid", gap: 13 }}>
+              <label style={labelStyle}>
+                Aktuelles Passwort
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  autoComplete="current-password"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Neues Passwort
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  autoComplete="new-password"
+                  style={inputStyle}
+                />
+              </label>
+
+              <label style={labelStyle}>
+                Neues Passwort wiederholen
+                <input
+                  type="password"
+                  value={repeatPassword}
+                  onChange={(event) => setRepeatPassword(event.target.value)}
+                  autoComplete="new-password"
+                  style={inputStyle}
+                />
+              </label>
+
+              <div style={passwordRulesStyle}>
+                <span>Mindestens 8 Zeichen</span>
+                <span>Mindestens ein Großbuchstabe</span>
+                <span>Mindestens ein Kleinbuchstabe</span>
+                <span>Mindestens eine Zahl</span>
+              </div>
+
+              {passwordMessage ? (
+                <div
+                  style={
+                    passwordMessage.includes("erfolgreich")
+                      ? successStyle
+                      : errorStyle
+                  }
+                >
+                  {passwordMessage}
+                </div>
+              ) : null}
+
+              <div style={modalActionRowStyle}>
+                <button
+                  type="button"
+                  onClick={closePasswordModal}
+                  disabled={changingPassword}
+                  style={modalSecondaryButtonStyle}
+                >
+                  Abbrechen
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => void handleChangePassword()}
+                  disabled={changingPassword}
+                  style={{
+                    ...securityPrimaryButtonStyle,
+                    cursor: changingPassword ? "not-allowed" : "pointer",
+                    opacity: changingPassword ? 0.65 : 1,
+                  }}
+                >
+                  {changingPassword ? "Wird geändert …" : "Passwort speichern"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -1169,9 +1563,16 @@ export default function AccountPage() {
   gap: 12px;
 }
 
+.mioseg-security-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 @media (max-width: 760px) {
   .mioseg-account-grid-2,
-  .mioseg-account-grid-postal {
+  .mioseg-account-grid-postal,
+  .mioseg-security-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -1219,6 +1620,40 @@ function InfoRow({
         }}
       >
         {value}
+      </div>
+    </div>
+  );
+}
+
+function SecurityInfoCard({
+  icon,
+  label,
+  value,
+  detail,
+  positive,
+}: {
+  icon: string;
+  label: string;
+  value: string;
+  detail: string;
+  positive?: boolean;
+}) {
+  return (
+    <div style={securityInfoCardStyle}>
+      <div style={securityInfoIconStyle}>{icon}</div>
+
+      <div style={{ minWidth: 0 }}>
+        <span style={securityInfoLabelStyle}>{label}</span>
+        <strong style={securityInfoValueStyle}>{value}</strong>
+        <span
+          style={{
+            ...securityInfoDetailStyle,
+            color: positive ? "#86efac" : "#fca5a5",
+          }}
+        >
+          {positive ? "● " : "● "}
+          {detail}
+        </span>
       </div>
     </div>
   );
@@ -1287,6 +1722,208 @@ function RoadmapItem({
     </div>
   );
 }
+
+const securityInfoCardStyle: React.CSSProperties = {
+  minHeight: 112,
+  borderRadius: 20,
+  padding: 15,
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 12,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.075)",
+};
+
+const securityInfoIconStyle: React.CSSProperties = {
+  width: 44,
+  height: 44,
+  flex: "0 0 auto",
+  borderRadius: 15,
+  display: "grid",
+  placeItems: "center",
+  background: "linear-gradient(180deg,#ffffff,#dbeafe)",
+  color: "#07101f",
+  fontSize: 19,
+};
+
+const securityInfoLabelStyle: React.CSSProperties = {
+  display: "block",
+  color: "#94a3b8",
+  fontSize: 11,
+  fontWeight: 900,
+  textTransform: "uppercase",
+  letterSpacing: "0.05em",
+};
+
+const securityInfoValueStyle: React.CSSProperties = {
+  display: "block",
+  marginTop: 5,
+  color: "#ffffff",
+  fontSize: 14,
+  fontWeight: 950,
+  lineHeight: 1.35,
+  wordBreak: "break-word",
+};
+
+const securityInfoDetailStyle: React.CSSProperties = {
+  display: "block",
+  marginTop: 6,
+  fontSize: 11,
+  fontWeight: 800,
+  lineHeight: 1.4,
+};
+
+const securityActionCardStyle: React.CSSProperties = {
+  borderRadius: 20,
+  padding: 16,
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 16,
+  flexWrap: "wrap",
+  background: "rgba(59,130,246,0.07)",
+  border: "1px solid rgba(147,197,253,0.14)",
+};
+
+const securityPrimaryButtonStyle: React.CSSProperties = {
+  minHeight: 44,
+  border: 0,
+  borderRadius: 14,
+  padding: "0 16px",
+  background: "linear-gradient(180deg,#2563eb,#7c3aed)",
+  color: "#ffffff",
+  fontSize: 13,
+  fontWeight: 950,
+  cursor: "pointer",
+};
+
+const futureSecurityGridStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 10,
+};
+
+const futureSecurityItemStyle: React.CSSProperties = {
+  borderRadius: 18,
+  padding: 14,
+  display: "grid",
+  gridTemplateColumns: "36px minmax(0,1fr) auto",
+  alignItems: "center",
+  gap: 12,
+  background: "rgba(255,255,255,0.03)",
+  border: "1px solid rgba(255,255,255,0.06)",
+  color: "#ffffff",
+};
+
+const comingSoonBadgeStyle: React.CSSProperties = {
+  minHeight: 28,
+  borderRadius: 999,
+  padding: "0 10px",
+  display: "inline-flex",
+  alignItems: "center",
+  background: "rgba(245,158,11,0.12)",
+  border: "1px solid rgba(253,230,138,0.16)",
+  color: "#fde68a",
+  fontSize: 10,
+  fontWeight: 900,
+};
+
+const modalBackdropStyle: React.CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  zIndex: 10000,
+  padding: 20,
+  display: "grid",
+  placeItems: "center",
+  background: "rgba(2,6,23,0.78)",
+  backdropFilter: "blur(10px)",
+};
+
+const modalCardStyle: React.CSSProperties = {
+  width: "min(100%, 560px)",
+  maxHeight: "calc(100vh - 40px)",
+  overflowY: "auto",
+  borderRadius: 26,
+  padding: 22,
+  background: "#0f1a2a",
+  border: "1px solid rgba(148,163,184,0.2)",
+  boxShadow: "0 30px 90px rgba(0,0,0,0.48)",
+};
+
+const modalHeaderStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: 12,
+  marginBottom: 18,
+};
+
+const modalKickerStyle: React.CSSProperties = {
+  display: "inline-flex",
+  minHeight: 27,
+  alignItems: "center",
+  borderRadius: 999,
+  padding: "0 9px",
+  background: "rgba(59,130,246,0.13)",
+  border: "1px solid rgba(147,197,253,0.16)",
+  color: "#bfdbfe",
+  fontSize: 10,
+  fontWeight: 950,
+  letterSpacing: "0.06em",
+};
+
+const modalCloseButtonStyle: React.CSSProperties = {
+  width: 40,
+  height: 40,
+  borderRadius: 13,
+  border: "1px solid rgba(255,255,255,0.1)",
+  background: "rgba(255,255,255,0.05)",
+  color: "#ffffff",
+  fontSize: 24,
+  lineHeight: 1,
+  cursor: "pointer",
+};
+
+const passwordRulesStyle: React.CSSProperties = {
+  borderRadius: 16,
+  padding: 13,
+  display: "grid",
+  gridTemplateColumns: "repeat(2,minmax(0,1fr))",
+  gap: 7,
+  background: "rgba(255,255,255,0.035)",
+  border: "1px solid rgba(255,255,255,0.06)",
+  color: "#94a3b8",
+  fontSize: 11,
+  fontWeight: 800,
+};
+
+const modalActionRowStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "flex-end",
+  gap: 10,
+  flexWrap: "wrap",
+};
+
+const modalSecondaryButtonStyle: React.CSSProperties = {
+  minHeight: 44,
+  borderRadius: 14,
+  padding: "0 16px",
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  color: "#ffffff",
+  fontSize: 13,
+  fontWeight: 900,
+  cursor: "pointer",
+};
+
+const successStyle: React.CSSProperties = {
+  borderRadius: 18,
+  padding: 14,
+  background: "rgba(34,197,94,0.14)",
+  border: "1px solid rgba(134,239,172,0.22)",
+  color: "#bbf7d0",
+  fontWeight: 850,
+  lineHeight: 1.5,
+};
 
 const emptyInvoiceIconStyle: React.CSSProperties = {
   width: 58,
