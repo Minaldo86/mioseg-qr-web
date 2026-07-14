@@ -307,7 +307,9 @@ html: `
         markersRef.current[point.id] = marker;
         marker.bindPopup(buildPopup(point), { maxWidth: 290, className: "miosegExplorePopup" });
         marker.on("popupopen", () => {
-          activatePoint(point, { scrollCard: true });
+          // Beim programmgesteuerten Öffnen aus einer Ergebnis-Karte
+          // darf die Seite nicht wieder zurück zur Karte unterhalb scrollen.
+          activatePoint(point, { scrollCard: false });
         });
 
         marker.on("click", () => {
@@ -361,7 +363,6 @@ html: `
           setActiveMarkerElement(id);
           dispatchActiveMapPoint(id);
           dispatchVisibleMapPoints(map, markersRef.current, id);
-          dispatchScrollToMapCard(id);
         }, 260);
       };
 
