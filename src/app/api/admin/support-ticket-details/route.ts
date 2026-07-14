@@ -69,7 +69,7 @@ export async function GET() {
         ? admin.from("qr_x_entries").select("id,title,company_name").in("id", qrxIds)
         : Promise.resolve({ data: [], error: null }),
       ticketIds.length
-        ? admin.from("support_ticket_events").select("id,ticket_id,event_type,event_label,created_at").in("ticket_id", ticketIds).order("created_at", { ascending: false })
+        ? admin.from("support_ticket_events").select("id,ticket_id,event_type,event_label,created_at").in("ticket_id", ticketIds).order("created_at", { ascending: true })
         : Promise.resolve({ data: [], error: null }),
     ]);
 

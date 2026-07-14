@@ -1143,6 +1143,103 @@ const ADMIN_I18N = {
 } as const;
 
 
+
+const supportTimelineItemStyle = {
+  display: "grid",
+  gridTemplateColumns: "34px minmax(0, 1fr)",
+  gap: 10,
+  minHeight: 58,
+} as const;
+
+const supportTimelineRailStyle = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+} as const;
+
+const supportTimelineLineStyle = {
+  width: 2,
+  flex: 1,
+  minHeight: 22,
+  marginTop: 5,
+  borderRadius: 999,
+  background: "#26364f",
+} as const;
+
+const supportTimelineBaseDotStyle = {
+  width: 28,
+  height: 28,
+  flex: "0 0 auto",
+  borderRadius: 999,
+  display: "grid",
+  placeItems: "center",
+  border: "1px solid",
+  fontSize: 12,
+  fontWeight: 950,
+} as const;
+
+const supportTimelineDotOpenStyle = {
+  ...supportTimelineBaseDotStyle,
+  color: "#bfdbfe",
+  background: "#102448",
+  borderColor: "#1d4ed8",
+} as const;
+
+const supportTimelineDotReviewStyle = {
+  ...supportTimelineBaseDotStyle,
+  color: "#ddd6fe",
+  background: "#251747",
+  borderColor: "#6d28d9",
+} as const;
+
+const supportTimelineDotWaitingStyle = {
+  ...supportTimelineBaseDotStyle,
+  color: "#fde68a",
+  background: "#2c1806",
+  borderColor: "#854d0e",
+} as const;
+
+const supportTimelineDotEmailStyle = {
+  ...supportTimelineBaseDotStyle,
+  color: "#bae6fd",
+  background: "#082f49",
+  borderColor: "#0369a1",
+} as const;
+
+const supportTimelineDotNoteStyle = {
+  ...supportTimelineBaseDotStyle,
+  color: "#e2e8f0",
+  background: "#172133",
+  borderColor: "#475569",
+} as const;
+
+const supportTimelineDotResolvedStyle = {
+  ...supportTimelineBaseDotStyle,
+  color: "#bbf7d0",
+  background: "#10291c",
+  borderColor: "#166534",
+} as const;
+
+const supportTimelineContentStyle = {
+  minWidth: 0,
+  paddingBottom: 14,
+} as const;
+
+const supportTimelineTitleStyle = {
+  display: "block",
+  color: "#f8fafc",
+  fontSize: 13,
+  lineHeight: 1.4,
+} as const;
+
+const supportTimelineDateStyle = {
+  display: "block",
+  marginTop: 4,
+  color: "#93a5bd",
+  fontSize: 11,
+  fontWeight: 750,
+} as const;
+
 const styles = {
   page: {
     minHeight: "100vh",
@@ -3484,7 +3581,12 @@ if (refundAmount && refundAmount > 0) {
 
   const handlePrepareTicketEmail = async (
     ticket: SupportTicket,
-    template: "general" | "screenshot" | "qrx_link" | "resolved" = "general"
+    template:
+      | "general"
+      | "screenshot"
+      | "qrx_link"
+      | "credits"
+      | "resolved" = "general"
   ) => {
     if (!ticket.user_email) {
       alert("Für dieses Ticket ist keine E-Mail-Adresse verfügbar.");
@@ -3497,6 +3599,7 @@ if (refundAmount && refundAmount > 0) {
       general: `${greeting}\n\nvielen Dank für deine Support-Anfrage.\n\n\n\nViele Grüße\nMioseg qr Support`,
       screenshot: `${greeting}\n\nvielen Dank für deine Anfrage. Bitte sende uns einen Screenshot des Problems und beschreibe kurz, bei welchem Schritt es auftritt.\n\nViele Grüße\nMioseg qr Support`,
       qrx_link: `${greeting}\n\nvielen Dank für deine Anfrage. Bitte sende uns den Link oder die genaue Bezeichnung des betroffenen QR-X.\n\nViele Grüße\nMioseg qr Support`,
+      credits: `${greeting}\n\nwir haben die vereinbarte Credit-Gutschrift deinem Mioseg-qr-Konto hinzugefügt. Bitte aktualisiere die Credits-Ansicht und prüfe den neuen Stand.\n\nViele Grüße\nMioseg qr Support`,
       resolved: `${greeting}\n\nwir haben dein Anliegen geprüft. Das Problem sollte jetzt behoben sein. Bitte teste die Funktion erneut.\n\nViele Grüße\nMioseg qr Support`,
     };
 
@@ -3510,7 +3613,16 @@ if (refundAmount && refundAmount > 0) {
         body: JSON.stringify({
           ticketId: ticket.id,
           eventType: "email_prepared",
-          eventLabel: "E-Mail-Antwort vorbereitet",
+          eventLabel:
+            template === "screenshot"
+              ? "E-Mail vorbereitet: Screenshot angefordert"
+              : template === "qrx_link"
+                ? "E-Mail vorbereitet: QR-X-Link angefordert"
+                : template === "credits"
+                  ? "E-Mail vorbereitet: Credit-Gutschrift bestätigt"
+                  : template === "resolved"
+                    ? "E-Mail vorbereitet: Problem als behoben gemeldet"
+                    : "Allgemeine E-Mail-Antwort vorbereitet",
         }),
       });
       await fetchTickets();
@@ -7309,6 +7421,9 @@ const handleWarningOpenMediaJobs = async () => {
                         <button type="button" onClick={() => handlePrepareTicketEmail(ticket, "qrx_link")} disabled={!ticket.user_email} style={ticket.user_email ? styles.presetButton : styles.disabledSmallButton}>
                           QR-X-Link anfordern
                         </button>
+                        <button type="button" onClick={() => handlePrepareTicketEmail(ticket, "credits")} disabled={!ticket.user_email} style={ticket.user_email ? styles.presetButton : styles.disabledSmallButton}>
+                          Credits gutgeschrieben
+                        </button>
                         <button type="button" onClick={() => handlePrepareTicketEmail(ticket, "resolved")} disabled={!ticket.user_email} style={ticket.user_email ? styles.presetButton : styles.disabledSmallButton}>
                           Problem behoben
                         </button>
@@ -7417,19 +7532,89 @@ const handleWarningOpenMediaJobs = async () => {
                         </button>
                       </div>
 
-                      {ticket.events && ticket.events.length > 0 ? (
-                        <div style={{ ...styles.stateCard, marginTop: 12 }}>
-                          <strong style={{ color: "#f8fafc" }}>Verlauf</strong>
-                          <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-                            {ticket.events.map((event) => (
-                              <div key={event.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                                <span style={styles.ticketMeta}>{event.event_label}</span>
-                                <span style={styles.ticketMeta}>{new Date(event.created_at).toLocaleString("de-DE")}</span>
-                              </div>
-                            ))}
+                      <div style={{ ...styles.stateCard, marginTop: 12 }}>
+                        <strong style={{ color: "#f8fafc" }}>Ticketverlauf</strong>
+
+                        <div
+                          style={{
+                            position: "relative",
+                            display: "grid",
+                            gap: 0,
+                            marginTop: 12,
+                          }}
+                        >
+                          <div style={supportTimelineItemStyle}>
+                            <div style={supportTimelineRailStyle}>
+                              <span style={supportTimelineDotOpenStyle}>＋</span>
+                              <span style={supportTimelineLineStyle} />
+                            </div>
+                            <div style={supportTimelineContentStyle}>
+                              <strong style={supportTimelineTitleStyle}>
+                                Ticket erstellt
+                              </strong>
+                              <span style={supportTimelineDateStyle}>
+                                {new Date(ticket.created_at).toLocaleString("de-DE")}
+                              </span>
+                            </div>
                           </div>
+
+                          {(ticket.events ?? []).map((event, eventIndex) => {
+                            const isLast =
+                              eventIndex === (ticket.events?.length ?? 0) - 1;
+                            const isEmail = event.event_type === "email_prepared";
+                            const isNote =
+                              event.event_type === "internal_note_updated";
+                            const isResolved =
+                              event.event_label.toLowerCase().includes("gelöst");
+                            const isWaiting =
+                              event.event_label.toLowerCase().includes("warten");
+
+                            return (
+                              <div key={event.id} style={supportTimelineItemStyle}>
+                                <div style={supportTimelineRailStyle}>
+                                  <span
+                                    style={
+                                      isResolved
+                                        ? supportTimelineDotResolvedStyle
+                                        : isWaiting
+                                          ? supportTimelineDotWaitingStyle
+                                          : isEmail
+                                            ? supportTimelineDotEmailStyle
+                                            : isNote
+                                              ? supportTimelineDotNoteStyle
+                                              : supportTimelineDotReviewStyle
+                                    }
+                                  >
+                                    {isResolved
+                                      ? "✓"
+                                      : isWaiting
+                                        ? "…"
+                                        : isEmail
+                                          ? "✉"
+                                          : isNote
+                                            ? "✎"
+                                            : "●"}
+                                  </span>
+                                  {!isLast ? (
+                                    <span style={supportTimelineLineStyle} />
+                                  ) : null}
+                                </div>
+
+                                <div style={supportTimelineContentStyle}>
+                                  <strong style={supportTimelineTitleStyle}>
+                                    {event.event_label}
+                                  </strong>
+                                  <span style={supportTimelineDateStyle}>
+                                    {new Date(event.created_at).toLocaleString(
+                                      "de-DE",
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      ) : null}
+                      </div>
 
                       <div style={{ ...styles.formGrid, marginTop: 12 }}>
                         <div style={styles.ticketMeta}>
