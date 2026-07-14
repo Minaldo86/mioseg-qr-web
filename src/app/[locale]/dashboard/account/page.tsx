@@ -784,94 +784,6 @@ export default function AccountPage() {
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2>Meine Rechnungen</h2>
-              <p>
-                Hier findest du deine Rechnungen für Credit-Käufe und kannst
-                verfügbare PDF-Dateien sicher herunterladen.
-              </p>
-            </div>
-            <span>{loadingInvoices ? "Lädt" : `${invoices.length} PDF`}</span>
-          </div>
-
-          {invoiceError ? <div style={errorStyle}>{invoiceError}</div> : null}
-
-          {loadingInvoices ? (
-            <div
-              style={{
-                minHeight: 140,
-                display: "grid",
-                placeItems: "center",
-                color: "#cbd5e1",
-                fontWeight: 900,
-              }}
-            >
-              Rechnungen werden geladen …
-            </div>
-          ) : null}
-
-          {!loadingInvoices && invoices.length === 0 ? (
-            <div style={emptyInvoiceStyle}>
-              <strong style={{ color: "#ffffff" }}>Noch keine Rechnungen vorhanden</strong>
-              <span>
-                Nach einem erfolgreichen Credit-Kauf erscheint die zugehörige
-                Rechnung automatisch hier.
-              </span>
-            </div>
-          ) : null}
-
-          {!loadingInvoices && invoices.length > 0 ? (
-            <div style={{ display: "grid", gap: 10 }}>
-              {invoices.map((invoice) => {
-                const amount = invoice.gross_amount_cents ?? invoice.amount_cents ?? 0;
-                const canDownload =
-                  Boolean(invoice.pdf_path) &&
-                  ["created", "sent", "refunded"].includes(invoice.status || "");
-                const downloading = downloadingInvoiceId === invoice.id;
-
-                return (
-                  <article key={invoice.id} style={invoiceRowStyle}>
-                    <div style={invoiceMainStyle}>
-                      <div style={invoiceIconStyle}>🧾</div>
-                      <div style={{ minWidth: 0 }}>
-                        <strong style={invoiceNumberStyle}>{invoice.invoice_number}</strong>
-                        <div style={invoiceMetaStyle}>
-                          {formatDate(invoice.created_at)} · {formatMoney(amount, invoice.currency)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={invoiceActionsStyle}>
-                      <span style={getInvoiceStatusStyle(invoice.status)}>
-                        {getInvoiceStatusLabel(invoice.status)}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() => void handleDownloadInvoice(invoice)}
-                        disabled={!canDownload || downloading}
-                        style={{
-                          ...invoiceDownloadButtonStyle,
-                          cursor: !canDownload || downloading ? "not-allowed" : "pointer",
-                          opacity: !canDownload || downloading ? 0.5 : 1,
-                        }}
-                      >
-                        {downloading
-                          ? "Lädt …"
-                          : canDownload
-                            ? "PDF herunterladen"
-                            : "PDF nicht verfügbar"}
-                      </button>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          ) : null}
-        </article>
-
-        <article style={panelStyle}>
-          <div className={styles.cardHeader}>
-            <div>
               <h2>Rechnungsdaten</h2>
               <p>
                 Diese Daten werden für Rechnungen, PDF-Erstellung und den
@@ -1005,6 +917,112 @@ export default function AccountPage() {
               {savingBilling ? "Speichert …" : "Rechnungsdaten speichern"}
             </button>
           </div>
+        </article>
+
+        <article style={panelStyle}>
+          <div className={styles.cardHeader}>
+            <div>
+              <h2>Meine Rechnungen</h2>
+              <p>
+                Hier findest du deine Rechnungen für Credit-Käufe und kannst
+                verfügbare PDF-Dateien sicher herunterladen.
+              </p>
+            </div>
+            <span>
+              {loadingInvoices
+                ? "Lädt"
+                : invoices.length === 0
+                  ? "Keine Rechnungen"
+                  : invoices.length === 1
+                    ? "1 Rechnung"
+                    : `${invoices.length} Rechnungen`}
+            </span>
+          </div>
+
+          {invoiceError ? <div style={errorStyle}>{invoiceError}</div> : null}
+
+          {loadingInvoices ? (
+            <div
+              style={{
+                minHeight: 140,
+                display: "grid",
+                placeItems: "center",
+                color: "#cbd5e1",
+                fontWeight: 900,
+              }}
+            >
+              Rechnungen werden geladen …
+            </div>
+          ) : null}
+
+          {!loadingInvoices && invoices.length === 0 ? (
+            <div style={emptyInvoiceStyle}>
+              <div style={emptyInvoiceIconStyle}>🧾</div>
+              <strong style={{ color: "#ffffff", fontSize: 17 }}>
+                Noch keine Rechnungen
+              </strong>
+              <span>
+                Nach jedem erfolgreichen Credit-Kauf wird deine Rechnung
+                automatisch erstellt und hier dauerhaft gespeichert.
+              </span>
+
+              <div style={emptyInvoiceFeatureGridStyle}>
+                <span>✓ PDF herunterladen</span>
+                <span>✓ Rechnungsnummer</span>
+                <span>✓ Zahlungsdatum</span>
+                <span>✓ Betrag und Status</span>
+              </div>
+            </div>
+          ) : null}
+
+          {!loadingInvoices && invoices.length > 0 ? (
+            <div style={{ display: "grid", gap: 10 }}>
+              {invoices.map((invoice) => {
+                const amount = invoice.gross_amount_cents ?? invoice.amount_cents ?? 0;
+                const canDownload =
+                  Boolean(invoice.pdf_path) &&
+                  ["created", "sent", "refunded"].includes(invoice.status || "");
+                const downloading = downloadingInvoiceId === invoice.id;
+
+                return (
+                  <article key={invoice.id} style={invoiceRowStyle}>
+                    <div style={invoiceMainStyle}>
+                      <div style={invoiceIconStyle}>🧾</div>
+                      <div style={{ minWidth: 0 }}>
+                        <strong style={invoiceNumberStyle}>{invoice.invoice_number}</strong>
+                        <div style={invoiceMetaStyle}>
+                          {formatDate(invoice.created_at)} · {formatMoney(amount, invoice.currency)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={invoiceActionsStyle}>
+                      <span style={getInvoiceStatusStyle(invoice.status)}>
+                        {getInvoiceStatusLabel(invoice.status)}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => void handleDownloadInvoice(invoice)}
+                        disabled={!canDownload || downloading}
+                        style={{
+                          ...invoiceDownloadButtonStyle,
+                          cursor: !canDownload || downloading ? "not-allowed" : "pointer",
+                          opacity: !canDownload || downloading ? 0.5 : 1,
+                        }}
+                      >
+                        {downloading
+                          ? "Lädt …"
+                          : canDownload
+                            ? "PDF herunterladen"
+                            : "PDF nicht verfügbar"}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : null}
         </article>
 
         <article style={panelStyle}>
@@ -1270,6 +1288,29 @@ function RoadmapItem({
   );
 }
 
+const emptyInvoiceIconStyle: React.CSSProperties = {
+  width: 58,
+  height: 58,
+  display: "grid",
+  placeItems: "center",
+  borderRadius: 20,
+  background: "linear-gradient(180deg,#ffffff,#dbeafe)",
+  color: "#07101f",
+  fontSize: 25,
+  boxShadow: "0 14px 34px rgba(37,99,235,0.12)",
+};
+
+const emptyInvoiceFeatureGridStyle: React.CSSProperties = {
+  width: "min(100%, 520px)",
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  gap: 8,
+  marginTop: 6,
+  color: "#cbd5e1",
+  fontSize: 12,
+  fontWeight: 800,
+};
+
 const invoiceRowStyle: React.CSSProperties = {
   width: "100%",
   boxSizing: "border-box",
@@ -1338,17 +1379,18 @@ const invoiceDownloadButtonStyle: React.CSSProperties = {
 };
 
 const emptyInvoiceStyle: React.CSSProperties = {
-  minHeight: 120,
-  borderRadius: 20,
-  padding: 18,
+  minHeight: 220,
+  borderRadius: 22,
+  padding: 24,
   display: "grid",
   placeItems: "center",
-  gap: 6,
+  gap: 10,
   textAlign: "center",
-  background: "rgba(255,255,255,0.035)",
-  border: "1px solid rgba(255,255,255,0.06)",
+  background:
+    "linear-gradient(180deg, rgba(59,130,246,0.06), rgba(255,255,255,0.025))",
+  border: "1px solid rgba(147,197,253,0.12)",
   color: "#94a3b8",
-  lineHeight: 1.5,
+  lineHeight: 1.55,
   fontWeight: 800,
 };
 
