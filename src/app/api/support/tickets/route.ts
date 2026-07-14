@@ -91,28 +91,6 @@ async function nextTicketNumber(admin: any) {
   return `${prefix}${String((count ?? 0) + 1).padStart(5, "0")}`;
 }
 
-async function writeAdminLog(
-  admin: any,
-  input: {
-    userId: string;
-    qrxId: string | null;
-    ticketNumber: string;
-    title: string;
-  },
-) {
-  const { error } = await admin.from("admin_action_log").insert({
-    action_type: "support_ticket_created",
-    target_user_id: input.userId,
-    qrx_id: input.qrxId,
-    amount: null,
-    note: `${input.ticketNumber}: ${input.title}`,
-  });
-
-  if (error) {
-    console.warn("Support admin log failed:", error.message);
-  }
-}
-
 export async function GET(request: Request) {
   try {
     const auth = await getAuthenticatedUser(request);
@@ -256,13 +234,6 @@ export async function POST(request: Request) {
         { status: 500 },
       );
     }
-
-    await writeAdminLog(admin, {
-      userId: auth.user.id,
-      qrxId,
-      ticketNumber,
-      title,
-    });
 
     return NextResponse.json({ ok: true, ticket: data }, { status: 201 });
   } catch (error) {
