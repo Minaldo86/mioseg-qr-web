@@ -1345,45 +1345,62 @@ export default function AccountPage() {
 
           </div>
         </article>
-          </>
-        ) : null}
+
 
         <article style={dangerPanelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2 style={{ color: "#f87171", display: "flex", alignItems: "center", gap: 10 }}>
-                <span aria-hidden="true">🛡️</span>
-                Gefahrenbereich
+              <h2
+                style={{
+                  color: "#cbd5e1",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 9,
+                  fontSize: 18,
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{ color: "#f87171", opacity: 0.8 }}
+                >
+                  🛡️
+                </span>
+                Konto dauerhaft löschen
               </h2>
-              <p>
-                Wenn du dein Konto löschst, werden dein Konto, deine Credits und
-                deine Nutzerzugänge dauerhaft entfernt. Deine eigenen QR-X
-                werden deaktiviert und sind für normale Nutzer nicht mehr
-                sichtbar.
+              <p style={{ maxWidth: 820 }}>
+                Diese Aktion kann nicht rückgängig gemacht werden. Deine
+                Kontodaten, Credits und Zugänge werden entfernt; eigene QR-X
+                werden deaktiviert.
               </p>
             </div>
             <span
               style={{
-                color: "#fca5a5",
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(248,113,113,0.18)",
+                color: "#94a3b8",
+                background: "rgba(255,255,255,0.025)",
+                border: "1px solid rgba(148,163,184,0.12)",
               }}
             >
-              Konto löschen
+              Optional
             </span>
           </div>
 
-          <div style={{ display: "grid", gap: 14 }}>
+          <div
+            style={{
+              display: "grid",
+              gap: 13,
+              paddingTop: 4,
+            }}
+          >
             <label style={deleteCheckboxStyle}>
               <input
                 type="checkbox"
                 checked={deleteChecked}
                 onChange={(event) => setDeleteChecked(event.target.checked)}
                 disabled={deletingAccount}
-                style={{ width: 20, height: 20, accentColor: "#ef4444" }}
+                style={{ width: 18, height: 18, accentColor: "#ef4444" }}
               />
               <span>
-                Ich verstehe, dass mein Konto dauerhaft gelöscht wird.
+                Ich möchte die dauerhafte Kontolöschung freischalten.
               </span>
             </label>
 
@@ -1411,13 +1428,15 @@ export default function AccountPage() {
                 deleteConfirm !== "KONTO LÖSCHEN"
               }
               style={{
-                minHeight: 48,
-                border: "1px solid rgba(248,113,113,0.34)",
-                borderRadius: 14,
-                background: "rgba(127,29,29,0.22)",
-                color: "#fecaca",
-                fontSize: 15,
-                fontWeight: 950,
+                minHeight: 44,
+                justifySelf: "end",
+                border: "1px solid rgba(248,113,113,0.24)",
+                borderRadius: 13,
+                background: "rgba(127,29,29,0.12)",
+                color: "#fca5a5",
+                padding: "0 16px",
+                fontSize: 13,
+                fontWeight: 900,
                 cursor:
                   deletingAccount ||
                   !deleteChecked ||
@@ -1438,6 +1457,10 @@ export default function AccountPage() {
             </button>
           </div>
         </article>
+          </>
+        ) : null}
+
+
       </section>
 
       </div>
@@ -2021,10 +2044,11 @@ const panelStyle: React.CSSProperties = {
 
 const dangerPanelStyle: React.CSSProperties = {
   ...panelStyle,
-  marginTop: 6,
-  background: "rgba(15, 23, 42, 0.72)",
-  border: "1px solid rgba(248, 113, 113, 0.18)",
+  marginTop: 2,
+  background: "rgba(15, 23, 42, 0.48)",
+  border: "1px solid rgba(248, 113, 113, 0.1)",
   boxShadow: "none",
+  padding: 18,
 };
 
 const deleteCheckboxStyle: React.CSSProperties = {
