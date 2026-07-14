@@ -470,11 +470,13 @@ html: `
       const ids = Array.isArray(detail?.visibleIds) ? detail.visibleIds : [];
 
       const visibleCount = document.getElementById("visibleMapCount");
+      const visibleCountHub = document.getElementById("visibleMapCountHub");
       const newCount = document.getElementById("newMapCount");
       const empty = document.getElementById("visibleMapEmpty");
       const scope = document.getElementById("newMapScopeLabel");
 
       if (visibleCount) visibleCount.textContent = String(ids.length);
+      if (visibleCountHub) visibleCountHub.textContent = String(ids.length);
       if (newCount) newCount.textContent = String(ids.length);
       if (scope) scope.textContent = ids.length > 0 ? "Aktueller Kartenausschnitt" : "Keine Treffer im Ausschnitt";
       if (empty) empty.style.display = ids.length === 0 ? "" : "none";

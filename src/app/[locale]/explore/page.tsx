@@ -3,6 +3,7 @@ import styles from "../home-page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { getBestMediaUrl } from "@/lib/media";
 import ExploreMapClient from "./ExploreMapClient";
+import ExploreFollowClient from "./ExploreFollowClient";
 
 type BusinessCategory =
   | "praxis_gesundheit"
@@ -410,8 +411,7 @@ export default async function ExplorePage({
           cursor: entry.location_lat != null && entry.location_lng != null ? "pointer" : "default",
         }}
       >
-        <Link href={`/qrx/${entry.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-          <article
+        <article
             className={`${styles.valueCard} mioseg-qrx-card`}
             data-qrx-card={entry.id}
             style={{
@@ -748,28 +748,45 @@ export default async function ExplorePage({
                   {entry.location_lat != null && entry.location_lng != null ? "Tippen zeigt Marker" : "Ohne Standortdaten"}
                 </span>
 
-                <span
-                  data-qrx-open-button="true"
+                <div
                   style={{
-                    display: "inline-flex",
+                    display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: "42px",
-                    padding: "0 16px",
-                    borderRadius: "14px",
-                    background: "linear-gradient(180deg, #0d1726 0%, #17304d 100%)",
-                    color: "#ffffff",
-                    fontSize: "13px",
-                    fontWeight: 900,
-                    boxShadow: "0 12px 26px rgba(13, 23, 38, 0.18)",
+                    justifyContent: "flex-end",
+                    gap: "8px",
+                    flexWrap: "wrap",
                   }}
                 >
-                  QR-X öffnen →
-                </span>
+                  <ExploreFollowClient
+                    qrxId={entry.id}
+                    locale={locale}
+                    compact
+                  />
+
+                  <Link
+                    href={`/qrx/${entry.id}`}
+                    data-qrx-open-button="true"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      minHeight: "42px",
+                      padding: "0 16px",
+                      borderRadius: "14px",
+                      background: "linear-gradient(180deg, #0d1726 0%, #17304d 100%)",
+                      color: "#ffffff",
+                      textDecoration: "none",
+                      fontSize: "13px",
+                      fontWeight: 900,
+                      boxShadow: "0 12px 26px rgba(13, 23, 38, 0.18)",
+                    }}
+                  >
+                    QR-X öffnen →
+                  </Link>
+                </div>
               </div>
             </div>
           </article>
-        </Link>
       </div>
     );
   };
@@ -795,6 +812,18 @@ export default async function ExplorePage({
             "radial-gradient(circle at 82% 10%, rgba(77, 132, 201, 0.18) 0%, rgba(77, 132, 201, 0) 32%), radial-gradient(circle at 12% 42%, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 28%)",
         }}
       />
+      <header className="mioseg-explore-topbar">
+        <Link href={`/${locale}`} className="mioseg-explore-brand">
+          <img src="/logo-wwhite.png" alt="Mioseg qr" />
+        </Link>
+
+        <nav aria-label="Explore Navigation">
+          <Link href={`/${locale}`}>Startseite</Link>
+          <Link href={`/${locale}/dashboard`}>Dashboard</Link>
+          <Link href={`/${locale}/dashboard/account`}>Konto</Link>
+        </nav>
+      </header>
+
       <section
         className={styles.heroSection}
         style={{
@@ -1197,7 +1226,7 @@ export default async function ExplorePage({
             </div>
 
             <div className="mioseg-live-section-pills">
-              <span><strong id="visibleMapCount">{mapPoints.length}</strong> sichtbar</span>
+              <span><strong id="visibleMapCountHub">{mapPoints.length}</strong> sichtbar</span>
               <span>{hasUserLocation ? "📍 Standort aktiv" : "📍 Standort optional"}</span>
               <span id="newMapScopeLabel">Aktueller Kartenausschnitt</span>
             </div>
@@ -1513,6 +1542,72 @@ export default async function ExplorePage({
 }
 
 
+
+
+.mioseg-explore-topbar {
+  position: relative;
+  z-index: 5;
+  width: min(1240px, calc(100% - 32px));
+  min-height: 78px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.mioseg-explore-brand {
+  display: inline-flex;
+  align-items: center;
+}
+
+.mioseg-explore-brand img {
+  width: 112px;
+  height: auto;
+  display: block;
+}
+
+.mioseg-explore-topbar nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mioseg-explore-topbar nav a {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: #dbe7f6;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 900;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.mioseg-explore-topbar nav a:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.22);
+}
+
+@media (max-width: 680px) {
+  .mioseg-explore-topbar {
+    min-height: 68px;
+  }
+
+  .mioseg-explore-topbar nav a:first-child {
+    display: none;
+  }
+
+  .mioseg-explore-brand img {
+    width: 96px;
+  }
+}
 
 .mioseg-explore-section-nav {
   position: sticky;
