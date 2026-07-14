@@ -78,6 +78,15 @@ function getStatusMeta(status: string | null | undefined) {
     };
   }
 
+  if (status === "waiting_customer") {
+    return {
+      label: "Warten auf deine Rückmeldung",
+      color: "#fde68a",
+      background: "rgba(245,158,11,0.13)",
+      border: "1px solid rgba(253,230,138,0.18)",
+    };
+  }
+
   if (status === "resolved") {
     return {
       label: "Gelöst",
@@ -135,7 +144,7 @@ export default function SupportPage() {
     return tickets.reduce(
       (acc, ticket) => {
         if (ticket.status === "resolved") acc.resolved += 1;
-        else if (ticket.status === "in_review") acc.inReview += 1;
+        else if (ticket.status === "in_review" || ticket.status === "waiting_customer") acc.inReview += 1;
         else acc.open += 1;
         return acc;
       },

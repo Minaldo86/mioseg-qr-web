@@ -103,16 +103,28 @@ type CreditHistoryResult = {
   };
 };
 
+type SupportTicketEvent = {
+  id: string;
+  event_type: string;
+  event_label: string;
+  created_at: string;
+};
+
 type SupportTicket = {
   id: string;
   ticket_number: string | null;
   user_id: string | null;
+  user_name?: string | null;
+  user_email?: string | null;
   qrx_id: string | null;
+  qrx_title?: string | null;
   problem_type: string;
   status: string;
   title: string;
   description: string | null;
   resolution_note: string | null;
+  internal_note?: string | null;
+  events?: SupportTicketEvent[];
   report_reason?: string | null;
   reporter_email?: string | null;
   report_weight?: number | null;
@@ -128,7 +140,7 @@ type TicketProblemType =
   | "qrx_report"
   | "other";
 
-type TicketStatus = "open" | "in_review" | "resolved";
+type TicketStatus = "open" | "in_review" | "waiting_customer" | "resolved";
 
 type UserLookupResult = {
   query: string;
@@ -602,6 +614,7 @@ const ADMIN_I18N = {
 
     ticket_status_open: "Offen",
     ticket_status_in_review: "In Prüfung",
+    ticket_status_waiting_customer: "Warten auf Kunde",
     ticket_status_resolved: "Gelöst",
 
     moderation_flagged: "Zur Prüfung markiert",
@@ -750,6 +763,7 @@ const ADMIN_I18N = {
     filter_all: "Alle",
     filter_open: "Offen",
     filter_in_review: "In Prüfung",
+    filter_waiting_customer: "Warten auf Kunde",
     filter_resolved: "Gelöst",
 
     ticket_create_failed: "Supportfall konnte nicht angelegt werden.",
@@ -881,6 +895,7 @@ const ADMIN_I18N = {
 
     ticket_status_open: "Open",
     ticket_status_in_review: "In review",
+    ticket_status_waiting_customer: "Waiting for customer",
     ticket_status_resolved: "Resolved",
 
     moderation_flagged: "Marked for review",
@@ -1029,6 +1044,7 @@ const ADMIN_I18N = {
     filter_all: "All",
     filter_open: "Open",
     filter_in_review: "In review",
+    filter_waiting_customer: "Waiting for customer",
     filter_resolved: "Resolved",
 
     ticket_create_failed: "Support case could not be created.",
@@ -2112,6 +2128,8 @@ function formatTicketStatus(value: string, t: (key: AdminTranslationKey) => stri
   switch (value) {
     case "in_review":
       return t("ticket_status_in_review");
+    case "waiting_customer":
+      return t("ticket_status_waiting_customer");
     case "resolved":
       return t("ticket_status_resolved");
     default:
@@ -2175,6 +2193,21 @@ function getModerationBadgeStyle(value: string | null | undefined) {
 }
 
 function getTicketStatusStyle(value: string) {
+  if (value === "waiting_customer") {
+    return {
+      display: "inline-flex",
+      alignItems: "center",
+      borderRadius: 999,
+      padding: "7px 10px",
+      background: "#31220b",
+      border: "1px solid #a16207",
+      color: "#fde68a",
+      fontSize: 12,
+      fontWeight: 900,
+      whiteSpace: "nowrap" as const,
+    };
+  }
+
   if (value === "resolved") return styles.ticketStatusResolved;
   if (value === "in_review") return styles.ticketStatusReview;
   return styles.ticketStatusOpen;
@@ -2279,6 +2312,8 @@ export default function AdminPage() {
   const [ticketDescription, setTicketDescription] = useState("");
   const [ticketResult, setTicketResult] = useState<string | null>(null);
   const [ticketRefundAmounts, setTicketRefundAmounts] = useState<Record<string, string>>({});
+  const [ticketInternalNotes, setTicketInternalNotes] = useState<Record<string, string>>({});
+  const [ticketDetailWorkingId, setTicketDetailWorkingId] = useState<string | null>(null);
 
   const [userLookupQuery, setUserLookupQuery] = useState("");
   const [userLookupLoading, setUserLookupLoading] = useState(false);
@@ -2987,7 +3022,7 @@ export default function AdminPage() {
   const fetchTickets = async () => {
     try {
       setTicketsLoading(true);
-      const res = await fetch("/api/admin/support-tickets", { cache: "no-store" });
+      const res = await fetch("/api/admin/support-ticket-details", { cache: "no-store" });
       const data = await res.json();
 
       if (!res.ok) {
@@ -2996,6 +3031,12 @@ export default function AdminPage() {
 
       const nextTickets = Array.isArray(data) ? data : [];
       setTickets(nextTickets);
+      setTicketInternalNotes(
+        nextTickets.reduce((acc: Record<string, string>, ticket: SupportTicket) => {
+          acc[ticket.id] = ticket.internal_note || "";
+          return acc;
+        }, {})
+      );
       await fetchQrxReportDetailsForTickets(nextTickets);
     } catch (error) {
       console.error("fetchTickets error:", error);
@@ -3378,7 +3419,12 @@ export default function AdminPage() {
     refundAmount?: number
   ) => {
     try {
-      const res = await fetch("/api/admin/support-tickets", {
+      const endpoint =
+        refundAmount && refundAmount > 0
+          ? "/api/admin/support-tickets"
+          : "/api/admin/support-ticket-details";
+
+      const res = await fetch(endpoint, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -3412,6 +3458,64 @@ if (refundAmount && refundAmount > 0) {
     } catch (error: unknown) {
       console.error("handleUpdateTicketStatus error:", error);
       alert(error instanceof Error ? error.message : tAdmin("ticket_update_failed"));
+    }
+  };
+
+  const handleSaveTicketInternalNote = async (ticket: SupportTicket) => {
+    try {
+      setTicketDetailWorkingId(ticket.id);
+      const res = await fetch("/api/admin/support-ticket-details", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ticketId: ticket.id,
+          internalNote: ticketInternalNotes[ticket.id] ?? "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Interne Notiz konnte nicht gespeichert werden.");
+      await fetchTickets();
+    } catch (error: unknown) {
+      alert(error instanceof Error ? error.message : "Interne Notiz konnte nicht gespeichert werden.");
+    } finally {
+      setTicketDetailWorkingId(null);
+    }
+  };
+
+  const handlePrepareTicketEmail = async (
+    ticket: SupportTicket,
+    template: "general" | "screenshot" | "qrx_link" | "resolved" = "general"
+  ) => {
+    if (!ticket.user_email) {
+      alert("Für dieses Ticket ist keine E-Mail-Adresse verfügbar.");
+      return;
+    }
+
+    const firstName = (ticket.user_name || "").trim().split(/\s+/)[0] || "";
+    const greeting = firstName ? `Hallo ${firstName},` : "Guten Tag,";
+    const templates = {
+      general: `${greeting}\n\nvielen Dank für deine Support-Anfrage.\n\n\n\nViele Grüße\nMioseg qr Support`,
+      screenshot: `${greeting}\n\nvielen Dank für deine Anfrage. Bitte sende uns einen Screenshot des Problems und beschreibe kurz, bei welchem Schritt es auftritt.\n\nViele Grüße\nMioseg qr Support`,
+      qrx_link: `${greeting}\n\nvielen Dank für deine Anfrage. Bitte sende uns den Link oder die genaue Bezeichnung des betroffenen QR-X.\n\nViele Grüße\nMioseg qr Support`,
+      resolved: `${greeting}\n\nwir haben dein Anliegen geprüft. Das Problem sollte jetzt behoben sein. Bitte teste die Funktion erneut.\n\nViele Grüße\nMioseg qr Support`,
+    };
+
+    const subject = `Re: Support-Ticket ${ticket.ticket_number || ticket.id}`;
+    window.location.href = `mailto:${encodeURIComponent(ticket.user_email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(templates[template])}`;
+
+    try {
+      await fetch("/api/admin/support-ticket-details", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ticketId: ticket.id,
+          eventType: "email_prepared",
+          eventLabel: "E-Mail-Antwort vorbereitet",
+        }),
+      });
+      await fetchTickets();
+    } catch (error) {
+      console.error("E-Mail-Ereignis konnte nicht protokolliert werden:", error);
     }
   };
 
@@ -7156,9 +7260,58 @@ const handleWarningOpenMediaJobs = async () => {
                         </div>
                       </div>
 
-                      <div style={styles.ticketMeta}>
-                        {ticket.user_id ? `User: ${ticket.user_id}` : "User: –"}
-                        {ticket.qrx_id ? ` · QR-X: ${ticket.qrx_id}` : ""}
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                          gap: 10,
+                          marginTop: 12,
+                        }}
+                      >
+                        <div style={styles.stateCard}>
+                          <strong style={{ color: "#f8fafc" }}>Nutzer</strong>
+                          <div style={{ ...styles.ticketMeta, marginTop: 6 }}>
+                            {ticket.user_name || "Name nicht hinterlegt"}
+                          </div>
+                          <div style={{ ...styles.ticketMeta, marginTop: 4, wordBreak: "break-all" }}>
+                            {ticket.user_email || "E-Mail nicht verfügbar"}
+                          </div>
+                          <div style={{ ...styles.ticketMeta, marginTop: 4, wordBreak: "break-all" }}>
+                            User-ID: {ticket.user_id || "–"}
+                          </div>
+                        </div>
+
+                        <div style={styles.stateCard}>
+                          <strong style={{ color: "#f8fafc" }}>QR-X</strong>
+                          <div style={{ ...styles.ticketMeta, marginTop: 6 }}>
+                            {ticket.qrx_title || "Kein QR-X zugeordnet"}
+                          </div>
+                          {ticket.qrx_id ? (
+                            <div style={{ ...styles.ticketMeta, marginTop: 4, wordBreak: "break-all" }}>
+                              {ticket.qrx_id}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div style={{ ...styles.bottomRow, marginTop: 12 }}>
+                        <button
+                          type="button"
+                          onClick={() => handlePrepareTicketEmail(ticket, "general")}
+                          disabled={!ticket.user_email}
+                          style={ticket.user_email ? styles.creditButton : styles.disabledSmallButton}
+                        >
+                          ✉️ Antwort per E-Mail
+                        </button>
+                        <button type="button" onClick={() => handlePrepareTicketEmail(ticket, "screenshot")} disabled={!ticket.user_email} style={ticket.user_email ? styles.presetButton : styles.disabledSmallButton}>
+                          Screenshot anfordern
+                        </button>
+                        <button type="button" onClick={() => handlePrepareTicketEmail(ticket, "qrx_link")} disabled={!ticket.user_email} style={ticket.user_email ? styles.presetButton : styles.disabledSmallButton}>
+                          QR-X-Link anfordern
+                        </button>
+                        <button type="button" onClick={() => handlePrepareTicketEmail(ticket, "resolved")} disabled={!ticket.user_email} style={ticket.user_email ? styles.presetButton : styles.disabledSmallButton}>
+                          Problem behoben
+                        </button>
                       </div>
 
                       {ticket.description ? (
@@ -7218,6 +7371,18 @@ const handleWarningOpenMediaJobs = async () => {
                         </button>
                         <button
                           type="button"
+                          onClick={() => handleUpdateTicketStatus(ticket.id, "waiting_customer")}
+                          style={{
+                            ...styles.presetButton,
+                            borderColor: "#854d0e",
+                            background: "#2c1806",
+                            color: "#fde68a",
+                          }}
+                        >
+                          Warten auf Kunde
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleUpdateTicketStatus(ticket.id, "resolved")}
                           style={styles.presetButton}
                         >
@@ -7231,6 +7396,40 @@ const handleWarningOpenMediaJobs = async () => {
                           Wieder öffnen
                         </button>
                       </div>
+
+                      <div style={{ ...styles.formGrid, marginTop: 12 }}>
+                        <div style={styles.ticketMeta}>Interne Notiz – nur für Admin sichtbar</div>
+                        <textarea
+                          value={ticketInternalNotes[ticket.id] ?? ""}
+                          onChange={(e) =>
+                            setTicketInternalNotes((prev) => ({ ...prev, [ticket.id]: e.target.value }))
+                          }
+                          placeholder="Interne Notiz, z. B. Rückfrage versendet oder Kulanz geprüft"
+                          style={styles.noteArea}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleSaveTicketInternalNote(ticket)}
+                          disabled={ticketDetailWorkingId === ticket.id}
+                          style={styles.secondaryLink}
+                        >
+                          {ticketDetailWorkingId === ticket.id ? "Speichere…" : "Interne Notiz speichern"}
+                        </button>
+                      </div>
+
+                      {ticket.events && ticket.events.length > 0 ? (
+                        <div style={{ ...styles.stateCard, marginTop: 12 }}>
+                          <strong style={{ color: "#f8fafc" }}>Verlauf</strong>
+                          <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+                            {ticket.events.map((event) => (
+                              <div key={event.id} style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                                <span style={styles.ticketMeta}>{event.event_label}</span>
+                                <span style={styles.ticketMeta}>{new Date(event.created_at).toLocaleString("de-DE")}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
 
                       <div style={{ ...styles.formGrid, marginTop: 12 }}>
                         <div style={styles.ticketMeta}>
