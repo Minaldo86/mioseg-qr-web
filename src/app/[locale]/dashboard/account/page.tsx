@@ -204,6 +204,7 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "profile" | "billing" | "security">("overview");
 
   const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
@@ -676,13 +677,19 @@ export default function AccountPage() {
       </header>
 
       <div className="mioseg-account-page-content">
-      <section className={styles.hero}>
+      <section
+        className={styles.hero}
+        style={{
+          minHeight: 0,
+          paddingTop: 24,
+          paddingBottom: 24,
+        }}
+      >
         <div>
           <span className={styles.kicker}>Konto</span>
-          <h1>Dein Konto</h1>
-          <p>
-            Hier verwaltest du deine Kontodaten und Rechnungsadresse für
-            Credit-Käufe, Rechnungen und den automatischen E-Mail-Versand.
+          <h1 style={{ marginBottom: 10 }}>Konto</h1>
+          <p style={{ maxWidth: 760 }}>
+            Verwalte deine Kontodaten, Rechnungen und Sicherheit an einem Ort.
           </p>
         </div>
 
@@ -743,6 +750,42 @@ export default function AccountPage() {
         </article>
       </section>
 
+      <nav className="mioseg-account-tabs" aria-label="Kontobereiche">
+        <button
+          type="button"
+          onClick={() => setActiveTab("overview")}
+          className={activeTab === "overview" ? "is-active" : ""}
+        >
+          <span>◉</span>
+          Übersicht
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("profile")}
+          className={activeTab === "profile" ? "is-active" : ""}
+        >
+          <span>👤</span>
+          Profil
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("billing")}
+          className={activeTab === "billing" ? "is-active" : ""}
+        >
+          <span>🧾</span>
+          Rechnungen
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("security")}
+          className={activeTab === "security" ? "is-active" : ""}
+        >
+          <span>🔐</span>
+          Sicherheit
+        </button>
+      </nav>
+
+
       <section
         className="mioseg-account-content"
         style={{
@@ -752,6 +795,8 @@ export default function AccountPage() {
           boxSizing: "border-box",
         }}
       >
+        {activeTab === "overview" ? (
+          <>
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
@@ -789,7 +834,11 @@ export default function AccountPage() {
             </div>
           ) : null}
         </article>
+          </>
+        ) : null}
 
+        {activeTab === "profile" ? (
+          <>
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
@@ -954,7 +1003,11 @@ export default function AccountPage() {
             </button>
           </div>
         </article>
+          </>
+        ) : null}
 
+        {activeTab === "billing" ? (
+          <>
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
@@ -1198,7 +1251,11 @@ export default function AccountPage() {
             </div>
           ) : null}
         </article>
+          </>
+        ) : null}
 
+        {activeTab === "security" ? (
+          <>
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
@@ -1288,36 +1345,16 @@ export default function AccountPage() {
 
           </div>
         </article>
-
-        <article style={panelStyle}>
-          <div className={styles.cardHeader}>
-            <div>
-              <h2>Nächste Konto-Funktionen</h2>
-              <p>
-                Diese Konto-Bereiche werden als Nächstes weiter ausgebaut.
-              </p>
-            </div>
-            <span>Roadmap</span>
-          </div>
-
-          <div style={{ display: "grid", gap: 10 }}>
-            <RoadmapItem
-              icon="🏢"
-              title="Rechnungsadresse"
-              text="Firma, Name, Straße, PLZ, Ort und Land für korrekte Rechnungen."
-            />
-            <RoadmapItem
-              icon="🛟"
-              title="Support"
-              text="Kontakt & Hilfe direkt mit deinem Nutzerkonto verbinden."
-            />
-          </div>
-        </article>
+          </>
+        ) : null}
 
         <article style={dangerPanelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2 style={{ color: "#fca5a5" }}>Gefahrenbereich</h2>
+              <h2 style={{ color: "#f87171", display: "flex", alignItems: "center", gap: 10 }}>
+                <span aria-hidden="true">🛡️</span>
+                Gefahrenbereich
+              </h2>
               <p>
                 Wenn du dein Konto löschst, werden dein Konto, deine Credits und
                 deine Nutzerzugänge dauerhaft entfernt. Deine eigenen QR-X
@@ -1325,7 +1362,15 @@ export default function AccountPage() {
                 sichtbar.
               </p>
             </div>
-            <span style={{ color: "#fca5a5" }}>Löschen</span>
+            <span
+              style={{
+                color: "#fca5a5",
+                background: "rgba(239,68,68,0.08)",
+                border: "1px solid rgba(248,113,113,0.18)",
+              }}
+            >
+              Konto löschen
+            </span>
           </div>
 
           <div style={{ display: "grid", gap: 14 }}>
@@ -1366,11 +1411,11 @@ export default function AccountPage() {
                 deleteConfirm !== "KONTO LÖSCHEN"
               }
               style={{
-                minHeight: 52,
-                border: 0,
-                borderRadius: 16,
-                background: "#dc2626",
-                color: "#ffffff",
+                minHeight: 48,
+                border: "1px solid rgba(248,113,113,0.34)",
+                borderRadius: 14,
+                background: "rgba(127,29,29,0.22)",
+                color: "#fecaca",
                 fontSize: 15,
                 fontWeight: 950,
                 cursor:
@@ -1544,6 +1589,49 @@ export default function AccountPage() {
   gap: 12px;
 }
 
+
+.mioseg-account-tabs {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid rgba(148,163,184,0.14);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mioseg-account-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.mioseg-account-tabs button {
+  min-height: 44px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #94a3b8;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.mioseg-account-tabs button:hover {
+  color: #ffffff;
+  background: rgba(255,255,255,0.03);
+}
+
+.mioseg-account-tabs button.is-active {
+  color: #ffffff;
+  border-bottom-color: #60a5fa;
+}
+
 .mioseg-security-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1635,70 +1723,6 @@ function SecurityInfoCard({
           {positive ? "● " : "● "}
           {detail}
         </span>
-      </div>
-    </div>
-  );
-}
-
-function RoadmapItem({
-  icon,
-  title,
-  text,
-}: {
-  icon: string;
-  title: string;
-  text: string;
-}) {
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "48px 1fr",
-        gap: 12,
-        alignItems: "center",
-        borderRadius: 18,
-        padding: 14,
-        background: "rgba(255,255,255,0.045)",
-        border: "1px solid rgba(255,255,255,0.075)",
-      }}
-    >
-      <div
-        style={{
-          width: 48,
-          height: 48,
-          display: "grid",
-          placeItems: "center",
-          borderRadius: 18,
-          color: "#07101f",
-          background: "linear-gradient(180deg, #ffffff, #dbeafe)",
-          fontSize: 21,
-          fontWeight: 950,
-        }}
-      >
-        {icon}
-      </div>
-      <div>
-        <strong
-          style={{
-            display: "block",
-            color: "#ffffff",
-            fontSize: 15,
-            fontWeight: 950,
-          }}
-        >
-          {title}
-        </strong>
-        <p
-          style={{
-            margin: "4px 0 0",
-            color: "#94a3b8",
-            fontSize: 12,
-            lineHeight: 1.45,
-            fontWeight: 750,
-          }}
-        >
-          {text}
-        </p>
       </div>
     </div>
   );
@@ -1997,16 +2021,18 @@ const panelStyle: React.CSSProperties = {
 
 const dangerPanelStyle: React.CSSProperties = {
   ...panelStyle,
-  background: "rgba(127, 29, 29, 0.16)",
-  border: "1px solid rgba(248, 113, 113, 0.32)",
+  marginTop: 6,
+  background: "rgba(15, 23, 42, 0.72)",
+  border: "1px solid rgba(248, 113, 113, 0.18)",
+  boxShadow: "none",
 };
 
 const deleteCheckboxStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: 10,
-  color: "#fecaca",
-  fontSize: 14,
+  color: "#cbd5e1",
+  fontSize: 13,
   fontWeight: 850,
   lineHeight: 1.45,
 };
