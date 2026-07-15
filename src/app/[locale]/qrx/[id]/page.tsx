@@ -654,135 +654,46 @@ export default function PublicQrxDetailPage() {
               <div style={coverOverlayStyle} />
 
               <div style={coverContentStyle}>
-                <div style={heroIdentityRowStyle}>
-                  <div style={heroLogoWrapStyle}>
-                    {logo ? (
-                      <img
-                        src={logo}
-                        alt={`${title} Logo`}
-                        style={logoStyle}
-                      />
-                    ) : (
-                      <div style={heroLogoFallbackStyle}>
-                        {isBusiness ? "🏢" : "⌗"}
-                      </div>
-                    )}
-                  </div>
+                {logo ? (
+                  <img src={logo} alt={`${title} Logo`} style={logoStyle} />
+                ) : null}
 
-                  <div style={heroIdentityContentStyle}>
-                    <h1 style={heroTitleStyle}>{title}</h1>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={badgeRowStyle}>
+                    <span style={badgeStyle(isBusiness)}>
+                      {isBusiness ? "🏢 Business QR-X" : "⌗ Normaler QR-X"}
+                    </span>
 
-                    {subtitleTitle ? (
-                      <div style={subtitleTitleStyle}>{subtitleTitle}</div>
+                    {categoryMeta ? (
+                      <span style={categoryBadgeStyle}>
+                        {categoryMeta.icon} {categoryMeta.label}
+                      </span>
                     ) : null}
 
-                    <div style={heroBrandRowStyle}>
-                      {entry.verified ? (
-                        <span style={verifiedBusinessBadgeStyle}>
-                          <span aria-hidden="true">✓</span>
-                          VERIFIED BUSINESS
-                        </span>
-                      ) : isBusiness ? (
-                        <span style={businessBadgeDarkStyle}>
-                          BUSINESS QR-X
-                        </span>
-                      ) : (
-                        <span style={normalBadgeDarkStyle}>
-                          NORMALER QR-X
-                        </span>
-                      )}
-
-                      <span style={heroBrandDividerStyle} aria-hidden="true" />
-
-                      <span style={miosegBrandBadgeStyle}>
-                        <img
-                          src="/logo-wwhite.png"
-                          alt=""
-                          aria-hidden="true"
-                          style={miosegBrandLogoStyle}
-                        />
-                        <span>mioseg qr</span>
-                      </span>
-                    </div>
+                    {entry.verified ? (
+                      <span style={verifiedBadgeStyle}>✓ Verifiziert</span>
+                    ) : null}
                   </div>
+
+                  <h1 style={heroTitleStyle}>{title}</h1>
+                  {subtitleTitle ? (
+                    <div style={subtitleTitleStyle}>{subtitleTitle}</div>
+                  ) : null}
+                  <p style={heroDescriptionStyle}>{description}</p>
                 </div>
               </div>
             </div>
 
-            <section style={statsActionsPanelStyle} aria-label="QR-X Kennzahlen und Aktionen">
-              <div style={statsGridStyle}>
-                {stats.map((item) => (
-                  <article key={item.label} style={statCardStyle}>
-                    <span style={statIconStyle}>{item.icon}</span>
-                    <div>
-                      <strong style={statValueStyle}>{item.value}</strong>
-                      <span style={statLabelStyle}>{item.label}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-
-              {isBusiness ? (
-                <div style={heroActionsColumnStyle}>
-                  <a
-                    href="#"
-                    className={styles.primaryButton}
-                    style={appOpenButtonStyle}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      window.location.href = `/${locale}/get-app`;
-                    }}
-                  >
-                    📱 App öffnen
-                  </a>
-
-                  <div style={heroSecondaryActionsStyle}>
-                    {website ? (
-                      <a
-                        href={website}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={styles.secondaryButton}
-                        style={heroSecondaryActionStyle}
-                      >
-                        🌐 Website
-                      </a>
-                    ) : null}
-
-                    {entry.cta_phone?.trim() ? (
-                      <a
-                        href={`tel:${entry.cta_phone.trim()}`}
-                        className={styles.secondaryButton}
-                        style={heroSecondaryActionStyle}
-                      >
-                        ☎ Anrufen
-                      </a>
-                    ) : null}
-
-                    {entry.cta_email?.trim() ? (
-                      <a
-                        href={`mailto:${entry.cta_email.trim()}`}
-                        className={styles.secondaryButton}
-                        style={heroSecondaryActionStyle}
-                      >
-                        ✉ E-Mail
-                      </a>
-                    ) : null}
-
-                    {navigation ? (
-                      <a
-                        href={navigation}
-                        target="_blank"
-                        rel="noreferrer"
-                        className={styles.secondaryButton}
-                        style={heroSecondaryActionStyle}
-                      >
-                        📍 Navigation
-                      </a>
-                    ) : null}
+            <section style={statsGridStyle} aria-label="QR-X Kennzahlen">
+              {stats.map((item) => (
+                <article key={item.label} style={statCardStyle}>
+                  <span style={statIconStyle}>{item.icon}</span>
+                  <div>
+                    <strong style={statValueStyle}>{item.value}</strong>
+                    <span style={statLabelStyle}>{item.label}</span>
                   </div>
-                </div>
-              ) : null}
+                </article>
+              ))}
             </section>
 
             <div style={{ display: "grid", gap: 16, marginTop: 18 }}>
@@ -807,7 +718,49 @@ export default function PublicQrxDetailPage() {
                 />
               ) : null}
 
+              {isBusiness ? (
+                <div style={ctaGridStyle}>
+                  {entry.cta_phone?.trim() ? (
+                    <a
+                      href={`tel:${entry.cta_phone.trim()}`}
+                      className={styles.primaryButton}
+                    >
+                      Telefon
+                    </a>
+                  ) : null}
 
+                  {website ? (
+                    <a
+                      href={website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.secondaryButton}
+                    >
+                      Webseite öffnen
+                    </a>
+                  ) : null}
+
+                  {entry.cta_email?.trim() ? (
+                    <a
+                      href={`mailto:${entry.cta_email.trim()}`}
+                      className={styles.secondaryButton}
+                    >
+                      E-Mail schreiben
+                    </a>
+                  ) : null}
+
+                  {navigation ? (
+                    <a
+                      href={navigation}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.secondaryButton}
+                    >
+                      Navigation öffnen
+                    </a>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
             <section style={actionsLayoutStyle} aria-label="QR-X Aktionen">
@@ -1108,7 +1061,7 @@ const errorStyle: CSSProperties = {
 };
 
 const coverStyle: CSSProperties = {
-  minHeight: 390,
+  minHeight: 360,
   borderRadius: 28,
   overflow: "hidden",
   position: "relative",
@@ -1118,13 +1071,13 @@ const coverStyle: CSSProperties = {
 const coverImageStyle: CSSProperties = {
   width: "100%",
   height: "100%",
-  minHeight: 390,
+  minHeight: 360,
   objectFit: "cover",
   display: "block",
 };
 
 const coverPlaceholderStyle: CSSProperties = {
-  minHeight: 390,
+  minHeight: 360,
   display: "grid",
   placeItems: "center",
   color: "rgba(255,255,255,0.18)",
@@ -1141,155 +1094,22 @@ const coverOverlayStyle: CSSProperties = {
 
 const coverContentStyle: CSSProperties = {
   position: "absolute",
-  left: 28,
-  right: 28,
-  bottom: 28,
+  left: 24,
+  right: 24,
+  bottom: 24,
+  display: "flex",
+  alignItems: "center",
+  gap: 16,
+  flexWrap: "wrap",
 };
 
 const logoStyle: CSSProperties = {
-  width: "100%",
-  height: "100%",
+  width: 92,
+  height: 92,
   objectFit: "cover",
-  borderRadius: "50%",
-  display: "block",
-};
-
-const heroIdentityRowStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "flex-end",
-  gap: 24,
-  flexWrap: "wrap",
-};
-
-const heroLogoWrapStyle: CSSProperties = {
-  width: "clamp(112px, 12vw, 142px)",
-  height: "clamp(112px, 12vw, 142px)",
-  flex: "0 0 auto",
-  borderRadius: "50%",
-  padding: 5,
-  background: "rgba(255,255,255,0.95)",
-  border: "1px solid rgba(255,255,255,0.7)",
-  boxShadow: "0 20px 54px rgba(0,0,0,0.36)",
-};
-
-const heroLogoFallbackStyle: CSSProperties = {
-  width: "100%",
-  height: "100%",
-  display: "grid",
-  placeItems: "center",
-  borderRadius: "50%",
-  background: "linear-gradient(180deg,#ffffff,#dbeafe)",
-  color: "#0f172a",
-  fontSize: 44,
-};
-
-const heroIdentityContentStyle: CSSProperties = {
-  minWidth: 0,
-  flex: 1,
-  paddingBottom: 8,
-};
-
-const heroBrandRowStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 14,
-  flexWrap: "wrap",
-  marginTop: 16,
-};
-
-const verifiedBusinessBadgeStyle: CSSProperties = {
-  minHeight: 42,
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 9,
-  borderRadius: 999,
-  padding: "0 18px",
-  background: "rgba(8,17,29,0.88)",
-  color: "#facc15",
-  border: "1px solid rgba(250,204,21,0.72)",
-  fontSize: 13,
-  fontWeight: 950,
-  letterSpacing: "0.03em",
-  boxShadow: "0 12px 28px rgba(0,0,0,0.22)",
-  backdropFilter: "blur(12px)",
-};
-
-const businessBadgeDarkStyle: CSSProperties = {
-  ...verifiedBusinessBadgeStyle,
-  color: "#fde68a",
-};
-
-const normalBadgeDarkStyle: CSSProperties = {
-  ...verifiedBusinessBadgeStyle,
-  color: "#dbeafe",
-  border: "1px solid rgba(147,197,253,0.4)",
-};
-
-const heroBrandDividerStyle: CSSProperties = {
-  width: 1,
-  height: 28,
-  background: "rgba(250,204,21,0.72)",
-};
-
-const miosegBrandBadgeStyle: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 9,
-  color: "#ffffff",
-  fontSize: 17,
-  fontWeight: 950,
-  textShadow: "0 4px 14px rgba(0,0,0,0.4)",
-};
-
-const miosegBrandLogoStyle: CSSProperties = {
-  width: 34,
-  height: 34,
-  objectFit: "contain",
-  display: "block",
-};
-
-const statsActionsPanelStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) minmax(280px, auto)",
-  alignItems: "center",
-  gap: 18,
-  marginTop: 16,
-  borderRadius: 26,
-  padding: 18,
-  background: "rgba(15,23,42,0.72)",
-  border: "1px solid rgba(148,163,184,0.14)",
-};
-
-const heroActionsColumnStyle: CSSProperties = {
-  display: "grid",
-  gap: 10,
-  justifyItems: "end",
-};
-
-const appOpenButtonStyle: CSSProperties = {
-  minWidth: 220,
-  minHeight: 50,
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  textDecoration: "none",
-};
-
-const heroSecondaryActionsStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  gap: 8,
-  flexWrap: "wrap",
-};
-
-const heroSecondaryActionStyle: CSSProperties = {
-  minHeight: 42,
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  textDecoration: "none",
-  padding: "0 14px",
+  borderRadius: 24,
+  border: "1px solid rgba(255,255,255,0.24)",
+  background: "#fff",
 };
 
 const badgeRowStyle: CSSProperties = {
@@ -1342,19 +1162,18 @@ const verifiedBadgeStyle: CSSProperties = {
 
 const heroTitleStyle: CSSProperties = {
   margin: 0,
-  color: "#ffffff",
-  fontSize: "clamp(30px, 4vw, 48px)",
+  color: "#fff",
+  fontSize: 42,
   lineHeight: 1.05,
   fontWeight: 950,
   letterSpacing: "-0.04em",
-  textShadow: "0 8px 24px rgba(0,0,0,0.42)",
 };
 
 const subtitleTitleStyle: CSSProperties = {
   marginTop: 8,
-  color: "#dbeafe",
+  color: "#bfdbfe",
   fontSize: 16,
-  fontWeight: 850,
+  fontWeight: 950,
 };
 
 const heroDescriptionStyle: CSSProperties = {
@@ -1366,8 +1185,9 @@ const heroDescriptionStyle: CSSProperties = {
 
 const statsGridStyle: CSSProperties = {
   display: "grid",
-  gridTemplateColumns: "repeat(3, minmax(150px, 1fr))",
+  gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
   gap: 12,
+  marginTop: 16,
 };
 
 const statCardStyle: CSSProperties = {
@@ -1414,7 +1234,11 @@ const infoRowStyle: CSSProperties = {
   color: "#cbd5e1",
 };
 
-
+const ctaGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: 10,
+};
 
 const newsListStyle: CSSProperties = {
   display: "grid",

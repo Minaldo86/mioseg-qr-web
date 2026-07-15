@@ -427,7 +427,7 @@ export default async function QrxPage({
     position: "relative",
     overflow: "hidden",
     borderRadius: isMobile ? 22 : 26,
-    minHeight: isMobile ? 240 : 316,
+    minHeight: isMobile ? 300 : 390,
     background: "#0D1728",
     border: "1px solid rgba(59, 130, 246, 0.18)",
     boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
@@ -435,27 +435,28 @@ export default async function QrxPage({
 
   const heroCoverImageStyle: CSSProperties = {
     width: "100%",
-    height: isMobile ? 240 : 316,
+    height: isMobile ? 300 : 390,
     objectFit: "cover",
     display: "block",
-    filter: "brightness(0.72) blur(0.2px)",
+    filter: "brightness(0.78)",
   };
 
   const heroLogoFrameStyle: CSSProperties = {
-    width: isMobile ? 60 : 72,
-    height: isMobile ? 60 : 72,
-    borderRadius: isMobile ? 18 : 22,
+    width: isMobile ? 98 : 138,
+    height: isMobile ? 98 : 138,
+    borderRadius: 999,
     overflow: "hidden",
     background: "#ffffff",
-    border: "1px solid rgba(255,255,255,0.28)",
+    border: "4px solid rgba(255,255,255,0.94)",
   };
 
   const heroTitleStyle: CSSProperties = {
     margin: 0,
     color: "#ffffff",
-    fontSize: isMobile ? 22 : 24,
+    fontSize: isMobile ? 28 : 42,
     lineHeight: 1.15,
-    fontWeight: 800,
+    fontWeight: 900,
+    letterSpacing: "-0.03em",
     textShadow: "0 8px 22px rgba(0,0,0,0.38)",
   };
 
@@ -640,22 +641,43 @@ export default async function QrxPage({
 
               <div style={heroOverlayStyle} />
 
-              {entry.verified ? (
-                <div style={heroVerifiedBadgeStyle}>
-                  <span style={heroVerifiedDotStyle}>✓</span>
-                  VERIFIED
-                </div>
-              ) : null}
-
-              <div style={heroTitleWrapStyle}>
-                {logoUrl ? (
-                  <div style={heroLogoFrameStyle}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
+              <div style={heroIdentityStyle}>
+                <div style={heroLogoFrameStyle}>
+                  {logoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img src={logoUrl} alt="Logo" style={heroLogoStyle} />
-                  </div>
-                ) : null}
+                  ) : (
+                    <div style={heroLogoFallbackContentStyle}>🏢</div>
+                  )}
+                </div>
 
-                <h1 style={heroTitleStyle}>{companyName}</h1>
+                <div style={heroIdentityTextStyle}>
+                  <h1 style={heroTitleStyle}>{companyName}</h1>
+
+                  <div style={heroBrandRowStyle}>
+                    {entry.verified ? (
+                      <span style={heroVerifiedBusinessBadgeStyle}>
+                        <span style={heroVerifiedBusinessIconStyle}>✓</span>
+                        VERIFIED BUSINESS
+                      </span>
+                    ) : (
+                      <span style={heroBusinessBadgeStyle}>BUSINESS QR-X</span>
+                    )}
+
+                    <span style={heroBrandDividerStyle} aria-hidden="true" />
+
+                    <span style={heroMiosegBrandStyle}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/logo-wwhite.png"
+                        alt=""
+                        aria-hidden="true"
+                        style={heroMiosegLogoStyle}
+                      />
+                      <span>mioseg qr</span>
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
@@ -674,28 +696,15 @@ export default async function QrxPage({
           </section>
         )}
 
-        {entry.verified ? (
-          <section style={verifiedNoticeStyle}>
-            <div style={verifiedIconStyle}>✓</div>
-            <div>
-              <h2 style={verifiedTitleStyle}>Verifiziert</h2>
-              <p style={verifiedTextStyle}>
-                Dieses Business-QR-X wurde erfolgreich geprüft und ist verifiziert.
-              </p>
-            </div>
-          </section>
-        ) : null}
-
         {/* 2. Business-Profil */}
         <section style={sectionCardStyle}>
-          <div style={profileHeaderStyle}>
-            <span style={profileKickerStyle}>{isBusiness ? "BUSINESS PROFILE" : "QR-X PROFIL"}</span>
-            {categoryMeta ? (
+          {categoryMeta ? (
+            <div style={profileCategoryHeaderStyle}>
               <span style={profileCategoryPillStyle}>
                 {categoryMeta.icon} {categoryMeta.label}
               </span>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
           <div style={profileStatsStyle}>
             <div style={profileStatBoxStyle}>
@@ -1039,7 +1048,7 @@ const heroCardStyle: CSSProperties = {
   position: "relative",
   overflow: "hidden",
   borderRadius: 26,
-  minHeight: 316,
+  minHeight: 390,
   background: "#0D1728",
   border: "1px solid rgba(59, 130, 246, 0.18)",
   boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
@@ -1065,43 +1074,104 @@ const heroOverlayStyle: CSSProperties = {
     "linear-gradient(180deg, rgba(6,12,21,0.08) 0%, rgba(6,12,21,0.3) 48%, rgba(6,12,21,0.82) 100%)",
 };
 
-const heroVerifiedBadgeStyle: CSSProperties = {
+const heroIdentityStyle: CSSProperties = {
   position: "absolute",
-  top: 16,
-  right: 16,
-  minHeight: 38,
-  borderRadius: 999,
-  padding: "0 16px",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 8,
-  background: "#C9A84F",
-  color: "#ffffff",
-  fontWeight: 800,
-  letterSpacing: "0.02em",
-  boxShadow: "0 10px 22px rgba(0,0,0,0.24)",
+  left: 30,
+  right: 30,
+  bottom: 26,
+  display: "flex",
+  alignItems: "flex-end",
+  gap: 24,
+  flexWrap: "wrap",
 };
 
-const heroVerifiedDotStyle: CSSProperties = {
-  width: 20,
-  height: 20,
+const heroIdentityTextStyle: CSSProperties = {
+  minWidth: 0,
+  flex: "1 1 320px",
+  paddingBottom: 8,
+};
+
+const heroLogoFallbackContentStyle: CSSProperties = {
+  width: "100%",
+  height: "100%",
+  display: "grid",
+  placeItems: "center",
+  background: "linear-gradient(180deg,#ffffff,#dbeafe)",
+  color: "#0f172a",
+  fontSize: 42,
+};
+
+const heroBrandRowStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 14,
+  flexWrap: "wrap",
+  marginTop: 16,
+};
+
+const heroVerifiedBusinessBadgeStyle: CSSProperties = {
+  minHeight: 42,
+  borderRadius: 999,
+  padding: "0 18px",
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 9,
+  background: "rgba(8,17,29,0.88)",
+  color: "#facc15",
+  border: "1px solid rgba(250,204,21,0.74)",
+  fontWeight: 900,
+  fontSize: 13,
+  letterSpacing: "0.03em",
+  boxShadow: "0 12px 28px rgba(0,0,0,0.24)",
+  backdropFilter: "blur(12px)",
+};
+
+const heroVerifiedBusinessIconStyle: CSSProperties = {
+  width: 22,
+  height: 22,
   borderRadius: 999,
   display: "grid",
   placeItems: "center",
-  background: "rgba(15,23,42,0.22)",
+  border: "1px solid currentColor",
   fontSize: 12,
 };
 
-const heroTitleWrapStyle: CSSProperties = {
-  position: "absolute",
-  left: 22,
-  right: 22,
-  bottom: 24,
-  display: "grid",
-  justifyItems: "center",
-  gap: 10,
-  textAlign: "center",
+const heroBusinessBadgeStyle: CSSProperties = {
+  ...heroVerifiedBusinessBadgeStyle,
+  color: "#fde68a",
 };
+
+const heroBrandDividerStyle: CSSProperties = {
+  width: 1,
+  height: 30,
+  background: "rgba(250,204,21,0.68)",
+};
+
+const heroMiosegBrandStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 9,
+  color: "#ffffff",
+  fontSize: 18,
+  fontWeight: 900,
+  textShadow: "0 4px 14px rgba(0,0,0,0.4)",
+};
+
+const heroMiosegLogoStyle: CSSProperties = {
+  width: 34,
+  height: 34,
+  objectFit: "contain",
+  display: "block",
+};
+
+const profileCategoryHeaderStyle: CSSProperties = {
+  display: "flex",
+  justifyContent: "flex-end",
+  marginBottom: 18,
+};
+
+
+
 
 const heroLogoFrameStyle: CSSProperties = {
   width: 72,
@@ -1136,63 +1206,11 @@ const normalHeroTitleStyle: CSSProperties = {
   fontWeight: 950,
 };
 
-const verifiedNoticeStyle: CSSProperties = {
-  width: "min(960px, calc(100% - 32px))",
-  margin: "0 auto 20px",
-  borderRadius: 24,
-  padding: 20,
-  background: "#06281F",
-  border: "1px solid rgba(52,211,153,0.34)",
-  display: "flex",
-  alignItems: "center",
-  gap: 18,
-  boxShadow: "0 8px 32px rgba(0,0,0,0.22)",
-};
 
-const verifiedIconStyle: CSSProperties = {
-  width: 50,
-  height: 50,
-  borderRadius: 999,
-  background: "#2BA36D",
-  color: "#ffffff",
-  display: "grid",
-  placeItems: "center",
-  fontWeight: 900,
-  fontSize: 20,
-  flex: "0 0 auto",
-};
 
-const verifiedTitleStyle: CSSProperties = {
-  margin: 0,
-  color: "#ffffff",
-  fontSize: 20,
-  fontWeight: 800,
-};
 
-const verifiedTextStyle: CSSProperties = {
-  margin: "6px 0 0",
-  color: "rgba(255,255,255,0.82)",
-  lineHeight: 1.55,
-  fontWeight: 400,
-  fontSize: 16,
-};
 
-const profileHeaderStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  gap: 14,
-  flexWrap: "wrap",
-  marginBottom: 30,
-};
 
-const profileKickerStyle: CSSProperties = {
-  color: "#D4AF37",
-  fontSize: 14,
-  fontWeight: 800,
-  letterSpacing: "0.14em",
-  textTransform: "uppercase",
-};
 
 const profileCategoryPillStyle: CSSProperties = {
   minHeight: 38,
