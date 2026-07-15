@@ -642,16 +642,19 @@ export default async function QrxPage({
               <div style={heroOverlayStyle} />
 
               <div style={heroIdentityStyle}>
-                <div style={heroLogoFrameStyle}>
-                  {logoUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
+                {logoUrl ? (
+                  <div style={heroLogoFrameStyle}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={logoUrl} alt="Logo" style={heroLogoStyle} />
-                  ) : (
-                    <div style={heroLogoFallbackContentStyle}>🏢</div>
-                  )}
-                </div>
+                  </div>
+                ) : null}
 
-                <div style={heroIdentityTextStyle}>
+                <div
+                  style={{
+                    ...heroIdentityTextStyle,
+                    flexBasis: logoUrl ? 320 : "100%",
+                  }}
+                >
                   <h1 style={heroTitleStyle}>{companyName}</h1>
 
                   <div style={heroBrandRowStyle}>
@@ -1089,16 +1092,6 @@ const heroIdentityTextStyle: CSSProperties = {
   minWidth: 0,
   flex: "1 1 320px",
   paddingBottom: 8,
-};
-
-const heroLogoFallbackContentStyle: CSSProperties = {
-  width: "100%",
-  height: "100%",
-  display: "grid",
-  placeItems: "center",
-  background: "linear-gradient(180deg,#ffffff,#dbeafe)",
-  color: "#0f172a",
-  fontSize: 42,
 };
 
 const heroBrandRowStyle: CSSProperties = {
