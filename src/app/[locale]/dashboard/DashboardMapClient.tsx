@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 type MarkerKind =
@@ -427,7 +427,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     };
   }, [locale]);
 
-  const loadPointsForViewport = async (rawViewport: MapViewport) => {
+  const loadPointsForViewport = useCallback(async (rawViewport: MapViewport) => {
     const userId = userIdRef.current;
     if (!userId) return;
 
@@ -443,7 +443,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           : "Großer Kartenausschnitt",
     );
 
-    let ownQuery = supabase
+    const ownQuery = supabase
       .from("qr_x_entries")
       .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at")
       .eq("owner_user_id", userId)
@@ -453,7 +453,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       .gte("location_lng", viewport.west)
       .lte("location_lng", viewport.east);
 
-    let scansQuery = supabase
+    const scansQuery = supabase
       .from("user_scans")
       .select("id,name,data,latitude,longitude")
       .eq("user_id", userId)
@@ -555,7 +555,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
     setPoints([...ownPoints, ...savedPoints, ...scanPoints]);
     setLoading(false);
-  };
+  }, [locale]);
 
   const filteredPoints = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -569,7 +569,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     });
   }, [points, filter, search]);
 
-  const updateVisiblePoints = () => {
+  const updateVisiblePoints = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
 
@@ -579,9 +579,9 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         .filter(([, marker]) => mapBounds.contains(marker.getLatLng()))
         .map(([id]) => id),
     );
-  };
+  }, []);
 
-  const scheduleViewportLoad = () => {
+  const scheduleViewportLoad = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
 
@@ -595,7 +595,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     viewportTimerRef.current = window.setTimeout(() => {
       void loadPointsForViewport(viewportFromMap(map));
     }, VIEWPORT_DEBOUNCE_MS);
-  };
+  }, [loadPointsForViewport, updateVisiblePoints]);
 
   useEffect(() => {
     if (!authReady) return;
@@ -652,7 +652,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         mapRef.current = null;
       }
     };
-  }, [locale, authReady]);
+  }, [authReady, loadPointsForViewport, scheduleViewportLoad, updateVisiblePoints]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -662,7 +662,9 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     Object.values(markersRef.current).forEach((marker) => {
       try {
         map.removeLayer(marker);
-      } catch {}
+      } catch (removeError) {
+        console.warn("Dashboard marker could not be removed:", removeError);
+      }
     });
 
     markersRef.current = {};
@@ -696,7 +698,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         .filter(([, marker]) => mapBounds.contains(marker.getLatLng()))
         .map(([id]) => id),
     );
-  }, [filteredPoints]);
+  }, [filteredPoints, updateVisiblePoints]);
 
   const visiblePoints = useMemo(() => {
     if (visibleIds.length === 0) return filteredPoints;
