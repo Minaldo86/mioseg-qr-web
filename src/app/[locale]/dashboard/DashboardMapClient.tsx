@@ -126,6 +126,90 @@ type MapViewport = {
   zoom: number;
 };
 
+type MapCluster = {
+  id: string;
+  latitude: number;
+  longitude: number;
+  points: MapPoint[];
+};
+
+const CLUSTER_PIXEL_SIZE = 76;
+const CLUSTER_MAX_ZOOM = 14;
+
+function projectToWorldPixels(
+  latitude: number,
+  longitude: number,
+  zoom: number,
+) {
+  const scale = 256 * 2 ** zoom;
+  const clampedLatitude = Math.max(-85.05112878, Math.min(85.05112878, latitude));
+  const sinLatitude = Math.sin((clampedLatitude * Math.PI) / 180);
+
+  return {
+    x: ((longitude + 180) / 360) * scale,
+    y:
+      (0.5 -
+        Math.log((1 + sinLatitude) / (1 - sinLatitude)) / (4 * Math.PI)) *
+      scale,
+  };
+}
+
+function clusterMapPoints(points: MapPoint[], zoom: number): MapCluster[] {
+  if (zoom > CLUSTER_MAX_ZOOM) {
+    return points.map((point) => ({
+      id: `point:${point.id}`,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      points: [point],
+    }));
+  }
+
+  const buckets = new Map<
+    string,
+    {
+      latitudeTotal: number;
+      longitudeTotal: number;
+      points: MapPoint[];
+    }
+  >();
+
+  points.forEach((point) => {
+    const projected = projectToWorldPixels(
+      point.latitude,
+      point.longitude,
+      zoom,
+    );
+    const bucketX = Math.floor(projected.x / CLUSTER_PIXEL_SIZE);
+    const bucketY = Math.floor(projected.y / CLUSTER_PIXEL_SIZE);
+    const key = `${bucketX}:${bucketY}`;
+
+    const current = buckets.get(key);
+
+    if (current) {
+      current.latitudeTotal += point.latitude;
+      current.longitudeTotal += point.longitude;
+      current.points.push(point);
+      return;
+    }
+
+    buckets.set(key, {
+      latitudeTotal: point.latitude,
+      longitudeTotal: point.longitude,
+      points: [point],
+    });
+  });
+
+  return Array.from(buckets.entries()).map(([key, bucket]) => ({
+    id:
+      bucket.points.length === 1
+        ? `point:${bucket.points[0].id}`
+        : `cluster:${zoom}:${key}`,
+    latitude: bucket.latitudeTotal / bucket.points.length,
+    longitude: bucket.longitudeTotal / bucket.points.length,
+    points: bucket.points,
+  }));
+}
+
 const DASHBOARD_MAP_STATE_KEY = "mioseg.dashboard.map-state.v1";
 const VIEWPORT_DEBOUNCE_MS = 320;
 const VIEWPORT_PADDING_FACTOR = 0.22;
@@ -358,10 +442,42 @@ function createMarkerHtml(point: MapPoint) {
   `;
 }
 
+function createClusterHtml(cluster: MapCluster) {
+  const count = cluster.points.length;
+  const ownCount = cluster.points.filter(
+    (point) =>
+      point.kind === "own_business" || point.kind === "own_normal",
+  ).length;
+  const savedCount = cluster.points.filter(
+    (point) =>
+      point.kind === "saved_business" || point.kind === "saved_normal",
+  ).length;
+
+  const accent =
+    ownCount > 0
+      ? "#f2b705"
+      : savedCount > 0
+        ? "#059669"
+        : "#2563eb";
+
+  return `
+    <div
+      class="mioseg-dashboard-cluster"
+      title="${count} Einträge"
+      style="--cluster-accent:${escapeAttr(accent)};"
+    >
+      <span class="mioseg-dashboard-cluster-ring"></span>
+      <strong>${count}</strong>
+    </div>
+  `;
+}
+
 export default function DashboardMapClient({ locale }: { locale: string }) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<Record<string, LeafletMarker>>({});
+  const filteredPointsRef = useRef<MapPoint[]>([]);
+  const pendingFocusIdRef = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);
   const savedQrxIdsRef = useRef<string[]>([]);
   const viewportTimerRef = useRef<number | null>(null);
@@ -375,6 +491,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   const [authReady, setAuthReady] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
   const [viewportLabel, setViewportLabel] = useState("Kartenausschnitt");
+  const [mapZoom, setMapZoom] = useState(6);
 
   useEffect(() => {
     let cancelled = false;
@@ -569,15 +686,28 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     });
   }, [points, filter, search]);
 
+  const clusteredPoints = useMemo(
+    () => clusterMapPoints(filteredPoints, mapZoom),
+    [filteredPoints, mapZoom],
+  );
+
+  useEffect(() => {
+    filteredPointsRef.current = filteredPoints;
+  }, [filteredPoints]);
+
   const updateVisiblePoints = useCallback(() => {
     const map = mapRef.current;
     if (!map) return;
 
     const mapBounds = map.getBounds();
     setVisibleIds(
-      Object.entries(markersRef.current)
-        .filter(([, marker]) => mapBounds.contains(marker.getLatLng()))
-        .map(([id]) => id),
+      filteredPointsRef.current
+        .filter((point) =>
+          mapBounds.contains(
+            [point.latitude, point.longitude] as unknown as LeafletLatLng,
+          ),
+        )
+        .map((point) => point.id),
     );
   }, []);
 
@@ -587,6 +717,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
     updateVisiblePoints();
     storeMapState(map);
+    setMapZoom(map.getZoom?.() ?? 6);
 
     if (viewportTimerRef.current) {
       window.clearTimeout(viewportTimerRef.current);
@@ -624,6 +755,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       );
 
       mapRef.current = map;
+      setMapZoom(map.getZoom?.() ?? 6);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap",
@@ -669,7 +801,46 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
     markersRef.current = {};
 
-    filteredPoints.forEach((point) => {
+    clusteredPoints.forEach((cluster) => {
+      if (cluster.points.length > 1) {
+        const clusterIcon = L.divIcon({
+          className: "",
+          html: createClusterHtml(cluster),
+          iconSize: [52, 52],
+          iconAnchor: [26, 26],
+        });
+
+        const clusterMarker = L.marker(
+          [cluster.latitude, cluster.longitude],
+          { icon: clusterIcon },
+        ).addTo(map);
+
+        clusterMarker.on("click", () => {
+          const nextZoom = Math.min(
+            CLUSTER_MAX_ZOOM + 1,
+            Math.max(mapZoom + 2, 8),
+          );
+
+          if (map.flyTo) {
+            map.flyTo(
+              [cluster.latitude, cluster.longitude],
+              nextZoom,
+              { animate: true, duration: 0.65 },
+            );
+          } else {
+            map.setView(
+              [cluster.latitude, cluster.longitude],
+              nextZoom,
+              { animate: true },
+            );
+          }
+        });
+
+        markersRef.current[cluster.id] = clusterMarker;
+        return;
+      }
+
+      const point = cluster.points[0];
       const icon = L.divIcon({
         className: "",
         html: createMarkerHtml(point),
@@ -692,13 +863,18 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       markersRef.current[point.id] = marker;
     });
 
-    const mapBounds = map.getBounds();
-    setVisibleIds(
-      Object.entries(markersRef.current)
-        .filter(([, marker]) => mapBounds.contains(marker.getLatLng()))
-        .map(([id]) => id),
-    );
-  }, [filteredPoints, updateVisiblePoints]);
+    updateVisiblePoints();
+
+    const pendingFocusId = pendingFocusIdRef.current;
+    if (pendingFocusId) {
+      const pendingMarker = markersRef.current[pendingFocusId];
+
+      if (pendingMarker) {
+        pendingFocusIdRef.current = null;
+        window.setTimeout(() => pendingMarker.openPopup(), 120);
+      }
+    }
+  }, [clusteredPoints, mapZoom, updateVisiblePoints]);
 
   const visiblePoints = useMemo(() => {
     if (visibleIds.length === 0) return filteredPoints;
@@ -708,17 +884,31 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
   const focusPoint = (point: MapPoint) => {
     const map = mapRef.current;
-    const marker = markersRef.current[point.id];
-    if (!map || !marker) return;
+    if (!map) return;
 
     setActiveId(point.id);
-    const zoom = Math.max(15, map.getZoom ? map.getZoom() : 15);
+    pendingFocusIdRef.current = point.id;
+
+    const target: [number, number] = [
+      point.latitude,
+      point.longitude,
+    ];
+    const zoom = Math.max(
+      CLUSTER_MAX_ZOOM + 1,
+      map.getZoom ? map.getZoom() : CLUSTER_MAX_ZOOM + 1,
+    );
+
     if (map.flyTo) {
-      map.flyTo(marker.getLatLng(), zoom, { animate: true, duration: 0.75 });
+      map.flyTo(target, zoom, { animate: true, duration: 0.75 });
     } else {
-      map.setView(marker.getLatLng(), zoom, { animate: true });
+      map.setView(target, zoom, { animate: true });
     }
-    window.setTimeout(() => marker.openPopup(), 220);
+
+    const existingMarker = markersRef.current[point.id];
+    if (existingMarker) {
+      pendingFocusIdRef.current = null;
+      window.setTimeout(() => existingMarker.openPopup(), 220);
+    }
   };
 
   const countByKind = filteredPoints.reduce<Record<MarkerKind, number>>(
@@ -780,6 +970,28 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
               </button>
             );
           })}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+            flexWrap: "wrap",
+            color: "#94a3b8",
+            fontSize: 11,
+            fontWeight: 800,
+          }}
+        >
+          <span>
+            {clusteredPoints.length < filteredPoints.length
+              ? `${clusteredPoints.length} Markergruppen für ${filteredPoints.length} Einträge`
+              : `${filteredPoints.length} einzelne Marker`}
+          </span>
+          <span>
+            Cluster lösen sich ab Zoom {CLUSTER_MAX_ZOOM + 1} vollständig auf.
+          </span>
         </div>
       </div>
 
@@ -1024,6 +1236,38 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   .mioseg-dashboard-map-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.mioseg-dashboard-cluster {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #0f2138 0%, #142b49 100%);
+  border: 3px solid #ffffff;
+  color: #ffffff;
+  box-shadow:
+    0 15px 34px rgba(0,0,0,0.3),
+    0 0 0 5px color-mix(in srgb, var(--cluster-accent) 24%, transparent);
+  cursor: pointer;
+}
+
+.mioseg-dashboard-cluster strong {
+  position: relative;
+  z-index: 2;
+  font-size: 15px;
+  line-height: 1;
+  font-weight: 950;
+}
+
+.mioseg-dashboard-cluster-ring {
+  position: absolute;
+  inset: 5px;
+  border-radius: 999px;
+  border: 2px solid var(--cluster-accent);
+  opacity: 0.86;
 }
 
 .mioseg-dashboard-marker {
