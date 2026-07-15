@@ -62,24 +62,33 @@ type LeafletLatLng = unknown;
 
 type LeafletBounds = {
   contains: (latLng: LeafletLatLng) => boolean;
+  getSouth: () => number;
+  getWest: () => number;
+  getNorth: () => number;
+  getEast: () => number;
 };
 
 type LeafletMarker = {
-  addTo: (map: LeafletMap) => LeafletMarker;
-  bindPopup: (html: string, options?: { maxWidth?: number; className?: string }) => LeafletMarker;
-  getLatLng: () => LeafletLatLng;
-  openPopup: () => LeafletMarker;
-  on: (eventName: string, handler: () => void) => LeafletMarker;
+  addTo(map: LeafletMap): LeafletMarker;
+  bindPopup(
+    html: string,
+    options?: { maxWidth?: number; className?: string },
+  ): LeafletMarker;
+  getLatLng(): LeafletLatLng;
+  openPopup(): LeafletMarker;
+  on(eventName: string, handler: () => void): LeafletMarker;
 };
 
 type LeafletMap = {
   setView: (center: [number, number] | LeafletLatLng, zoom: number, options?: { animate?: boolean }) => LeafletMap;
+  getCenter?: () => { lat: number; lng: number };
   fitBounds: (bounds: [number, number][], options?: { padding?: [number, number]; maxZoom?: number }) => LeafletMap;
   flyTo?: (center: [number, number] | LeafletLatLng, zoom: number, options?: { animate?: boolean; duration?: number }) => LeafletMap;
   getZoom?: () => number;
   getBounds: () => LeafletBounds;
   on: (eventName: string, handler: () => void) => LeafletMap;
   off: (eventName: string, handler: () => void) => LeafletMap;
+  removeLayer: (layer: unknown) => LeafletMap;
   remove: () => void;
 };
 
@@ -108,6 +117,99 @@ const LEGEND: Array<{ kind: MarkerKind; label: string; color: string }> = [
 ];
 
 type FilterMode = "all" | "own" | "saved" | "business" | "normal" | "scan" | "verified";
+
+type MapViewport = {
+  south: number;
+  west: number;
+  north: number;
+  east: number;
+  zoom: number;
+};
+
+const DASHBOARD_MAP_STATE_KEY = "mioseg.dashboard.map-state.v1";
+const VIEWPORT_DEBOUNCE_MS = 320;
+const VIEWPORT_PADDING_FACTOR = 0.22;
+
+function expandViewport(viewport: MapViewport): MapViewport {
+  const latPadding = Math.max(
+    0.03,
+    (viewport.north - viewport.south) * VIEWPORT_PADDING_FACTOR,
+  );
+  const lngPadding = Math.max(
+    0.03,
+    (viewport.east - viewport.west) * VIEWPORT_PADDING_FACTOR,
+  );
+
+  return {
+    south: Math.max(-90, viewport.south - latPadding),
+    west: Math.max(-180, viewport.west - lngPadding),
+    north: Math.min(90, viewport.north + latPadding),
+    east: Math.min(180, viewport.east + lngPadding),
+    zoom: viewport.zoom,
+  };
+}
+
+function viewportFromMap(map: LeafletMap): MapViewport {
+  const bounds = map.getBounds();
+
+  return {
+    south: bounds.getSouth(),
+    west: bounds.getWest(),
+    north: bounds.getNorth(),
+    east: bounds.getEast(),
+    zoom: map.getZoom?.() ?? 6,
+  };
+}
+
+function readStoredMapState() {
+  try {
+    const raw = window.localStorage.getItem(DASHBOARD_MAP_STATE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as {
+      center?: [number, number];
+      zoom?: number;
+    };
+
+    const lat = parsed.center?.[0];
+    const lng = parsed.center?.[1];
+    const zoom = parsed.zoom;
+
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng) ||
+      !Number.isFinite(zoom)
+    ) {
+      return null;
+    }
+
+    return {
+      center: [lat as number, lng as number] as [number, number],
+      zoom: Math.min(19, Math.max(2, zoom as number)),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function storeMapState(map: LeafletMap) {
+  try {
+    const center = map.getCenter?.();
+    const zoom = map.getZoom?.();
+
+    if (!center || !Number.isFinite(zoom)) return;
+
+    window.localStorage.setItem(
+      DASHBOARD_MAP_STATE_KEY,
+      JSON.stringify({
+        center: [center.lat, center.lng],
+        zoom,
+      }),
+    );
+  } catch {
+    // Optional browser storage.
+  }
+}
 
 const FILTERS: Array<{ value: FilterMode; label: string }> = [
   { value: "all", label: "Alle" },
@@ -260,16 +362,24 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<Record<string, LeafletMarker>>({});
+  const userIdRef = useRef<string | null>(null);
+  const savedQrxIdsRef = useRef<string[]>([]);
+  const viewportTimerRef = useRef<number | null>(null);
+  const viewportRequestRef = useRef(0);
   const [points, setPoints] = useState<MapPoint[]>([]);
   const [visibleIds, setVisibleIds] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterMode>("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
   const [legendOpen, setLegendOpen] = useState(false);
+  const [viewportLabel, setViewportLabel] = useState("Kartenausschnitt");
 
   useEffect(() => {
-    async function loadMapPoints() {
+    let cancelled = false;
+
+    async function prepareViewportData() {
       setLoading(true);
 
       const {
@@ -277,122 +387,175 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         error: userError,
       } = await supabase.auth.getUser();
 
-      if (userError) console.warn("Dashboard map user error:", userError.message);
+      if (userError) {
+        console.warn("Dashboard map user error:", userError.message);
+      }
 
-      if (!user) {
+      if (!user || cancelled) {
         setPoints([]);
         setLoading(false);
+        setAuthReady(true);
         return;
       }
 
-      const userId = user.id;
+      userIdRef.current = user.id;
 
-      const [ownQrxRes, savesRes, scansRes] = await Promise.all([
-        supabase
-          .from("qr_x_entries")
-          .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at")
-          .eq("owner_user_id", userId)
-          .returns<QrxEntry[]>(),
+      const { data: saveRows, error: savesError } = await supabase
+        .from("qrx_saves")
+        .select("qrx_id")
+        .eq("user_id", user.id)
+        .returns<SaveRow[]>();
 
-        supabase
-          .from("qrx_saves")
-          .select("qrx_id")
-          .eq("user_id", userId)
-          .returns<SaveRow[]>(),
-
-        supabase
-          .from("user_scans")
-          .select("id,name,data,latitude,longitude")
-          .eq("user_id", userId)
-          .returns<UserScan[]>(),
-      ]);
-
-      if (ownQrxRes.error) console.warn("Dashboard map own QR-X error:", ownQrxRes.error.message);
-      if (savesRes.error) console.warn("Dashboard map saves error:", savesRes.error.message);
-      if (scansRes.error) console.warn("Dashboard map scans error:", scansRes.error.message);
-
-      const savedQrxIds = Array.from(new Set((savesRes.data ?? []).map((row) => row.qrx_id).filter(Boolean))) as string[];
-
-      let savedQrx: QrxEntry[] = [];
-
-      if (savedQrxIds.length > 0) {
-        const { data, error } = await supabase
-          .from("qr_x_entries")
-          .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at")
-          .in("id", savedQrxIds)
-          .returns<QrxEntry[]>();
-
-        if (error) console.warn("Dashboard map saved QR-X details error:", error.message);
-        savedQrx = data ?? [];
+      if (savesError) {
+        console.warn("Dashboard map saves error:", savesError.message);
       }
 
-      const ownPoints: MapPoint[] = (ownQrxRes.data ?? [])
-        .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
-        .map((entry) => ({
-          id: `own-${entry.id}`,
-          rawId: entry.id,
-          title: getQrxTitle(entry),
-          description: getQrxDescription(entry),
-          href: `/qrx/${entry.id}`,
-          editHref: `/${locale}/dashboard/qrx/${entry.id}/edit`,
-          latitude: entry.location_lat as number,
-          longitude: entry.location_lng as number,
-          kind: entry.type === "business" ? "own_business" : "own_normal",
-          locationName: entry.location_name,
-          category: entry.category,
-          verified: Boolean(entry.verified),
-          followerCount: Number(entry.follower_count ?? 0),
-          viewCount: Number(entry.views_total ?? 0),
-          coverUrl: entry.cover_image_url,
-        }));
+      savedQrxIdsRef.current = Array.from(
+        new Set((saveRows ?? []).map((row) => row.qrx_id).filter(Boolean)),
+      ) as string[];
 
-      const savedPoints: MapPoint[] = savedQrx
-        .filter((entry) => entry.owner_user_id !== userId)
-        .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
-        .map((entry) => ({
-          id: `saved-${entry.id}`,
-          rawId: entry.id,
-          title: getQrxTitle(entry),
-          description: getQrxDescription(entry),
-          href: `/qrx/${entry.id}`,
-          editHref: null,
-          latitude: entry.location_lat as number,
-          longitude: entry.location_lng as number,
-          kind: entry.type === "business" ? "saved_business" : "saved_normal",
-          locationName: entry.location_name,
-          category: entry.category,
-          verified: Boolean(entry.verified),
-          followerCount: Number(entry.follower_count ?? 0),
-          viewCount: Number(entry.views_total ?? 0),
-          coverUrl: entry.cover_image_url,
-        }));
-
-      const scanPoints: MapPoint[] = (scansRes.data ?? [])
-        .filter((scan) => isValidCoordinate(scan.latitude, scan.longitude))
-        .map((scan) => ({
-          id: `scan-${scan.id}`,
-          rawId: scan.id,
-          title: scan.name?.trim() || "Normaler Scan",
-          description: scan.data?.trim() || "Gespeicherter QR-Code",
-          href: scan.data?.startsWith("http://") || scan.data?.startsWith("https://") ? scan.data : null,
-          editHref: null,
-          latitude: scan.latitude as number,
-          longitude: scan.longitude as number,
-          kind: "scan",
-          locationName: scan.name?.trim() || null,
-          category: null,
-          verified: false,
-          followerCount: 0,
-          viewCount: 0,
-          coverUrl: null,
-        }));
-
-      setPoints([...ownPoints, ...savedPoints, ...scanPoints]);
-      setLoading(false);
+      if (!cancelled) {
+        setLoading(false);
+        setAuthReady(true);
+      }
     }
 
-    void loadMapPoints();
+    void prepareViewportData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [locale]);
+
+  const loadPointsForViewport = async (rawViewport: MapViewport) => {
+    const userId = userIdRef.current;
+    if (!userId) return;
+
+    const requestId = ++viewportRequestRef.current;
+    const viewport = expandViewport(rawViewport);
+
+    setLoading(true);
+    setViewportLabel(
+      rawViewport.zoom >= 13
+        ? "Nahbereich"
+        : rawViewport.zoom >= 9
+          ? "Region"
+          : "Großer Kartenausschnitt",
+    );
+
+    let ownQuery = supabase
+      .from("qr_x_entries")
+      .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at")
+      .eq("owner_user_id", userId)
+      .is("deleted_at", null)
+      .gte("location_lat", viewport.south)
+      .lte("location_lat", viewport.north)
+      .gte("location_lng", viewport.west)
+      .lte("location_lng", viewport.east);
+
+    let scansQuery = supabase
+      .from("user_scans")
+      .select("id,name,data,latitude,longitude")
+      .eq("user_id", userId)
+      .gte("latitude", viewport.south)
+      .lte("latitude", viewport.north)
+      .gte("longitude", viewport.west)
+      .lte("longitude", viewport.east);
+
+    const savedIds = savedQrxIdsRef.current;
+    const savedPromise =
+      savedIds.length > 0
+        ? supabase
+            .from("qr_x_entries")
+            .select("id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at")
+            .in("id", savedIds)
+            .is("deleted_at", null)
+            .gte("location_lat", viewport.south)
+            .lte("location_lat", viewport.north)
+            .gte("location_lng", viewport.west)
+            .lte("location_lng", viewport.east)
+            .returns<QrxEntry[]>()
+        : Promise.resolve({ data: [] as QrxEntry[], error: null });
+
+    const [ownQrxRes, savedQrxRes, scansRes] = await Promise.all([
+      ownQuery.returns<QrxEntry[]>(),
+      savedPromise,
+      scansQuery.returns<UserScan[]>(),
+    ]);
+
+    if (requestId != viewportRequestRef.current) return;
+
+    if (ownQrxRes.error) console.warn("Dashboard viewport own QR-X error:", ownQrxRes.error.message);
+    if (savedQrxRes.error) console.warn("Dashboard viewport saved QR-X error:", savedQrxRes.error.message);
+    if (scansRes.error) console.warn("Dashboard viewport scans error:", scansRes.error.message);
+
+    const ownPoints: MapPoint[] = (ownQrxRes.data ?? [])
+      .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
+      .map((entry) => ({
+        id: `own-${entry.id}`,
+        rawId: entry.id,
+        title: getQrxTitle(entry),
+        description: getQrxDescription(entry),
+        href: `/qrx/${entry.id}`,
+        editHref: `/${locale}/dashboard/qrx/${entry.id}/edit`,
+        latitude: entry.location_lat as number,
+        longitude: entry.location_lng as number,
+        kind: entry.type === "business" ? "own_business" : "own_normal",
+        locationName: entry.location_name,
+        category: entry.category,
+        verified: Boolean(entry.verified),
+        followerCount: Number(entry.follower_count ?? 0),
+        viewCount: Number(entry.views_total ?? 0),
+        coverUrl: entry.cover_image_url,
+      }));
+
+    const savedPoints: MapPoint[] = (savedQrxRes.data ?? [])
+      .filter((entry) => entry.owner_user_id !== userId)
+      .filter((entry) => isValidCoordinate(entry.location_lat, entry.location_lng))
+      .map((entry) => ({
+        id: `saved-${entry.id}`,
+        rawId: entry.id,
+        title: getQrxTitle(entry),
+        description: getQrxDescription(entry),
+        href: `/qrx/${entry.id}`,
+        editHref: null,
+        latitude: entry.location_lat as number,
+        longitude: entry.location_lng as number,
+        kind: entry.type === "business" ? "saved_business" : "saved_normal",
+        locationName: entry.location_name,
+        category: entry.category,
+        verified: Boolean(entry.verified),
+        followerCount: Number(entry.follower_count ?? 0),
+        viewCount: Number(entry.views_total ?? 0),
+        coverUrl: entry.cover_image_url,
+      }));
+
+    const scanPoints: MapPoint[] = (scansRes.data ?? [])
+      .filter((scan) => isValidCoordinate(scan.latitude, scan.longitude))
+      .map((scan) => ({
+        id: `scan-${scan.id}`,
+        rawId: scan.id,
+        title: scan.name?.trim() || "Normaler Scan",
+        description: scan.data?.trim() || "Gespeicherter QR-Code",
+        href:
+          scan.data?.startsWith("http://") || scan.data?.startsWith("https://")
+            ? scan.data
+            : null,
+        editHref: null,
+        latitude: scan.latitude as number,
+        longitude: scan.longitude as number,
+        kind: "scan",
+        locationName: scan.name?.trim() || null,
+        category: null,
+        verified: false,
+        followerCount: 0,
+        viewCount: 0,
+        coverUrl: null,
+      }));
+
+    setPoints([...ownPoints, ...savedPoints, ...scanPoints]);
+    setLoading(false);
+  };
 
   const filteredPoints = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -406,8 +569,36 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     });
   }, [points, filter, search]);
 
+  const updateVisiblePoints = () => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const mapBounds = map.getBounds();
+    setVisibleIds(
+      Object.entries(markersRef.current)
+        .filter(([, marker]) => mapBounds.contains(marker.getLatLng()))
+        .map(([id]) => id),
+    );
+  };
+
+  const scheduleViewportLoad = () => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    updateVisiblePoints();
+    storeMapState(map);
+
+    if (viewportTimerRef.current) {
+      window.clearTimeout(viewportTimerRef.current);
+    }
+
+    viewportTimerRef.current = window.setTimeout(() => {
+      void loadPointsForViewport(viewportFromMap(map));
+    }, VIEWPORT_DEBOUNCE_MS);
+  };
+
   useEffect(() => {
-    if (loading) return;
+    if (!authReady) return;
     let cancelled = false;
 
     async function boot() {
@@ -420,12 +611,16 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         mapRef.current = null;
       }
 
+      const storedMapState = readStoredMapState();
       const fallbackCenter: [number, number] =
-        filteredPoints.length > 0 ? [filteredPoints[0].latitude, filteredPoints[0].longitude] : [51.0, 9.0];
+        storedMapState?.center ?? [51.0, 9.0];
 
-      const map = L.map(mapElRef.current, { scrollWheelZoom: true, zoomControl: true }).setView(
+      const map = L.map(mapElRef.current, {
+        scrollWheelZoom: true,
+        zoomControl: true,
+      }).setView(
         fallbackCenter,
-        filteredPoints.length > 0 ? 10 : 6
+        storedMapState?.zoom ?? 6,
       );
 
       mapRef.current = map;
@@ -435,55 +630,73 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         maxZoom: 19,
       }).addTo(map);
 
-      const bounds: [number, number][] = [];
       markersRef.current = {};
 
-      const updateVisiblePoints = () => {
-        const mapBounds = map.getBounds();
-        const ids = Object.entries(markersRef.current)
-          .filter(([, marker]) => mapBounds.contains(marker.getLatLng()))
-          .map(([id]) => id);
-        setVisibleIds(ids);
-      };
+      map.on("moveend", scheduleViewportLoad);
+      map.on("zoomend", scheduleViewportLoad);
 
-      filteredPoints.forEach((point) => {
-        const icon = L.divIcon({
-          className: "",
-          html: createMarkerHtml(point),
-          iconSize: [42, 42],
-          iconAnchor: [21, 39],
-        });
-
-        const marker = L.marker([point.latitude, point.longitude], { icon })
-          .addTo(map)
-          .bindPopup(buildPopup(point), { maxWidth: 280, className: "miosegDashboardPopup" });
-
-        marker.on("click", () => setActiveId(point.id));
-        marker.on("popupopen", () => setActiveId(point.id));
-        markersRef.current[point.id] = marker;
-
-        bounds.push([point.latitude, point.longitude]);
-      });
-
-      if (bounds.length > 1) {
-        map.fitBounds(bounds, { padding: [44, 44], maxZoom: 13 });
-      }
-
-      map.on("moveend", updateVisiblePoints);
-      map.on("zoomend", updateVisiblePoints);
-      window.setTimeout(updateVisiblePoints, 250);
+      await loadPointsForViewport(viewportFromMap(map));
+      window.setTimeout(updateVisiblePoints, 120);
     }
 
     void boot();
 
     return () => {
       cancelled = true;
+      if (viewportTimerRef.current) {
+        window.clearTimeout(viewportTimerRef.current);
+      }
+
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-  }, [loading, filteredPoints]);
+  }, [locale, authReady]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const L = getLeafletWindow().L;
+    if (!map || !L) return;
+
+    Object.values(markersRef.current).forEach((marker) => {
+      try {
+        map.removeLayer(marker);
+      } catch {}
+    });
+
+    markersRef.current = {};
+
+    filteredPoints.forEach((point) => {
+      const icon = L.divIcon({
+        className: "",
+        html: createMarkerHtml(point),
+        iconSize: [42, 42],
+        iconAnchor: [21, 39],
+      });
+
+      const marker: LeafletMarker = L.marker(
+        [point.latitude, point.longitude],
+        { icon },
+      )
+        .addTo(map)
+        .bindPopup(buildPopup(point), {
+          maxWidth: 280,
+          className: "miosegDashboardPopup",
+        });
+
+      marker.on("click", () => setActiveId(point.id));
+      marker.on("popupopen", () => setActiveId(point.id));
+      markersRef.current[point.id] = marker;
+    });
+
+    const mapBounds = map.getBounds();
+    setVisibleIds(
+      Object.entries(markersRef.current)
+        .filter(([, marker]) => mapBounds.contains(marker.getLatLng()))
+        .map(([id]) => id),
+    );
+  }, [filteredPoints]);
 
   const visiblePoints = useMemo(() => {
     if (visibleIds.length === 0) return filteredPoints;
@@ -595,7 +808,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
               background: "linear-gradient(135deg,#10213a 0%,#14253c 52%,#0a1424 100%)",
               color: "#cbd5e1", fontWeight: 850, lineHeight: 1.6
             }}>
-              Keine passenden QR-X oder Scans mit Standortdaten gefunden.
+              Im aktuellen Kartenausschnitt wurden keine passenden QR-X oder Scans gefunden.
             </div>
           ) : null}
 
@@ -610,7 +823,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
             <div>
               <strong style={{ color: "#ffffff", fontSize: 18 }}>Sichtbare Einträge</strong>
               <div style={{ marginTop: 4, color: "#94a3b8", fontSize: 12, fontWeight: 800 }}>
-                Aktueller Kartenausschnitt
+                {viewportLabel}
               </div>
             </div>
             <span style={{
