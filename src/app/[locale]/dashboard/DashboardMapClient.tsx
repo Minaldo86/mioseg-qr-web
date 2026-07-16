@@ -383,11 +383,17 @@ function buildPopup(point: MapPoint) {
   `;
 }
 
-function createMarkerHtml(point: MapPoint) {
+function createMarkerHtml(point: MapPoint, active = false) {
   const color = getMarkerColor(point.kind);
+  const activeClass = active ? " is-active" : "";
 
   return `
-    <div class="mioseg-dashboard-marker" title="${escapeAttr(point.title)}" style="--marker-color:${escapeAttr(color)};">
+    <div
+      class="mioseg-dashboard-marker${activeClass}"
+      title="${escapeAttr(point.title)}"
+      style="--marker-color:${escapeAttr(color)};"
+    >
+      <span class="mioseg-dashboard-marker-focus-ring"></span>
       <span class="mioseg-dashboard-marker-shadow"></span>
       <span class="mioseg-dashboard-marker-pin">
         <span></span>
@@ -825,7 +831,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       const icon = L.divIcon({
         className: "",
         html: isSinglePoint
-          ? createMarkerHtml(point)
+          ? createMarkerHtml(point, activeId === point.id)
           : createClusterHtml(cluster.points.length),
         iconSize: isSinglePoint ? [42, 42] : [58, 58],
         iconAnchor: isSinglePoint ? [21, 39] : [29, 29],
@@ -1529,6 +1535,23 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   position: relative;
   width: 42px;
   height: 42px;
+  transform-origin: 50% 90%;
+  animation: mioseg-dashboard-marker-enter 220ms ease-out both;
+}
+
+.mioseg-dashboard-marker-focus-ring {
+  position: absolute;
+  inset: -7px;
+  border-radius: 999px;
+  border: 3px solid rgba(255,255,255,0);
+  background: rgba(59,130,246,0);
+  transform: scale(0.76);
+  opacity: 0;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
 }
 
 .mioseg-dashboard-marker-shadow {
@@ -1540,6 +1563,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   border-radius: 999px;
   background: rgba(15,23,42,0.26);
   filter: blur(5px);
+  transition: transform 180ms ease, opacity 180ms ease;
 }
 
 .mioseg-dashboard-marker-pin {
@@ -1550,6 +1574,10 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   box-shadow: 0 16px 34px rgba(0,0,0,0.28);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
 }
 
 .mioseg-dashboard-marker-pin span {
@@ -1558,6 +1586,77 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   border-radius: 999px;
   background: rgba(15,23,42,0.18);
   border: 2px solid rgba(255,255,255,0.42);
+}
+
+.mioseg-dashboard-marker:hover .mioseg-dashboard-marker-pin {
+  transform: rotate(-45deg) scale(1.08);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.34);
+}
+
+.mioseg-dashboard-marker.is-active {
+  z-index: 20;
+}
+
+.mioseg-dashboard-marker.is-active .mioseg-dashboard-marker-focus-ring {
+  opacity: 1;
+  transform: scale(1);
+  border-color: rgba(255,255,255,0.96);
+  background: rgba(59,130,246,0.18);
+  box-shadow:
+    0 0 0 7px rgba(59,130,246,0.16),
+    0 0 26px rgba(96,165,250,0.72);
+  animation: mioseg-dashboard-active-ring 1.7s ease-in-out infinite;
+}
+
+.mioseg-dashboard-marker.is-active .mioseg-dashboard-marker-pin {
+  transform: rotate(-45deg) scale(1.14);
+  box-shadow:
+    0 20px 44px rgba(0,0,0,0.38),
+    0 0 24px rgba(96,165,250,0.62);
+  filter: saturate(1.12) brightness(1.06);
+}
+
+.mioseg-dashboard-marker.is-active .mioseg-dashboard-marker-shadow {
+  transform: scale(1.16);
+  opacity: 0.88;
+}
+
+@keyframes mioseg-dashboard-marker-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-7px) scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mioseg-dashboard-active-ring {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 5px rgba(59,130,246,0.14),
+      0 0 20px rgba(96,165,250,0.52);
+  }
+  50% {
+    box-shadow:
+      0 0 0 9px rgba(59,130,246,0.08),
+      0 0 30px rgba(96,165,250,0.78);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mioseg-dashboard-marker,
+  .mioseg-dashboard-marker.is-active .mioseg-dashboard-marker-focus-ring {
+    animation: none;
+  }
+
+  .mioseg-dashboard-marker-pin,
+  .mioseg-dashboard-marker-shadow,
+  .mioseg-dashboard-marker-focus-ring {
+    transition: none;
+  }
 }
 
 .miosegDashboardPopup .leaflet-popup-content-wrapper {
