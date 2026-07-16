@@ -953,17 +953,48 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           ) : null}
 
           {!loading && filteredPoints.length === 0 ? (
-            <div style={{
-              position: "absolute", inset: 0, zIndex: 5, display: "grid", placeItems: "center",
-              padding: 24, textAlign: "center",
-              background: "linear-gradient(135deg,#10213a 0%,#14253c 52%,#0a1424 100%)",
-              color: "#cbd5e1", fontWeight: 850, lineHeight: 1.6
-            }}>
-              Im aktuellen Kartenausschnitt wurden keine passenden QR-X oder Scans gefunden.
+            <div
+              style={{
+                position: "absolute",
+                left: 16,
+                right: 16,
+                bottom: 16,
+                zIndex: 5,
+                display: "flex",
+                justifyContent: "center",
+                pointerEvents: "none",
+              }}
+            >
+              <div
+                style={{
+                  maxWidth: 520,
+                  borderRadius: 16,
+                  padding: "11px 14px",
+                  textAlign: "center",
+                  background: "rgba(15,23,42,0.88)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  color: "#cbd5e1",
+                  fontWeight: 850,
+                  lineHeight: 1.45,
+                  boxShadow: "0 12px 28px rgba(15,23,42,0.22)",
+                  backdropFilter: "blur(10px)",
+                }}
+              >
+                Im aktuellen Kartenausschnitt wurden keine passenden QR-X oder Scans gefunden.
+              </div>
             </div>
           ) : null}
 
-          <div ref={mapElRef} style={{ width: "100%", height: 520, position: "relative", zIndex: 1 }} />
+          <div
+            ref={mapElRef}
+            style={{
+              width: "100%",
+              height: 520,
+              position: "relative",
+              zIndex: 1,
+              background: "#dbeafe",
+            }}
+          />
         </div>
 
         <aside className="mioseg-dashboard-visible-list">
