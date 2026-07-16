@@ -85,6 +85,7 @@ type LeafletMap = {
   getBounds: () => LeafletBounds;
   on: (eventName: string, handler: () => void) => LeafletMap;
   off: (eventName: string, handler: () => void) => LeafletMap;
+  removeLayer: (layer: LeafletMarker) => LeafletMap;
   remove: () => void;
 };
 
@@ -256,6 +257,61 @@ function saveMapState(map: LeafletMap) {
   }
 }
 
+type UserLocation = {
+  latitude: number;
+  longitude: number;
+};
+
+function requestUserLocation(): Promise<UserLocation> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("Standortbestimmung wird von diesem Browser nicht unterstützt."));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          reject(new Error("Der Standortzugriff wurde nicht erlaubt."));
+          return;
+        }
+
+        if (error.code === error.POSITION_UNAVAILABLE) {
+          reject(new Error("Dein Standort konnte nicht bestimmt werden."));
+          return;
+        }
+
+        if (error.code === error.TIMEOUT) {
+          reject(new Error("Die Standortabfrage hat zu lange gedauert."));
+          return;
+        }
+
+        reject(new Error("Dein Standort konnte nicht bestimmt werden."));
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 60000,
+      },
+    );
+  });
+}
+
+function createUserLocationHtml() {
+  return `
+    <div class="mioseg-dashboard-user-location" title="Du bist hier">
+      <span class="mioseg-dashboard-user-location-pulse"></span>
+      <span class="mioseg-dashboard-user-location-dot"></span>
+    </div>
+  `;
+}
+
 async function ensureLeaflet(): Promise<LeafletApi | null> {
   if (typeof window === "undefined") return null;
 
@@ -345,6 +401,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   const mapRef = useRef<LeafletMap | null>(null);
   const leafletRef = useRef<LeafletApi | null>(null);
   const markersRef = useRef<Record<string, LeafletMarker>>({});
+  const userLocationMarkerRef = useRef<LeafletMarker | null>(null);
   const userIdRef = useRef<string | null>(null);
   const savedQrxIdsRef = useRef<string[]>([]);
   const viewportTimerRef = useRef<number | null>(null);
@@ -355,6 +412,8 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
+  const [locatingUser, setLocatingUser] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [legendOpen, setLegendOpen] = useState(false);
 
   useEffect(() => {
@@ -622,6 +681,11 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       }
 
       if (mapRef.current) {
+        if (userLocationMarkerRef.current) {
+          mapRef.current.removeLayer(userLocationMarkerRef.current);
+          userLocationMarkerRef.current = null;
+        }
+
         saveMapState(mapRef.current);
         mapRef.current.remove();
         mapRef.current = null;
@@ -692,6 +756,70 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       map.setView(marker.getLatLng(), zoom, { animate: true });
     }
     window.setTimeout(() => marker.openPopup(), 220);
+  };
+
+  const handleLocateUser = async () => {
+    const map = mapRef.current;
+    const L = leafletRef.current;
+
+    if (!map || !L || locatingUser) return;
+
+    setLocatingUser(true);
+    setLocationError(null);
+
+    try {
+      const location = await requestUserLocation();
+
+      const target: [number, number] = [
+        location.latitude,
+        location.longitude,
+      ];
+
+      if (userLocationMarkerRef.current) {
+        map.removeLayer(userLocationMarkerRef.current);
+        userLocationMarkerRef.current = null;
+      }
+
+      const icon = L.divIcon({
+        className: "",
+        html: createUserLocationHtml(),
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+      });
+
+      const marker = L.marker(target, { icon })
+        .addTo(map)
+        .bindPopup(
+          '<div style="font-family:Inter,system-ui,sans-serif;font-weight:900;color:#0f172a;">Du bist hier</div>',
+          {
+            maxWidth: 220,
+            className: "miosegDashboardPopup",
+          },
+        );
+
+      userLocationMarkerRef.current = marker;
+
+      const zoom = Math.max(15, map.getZoom?.() ?? 15);
+
+      if (map.flyTo) {
+        map.flyTo(target, zoom, {
+          animate: true,
+          duration: 0.75,
+        });
+      } else {
+        map.setView(target, zoom, { animate: true });
+      }
+
+      window.setTimeout(() => marker.openPopup(), 260);
+    } catch (error) {
+      setLocationError(
+        error instanceof Error
+          ? error.message
+          : "Dein Standort konnte nicht bestimmt werden.",
+      );
+    } finally {
+      setLocatingUser(false);
+    }
   };
 
   const countByKind = filteredPoints.reduce<Record<MarkerKind, number>>(
@@ -767,6 +895,54 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
             border: "1px solid rgba(255,255,255,0.08)",
           }}
         >
+          <button
+            type="button"
+            onClick={() => void handleLocateUser()}
+            disabled={locatingUser || !mapReady}
+            title="Meine Position anzeigen"
+            style={{
+              position: "absolute",
+              top: 14,
+              right: 14,
+              zIndex: 6,
+              minHeight: 42,
+              borderRadius: 14,
+              border: "1px solid rgba(15,23,42,0.16)",
+              background: "#ffffff",
+              color: "#0f172a",
+              padding: "0 14px",
+              cursor: locatingUser ? "wait" : "pointer",
+              fontWeight: 900,
+              boxShadow: "0 12px 28px rgba(15,23,42,0.18)",
+              opacity: !mapReady ? 0.55 : 1,
+            }}
+          >
+            {locatingUser ? "Standort wird gesucht …" : "◎ Meine Position"}
+          </button>
+
+          {locationError ? (
+            <div
+              role="alert"
+              style={{
+                position: "absolute",
+                top: 64,
+                right: 14,
+                zIndex: 6,
+                maxWidth: 290,
+                borderRadius: 14,
+                padding: "10px 12px",
+                background: "rgba(127,29,29,0.94)",
+                color: "#ffffff",
+                fontSize: 12,
+                fontWeight: 800,
+                lineHeight: 1.4,
+                boxShadow: "0 12px 28px rgba(15,23,42,0.2)",
+              }}
+            >
+              {locationError}
+            </div>
+          ) : null}
+
           {loading ? (
             <div style={{
               position: "absolute", inset: 0, zIndex: 5, display: "grid", placeItems: "center",
@@ -996,6 +1172,43 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 @media (max-width: 980px) {
   .mioseg-dashboard-map-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+.mioseg-dashboard-user-location {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+}
+
+.mioseg-dashboard-user-location-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(37,99,235,0.2);
+  animation: mioseg-dashboard-location-pulse 1.8s ease-out infinite;
+}
+
+.mioseg-dashboard-user-location-dot {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #2563eb;
+  border: 3px solid #ffffff;
+  box-shadow: 0 8px 20px rgba(37,99,235,0.42);
+}
+
+@keyframes mioseg-dashboard-location-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
   }
 }
 
