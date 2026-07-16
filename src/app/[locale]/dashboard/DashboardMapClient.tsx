@@ -464,6 +464,42 @@ function createClusterHtml(count: number) {
   `;
 }
 
+
+function getNavigationUrl(point: MapPoint) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+    `${point.latitude},${point.longitude}`,
+  )}`;
+}
+
+async function shareMapPoint(point: MapPoint) {
+  const shareUrl =
+    point.href && typeof window !== "undefined"
+      ? new URL(point.href, window.location.origin).toString()
+      : typeof window !== "undefined"
+        ? window.location.href
+        : "";
+
+  const shareData = {
+    title: point.title,
+    text: point.locationName
+      ? `${point.title} – ${point.locationName}`
+      : point.title,
+    url: shareUrl,
+  };
+
+  if (navigator.share) {
+    await navigator.share(shareData);
+    return "shared" as const;
+  }
+
+  if (shareUrl && navigator.clipboard) {
+    await navigator.clipboard.writeText(shareUrl);
+    return "copied" as const;
+  }
+
+  return "unavailable" as const;
+}
+
 export default function DashboardMapClient({ locale }: { locale: string }) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -483,6 +519,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   const [mapZoom, setMapZoom] = useState(6);
   const [locatingUser, setLocatingUser] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [shareFeedbackId, setShareFeedbackId] = useState<string | null>(null);
   const [legendOpen, setLegendOpen] = useState(false);
 
   useEffect(() => {
@@ -884,6 +921,30 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     }
   };
 
+  const handleSharePoint = async (point: MapPoint) => {
+    try {
+      const result = await shareMapPoint(point);
+
+      if (result === "copied") {
+        setShareFeedbackId(point.id);
+        window.setTimeout(() => {
+          setShareFeedbackId((current) =>
+            current === point.id ? null : current,
+          );
+        }, 1800);
+      }
+    } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === "AbortError"
+      ) {
+        return;
+      }
+
+      console.warn("Dashboard share error:", error);
+    }
+  };
+
   const handleLocateUser = async () => {
     const map = mapRef.current;
     const L = leafletRef.current;
@@ -1220,18 +1281,44 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
                     <div
                       onClick={(event) => event.stopPropagation()}
-                      style={{
-                        marginTop: 10, display: "grid",
-                        gridTemplateColumns: point.editHref ? "1fr 1fr" : "1fr",
-                        gap: 8
-                      }}
+                      className="mioseg-dashboard-quick-actions"
                     >
                       {point.href ? (
-                        <a href={point.href} className="mioseg-dashboard-list-button primary">Öffnen</a>
+                        <a
+                          href={point.href}
+                          className="mioseg-dashboard-list-button primary"
+                        >
+                          Öffnen
+                        </a>
                       ) : null}
+
                       {point.editHref ? (
-                        <a href={point.editHref} className="mioseg-dashboard-list-button">Bearbeiten</a>
+                        <a
+                          href={point.editHref}
+                          className="mioseg-dashboard-list-button"
+                        >
+                          Bearbeiten
+                        </a>
                       ) : null}
+
+                      <a
+                        href={getNavigationUrl(point)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mioseg-dashboard-list-button"
+                      >
+                        Navigation
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => void handleSharePoint(point)}
+                        className="mioseg-dashboard-list-button"
+                      >
+                        {shareFeedbackId === point.id
+                          ? "Link kopiert"
+                          : "Teilen"}
+                      </button>
                     </div>
                   </article>
                 );
@@ -1328,6 +1415,18 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   flex-direction: column;
 }
 
+.mioseg-dashboard-quick-actions {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mioseg-dashboard-quick-actions button {
+  font: inherit;
+  cursor: pointer;
+}
+
 .mioseg-dashboard-list-button {
   min-height: 38px;
   border-radius: 12px;
@@ -1340,6 +1439,8 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   text-decoration: none;
   font-weight: 900;
   font-size: 12px;
+  padding: 0 10px;
+  cursor: pointer;
 }
 
 .mioseg-dashboard-list-button.primary {
@@ -1349,6 +1450,12 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
 @media (max-width: 980px) {
   .mioseg-dashboard-map-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .mioseg-dashboard-quick-actions {
     grid-template-columns: 1fr;
   }
 }
