@@ -396,6 +396,74 @@ function createMarkerHtml(point: MapPoint) {
   `;
 }
 
+
+type MapCluster = {
+  id: string;
+  latitude: number;
+  longitude: number;
+  points: MapPoint[];
+};
+
+const CLUSTER_EXPAND_ZOOM = 15;
+
+function getClusterCellSize(zoom: number) {
+  if (zoom >= CLUSTER_EXPAND_ZOOM) return 0;
+
+  const degreesPerTile = 360 / Math.pow(2, Math.max(2, zoom));
+  return Math.max(0.001, degreesPerTile * 0.72);
+}
+
+function clusterMapPoints(points: MapPoint[], zoom: number): MapCluster[] {
+  const cellSize = getClusterCellSize(zoom);
+
+  if (cellSize <= 0) {
+    return points.map((point) => ({
+      id: `point-${point.id}`,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      points: [point],
+    }));
+  }
+
+  const buckets = new Map<string, MapPoint[]>();
+
+  for (const point of points) {
+    const latCell = Math.floor((point.latitude + 90) / cellSize);
+    const lngCell = Math.floor((point.longitude + 180) / cellSize);
+    const key = `${latCell}:${lngCell}`;
+    const existing = buckets.get(key);
+
+    if (existing) {
+      existing.push(point);
+    } else {
+      buckets.set(key, [point]);
+    }
+  }
+
+  return Array.from(buckets.entries()).map(([key, bucket]) => ({
+    id: bucket.length === 1 ? `point-${bucket[0].id}` : `cluster-${key}`,
+    latitude:
+      bucket.reduce((sum, point) => sum + point.latitude, 0) / bucket.length,
+    longitude:
+      bucket.reduce((sum, point) => sum + point.longitude, 0) / bucket.length,
+    points: bucket,
+  }));
+}
+
+function createClusterHtml(count: number) {
+  const size = count >= 100 ? 58 : count >= 10 ? 52 : 46;
+
+  return `
+    <div
+      class="mioseg-dashboard-cluster"
+      title="${count} Einträge"
+      style="width:${size}px;height:${size}px;"
+    >
+      <span>${count}</span>
+    </div>
+  `;
+}
+
 export default function DashboardMapClient({ locale }: { locale: string }) {
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
@@ -412,6 +480,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [mapReady, setMapReady] = useState(false);
+  const [mapZoom, setMapZoom] = useState(6);
   const [locatingUser, setLocatingUser] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [legendOpen, setLegendOpen] = useState(false);
@@ -621,6 +690,11 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     });
   }, [points, filter, search]);
 
+  const clusteredPoints = useMemo(
+    () => clusterMapPoints(filteredPoints, mapZoom),
+    [filteredPoints, mapZoom],
+  );
+
   useEffect(() => {
     if (!mapReady) return;
 
@@ -646,6 +720,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       }).setView(initialCenter, initialZoom);
 
       mapRef.current = map;
+      setMapZoom(initialZoom);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap",
@@ -654,6 +729,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
       const loadCurrentViewport = () => {
         const bounds = map.getBounds();
+        setMapZoom(map.getZoom?.() ?? initialZoom);
         saveMapState(map);
 
         if (viewportTimerRef.current) {
@@ -700,41 +776,81 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     if (!map || !L) return;
 
     Object.values(markersRef.current).forEach((marker) => {
-      const removableMarker = marker as LeafletMarker & {
-        remove?: () => void;
-      };
-      removableMarker.remove?.();
+      map.removeLayer(marker);
     });
 
     markersRef.current = {};
 
-    filteredPoints.forEach((point) => {
+    clusteredPoints.forEach((cluster) => {
+      const isSinglePoint = cluster.points.length === 1;
+      const point = cluster.points[0];
+
       const icon = L.divIcon({
         className: "",
-        html: createMarkerHtml(point),
-        iconSize: [42, 42],
-        iconAnchor: [21, 39],
+        html: isSinglePoint
+          ? createMarkerHtml(point)
+          : createClusterHtml(cluster.points.length),
+        iconSize: isSinglePoint ? [42, 42] : [58, 58],
+        iconAnchor: isSinglePoint ? [21, 39] : [29, 29],
       });
 
-      const marker = L.marker([point.latitude, point.longitude], { icon })
-        .addTo(map)
-        .bindPopup(buildPopup(point), {
+      const marker = L.marker(
+        [cluster.latitude, cluster.longitude],
+        { icon },
+      ).addTo(map);
+
+      if (isSinglePoint) {
+        marker.bindPopup(buildPopup(point), {
           maxWidth: 280,
           className: "miosegDashboardPopup",
         });
 
-      marker.on("click", () => setActiveId(point.id));
-      marker.on("popupopen", () => setActiveId(point.id));
-      markersRef.current[point.id] = marker;
+        marker.on("click", () => setActiveId(point.id));
+        marker.on("popupopen", () => setActiveId(point.id));
+        markersRef.current[point.id] = marker;
+        return;
+      }
+
+      marker.on("click", () => {
+        setActiveId(null);
+
+        const bounds = cluster.points.map(
+          (clusterPoint) =>
+            [
+              clusterPoint.latitude,
+              clusterPoint.longitude,
+            ] as [number, number],
+        );
+
+        map.fitBounds(bounds, {
+          padding: [54, 54],
+          maxZoom: CLUSTER_EXPAND_ZOOM,
+        });
+      });
+
+      markersRef.current[cluster.id] = marker;
     });
 
     const mapBounds = map.getBounds();
-    const ids = Object.entries(markersRef.current)
-      .filter(([, marker]) => mapBounds.contains(marker.getLatLng()))
-      .map(([id]) => id);
+    const ids = filteredPoints
+      .filter(
+        (point) =>
+          point.latitude >= mapBounds.getSouth() &&
+          point.latitude <= mapBounds.getNorth() &&
+          point.longitude >= mapBounds.getWest() &&
+          point.longitude <= mapBounds.getEast(),
+      )
+      .map((point) => point.id);
 
     setVisibleIds(ids);
-  }, [filteredPoints]);
+
+    if (activeId) {
+      const activeMarker = markersRef.current[activeId];
+      if (activeMarker) {
+        window.setTimeout(() => activeMarker.openPopup(), 80);
+      }
+    }
+  }, [activeId, clusteredPoints, filteredPoints]);
 
 
   const visiblePoints = useMemo(() => {
@@ -745,17 +861,27 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
   const focusPoint = (point: MapPoint) => {
     const map = mapRef.current;
-    const marker = markersRef.current[point.id];
-    if (!map || !marker) return;
+    if (!map) return;
 
     setActiveId(point.id);
-    const zoom = Math.max(15, map.getZoom ? map.getZoom() : 15);
+
+    const target: [number, number] = [
+      point.latitude,
+      point.longitude,
+    ];
+    const zoom = Math.max(
+      CLUSTER_EXPAND_ZOOM,
+      map.getZoom?.() ?? CLUSTER_EXPAND_ZOOM,
+    );
+
     if (map.flyTo) {
-      map.flyTo(marker.getLatLng(), zoom, { animate: true, duration: 0.75 });
+      map.flyTo(target, zoom, {
+        animate: true,
+        duration: 0.75,
+      });
     } else {
-      map.setView(marker.getLatLng(), zoom, { animate: true });
+      map.setView(target, zoom, { animate: true });
     }
-    window.setTimeout(() => marker.openPopup(), 220);
   };
 
   const handleLocateUser = async () => {
@@ -881,6 +1007,27 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
               </button>
             );
           })}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            color: "#94a3b8",
+            fontSize: 11,
+            fontWeight: 850,
+          }}
+        >
+          <span>
+            {filteredPoints.length} {filteredPoints.length === 1 ? "Eintrag" : "Einträge"} geladen
+          </span>
+          <span>
+            {mapZoom >= CLUSTER_EXPAND_ZOOM
+              ? "Einzelne Marker"
+              : `Zu ${clusteredPoints.length} Markern gruppiert`}
+          </span>
         </div>
       </div>
 
@@ -1241,6 +1388,34 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     transform: scale(1.5);
     opacity: 0;
   }
+}
+
+.mioseg-dashboard-cluster {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(145deg,#2563eb,#7c3aed);
+  border: 4px solid rgba(255,255,255,0.96);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 950;
+  cursor: pointer;
+  box-shadow:
+    0 16px 34px rgba(0,0,0,0.30),
+    0 0 0 7px rgba(59,130,246,0.16);
+  transform-origin: center;
+  transition: transform 150ms ease;
+}
+
+.mioseg-dashboard-cluster:hover {
+  transform: scale(1.08);
+}
+
+.mioseg-dashboard-cluster span {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  min-height: 28px;
 }
 
 .mioseg-dashboard-marker {
