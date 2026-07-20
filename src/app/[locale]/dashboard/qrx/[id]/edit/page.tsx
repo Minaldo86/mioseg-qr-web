@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import type { ChangeEvent, CSSProperties, FormEvent } from "react";
 import { useEffect, useState } from "react";
 
+import CollectionSelector, { type QrxCollectionCandidate } from "@/components/qrx/CollectionSelector";
 import { supabase } from "@/lib/supabase";
 import styles from "../../../dashboard.module.css";
 
@@ -69,6 +70,25 @@ type QrxEntry = {
   cover_image_url: string | null;
   category: BusinessCategory | null;
   storage_limit_mb: number | null;
+};
+
+type SavedCollectionEntry = Omit<
+  QrxCollectionCandidate,
+  "source" | "custom_title"
+> & {
+  deleted_at?: string | null;
+  suspended?: boolean | null;
+};
+
+type SavedCollectionCandidateRow = {
+  qrx_id: string | null;
+  qr_x_entries: SavedCollectionEntry | SavedCollectionEntry[] | null;
+};
+
+type ExistingCollectionRow = {
+  linked_qrx_id: string;
+  sort_order: number | null;
+  custom_title: string | null;
 };
 
 
@@ -331,6 +351,10 @@ export default function EditQrxPage() {
   const [fileUploads, setFileUploads] = useState<File[]>([]);
   const [mediaSaving, setMediaSaving] = useState(false);
 
+  const [collectionCandidates, setCollectionCandidates] = useState<QrxCollectionCandidate[]>([]);
+  const [selectedCollectionQrxIds, setSelectedCollectionQrxIds] = useState<string[]>([]);
+  const [collectionLoading, setCollectionLoading] = useState(true);
+
   useEffect(() => {
     void loadQrx();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -431,6 +455,192 @@ export default function EditQrxPage() {
       (entryResult.data as { storage_limit_mb?: number | null } | null)?.storage_limit_mb ?? 2,
     );
     setStorageLimitMb(Number.isFinite(nextStorageLimit) && nextStorageLimit >= 2 ? nextStorageLimit : 2);
+  }
+
+
+  async function loadCollectionData(userId: string) {
+    if (!qrxId) {
+      setCollectionCandidates([]);
+      setSelectedCollectionQrxIds([]);
+      setCollectionLoading(false);
+      return;
+    }
+
+    setCollectionLoading(true);
+
+    try {
+      const [ownResult, savedResult, collectionResult] = await Promise.all([
+        supabase
+          .from("qr_x_entries")
+          .select(
+            "id,title,company_name,type,logo_url,cover_image_url,deleted_at,suspended",
+          )
+          .eq("owner_user_id", userId)
+          .neq("id", qrxId)
+          .is("deleted_at", null)
+          .or("suspended.is.null,suspended.eq.false")
+          .order("created_at", { ascending: false }),
+
+        supabase
+          .from("qrx_saves")
+          .select(`
+            qrx_id,
+            qr_x_entries (
+              id,
+              title,
+              company_name,
+              type,
+              logo_url,
+              cover_image_url,
+              deleted_at,
+              suspended
+            )
+          `)
+          .eq("user_id", userId),
+
+        supabase
+          .from("qrx_collection_items")
+          .select("linked_qrx_id,sort_order,custom_title")
+          .eq("collection_qrx_id", qrxId)
+          .order("sort_order", { ascending: true })
+          .returns<ExistingCollectionRow[]>(),
+      ]);
+
+      if (ownResult.error) throw ownResult.error;
+      if (savedResult.error) throw savedResult.error;
+      if (collectionResult.error) throw collectionResult.error;
+
+      const ownItems: QrxCollectionCandidate[] = (ownResult.data ?? []).map(
+        (entry) => ({
+          id: String(entry.id),
+          title:
+            typeof entry.title === "string" ? entry.title : null,
+          company_name:
+            typeof entry.company_name === "string"
+              ? entry.company_name
+              : null,
+          type:
+            typeof entry.type === "string" ? entry.type : null,
+          logo_url:
+            typeof entry.logo_url === "string" ? entry.logo_url : null,
+          cover_image_url:
+            typeof entry.cover_image_url === "string"
+              ? entry.cover_image_url
+              : null,
+          source: "own" as const,
+          custom_title: null,
+        }),
+      );
+
+      const ownIds = new Set(ownItems.map((item) => item.id));
+
+      const savedItems = (
+        (savedResult.data ?? []) as SavedCollectionCandidateRow[]
+      ).reduce<QrxCollectionCandidate[]>((accumulator, row) => {
+        const relation = row.qr_x_entries;
+        const entry = Array.isArray(relation) ? relation[0] ?? null : relation;
+
+        if (
+          !entry ||
+          !entry.id ||
+          entry.id === qrxId ||
+          entry.deleted_at ||
+          entry.suspended === true ||
+          ownIds.has(entry.id)
+        ) {
+          return accumulator;
+        }
+
+        accumulator.push({
+          id: entry.id,
+          title: entry.title ?? null,
+          company_name: entry.company_name ?? null,
+          type: entry.type ?? null,
+          logo_url: entry.logo_url ?? null,
+          cover_image_url: entry.cover_image_url ?? null,
+          source: "saved",
+          custom_title: null,
+        });
+
+        return accumulator;
+      }, []);
+
+      const existingRows = collectionResult.data ?? [];
+      const existingById = new Map(
+        existingRows.map((row) => [
+          row.linked_qrx_id,
+          row.custom_title ?? null,
+        ]),
+      );
+
+      const mergedCandidates = [...ownItems, ...savedItems].map((item) => ({
+        ...item,
+        custom_title: existingById.get(item.id) ?? item.custom_title ?? null,
+      }));
+
+      setCollectionCandidates(mergedCandidates);
+      setSelectedCollectionQrxIds(
+        existingRows
+          .map((row) => row.linked_qrx_id)
+          .filter((id) => mergedCandidates.some((item) => item.id === id)),
+      );
+    } finally {
+      setCollectionLoading(false);
+    }
+  }
+
+  async function saveCollection(userId: string) {
+    if (!qrxId) throw new Error("QR-X ID fehlt.");
+
+    const { data: existingRows, error: existingError } = await supabase
+      .from("qrx_collection_items")
+      .select("linked_qrx_id")
+      .eq("collection_qrx_id", qrxId)
+      .returns<Array<{ linked_qrx_id: string }>>();
+
+    if (existingError) throw existingError;
+
+    const existingIds = new Set(
+      (existingRows ?? []).map((row) => row.linked_qrx_id),
+    );
+    const selectedIds = new Set(selectedCollectionQrxIds);
+
+    const idsToDelete = [...existingIds].filter((id) => !selectedIds.has(id));
+
+    if (idsToDelete.length > 0) {
+      const { error: deleteError } = await supabase
+        .from("qrx_collection_items")
+        .delete()
+        .eq("collection_qrx_id", qrxId)
+        .in("linked_qrx_id", idsToDelete);
+
+      if (deleteError) throw deleteError;
+    }
+
+    if (selectedCollectionQrxIds.length > 0) {
+      const rows = selectedCollectionQrxIds.map((linkedQrxId, index) => {
+        const candidate = collectionCandidates.find(
+          (item) => item.id === linkedQrxId,
+        );
+
+        return {
+          collection_qrx_id: qrxId,
+          linked_qrx_id: linkedQrxId,
+          added_by: userId,
+          custom_title: candidate?.custom_title?.trim() || null,
+          sort_order: index,
+        };
+      });
+
+      const { error: upsertError } = await supabase
+        .from("qrx_collection_items")
+        .upsert(rows, {
+          onConflict: "collection_qrx_id,linked_qrx_id",
+          ignoreDuplicates: false,
+        });
+
+      if (upsertError) throw upsertError;
+    }
   }
 
   function handleLocationModeChange(nextMode: LocationMode) {
@@ -741,7 +951,12 @@ export default function EditQrxPage() {
       setGalleryFiles([]);
       setFileUploads([]);
 
-      await Promise.all([loadCreditBalance(user.id), loadLatestVerificationRequest(user.id), loadMediaAndStorage()]);
+      await Promise.all([
+        loadCreditBalance(user.id),
+        loadLatestVerificationRequest(user.id),
+        loadMediaAndStorage(),
+        loadCollectionData(user.id),
+      ]);
     } catch (error) {
       setErrorText(error instanceof Error ? error.message : "QR-X konnte nicht geladen werden.");
     } finally {
@@ -811,6 +1026,8 @@ export default function EditQrxPage() {
         .eq("owner_user_id", user.id);
 
       if (error) throw error;
+
+      await saveCollection(user.id);
 
       if (passwordWasDisabled) {
         await saveQrxPasswordProtection({ qrxId, enabled: false, password: "" });
@@ -1316,6 +1533,13 @@ export default function EditQrxPage() {
                 <p style={emptyTextStyle}>Noch keine News vorhanden.</p>
               )}
             </div>
+
+            <CollectionSelector
+              candidates={collectionCandidates}
+              selectedIds={selectedCollectionQrxIds}
+              loading={collectionLoading}
+              onChange={setSelectedCollectionQrxIds}
+            />
 
             <div style={sectionBoxStyle}>
               <div>
