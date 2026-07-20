@@ -113,12 +113,6 @@ type TransferHistoryItem = {
   recipient_email?: string | null;
 };
 
-type CollectionRow = {
-  linked_qrx_id: string;
-  sort_order: number | null;
-  custom_title: string | null;
-  qr_x_entries: QrxCollectionPreviewItem | QrxCollectionPreviewItem[] | null;
-};
 
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
@@ -324,56 +318,80 @@ export default function PublicQrxDetailPage() {
         setMedia(mediaData ?? []);
       }
 
-      const { data: collectionData, error: collectionError } = await supabase
+      const { data: collectionRows, error: collectionError } = await supabase
         .from("qrx_collection_items")
-        .select(`
-          linked_qrx_id,
-          sort_order,
-          custom_title,
-          qr_x_entries!qrx_collection_items_linked_qrx_id_fkey (
-            id,
-            title,
-            company_name,
-            description,
-            type,
-            logo_url,
-            cover_image_url,
-            location_name,
-            verified,
-            deleted_at,
-            suspended
-          )
-        `)
+        .select("linked_qrx_id,sort_order,custom_title")
         .eq("collection_qrx_id", qrxId)
         .order("sort_order", { ascending: true });
 
       if (collectionError) {
-        console.warn("QR-X collection load error:", collectionError);
+        console.warn("QR-X collection rows load error:", collectionError);
         setCollectionItems([]);
       } else {
-        const items = ((collectionData ?? []) as CollectionRow[]).reduce<QrxCollectionPreviewItem[]>(
-          (accumulator, row) => {
-            const relation = row.qr_x_entries;
-            const child = Array.isArray(relation) ? relation[0] ?? null : relation;
-            const childWithVisibility = child as (QrxCollectionPreviewItem & {
-              deleted_at?: string | null;
-              suspended?: boolean | null;
-            }) | null;
+        const rows = (collectionRows ?? []) as Array<{
+          linked_qrx_id: string;
+          sort_order: number | null;
+          custom_title: string | null;
+        }>;
 
-            if (!childWithVisibility || childWithVisibility.deleted_at || childWithVisibility.suspended === true) {
-              return accumulator;
-            }
+        const linkedIds = rows
+          .map((row) => row.linked_qrx_id)
+          .filter((id): id is string => typeof id === "string" && id.length > 0);
 
-            accumulator.push({
-              ...childWithVisibility,
-              custom_title: row.custom_title ?? null,
-            });
-            return accumulator;
-          },
-          [],
-        );
+        if (linkedIds.length === 0) {
+          setCollectionItems([]);
+        } else {
+          const { data: childEntries, error: childError } = await supabase
+            .from("qr_x_entries")
+            .select(
+              "id,title,company_name,description,type,logo_url,cover_image_url,location_name,verified,deleted_at,suspended",
+            )
+            .in("id", linkedIds)
+            .is("deleted_at", null)
+            .or("suspended.is.null,suspended.eq.false");
 
-        setCollectionItems(items);
+          if (childError) {
+            console.warn("QR-X collection children load error:", childError);
+            setCollectionItems([]);
+          } else {
+            const childrenById = new Map(
+              ((childEntries ?? []) as Array<
+                QrxCollectionPreviewItem & {
+                  deleted_at?: string | null;
+                  suspended?: boolean | null;
+                }
+              >).map((child) => [child.id, child]),
+            );
+
+            const items = rows.reduce<QrxCollectionPreviewItem[]>(
+              (accumulator, row) => {
+                const child = childrenById.get(row.linked_qrx_id);
+
+                if (!child || child.deleted_at || child.suspended === true) {
+                  return accumulator;
+                }
+
+                accumulator.push({
+                  id: child.id,
+                  title: child.title ?? null,
+                  company_name: child.company_name ?? null,
+                  description: child.description ?? null,
+                  type: child.type ?? null,
+                  logo_url: child.logo_url ?? null,
+                  cover_image_url: child.cover_image_url ?? null,
+                  location_name: child.location_name ?? null,
+                  verified: child.verified ?? null,
+                  custom_title: row.custom_title ?? null,
+                });
+
+                return accumulator;
+              },
+              [],
+            );
+
+            setCollectionItems(items);
+          }
+        }
       }
     } catch (error) {
       setEntry(null);
