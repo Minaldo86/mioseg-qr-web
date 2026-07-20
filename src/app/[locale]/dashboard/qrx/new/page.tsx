@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import type { ChangeEvent, CSSProperties, FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import CollectionSelector, { type QrxCollectionCandidate } from "@/components/qrx/CollectionSelector";
 import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard.module.css";
 
@@ -14,19 +15,8 @@ type LocationMode = "none" | "current" | "manual";
 
 type NewsItem = { text: string; createdAt: string };
 
-type CollectionCandidate = {
-  id: string;
-  title: string | null;
-  company_name: string | null;
-  type: QrxType | string | null;
-  logo_url: string | null;
-  cover_image_url: string | null;
-  source: "own" | "saved";
-  custom_title?: string | null;
-};
-
 type SavedCollectionEntry = Omit<
-  CollectionCandidate,
+  QrxCollectionCandidate,
   "source" | "custom_title"
 > & {
   deleted_at?: string | null;
@@ -353,12 +343,9 @@ export default function NewQrxPage() {
   const [verificationDocument, setVerificationDocument] =
     useState<SelectedVerificationDocument | null>(null);
 
-  const [collectionCandidates, setCollectionCandidates] = useState<CollectionCandidate[]>([]);
+  const [collectionCandidates, setCollectionCandidates] = useState<QrxCollectionCandidate[]>([]);
   const [selectedCollectionQrxIds, setSelectedCollectionQrxIds] = useState<string[]>([]);
   const [collectionLoading, setCollectionLoading] = useState(true);
-  const [collectionOpen, setCollectionOpen] = useState(false);
-  const [collectionTab, setCollectionTab] = useState<"own" | "saved">("own");
-  const [collectionSearch, setCollectionSearch] = useState("");
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -680,15 +667,15 @@ export default function NewQrxPage() {
       if (ownResult.error) throw ownResult.error;
       if (savedResult.error) throw savedResult.error;
 
-      const ownItems: CollectionCandidate[] = (ownResult.data ?? []).map((item) => ({
-        ...(item as Omit<CollectionCandidate, "source">),
+      const ownItems: QrxCollectionCandidate[] = (ownResult.data ?? []).map((item) => ({
+        ...(item as Omit<QrxCollectionCandidate, "source">),
         source: "own" as const,
       }));
       const ownIds = new Set(ownItems.map((item) => item.id));
 
       const savedRows = savedResult.data as unknown as SavedCollectionCandidateRow[] | null;
 
-      const savedItems = (savedRows ?? []).reduce<CollectionCandidate[]>((items, row) => {
+      const savedItems = (savedRows ?? []).reduce<QrxCollectionCandidate[]>((items, row) => {
         const entry = Array.isArray(row.qr_x_entries)
           ? row.qr_x_entries[0] ?? null
           : row.qr_x_entries;
@@ -725,17 +712,6 @@ export default function NewQrxPage() {
     }
   }
 
-  function toggleCollectionQrx(id: string) {
-    setSelectedCollectionQrxIds((current) =>
-      current.includes(id)
-        ? current.filter((value) => value !== id)
-        : [...current, id],
-    );
-  }
-
-  function removeCollectionQrx(id: string) {
-    setSelectedCollectionQrxIds((current) => current.filter((value) => value !== id));
-  }
 
   async function saveCollectionItems(args: {
     collectionQrxId: string;
@@ -1702,21 +1678,6 @@ export default function NewQrxPage() {
     }
   }
 
-  const selectedCollectionItems = selectedCollectionQrxIds
-    .map((id) => collectionCandidates.find((item) => item.id === id))
-    .filter((item): item is CollectionCandidate => Boolean(item));
-
-  const visibleCollectionCandidates = collectionCandidates.filter((item) => {
-    if (item.source !== collectionTab) return false;
-    const search = collectionSearch.trim().toLowerCase();
-    if (!search) return true;
-    return [item.title, item.company_name, item.custom_title]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(search);
-  });
-
   const isBusiness = qrxType === "business";
 
   return (
@@ -2219,149 +2180,12 @@ export default function NewQrxPage() {
             ) : null}
           </div>
 
-          <div style={mediaSectionStyle}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 14, alignItems: "flex-start", flexWrap: "wrap" }}>
-              <div>
-                <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
-                  QR-X Sammlung
-                </h3>
-                <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
-                  Optional: Verknüpfe eigenständige QR-X, zum Beispiel Produkte, Theaterstücke oder Häuser eines Projekts.
-                  Bilder, PDFs und Anleitungen gehören weiterhin in Medien und Dateien.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setCollectionOpen((current) => !current)}
-                style={fileButtonStyle}
-              >
-                {collectionOpen ? "Auswahl schließen" : "+ QR-X sammeln"}
-              </button>
-            </div>
-
-            {selectedCollectionItems.length > 0 ? (
-              <div style={collectionSelectedBoxStyle}>
-                <div style={selectionHeaderStyle}>
-                  <strong>
-                    {selectedCollectionItems.length} QR-X verknüpft
-                  </strong>
-                  <span style={{ color: "#94a3b8", fontSize: 12 }}>
-                    Reihenfolge entspricht deiner Auswahl
-                  </span>
-                </div>
-
-                <div style={{ display: "grid", gap: 10 }}>
-                  {selectedCollectionItems.map((item, index) => {
-                    const displayTitle = item.custom_title?.trim() || item.company_name?.trim() || item.title?.trim() || "Unbenannter QR-X";
-                    const image = item.logo_url?.trim() || item.cover_image_url?.trim() || null;
-
-                    return (
-                      <div key={item.id} style={collectionSelectedRowStyle}>
-                        <div style={collectionIndexStyle}>{index + 1}</div>
-                        <div style={collectionThumbStyle}>
-                          {image ? (
-                            <img src={image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          ) : (
-                            <span>▣</span>
-                          )}
-                        </div>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ color: "#ffffff", fontWeight: 950, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {displayTitle}
-                          </div>
-                          <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 3 }}>
-                            {item.source === "own" ? "Mein QR-X" : "Gespeicherter QR-X"} · {item.type === "business" ? "Business" : "Normal"}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeCollectionQrx(item.id)}
-                          style={previewRemoveButtonStyle}
-                        >
-                          Entfernen
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div style={collectionEmptyStyle}>
-                Noch keine QR-X verknüpft. Im öffentlichen Detailbereich bleibt die Sammlung deshalb ausgeblendet.
-              </div>
-            )}
-
-            {collectionOpen ? (
-              <div style={collectionPickerStyle}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  <button
-                    type="button"
-                    onClick={() => setCollectionTab("own")}
-                    style={collectionTabButtonStyle(collectionTab === "own")}
-                  >
-                    Meine QR-X ({collectionCandidates.filter((item) => item.source === "own").length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCollectionTab("saved")}
-                    style={collectionTabButtonStyle(collectionTab === "saved")}
-                  >
-                    Gespeicherte ({collectionCandidates.filter((item) => item.source === "saved").length})
-                  </button>
-                </div>
-
-                <input
-                  value={collectionSearch}
-                  onChange={(event) => setCollectionSearch(event.target.value)}
-                  style={inputStyle}
-                  placeholder="QR-X durchsuchen …"
-                />
-
-                {collectionLoading ? (
-                  <div style={collectionEmptyStyle}>QR-X werden geladen …</div>
-                ) : visibleCollectionCandidates.length === 0 ? (
-                  <div style={collectionEmptyStyle}>
-                    In diesem Bereich wurden keine passenden QR-X gefunden.
-                  </div>
-                ) : (
-                  <div style={collectionCandidateListStyle}>
-                    {visibleCollectionCandidates.map((item) => {
-                      const selected = selectedCollectionQrxIds.includes(item.id);
-                      const displayTitle = item.custom_title?.trim() || item.company_name?.trim() || item.title?.trim() || "Unbenannter QR-X";
-                      const image = item.logo_url?.trim() || item.cover_image_url?.trim() || null;
-
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => toggleCollectionQrx(item.id)}
-                          style={collectionCandidateButtonStyle(selected)}
-                        >
-                          <span style={collectionCheckboxStyle(selected)}>{selected ? "✓" : ""}</span>
-                          <span style={collectionThumbStyle}>
-                            {image ? (
-                              <img src={image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            ) : (
-                              <span>▣</span>
-                            )}
-                          </span>
-                          <span style={{ minWidth: 0, textAlign: "left" }}>
-                            <span style={{ display: "block", color: "#ffffff", fontWeight: 950, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              {displayTitle}
-                            </span>
-                            <span style={{ display: "block", color: "#94a3b8", fontSize: 12, marginTop: 3 }}>
-                              {item.type === "business" ? "Business QR-X" : "Normaler QR-X"}
-                            </span>
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </div>
+          <CollectionSelector
+            candidates={collectionCandidates}
+            selectedIds={selectedCollectionQrxIds}
+            loading={collectionLoading}
+            onChange={setSelectedCollectionQrxIds}
+          />
 
           <div style={mediaSectionStyle}>
             <div>
@@ -3352,118 +3176,6 @@ const dismissDraftButtonStyle: CSSProperties = {
   padding: "0 14px",
 };
 
-const collectionSelectedBoxStyle: CSSProperties = {
-  display: "grid",
-  gap: 12,
-  borderRadius: 18,
-  padding: 14,
-  background: "rgba(37,99,235,0.10)",
-  border: "1px solid rgba(147,197,253,0.20)",
-};
-
-const collectionSelectedRowStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "36px 46px minmax(0, 1fr) auto",
-  alignItems: "center",
-  gap: 10,
-  borderRadius: 16,
-  padding: 10,
-  background: "rgba(15,23,42,0.62)",
-  border: "1px solid rgba(148,163,184,0.16)",
-};
-
-const collectionIndexStyle: CSSProperties = {
-  width: 32,
-  height: 32,
-  borderRadius: 999,
-  display: "grid",
-  placeItems: "center",
-  background: "rgba(250,204,21,0.92)",
-  color: "#111827",
-  fontWeight: 950,
-};
-
-const collectionThumbStyle: CSSProperties = {
-  width: 44,
-  height: 44,
-  borderRadius: 13,
-  overflow: "hidden",
-  display: "inline-grid",
-  placeItems: "center",
-  background: "rgba(255,255,255,0.08)",
-  border: "1px solid rgba(255,255,255,0.10)",
-  color: "#dbeafe",
-  flexShrink: 0,
-};
-
-const collectionEmptyStyle: CSSProperties = {
-  borderRadius: 16,
-  padding: 13,
-  background: "rgba(255,255,255,0.04)",
-  border: "1px dashed rgba(148,163,184,0.22)",
-  color: "#94a3b8",
-  fontSize: 13,
-  fontWeight: 800,
-  lineHeight: 1.55,
-};
-
-const collectionPickerStyle: CSSProperties = {
-  display: "grid",
-  gap: 12,
-  borderRadius: 20,
-  padding: 14,
-  background: "rgba(2,6,23,0.34)",
-  border: "1px solid rgba(148,163,184,0.16)",
-};
-
-function collectionTabButtonStyle(active: boolean): CSSProperties {
-  return {
-    minHeight: 46,
-    borderRadius: 14,
-    border: active ? "1px solid rgba(147,197,253,0.42)" : "1px solid rgba(148,163,184,0.18)",
-    background: active ? "linear-gradient(135deg, rgba(37,99,235,0.82), rgba(124,58,237,0.78))" : "rgba(255,255,255,0.05)",
-    color: "#ffffff",
-    cursor: "pointer",
-    fontWeight: 950,
-  };
-}
-
-const collectionCandidateListStyle: CSSProperties = {
-  display: "grid",
-  gap: 9,
-  maxHeight: 390,
-  overflowY: "auto",
-  paddingRight: 5,
-};
-
-function collectionCandidateButtonStyle(selected: boolean): CSSProperties {
-  return {
-    display: "grid",
-    gridTemplateColumns: "30px 46px minmax(0, 1fr)",
-    alignItems: "center",
-    gap: 10,
-    width: "100%",
-    borderRadius: 16,
-    padding: 10,
-    border: selected ? "1px solid rgba(134,239,172,0.38)" : "1px solid rgba(148,163,184,0.16)",
-    background: selected ? "rgba(34,197,94,0.12)" : "rgba(255,255,255,0.045)",
-    cursor: "pointer",
-  };
-}
-
-function collectionCheckboxStyle(selected: boolean): CSSProperties {
-  return {
-    width: 27,
-    height: 27,
-    borderRadius: 999,
-    display: "inline-grid",
-    placeItems: "center",
-    background: selected ? "#22c55e" : "rgba(255,255,255,0.04)",
-    border: selected ? "1px solid #86efac" : "1px solid rgba(148,163,184,0.32)",
-    color: "#052e16",
-    fontWeight: 950,
-  };
-}
 
 const labelStyle: CSSProperties = {
   display: "grid",
