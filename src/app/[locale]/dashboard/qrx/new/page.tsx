@@ -25,10 +25,18 @@ type CollectionCandidate = {
   custom_title?: string | null;
 };
 
+type SavedCollectionEntry = Omit<
+  CollectionCandidate,
+  "source" | "custom_title"
+> & {
+  deleted_at?: string | null;
+  suspended?: boolean | null;
+};
+
 type SavedCollectionCandidateRow = {
   qrx_id: string | null;
   custom_title?: string | null;
-  qr_x_entries: Omit<CollectionCandidate, "source" | "custom_title"> | null;
+  qr_x_entries: SavedCollectionEntry | SavedCollectionEntry[] | null;
 };
 
 const MAX_VISIBLE_NEWS = 5;
@@ -678,27 +686,35 @@ export default function NewQrxPage() {
       }));
       const ownIds = new Set(ownItems.map((item) => item.id));
 
-      const savedItems: CollectionCandidate[] = ((savedResult.data ?? []) as SavedCollectionCandidateRow[])
-        .map((row) => {
-          const entry = row.qr_x_entries as (Omit<CollectionCandidate, "source" | "custom_title"> & {
-            deleted_at?: string | null;
-            suspended?: boolean | null;
-          }) | null;
+      const savedRows = savedResult.data as unknown as SavedCollectionCandidateRow[] | null;
 
-          if (!entry || entry.deleted_at || entry.suspended === true || ownIds.has(entry.id)) return null;
+      const savedItems = (savedRows ?? []).reduce<CollectionCandidate[]>((items, row) => {
+        const entry = Array.isArray(row.qr_x_entries)
+          ? row.qr_x_entries[0] ?? null
+          : row.qr_x_entries;
 
-          return {
-            id: entry.id,
-            title: entry.title,
-            company_name: entry.company_name,
-            type: entry.type,
-            logo_url: entry.logo_url,
-            cover_image_url: entry.cover_image_url,
-            source: "saved" as const,
-            custom_title: row.custom_title ?? null,
-          };
-        })
-        .filter((item): item is CollectionCandidate => Boolean(item));
+        if (
+          !entry ||
+          entry.deleted_at ||
+          entry.suspended === true ||
+          ownIds.has(entry.id)
+        ) {
+          return items;
+        }
+
+        items.push({
+          id: entry.id,
+          title: entry.title,
+          company_name: entry.company_name,
+          type: entry.type,
+          logo_url: entry.logo_url,
+          cover_image_url: entry.cover_image_url,
+          source: "saved",
+          custom_title: row.custom_title ?? null,
+        });
+
+        return items;
+      }, []);
 
       setCollectionCandidates([...ownItems, ...savedItems]);
     } catch (error) {
