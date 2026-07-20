@@ -22,6 +22,7 @@ type CollectionPreviewProps = {
   items: QrxCollectionPreviewItem[];
   locale?: string;
   compact?: boolean;
+  routeMode?: "localized" | "root";
 };
 
 function getDisplayTitle(item: QrxCollectionPreviewItem) {
@@ -47,6 +48,7 @@ export default function CollectionPreview({
   items,
   locale = "de",
   compact = false,
+  routeMode = "localized",
 }: CollectionPreviewProps) {
   if (items.length === 0) return null;
 
@@ -74,7 +76,12 @@ export default function CollectionPreview({
             item.logo_url?.trim() ||
             null;
 
-          const href = `/${locale}/qrx/${item.id}?parentQrxId=${encodeURIComponent(
+          const detailPath =
+            routeMode === "root"
+              ? `/qrx/${item.id}`
+              : `/${locale}/qrx/${item.id}`;
+
+          const href = `${detailPath}?parentQrxId=${encodeURIComponent(
             parentQrxId,
           )}&parentQrxTitle=${encodeURIComponent(parentQrxTitle)}`;
 
