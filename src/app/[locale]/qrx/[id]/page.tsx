@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import CollectionPreview, { type QrxCollectionPreviewItem } from "@/components/qrx/CollectionPreview";
+import QrxActionsSection from "@/components/qrx/QrxActionsSection";
+import QrxHeroSection from "@/components/qrx/QrxHeroSection";
+import QrxMediaSection, { type QrxMediaDisplayItem } from "@/components/qrx/QrxMediaSection";
+import QrxNewsSection from "@/components/qrx/QrxNewsSection";
+import QrxStatsSection from "@/components/qrx/QrxStatsSection";
 import { getBestMediaUrl, getMediaById } from "@/lib/media";
 import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard/dashboard.module.css";
@@ -105,6 +111,13 @@ type TransferHistoryItem = {
   to_user_id?: string | null;
   to_name?: string | null;
   recipient_email?: string | null;
+};
+
+type CollectionRow = {
+  linked_qrx_id: string;
+  sort_order: number | null;
+  custom_title: string | null;
+  qr_x_entries: QrxCollectionPreviewItem | QrxCollectionPreviewItem[] | null;
 };
 
 function getParam(value: string | string[] | undefined, fallback: string) {
@@ -241,11 +254,14 @@ function shouldTrackMediaEvent(
 
 export default function PublicQrxDetailPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = getParam(
     params?.locale as string | string[] | undefined,
     "de",
   );
   const qrxId = getParam(params?.id as string | string[] | undefined, "");
+  const parentQrxId = searchParams.get("parentQrxId");
+  const parentQrxTitle = searchParams.get("parentQrxTitle");
 
   const [entry, setEntry] = useState<QrxEntry | null>(null);
   const [media, setMedia] = useState<QrxMedia[]>([]);
@@ -259,6 +275,7 @@ export default function PublicQrxDetailPage() {
     [],
   );
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [collectionItems, setCollectionItems] = useState<QrxCollectionPreviewItem[]>([]);
 
   useEffect(() => {
     void loadQrx();
@@ -306,9 +323,62 @@ export default function PublicQrxDetailPage() {
       } else {
         setMedia(mediaData ?? []);
       }
+
+      const { data: collectionData, error: collectionError } = await supabase
+        .from("qrx_collection_items")
+        .select(`
+          linked_qrx_id,
+          sort_order,
+          custom_title,
+          qr_x_entries!qrx_collection_items_linked_qrx_id_fkey (
+            id,
+            title,
+            company_name,
+            description,
+            type,
+            logo_url,
+            cover_image_url,
+            location_name,
+            verified,
+            deleted_at,
+            suspended
+          )
+        `)
+        .eq("collection_qrx_id", qrxId)
+        .order("sort_order", { ascending: true });
+
+      if (collectionError) {
+        console.warn("QR-X collection load error:", collectionError);
+        setCollectionItems([]);
+      } else {
+        const items = ((collectionData ?? []) as CollectionRow[]).reduce<QrxCollectionPreviewItem[]>(
+          (accumulator, row) => {
+            const relation = row.qr_x_entries;
+            const child = Array.isArray(relation) ? relation[0] ?? null : relation;
+            const childWithVisibility = child as (QrxCollectionPreviewItem & {
+              deleted_at?: string | null;
+              suspended?: boolean | null;
+            }) | null;
+
+            if (!childWithVisibility || childWithVisibility.deleted_at || childWithVisibility.suspended === true) {
+              return accumulator;
+            }
+
+            accumulator.push({
+              ...childWithVisibility,
+              custom_title: row.custom_title ?? null,
+            });
+            return accumulator;
+          },
+          [],
+        );
+
+        setCollectionItems(items);
+      }
     } catch (error) {
       setEntry(null);
       setMedia([]);
+      setCollectionItems([]);
       setErrorText(
         error instanceof Error
           ? error.message
@@ -608,6 +678,34 @@ export default function PublicQrxDetailPage() {
     ? `https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=18&data=${encodeURIComponent(publicQrxUrl)}`
     : "";
 
+  const imageDisplayItems: QrxMediaDisplayItem[] = imageMedia.map((item) => ({
+    id: item.id,
+    type: item.type,
+    url: item.url,
+    filename: item.filename,
+    displayUrl:
+      getBestMediaUrl({
+        media: item,
+        purpose: "gallery",
+        forceOriginal: forceOriginalQuality,
+      }) || item.url,
+    fullscreenUrl:
+      getBestMediaUrl({
+        media: item,
+        purpose: "fullscreen",
+        forceOriginal: forceOriginalQuality,
+      }) || item.url,
+  }));
+
+  const fileDisplayItems: QrxMediaDisplayItem[] = fileMedia.map((item) => ({
+    id: item.id,
+    type: item.type,
+    url: item.url,
+    filename: item.filename,
+    displayUrl: item.url,
+    fullscreenUrl: item.url,
+  }));
+
   const stats = [
     {
       label: "Follower",
@@ -646,242 +744,77 @@ export default function PublicQrxDetailPage() {
 
         {!loading && entry ? (
           <>
-            <div style={coverStyle}>
-              {cover ? (
-                <img src={cover} alt={title} style={coverImageStyle} />
-              ) : null}
-              {!cover ? <div style={coverPlaceholderStyle}>QR-X</div> : null}
-              <div style={coverOverlayStyle} />
+            {parentQrxId && parentQrxTitle ? (
+              <Link
+                href={`/${locale}/qrx/${parentQrxId}`}
+                style={collectionBackLinkStyle}
+              >
+                ← Zurück zur Sammlung „{parentQrxTitle}“
+              </Link>
+            ) : null}
 
-              <div style={coverContentStyle}>
-                {logo ? (
-                  <img src={logo} alt={`${title} Logo`} style={logoStyle} />
-                ) : null}
+            <QrxHeroSection
+              title={title}
+              subtitleTitle={subtitleTitle}
+              description={description}
+              cover={cover}
+              logo={logo}
+              isBusiness={isBusiness}
+              categoryMeta={categoryMeta}
+              verified={entry.verified === true}
+            />
 
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={badgeRowStyle}>
-                    <span style={badgeStyle(isBusiness)}>
-                      {isBusiness ? "🏢 Business QR-X" : "⌗ Normaler QR-X"}
-                    </span>
-
-                    {categoryMeta ? (
-                      <span style={categoryBadgeStyle}>
-                        {categoryMeta.icon} {categoryMeta.label}
-                      </span>
-                    ) : null}
-
-                    {entry.verified ? (
-                      <span style={verifiedBadgeStyle}>✓ Verifiziert</span>
-                    ) : null}
-                  </div>
-
-                  <h1 style={heroTitleStyle}>{title}</h1>
-                  {subtitleTitle ? (
-                    <div style={subtitleTitleStyle}>{subtitleTitle}</div>
-                  ) : null}
-                  <p style={heroDescriptionStyle}>{description}</p>
-                </div>
-              </div>
-            </div>
-
-            <section style={statsGridStyle} aria-label="QR-X Kennzahlen">
-              {stats.map((item) => (
-                <article key={item.label} style={statCardStyle}>
-                  <span style={statIconStyle}>{item.icon}</span>
-                  <div>
-                    <strong style={statValueStyle}>{item.value}</strong>
-                    <span style={statLabelStyle}>{item.label}</span>
-                  </div>
-                </article>
-              ))}
-            </section>
+            <QrxStatsSection stats={stats} />
 
             <div style={{ display: "grid", gap: 16, marginTop: 18 }}>
               {entry.location_name?.trim() ? (
-                <InfoRow
-                  title="📍 Standort"
-                  text={entry.location_name.trim()}
-                />
+                <InfoRow title="📍 Standort" text={entry.location_name.trim()} />
               ) : null}
 
               {categoryMeta ? (
-                <InfoRow
-                  title="▦ Kategorie"
-                  text={`${categoryMeta.icon} ${categoryMeta.label}`}
-                />
+                <InfoRow title="▦ Kategorie" text={`${categoryMeta.icon} ${categoryMeta.label}`} />
               ) : null}
 
-              {entry.created_at ? (
-                <InfoRow
-                  title="🕒 Erstellt"
-                  text={formatDate(entry.created_at)}
-                />
-              ) : null}
+              {entry.created_at ? <InfoRow title="🕒 Erstellt" text={formatDate(entry.created_at)} /> : null}
 
               {isBusiness ? (
                 <div style={ctaGridStyle}>
-                  {entry.cta_phone?.trim() ? (
-                    <a
-                      href={`tel:${entry.cta_phone.trim()}`}
-                      className={styles.primaryButton}
-                    >
-                      Telefon
-                    </a>
-                  ) : null}
-
-                  {website ? (
-                    <a
-                      href={website}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={styles.secondaryButton}
-                    >
-                      Webseite öffnen
-                    </a>
-                  ) : null}
-
-                  {entry.cta_email?.trim() ? (
-                    <a
-                      href={`mailto:${entry.cta_email.trim()}`}
-                      className={styles.secondaryButton}
-                    >
-                      E-Mail schreiben
-                    </a>
-                  ) : null}
-
-                  {navigation ? (
-                    <a
-                      href={navigation}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={styles.secondaryButton}
-                    >
-                      Navigation öffnen
-                    </a>
-                  ) : null}
+                  {entry.cta_phone?.trim() ? <a href={`tel:${entry.cta_phone.trim()}`} className={styles.primaryButton}>Telefon</a> : null}
+                  {website ? <a href={website} target="_blank" rel="noreferrer" className={styles.secondaryButton}>Webseite öffnen</a> : null}
+                  {entry.cta_email?.trim() ? <a href={`mailto:${entry.cta_email.trim()}`} className={styles.secondaryButton}>E-Mail schreiben</a> : null}
+                  {navigation ? <a href={navigation} target="_blank" rel="noreferrer" className={styles.secondaryButton}>Navigation öffnen</a> : null}
                 </div>
               ) : null}
             </div>
 
-            <section style={actionsLayoutStyle} aria-label="QR-X Aktionen">
-              <div style={followBoxStyle}>
-                <div>
-                  <h2 style={boxTitleStyle}>
-                    {isOwner ? "Eigener QR-X" : hasSaved ? "Gefolgt" : "Folgen"}
-                  </h2>
-                  <p style={boxHintStyle}>
-                    {isOwner
-                      ? "Du bist der Besitzer dieses QR-X. Er ist automatisch in deinen erstellten QR-X sichtbar."
-                      : currentUserId
-                        ? hasSaved
-                          ? "Dieser QR-X ist aktuell in deinen gespeicherten Einträgen."
-                          : "Du kannst diesem QR-X folgen, um ihn in deiner App und im Web wiederzufinden."
-                        : "Melde dich an, um diesem QR-X zu folgen."}
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleToggleSave}
-                  disabled={isOwner || saveLoading || !currentUserId}
-                  className={styles.primaryButton}
-                  style={{
-                    border: 0,
-                    cursor:
-                      isOwner || saveLoading || !currentUserId
-                        ? "not-allowed"
-                        : "pointer",
-                    opacity:
-                      isOwner || saveLoading || !currentUserId ? 0.82 : 1,
-                  }}
-                >
-                  {isOwner
-                    ? "👑 Eigener QR-X"
-                    : saveLoading
-                      ? "Bitte warten …"
-                      : hasSaved
-                        ? "✓ Gefolgt"
-                        : "+ Folgen"}
-                </button>
-
-                <span style={saveCountStyle}>
-                  Gespeichert von{" "}
-                  {formatNumber(saveCount ?? entry.follower_count)} Nutzer
-                  {Number(saveCount ?? entry.follower_count ?? 0) === 1
-                    ? ""
-                    : "n"}
-                </span>
-              </div>
-
-              <div style={qrDownloadBoxStyle}>
-                <div>
-                  <h2 style={boxTitleStyle}>QR-X Bild</h2>
-                  <p style={boxHintStyle}>
-                    Lade den QR-Code als Bild herunter oder kopiere den
-                    öffentlichen Link.
-                  </p>
-                </div>
-
-                {qrImageUrl ? (
-                  <img
-                    src={qrImageUrl}
-                    alt={`QR-Code für ${title}`}
-                    style={qrImageStyle}
-                  />
-                ) : null}
-
-                <div style={qrButtonRowStyle}>
-                  <button
-                    type="button"
-                    onClick={handleDownloadQrImage}
-                    className={styles.primaryButton}
-                    style={{ border: 0 }}
-                  >
-                    QR-Code herunterladen
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCopyPublicLink}
-                    className={styles.secondaryButton}
-                    style={{ border: 0 }}
-                  >
-                    Link kopieren
-                  </button>
-                </div>
-              </div>
-            </section>
+            <QrxActionsSection
+              isOwner={isOwner}
+              hasSaved={hasSaved}
+              currentUserId={currentUserId}
+              saveLoading={saveLoading}
+              followerCount={`${formatNumber(saveCount ?? entry.follower_count)} Nutzer${Number(saveCount ?? entry.follower_count ?? 0) === 1 ? "" : "n"}`}
+              qrImageUrl={qrImageUrl}
+              title={title}
+              onToggleSave={handleToggleSave}
+              onDownloadQr={handleDownloadQrImage}
+              onCopyLink={handleCopyPublicLink}
+            />
           </>
         ) : null}
       </section>
 
       {!loading && entry ? (
-        <section style={panelStyle}>
-          <div className={styles.cardHeader}>
-            <div>
-              <h2>News & Updates</h2>
-              <p>Aktuelle Informationen und Änderungen dieses QR-X.</p>
-            </div>
-            <span>{newsItems.length} Updates</span>
-          </div>
+        <QrxNewsSection items={newsItems} formatDate={formatDate} />
+      ) : null}
 
-          {newsItems.length > 0 ? (
-            <div style={newsListStyle}>
-              {newsItems.map((item) => (
-                <article key={item.id} style={newsCardStyle}>
-                  <div style={newsDateStyle}>{formatDate(item.createdAt)}</div>
-                  <p style={newsTextStyle}>{item.text}</p>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <div style={emptyStateStyle}>
-              <strong>Noch keine Updates vorhanden.</strong>
-              <span>
-                Wenn der Ersteller neue Informationen hinzufügt, erscheinen sie
-                hier.
-              </span>
-            </div>
-          )}
+      {!loading && entry && collectionItems.length > 0 ? (
+        <section style={panelStyle}>
+          <CollectionPreview
+            parentQrxId={entry.id}
+            parentQrxTitle={title}
+            items={collectionItems}
+            locale={locale}
+          />
         </section>
       ) : null}
 
@@ -940,84 +873,24 @@ export default function PublicQrxDetailPage() {
         </section>
       ) : null}
 
-      {!loading && (imageMedia.length > 0 || fileMedia.length > 0) ? (
-        <section style={panelStyle}>
-          <div className={styles.cardHeader}>
-            <div>
-              <h2>Medien</h2>
-              <p>Bilder und Dateien dieses QR-X.</p>
-            </div>
-            <span>{media.length} Medien</span>
-          </div>
-
-          {imageMedia.length > 0 ? (
-            <>
-              <h3 style={sectionSubTitleStyle}>Bilder</h3>
-              <div style={galleryGridStyle}>
-                {imageMedia.map((item) => (
-                  <a
-                    key={item.id}
-                    href={
-                      getBestMediaUrl({
-                        media: item,
-                        purpose: "fullscreen",
-                        forceOriginal: forceOriginalQuality,
-                      }) || item.url
-                    }
-                    target="_blank"
-                    rel="noreferrer"
-                    style={galleryItemStyle}
-                    onClick={() => handleImageOpen(item)}
-                  >
-                    <img
-                      src={
-                        getBestMediaUrl({
-                          media: item,
-                          purpose: "gallery",
-                          forceOriginal: forceOriginalQuality,
-                        }) || item.url
-                      }
-                      alt={item.filename ?? "QR-X Bild"}
-                      style={galleryImageStyle}
-                    />
-                  </a>
-                ))}
-              </div>
-            </>
-          ) : null}
-
-          {fileMedia.length > 0 ? (
-            <div style={{ marginTop: imageMedia.length > 0 ? 18 : 0 }}>
-              <h3 style={sectionSubTitleStyle}>Dateien</h3>
-              <div style={fileListStyle}>
-                {fileMedia.map((item) => (
-                  <div key={item.id} style={fileItemStyle}>
-                    <span>📄 {item.filename ?? "Datei öffnen"}</span>
-                    <span style={fileActionRowStyle}>
-                      <a
-                        href={item.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        style={fileActionLinkStyle}
-                        onClick={() => handleFileOpen(item)}
-                      >
-                        Öffnen
-                      </a>
-                      <a
-                        href={item.url}
-                        download={item.filename ?? undefined}
-                        style={fileActionLinkStyle}
-                        onClick={() => handleFileDownload(item)}
-                      >
-                        Herunterladen
-                      </a>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </section>
+      {!loading ? (
+        <QrxMediaSection
+          imageItems={imageDisplayItems}
+          fileItems={fileDisplayItems}
+          totalCount={media.length}
+          onImageOpen={(id) => {
+            const item = media.find((mediaItem) => mediaItem.id === id);
+            if (item) handleImageOpen(item);
+          }}
+          onFileOpen={(id) => {
+            const item = media.find((mediaItem) => mediaItem.id === id);
+            if (item) handleFileOpen(item);
+          }}
+          onFileDownload={(id) => {
+            const item = media.find((mediaItem) => mediaItem.id === id);
+            if (item) handleFileDownload(item);
+          }}
+        />
       ) : null}
     </main>
   );
@@ -1031,6 +904,21 @@ function InfoRow({ title, text }: { title: string; text: string }) {
     </div>
   );
 }
+
+const collectionBackLinkStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  minHeight: 42,
+  marginBottom: 14,
+  borderRadius: 999,
+  padding: "0 14px",
+  background: "rgba(37,99,235,0.14)",
+  border: "1px solid rgba(147,197,253,0.22)",
+  color: "#dbeafe",
+  textDecoration: "none",
+  fontSize: 13,
+  fontWeight: 950,
+};
 
 const panelStyle: CSSProperties = {
   maxWidth: 1180,
