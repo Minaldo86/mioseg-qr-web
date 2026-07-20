@@ -8,6 +8,7 @@ import QrxReportForm from "./QrxReportForm";
 import QrxPasswordGate from "./QrxPasswordGate";
 import QrxCodeCanvas from "./QrxCodeCanvas";
 import MediaInteractionLink from "./MediaInteractionLink";
+import CollectionPreview, { type QrxCollectionPreviewItem } from "@/components/qrx/CollectionPreview";
 
 type NewsItem = { text: string; createdAt: string };
 
@@ -196,6 +197,8 @@ export default async function QrxPage({
   const { id } = await params;
   const sp = (await searchParams) ?? {};
   const debug = getFirst(sp.debug) === "1";
+  const parentQrxId = getFirst(sp.parentQrxId);
+  const parentQrxTitle = getFirst(sp.parentQrxTitle);
   const adminKey = getFirst(sp.adminKey);
   const hasAdminAccess =
     !!process.env.QRX_ADMIN_ACCESS_KEY &&
@@ -244,6 +247,70 @@ export default async function QrxPage({
     .select("id, qrx_id, type, url, filename, bytes")
     .eq("qrx_id", qrxId)
     .returns<QrxMedia[]>();
+
+  const { data: collectionRowsRaw, error: collectionRowsErr } = await supabase
+    .from("qrx_collection_items")
+    .select("linked_qrx_id,sort_order,custom_title")
+    .eq("collection_qrx_id", qrxId)
+    .order("sort_order", { ascending: true });
+
+  const collectionRows = (collectionRowsRaw ?? []) as Array<{
+    linked_qrx_id: string;
+    sort_order: number | null;
+    custom_title: string | null;
+  }>;
+
+  const linkedQrxIds = collectionRows
+    .map((row) => row.linked_qrx_id)
+    .filter((value): value is string => typeof value === "string" && value.length > 0);
+
+  const { data: collectionChildrenRaw, error: collectionChildrenErr } =
+    linkedQrxIds.length > 0
+      ? await supabase
+          .from("qr_x_entries")
+          .select(
+            "id,title,company_name,description,type,logo_url,cover_image_url,location_name,verified,deleted_at,suspended",
+          )
+          .in("id", linkedQrxIds)
+          .is("deleted_at", null)
+          .or("suspended.is.null,suspended.eq.false")
+      : { data: [], error: null };
+
+  const collectionChildren = (collectionChildrenRaw ?? []) as Array<
+    QrxCollectionPreviewItem & {
+      deleted_at?: string | null;
+      suspended?: boolean | null;
+    }
+  >;
+
+  const collectionChildrenById = new Map(
+    collectionChildren.map((child) => [child.id, child]),
+  );
+
+  const collectionItems: QrxCollectionPreviewItem[] = collectionRows.reduce<
+    QrxCollectionPreviewItem[]
+  >((accumulator, row) => {
+    const child = collectionChildrenById.get(row.linked_qrx_id);
+
+    if (!child || child.deleted_at || child.suspended === true) {
+      return accumulator;
+    }
+
+    accumulator.push({
+      id: child.id,
+      title: child.title ?? null,
+      company_name: child.company_name ?? null,
+      description: child.description ?? null,
+      type: child.type ?? null,
+      logo_url: child.logo_url ?? null,
+      cover_image_url: child.cover_image_url ?? null,
+      location_name: child.location_name ?? null,
+      verified: child.verified ?? null,
+      custom_title: row.custom_title ?? null,
+    });
+
+    return accumulator;
+  }, []);
 
   const { data: userData } = await supabase.auth.getUser();
   const currentUserId = userData.user?.id ?? null;
@@ -318,6 +385,9 @@ export default async function QrxPage({
     hasAdminAccess,
     mediaCount: (media ?? []).length,
     mediaErr: toErrorMessage(mediaErr),
+    collectionCount: collectionItems.length,
+    collectionRowsErr: toErrorMessage(collectionRowsErr),
+    collectionChildrenErr: toErrorMessage(collectionChildrenErr),
     currentUserId,
     saveCount: saveCountRaw ?? entry?.follower_count ?? 0,
     hasSaved: Boolean(savedRow),
@@ -404,7 +474,26 @@ export default async function QrxPage({
   const followerCount = saveCountRaw ?? entry.follower_count ?? 0;
   const publicQrxUrl = `https://www.mioseg-qr.com/qrx/${qrxId}`;
 
-  const sectionCardStyle: CSSProperties = {
+  const collectionBackSectionStyle: CSSProperties = {
+  width: "min(960px, calc(100% - 32px))",
+  margin: "0 auto 14px",
+};
+
+const collectionBackLinkStyle: CSSProperties = {
+  minHeight: 42,
+  display: "inline-flex",
+  alignItems: "center",
+  borderRadius: 999,
+  padding: "0 14px",
+  background: "rgba(37,99,235,0.14)",
+  border: "1px solid rgba(147,197,253,0.22)",
+  color: "#dbeafe",
+  textDecoration: "none",
+  fontSize: 13,
+  fontWeight: 900,
+};
+
+const sectionCardStyle: CSSProperties = {
     width: isMobile ? "100%" : "min(960px, calc(100% - 32px))",
     maxWidth: "100%",
     boxSizing: "border-box",
@@ -628,6 +717,17 @@ export default async function QrxPage({
       <TrackViewClient qrxId={qrxId} />
 
       <QrxPasswordGate qrxId={qrxId} enabled={entry.password_protected === true && !hasAdminAccess}>
+        {parentQrxId && parentQrxTitle ? (
+          <section style={collectionBackSectionStyle}>
+            <a
+              href={`/qrx/${encodeURIComponent(parentQrxId)}`}
+              style={collectionBackLinkStyle}
+            >
+              ← Zurück zur Sammlung „{parentQrxTitle}“
+            </a>
+          </section>
+        ) : null}
+
         {/* 1. Hero */}
         {isBusiness ? (
           <section style={heroShellStyle}>
@@ -913,7 +1013,19 @@ export default async function QrxPage({
           )}
         </section>
 
-        {/* 8. Standort */}
+        {/* 8. Sammlung */}
+        {collectionItems.length > 0 ? (
+          <section style={sectionCardStyle}>
+            <CollectionPreview
+              parentQrxId={qrxId}
+              parentQrxTitle={companyName}
+              items={collectionItems}
+              locale="de"
+            />
+          </section>
+        ) : null}
+
+        {/* 9. Standort */}
         <section style={sectionCardStyle}>
           <h2 style={cardTitleStyle}>Ort</h2>
           <p style={simpleTextStyle}>{entry.location_name?.trim() ? entry.location_name : "Kein Ort hinterlegt."}</p>
@@ -944,7 +1056,7 @@ export default async function QrxPage({
           </div>
         </section>
 
-        {/* 9. Transfer */}
+        {/* 10. Transfer */}
         {isOwner ? (
           <section style={sectionCardStyle}>
             <h2 style={cardTitleStyle}>Transfer</h2>
@@ -972,7 +1084,7 @@ export default async function QrxPage({
           </section>
         ) : null}
 
-        {/* 10. Gefolgt */}
+        {/* 11. Gefolgt */}
         <section style={sectionCardStyle}>
           <h2 style={cardTitleStyle}>Gefolgt</h2>
 
@@ -1011,7 +1123,7 @@ export default async function QrxPage({
           </p>
         </section>
 
-        {/* 11. QR-X Code */}
+        {/* 12. QR-X Code */}
         <section style={{ ...sectionCardStyle, textAlign: "center" }}>
           <QrxCodeCanvas
             value={publicQrxUrl}
@@ -1021,7 +1133,7 @@ export default async function QrxPage({
           />
         </section>
 
-        {/* 12. Inhalt melden */}
+        {/* 13. Inhalt melden */}
         <section style={sectionCardStyle}>
           <QrxReportForm qrxId={qrxId} />
         </section>
