@@ -274,6 +274,8 @@ type NewQrxDraft = {
   ctaNavigation: string;
   passwordProtected: boolean;
   wantsVerification: boolean;
+  collectionTitle: string;
+  collectionDescription: string;
   collectionQrxIds: string[];
 };
 
@@ -345,6 +347,8 @@ export default function NewQrxPage() {
 
   const [collectionCandidates, setCollectionCandidates] = useState<QrxCollectionCandidate[]>([]);
   const [selectedCollectionQrxIds, setSelectedCollectionQrxIds] = useState<string[]>([]);
+  const [collectionTitle, setCollectionTitle] = useState("");
+  const [collectionDescription, setCollectionDescription] = useState("");
   const [collectionLoading, setCollectionLoading] = useState(true);
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -469,6 +473,10 @@ export default function NewQrxPage() {
         setPasswordProtected(draft.passwordProtected);
       if (typeof draft.wantsVerification === "boolean")
         setWantsVerification(draft.wantsVerification);
+      if (typeof draft.collectionTitle === "string")
+        setCollectionTitle(draft.collectionTitle);
+      if (typeof draft.collectionDescription === "string")
+        setCollectionDescription(draft.collectionDescription);
       if (Array.isArray(draft.collectionQrxIds)) {
         setSelectedCollectionQrxIds(
           draft.collectionQrxIds.filter((value): value is string => typeof value === "string" && value.trim().length > 0),
@@ -522,6 +530,8 @@ export default function NewQrxPage() {
         ctaNavigation,
         passwordProtected,
         wantsVerification,
+        collectionTitle,
+        collectionDescription,
         collectionQrxIds: selectedCollectionQrxIds,
       };
 
@@ -542,6 +552,8 @@ export default function NewQrxPage() {
           qrxType !== "normal" ||
           passwordProtected ||
           wantsVerification ||
+          collectionTitle.trim().length > 0 ||
+          collectionDescription.trim().length > 0 ||
           selectedCollectionQrxIds.length > 0;
 
         if (hasTextDraft) {
@@ -581,6 +593,8 @@ export default function NewQrxPage() {
     ctaNavigation,
     passwordProtected,
     wantsVerification,
+    collectionTitle,
+    collectionDescription,
     selectedCollectionQrxIds,
   ]);
 
@@ -712,6 +726,27 @@ export default function NewQrxPage() {
     }
   }
 
+
+  function handleCollectionSelectionChange(nextIds: string[]) {
+    const collectionWillBecomeEmpty =
+      selectedCollectionQrxIds.length > 0 && nextIds.length === 0;
+
+    if (
+      collectionWillBecomeEmpty &&
+      (collectionTitle.trim() || collectionDescription.trim())
+    ) {
+      const removeText = window.confirm(
+        "Die Sammlung ist jetzt leer. Möchtest du auch Titel und Beschreibung der Sammlung entfernen?\n\nOK = entfernen\nAbbrechen = behalten",
+      );
+
+      if (removeText) {
+        setCollectionTitle("");
+        setCollectionDescription("");
+      }
+    }
+
+    setSelectedCollectionQrxIds(nextIds);
+  }
 
   async function saveCollectionItems(args: {
     collectionQrxId: string;
@@ -1435,6 +1470,14 @@ export default function NewQrxPage() {
         verified: false,
         suspended: false,
         password_protected: false,
+        collection_title:
+          selectedCollectionQrxIds.length > 0
+            ? toNullable(collectionTitle)
+            : null,
+        collection_description:
+          selectedCollectionQrxIds.length > 0
+            ? toNullable(collectionDescription)
+            : null,
       };
 
       let insertResult = await supabase
@@ -1466,6 +1509,8 @@ export default function NewQrxPage() {
           verified: insertPayload.verified,
           suspended: insertPayload.suspended,
           password_protected: insertPayload.password_protected,
+          collection_title: insertPayload.collection_title,
+          collection_description: insertPayload.collection_description,
         };
 
         insertResult = await supabase
@@ -1594,6 +1639,8 @@ export default function NewQrxPage() {
       setNewsDraft("");
       clearVerificationDocument();
       setWantsVerification(false);
+      setCollectionTitle("");
+      setCollectionDescription("");
       setSelectedCollectionQrxIds([]);
       clearSavedDraft();
       await loadCreditAndPricingData();
@@ -2180,12 +2227,62 @@ export default function NewQrxPage() {
             ) : null}
           </div>
 
-          <CollectionSelector
-            candidates={collectionCandidates}
-            selectedIds={selectedCollectionQrxIds}
-            loading={collectionLoading}
-            onChange={setSelectedCollectionQrxIds}
-          />
+          <div style={mediaSectionStyle}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                Eigene Sammlung
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Verknüpfe weitere eigenständige QR-X, zum Beispiel Produkte,
+                Referenzen, Projekte, Immobilien oder Veranstaltungen.
+              </p>
+            </div>
+
+            {selectedCollectionQrxIds.length > 0 ? (
+              <div style={{ display: "grid", gap: 12 }}>
+                <label style={labelStyle}>
+                  Titel der Sammlung
+                  <input
+                    value={collectionTitle}
+                    onChange={(event) => setCollectionTitle(event.target.value)}
+                    style={inputStyle}
+                    maxLength={100}
+                    placeholder="z. B. Unsere Referenzen, Aktuelle Projekte oder Unsere Produkte"
+                  />
+                </label>
+
+                <label style={labelStyle}>
+                  Beschreibung der Sammlung
+                  <textarea
+                    value={collectionDescription}
+                    onChange={(event) =>
+                      setCollectionDescription(event.target.value)
+                    }
+                    style={{
+                      ...inputStyle,
+                      minHeight: 100,
+                      paddingTop: 14,
+                      resize: "vertical",
+                    }}
+                    maxLength={500}
+                    placeholder="Optional: Beschreibe kurz, was Nutzer in dieser Sammlung finden."
+                  />
+                </label>
+
+                <p style={{ margin: 0, color: "#94a3b8", fontSize: 12, lineHeight: 1.5 }}>
+                  Ohne eigenen Titel wird im Detailbereich automatisch „Sammlung“ angezeigt.
+                  Eine leere Beschreibung wird vollständig ausgeblendet.
+                </p>
+              </div>
+            ) : null}
+
+            <CollectionSelector
+              candidates={collectionCandidates}
+              selectedIds={selectedCollectionQrxIds}
+              loading={collectionLoading}
+              onChange={handleCollectionSelectionChange}
+            />
+          </div>
 
           <div style={mediaSectionStyle}>
             <div>
