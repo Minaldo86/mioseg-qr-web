@@ -70,6 +70,8 @@ type QrxEntry = {
   cover_image_url: string | null;
   category: BusinessCategory | null;
   storage_limit_mb: number | null;
+  collection_title: string | null;
+  collection_description: string | null;
 };
 
 type SavedCollectionEntry = Omit<
@@ -353,6 +355,8 @@ export default function EditQrxPage() {
 
   const [collectionCandidates, setCollectionCandidates] = useState<QrxCollectionCandidate[]>([]);
   const [selectedCollectionQrxIds, setSelectedCollectionQrxIds] = useState<string[]>([]);
+  const [collectionTitle, setCollectionTitle] = useState("");
+  const [collectionDescription, setCollectionDescription] = useState("");
   const [collectionLoading, setCollectionLoading] = useState(true);
 
   useEffect(() => {
@@ -587,6 +591,27 @@ export default function EditQrxPage() {
     } finally {
       setCollectionLoading(false);
     }
+  }
+
+  function handleCollectionSelectionChange(nextIds: string[]) {
+    const collectionWillBecomeEmpty =
+      selectedCollectionQrxIds.length > 0 && nextIds.length === 0;
+
+    if (
+      collectionWillBecomeEmpty &&
+      (collectionTitle.trim() || collectionDescription.trim())
+    ) {
+      const removeText = window.confirm(
+        "Die Sammlung ist jetzt leer. Möchtest du auch Titel und Beschreibung der Sammlung entfernen?\n\nOK = entfernen\nAbbrechen = behalten",
+      );
+
+      if (removeText) {
+        setCollectionTitle("");
+        setCollectionDescription("");
+      }
+    }
+
+    setSelectedCollectionQrxIds(nextIds);
   }
 
   async function saveCollection(userId: string) {
@@ -909,7 +934,7 @@ export default function EditQrxPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,category,description,news,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb",
+          "id,owner_user_id,title,company_name,category,description,news,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb,collection_title,collection_description",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -946,6 +971,8 @@ export default function EditQrxPage() {
       setLogoUrl(data.logo_url ?? null);
       setCoverUrl(data.cover_image_url ?? null);
       setStorageLimitMb(Number(data.storage_limit_mb ?? 2));
+      setCollectionTitle(data.collection_title ?? "");
+      setCollectionDescription(data.collection_description ?? "");
       setLogoFile(null);
       setCoverFile(null);
       setGalleryFiles([]);
@@ -1020,6 +1047,14 @@ export default function EditQrxPage() {
           cta_website: qrxType === "business" ? toNullable(ctaWebsite) : null,
           cta_email: qrxType === "business" ? toNullable(ctaEmail) : null,
           cta_navigation: qrxType === "business" ? toNullable(ctaNavigation) : null,
+          collection_title:
+            selectedCollectionQrxIds.length > 0
+              ? toNullable(collectionTitle)
+              : null,
+          collection_description:
+            selectedCollectionQrxIds.length > 0
+              ? toNullable(collectionDescription)
+              : null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", qrxId)
@@ -1534,12 +1569,67 @@ export default function EditQrxPage() {
               )}
             </div>
 
-            <CollectionSelector
-              candidates={collectionCandidates}
-              selectedIds={selectedCollectionQrxIds}
-              loading={collectionLoading}
-              onChange={setSelectedCollectionQrxIds}
-            />
+            <div style={sectionBoxStyle}>
+              <div>
+                <h3 style={sectionTitleStyle}>Eigene Sammlung</h3>
+                <p style={sectionHintStyle}>
+                  Verknüpfe weitere eigenständige QR-X, zum Beispiel Produkte,
+                  Referenzen, Projekte, Immobilien oder Veranstaltungen.
+                </p>
+              </div>
+
+              {selectedCollectionQrxIds.length > 0 ? (
+                <div style={{ display: "grid", gap: 12 }}>
+                  <label style={labelStyle}>
+                    Titel der Sammlung
+                    <input
+                      value={collectionTitle}
+                      onChange={(event) => setCollectionTitle(event.target.value)}
+                      style={inputStyle}
+                      maxLength={100}
+                      placeholder="z. B. Unsere Referenzen, Aktuelle Projekte oder Unsere Produkte"
+                    />
+                  </label>
+
+                  <label style={labelStyle}>
+                    Beschreibung der Sammlung
+                    <textarea
+                      value={collectionDescription}
+                      onChange={(event) =>
+                        setCollectionDescription(event.target.value)
+                      }
+                      style={{
+                        ...inputStyle,
+                        minHeight: 100,
+                        paddingTop: 14,
+                        resize: "vertical",
+                      }}
+                      maxLength={500}
+                      placeholder="Optional: Beschreibe kurz, was Nutzer in dieser Sammlung finden."
+                    />
+                  </label>
+
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "#94a3b8",
+                      fontSize: 12,
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Ohne eigenen Titel wird im Detailbereich automatisch „Sammlung“
+                    angezeigt. Eine leere Beschreibung wird vollständig ausgeblendet.
+                  </p>
+                </div>
+              ) : null}
+
+              <CollectionSelector
+                candidates={collectionCandidates}
+                selectedIds={selectedCollectionQrxIds}
+                loading={collectionLoading}
+                onChange={handleCollectionSelectionChange}
+              />
+            </div>
 
             <div style={sectionBoxStyle}>
               <div>
