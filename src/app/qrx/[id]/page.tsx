@@ -74,6 +74,8 @@ type QrxEntry = {
   views_total: number | null;
   follower_count: number | null;
   created_at: string | null;
+  collection_title: string | null;
+  collection_description: string | null;
 };
 
 type QrxMedia = {
@@ -236,7 +238,9 @@ export default async function QrxPage({
       password_protected,
       views_total,
       follower_count,
-      created_at
+      created_at,
+      collection_title,
+      collection_description
     `)
     .eq("id", qrxId)
     .maybeSingle()
@@ -1021,6 +1025,8 @@ const sectionCardStyle: CSSProperties = {
               parentQrxTitle={companyName}
               items={collectionItems}
               routeMode="root"
+              collectionTitle={entry.collection_title}
+              collectionDescription={entry.collection_description}
             />
           </section>
         ) : null}

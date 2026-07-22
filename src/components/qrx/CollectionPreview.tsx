@@ -23,6 +23,8 @@ type CollectionPreviewProps = {
   locale?: string;
   compact?: boolean;
   routeMode?: "localized" | "root";
+  collectionTitle?: string | null;
+  collectionDescription?: string | null;
 };
 
 function getDisplayTitle(item: QrxCollectionPreviewItem) {
@@ -49,18 +51,22 @@ export default function CollectionPreview({
   locale = "de",
   compact = false,
   routeMode = "localized",
+  collectionTitle = null,
+  collectionDescription = null,
 }: CollectionPreviewProps) {
   if (items.length === 0) return null;
+
+  const visibleTitle = collectionTitle?.trim() || "Sammlung";
+  const visibleDescription = collectionDescription?.trim() || null;
 
   return (
     <section style={sectionStyle}>
       <div style={headerStyle}>
         <div>
-          <span style={kickerStyle}>QR-X Sammlung</span>
-          <h2 style={titleStyle}>Sammlung</h2>
-          <p style={descriptionStyle}>
-            Entdecke weitere eigenständige QR-X aus dieser Sammlung.
-          </p>
+          <h2 style={titleStyle}>{visibleTitle}</h2>
+          {visibleDescription ? (
+            <p style={descriptionStyle}>{visibleDescription}</p>
+          ) : null}
         </div>
 
         <span style={countBadgeStyle}>
@@ -154,16 +160,6 @@ const headerStyle: CSSProperties = {
   justifyContent: "space-between",
   gap: 14,
   flexWrap: "wrap",
-};
-
-const kickerStyle: CSSProperties = {
-  display: "inline-block",
-  color: "#93c5fd",
-  fontSize: 12,
-  fontWeight: 950,
-  textTransform: "uppercase",
-  letterSpacing: 0.8,
-  marginBottom: 6,
 };
 
 const titleStyle: CSSProperties = {
