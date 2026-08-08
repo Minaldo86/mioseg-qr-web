@@ -56,7 +56,9 @@ export default function DashboardClient({
       supabase
         .from("qr_x_entries")
         .select("id", { count: "exact", head: true })
-        .eq("owner_user_id", user.id),
+        .eq("owner_user_id", user.id)
+        .is("deleted_at", null)
+        .or("suspended.is.null,suspended.eq.false"),
 
       supabase
         .from("qrx_saves")

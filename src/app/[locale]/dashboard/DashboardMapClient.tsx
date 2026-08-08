@@ -44,6 +44,7 @@ type QrxEntry = {
   views_total: number | null;
   cover_image_url: string | null;
   deleted_at: string | null;
+  suspended: boolean | null;
 };
 
 type UserScan = {
@@ -585,9 +586,11 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       const ownQuery = supabase
         .from("qr_x_entries")
         .select(
-          "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at",
+          "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at,suspended",
         )
         .eq("owner_user_id", userId)
+        .is("deleted_at", null)
+        .or("suspended.is.null,suspended.eq.false")
         .gte("location_lat", viewport.south)
         .lte("location_lat", viewport.north)
         .gte("location_lng", viewport.west)
@@ -608,9 +611,11 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           ? supabase
               .from("qr_x_entries")
               .select(
-                "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at",
+                "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at,suspended",
               )
               .in("id", savedIds)
+              .is("deleted_at", null)
+              .or("suspended.is.null,suspended.eq.false")
               .gte("location_lat", viewport.south)
               .lte("location_lat", viewport.north)
               .gte("location_lng", viewport.west)
@@ -644,6 +649,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       }
 
       const ownPoints: MapPoint[] = (ownQrxRes.data ?? [])
+        .filter((entry) => entry.deleted_at == null && entry.suspended !== true)
         .filter((entry) =>
           isValidCoordinate(entry.location_lat, entry.location_lng),
         )
@@ -666,6 +672,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         }));
 
       const savedPoints: MapPoint[] = (savedQrxRes.data ?? [])
+        .filter((entry) => entry.deleted_at == null && entry.suspended !== true)
         .filter((entry) => entry.owner_user_id !== userId)
         .filter((entry) =>
           isValidCoordinate(entry.location_lat, entry.location_lng),
