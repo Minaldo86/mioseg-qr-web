@@ -3,6 +3,7 @@ import styles from "./page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import TrackViewClient from "./TrackViewClient";
 import QrxReportForm from "./QrxReportForm";
 import QrxPasswordGate from "./QrxPasswordGate";
@@ -202,6 +203,7 @@ export default async function QrxPage({
   const parentQrxId = getFirst(sp.parentQrxId);
   const parentQrxTitle = getFirst(sp.parentQrxTitle);
   const adminKey = getFirst(sp.adminKey);
+  const moderationReviewResult = getFirst(sp.review);
   const hasAdminAccess =
     !!process.env.QRX_ADMIN_ACCESS_KEY &&
     adminKey === process.env.QRX_ADMIN_ACCESS_KEY;
@@ -370,6 +372,74 @@ export default async function QrxPage({
     revalidatePath(`/qrx/${qrxId}`);
   }
 
+  async function requestModerationReviewAction() {
+    "use server";
+
+    const actionSupabase = await createSupabaseServerClient();
+    const { data: actionUserData, error: actionUserError } =
+      await actionSupabase.auth.getUser();
+    const actionUser = actionUserData.user;
+
+    if (actionUserError || !actionUser?.id) {
+      redirect(`/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`);
+    }
+
+    const { data: ownedQrx } = await actionSupabase
+      .from("qr_x_entries")
+      .select("id,title,owner_user_id,suspended,suspended_reason")
+      .eq("id", qrxId)
+      .eq("owner_user_id", actionUser.id)
+      .maybeSingle();
+
+    if (!ownedQrx || ownedQrx.suspended !== true) {
+      redirect(`/qrx/${qrxId}`);
+    }
+
+    const { data: existing } = await actionSupabase
+      .from("support_tickets")
+      .select("id,status")
+      .eq("user_id", actionUser.id)
+      .eq("qrx_id", qrxId)
+      .eq("report_reason", "moderation_review")
+      .in("status", ["open", "in_review", "waiting_customer"])
+      .limit(1);
+
+    if (Array.isArray(existing) && existing.length > 0) {
+      redirect(`/qrx/${qrxId}?review=existing`);
+    }
+
+    const description = [
+      "Antrag auf Überprüfung einer Moderationsentscheidung aus der Webplattform.",
+      `QR-X: ${qrxId}`,
+      `Titel: ${ownedQrx.title ?? "QR-X"}`,
+      `Angezeigter Sperrgrund: ${ownedQrx.suspended_reason?.trim() || "Kein Grund angegeben"}`,
+      "",
+      "Der Nutzer bittet um erneute Prüfung der Moderationsentscheidung.",
+    ].join("\n");
+
+    const { error: ticketError } = await actionSupabase
+      .from("support_tickets")
+      .insert({
+        user_id: actionUser.id,
+        qrx_id: qrxId,
+        problem_type: "other",
+        status: "open",
+        title: "Überprüfung einer Moderationsentscheidung",
+        description,
+        report_reason: "moderation_review",
+        reporter_email: actionUser.email ?? null,
+        report_weight: 1,
+      });
+
+    if (ticketError) {
+      console.error("Moderation review ticket creation failed:", ticketError);
+      redirect(`/qrx/${qrxId}?review=error`);
+    }
+
+    revalidatePath(`/qrx/${qrxId}`);
+    redirect(`/qrx/${qrxId}?review=requested`);
+  }
+
   const h = await headers();
   const ua = h.get("user-agent");
   const showDownloadHint = isProbablyMobile(ua);
@@ -429,14 +499,146 @@ export default async function QrxPage({
   if (entry.suspended === true) {
     return (
       <main className={styles.page}>
-        <div className={styles.card}>
-          <h1 className={styles.title}>QR-X gesperrt</h1>
+        <div
+          className={styles.card}
+          style={{
+            maxWidth: 620,
+            border: "1px solid rgba(245,197,66,0.24)",
+            background: "#0D1728",
+          }}
+        >
+          <div
+            style={{
+              width: 52,
+              height: 52,
+              margin: "0 auto 16px",
+              borderRadius: 16,
+              display: "grid",
+              placeItems: "center",
+              background: "rgba(245,197,66,0.08)",
+              border: "1px solid rgba(245,197,66,0.24)",
+              fontSize: 24,
+            }}
+          >
+            ◇
+          </div>
+
+          <h1 className={styles.title}>
+            {isOwner ? "QR-X eingeschränkt" : "QR-X nicht verfügbar"}
+          </h1>
+
           <p className={styles.sub}>
-            Dieser QR-X wurde vorübergehend deaktiviert und ist aktuell nicht verfügbar.
+            {isOwner
+              ? "Dieser QR-X wurde aufgrund einer Moderationsentscheidung eingeschränkt und ist derzeit nicht öffentlich verfügbar."
+              : "Dieser QR-X ist derzeit nicht verfügbar."}
           </p>
 
-          {entry.suspended_reason?.trim() ? (
-            <p className={styles.sub}>Grund: {entry.suspended_reason}</p>
+          {isOwner ? (
+            <>
+              <div
+                style={{
+                  marginTop: 18,
+                  padding: 14,
+                  borderRadius: 14,
+                  background: "rgba(255,255,255,0.035)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  textAlign: "left",
+                }}
+              >
+                <strong
+                  style={{
+                    display: "block",
+                    marginBottom: 6,
+                    color: "#94A3B8",
+                    fontSize: 12,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  Grund
+                </strong>
+                <span style={{ color: "#E2E8F0", lineHeight: 1.5 }}>
+                  {entry.suspended_reason?.trim() || "Es wurde kein näherer Grund angegeben."}
+                </span>
+              </div>
+
+              <p className={styles.sub} style={{ marginTop: 18 }}>
+                Wenn du der Meinung bist, dass diese Entscheidung überprüft werden sollte,
+                kannst du eine erneute Prüfung anfordern.
+              </p>
+
+              {moderationReviewResult === "requested" ? (
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    background: "rgba(34,197,94,0.09)",
+                    border: "1px solid rgba(34,197,94,0.24)",
+                    color: "#BBF7D0",
+                  }}
+                >
+                  Überprüfung angefordert. Deine Anfrage wurde an den Support übermittelt.
+                </div>
+              ) : moderationReviewResult === "existing" ? (
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    background: "rgba(59,130,246,0.09)",
+                    border: "1px solid rgba(59,130,246,0.24)",
+                    color: "#BFDBFE",
+                  }}
+                >
+                  Für diese Entscheidung gibt es bereits eine offene Überprüfung.
+                </div>
+              ) : moderationReviewResult === "error" ? (
+                <div
+                  style={{
+                    marginTop: 14,
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    background: "rgba(239,68,68,0.08)",
+                    border: "1px solid rgba(239,68,68,0.22)",
+                    color: "#FECACA",
+                  }}
+                >
+                  Die Anfrage konnte nicht gespeichert werden. Bitte versuche es später erneut.
+                </div>
+              ) : (
+                <form action={requestModerationReviewAction} style={{ marginTop: 16 }}>
+                  <button
+                    type="submit"
+                    style={{
+                      width: "100%",
+                      minHeight: 48,
+                      border: 0,
+                      borderRadius: 14,
+                      padding: "0 16px",
+                      background: "#F8FAFC",
+                      color: "#0F172A",
+                      fontSize: 14,
+                      fontWeight: 900,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Entscheidung überprüfen lassen
+                  </button>
+                </form>
+              )}
+
+              <p
+                style={{
+                  margin: "10px 0 0",
+                  color: "#718096",
+                  fontSize: 12,
+                  lineHeight: 1.5,
+                }}
+              >
+                Die Anfrage führt nicht automatisch zur Aufhebung der Sperrung.
+              </p>
+            </>
           ) : null}
 
           {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
