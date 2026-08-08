@@ -51,6 +51,8 @@ type ExploreEntry = {
   manual_view_boost: number | null;
   manual_unique_view_boost: number | null;
   force_original_quality: boolean | null;
+  deleted_at: string | null;
+  suspended: boolean | null;
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -276,14 +278,22 @@ export default async function ExplorePage({
   const { data, error } = await supabase
     .from("qr_x_entries")
     .select(
-      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost, force_original_quality"
+      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost, force_original_quality, deleted_at, suspended"
     )
     .eq("type", "business")
+    .is("deleted_at", null)
+    .or("suspended.is.null,suspended.eq.false")
     .order("created_at", { ascending: false })
     .limit(120)
     .returns<ExploreEntry[]>();
 
-  const qrxIds = (data ?? []).map((entry) => entry.id);
+  // Zweite Sicherheitsstufe: Auch wenn sich Query/RLS später ändert,
+  // dürfen gelöschte oder gesperrte QR-X niemals in Explore gelangen.
+  const publicEntries = (data ?? []).filter(
+    (entry) => entry.deleted_at == null && entry.suspended !== true
+  );
+
+  const qrxIds = publicEntries.map((entry) => entry.id);
   let saveRows: Array<{ qrx_id: string | null }> = [];
 
   if (qrxIds.length > 0) {
@@ -316,7 +326,7 @@ export default async function ExplorePage({
     Math.max(0, Number(entry.views_unique_total ?? 0)) +
     Math.max(0, Number(entry.manual_unique_view_boost ?? 0));
 
-  const items = (data ?? []).filter((item) => {
+  const items = publicEntries.filter((item) => {
     const categoryOk = selectedCategory === "all" || item.category === selectedCategory;
     if (!categoryOk) return false;
 
@@ -343,14 +353,14 @@ export default async function ExplorePage({
 
   const categoryCounts = CATEGORY_OPTIONS.map((option) => ({
     ...option,
-    count: (data ?? []).filter((item) => item.category === option.value).length,
+    count: publicEntries.filter((item) => item.category === option.value).length,
   }));
 
   const activeCategoryCount = categoryCounts.filter((c) => c.count > 0).length;
-  const verifiedCount = (data ?? []).filter((entry) => entry.verified).length;
-  const entriesWithLocationCount = (data ?? []).filter((entry) => entry.location_lat != null && entry.location_lng != null).length;
-  const totalFollowerCount = (data ?? []).reduce((sum, entry) => sum + getFollowerCountForEntry(entry), 0);
-  const totalViewCount = (data ?? []).reduce((sum, entry) => sum + getViewTotalForEntry(entry), 0);
+  const verifiedCount = publicEntries.filter((entry) => entry.verified).length;
+  const entriesWithLocationCount = publicEntries.filter((entry) => entry.location_lat != null && entry.location_lng != null).length;
+  const totalFollowerCount = publicEntries.reduce((sum, entry) => sum + getFollowerCountForEntry(entry), 0);
+  const totalViewCount = publicEntries.reduce((sum, entry) => sum + getViewTotalForEntry(entry), 0);
 
   const mapPoints = items
     .filter((entry) => entry.location_lat != null && entry.location_lng != null)
@@ -876,7 +886,7 @@ export default async function ExplorePage({
 
             <div className={styles.heroFacts}>
               <div className={styles.factCard}>
-                <div className={styles.factNumber}>{(data ?? []).length}</div>
+                <div className={styles.factNumber}>{publicEntries.length}</div>
                 <div className={styles.factLabel}>Business QR-X insgesamt</div>
               </div>
               <div className={styles.factCard}>
@@ -1068,7 +1078,7 @@ export default async function ExplorePage({
                         boxShadow: "0 24px 60px rgba(14,23,38,0.16)",
                       }}
                     >
-                      {(data ?? [])
+                      {publicEntries
                         .filter((entry) => entry.location_lat != null && entry.location_lng != null)
                         .slice(0, 120)
                         .map((entry) => (
@@ -1167,7 +1177,7 @@ export default async function ExplorePage({
                   href={buildExploreHref(locale, "all", queryRaw)}
                   className={`mioseg-category-chip ${selectedCategory === "all" ? "is-active" : ""}`}
                 >
-                  Alle <span>{(data ?? []).length}</span>
+                  Alle <span>{publicEntries.length}</span>
                 </Link>
 
                 {categoryCounts.map((item) => (
