@@ -366,6 +366,7 @@ export default function NewQrxPage() {
   );
 
   const [saving, setSaving] = useState(false);
+  const [costConfirmed, setCostConfirmed] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
@@ -433,6 +434,19 @@ export default function NewQrxPage() {
     totalCostCredits != null && credits != null
       ? credits >= totalCostCredits
       : false;
+
+  useEffect(() => {
+    setCostConfirmed(false);
+  }, [
+    qrxType,
+    wantsVerification,
+    creationCostCredits,
+    estimatedStorageCredits,
+    logoFile,
+    coverFile,
+    galleryFiles,
+    fileUploads,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -794,12 +808,16 @@ export default function NewQrxPage() {
           .from("qr_x_entries")
           .select("*", { count: "exact", head: true })
           .eq("owner_user_id", user.id)
-          .eq("type", "normal"),
+          .eq("type", "normal")
+          .is("deleted_at", null)
+          .or("suspended.is.null,suspended.eq.false"),
         supabase
           .from("qr_x_entries")
           .select("*", { count: "exact", head: true })
           .eq("owner_user_id", user.id)
-          .eq("type", "business"),
+          .eq("type", "business")
+          .is("deleted_at", null)
+          .or("suspended.is.null,suspended.eq.false"),
       ]);
 
       if (creditsRes.error) throw creditsRes.error;
@@ -1437,6 +1455,42 @@ export default function NewQrxPage() {
         throw new Error(
           `Nicht genug Credits. Benötigt: ${totalCostCredits}, vorhanden: ${credits}. Bitte kaufe zuerst Credits.`,
         );
+      }
+
+      if (totalCostCredits > 0 && !costConfirmed) {
+        const costParts: string[] = [];
+
+        if (creationCostCredits > 0) {
+          costParts.push(`QR-X-Erstellung: ${creationCostCredits} Credits`);
+        }
+
+        if (estimatedStorageCredits > 0) {
+          costParts.push(
+            `Zusätzlicher Speicher: ca. ${estimatedStorageCredits} Credits`,
+          );
+        }
+
+        if (verificationCredits > 0) {
+          costParts.push(`Verifizierung: ${verificationCredits} Credits`);
+        }
+
+        const storageNotice =
+          estimatedStorageCredits > 0
+            ? "\n\nDer Speicheranteil ist eine Schätzung anhand der aktuell ausgewählten Dateien. Die endgültige Speicherabrechnung erfolgt serverseitig anhand der tatsächlich verarbeiteten Daten."
+            : "";
+
+        const confirmed = window.confirm(
+          `Bitte bestätige den Credit-Verbrauch, bevor der QR-X erstellt wird.\n\n${costParts.join(
+            "\n",
+          )}\n\nVoraussichtliche Gesamtkosten: ${totalCostCredits} Credits\nAktuelles Guthaben: ${credits} Credits${storageNotice}\n\nMit „OK“ bestätigst du den kostenpflichtigen Vorgang.`,
+        );
+
+        if (!confirmed) {
+          setSaving(false);
+          return;
+        }
+
+        setCostConfirmed(true);
       }
 
       if (creationCostCredits > 0) {
