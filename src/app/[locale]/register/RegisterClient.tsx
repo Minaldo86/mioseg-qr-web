@@ -7,6 +7,9 @@ import { FormEvent, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import styles from "../auth/auth.module.css";
 
+const CURRENT_TERMS_VERSION = "1.0";
+const CURRENT_TERMS_DATE = "2026-08-08";
+
 type Props = {
   locale: string;
 };
@@ -37,6 +40,8 @@ export default function RegisterClient({ locale }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordRepeat, setPasswordRepeat] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -61,6 +66,17 @@ export default function RegisterClient({ locale }: Props) {
             login: "Einloggen",
             passwordMismatch: "Die Passwörter stimmen nicht überein.",
             passwordShort: "Das Passwort sollte mindestens 6 Zeichen haben.",
+            termsPrefix: "Ich akzeptiere die",
+            terms: "Nutzungsbedingungen",
+            termsSuffix: ` (Version ${CURRENT_TERMS_VERSION}).`,
+            age: "Ich bestätige, dass ich mindestens 16 Jahre alt bin.",
+            privacyPrefix:
+              "Informationen zur Verarbeitung deiner Daten findest du in der",
+            privacy: "Datenschutzerklärung",
+            termsMissing:
+              "Bitte akzeptiere die Nutzungsbedingungen, bevor du dein Konto erstellst.",
+            ageMissing:
+              "Bitte bestätige, dass du mindestens 16 Jahre alt bist.",
             success:
               "Konto wurde erstellt. Bitte bestätige bei Bedarf deine E-Mail-Adresse und melde dich danach an.",
             feature1Title: "QR-X im Browser",
@@ -87,6 +103,17 @@ export default function RegisterClient({ locale }: Props) {
             login: "Login",
             passwordMismatch: "The passwords do not match.",
             passwordShort: "The password should have at least 6 characters.",
+            termsPrefix: "I accept the",
+            terms: "Terms of Use",
+            termsSuffix: ` (version ${CURRENT_TERMS_VERSION}).`,
+            age: "I confirm that I am at least 16 years old.",
+            privacyPrefix:
+              "Information about how we process your data is available in the",
+            privacy: "Privacy Policy",
+            termsMissing:
+              "Please accept the Terms of Use before creating your account.",
+            ageMissing:
+              "Please confirm that you are at least 16 years old.",
             success:
               "Account created. Please confirm your email address if required, then sign in.",
             feature1Title: "QR-X in browser",
@@ -98,6 +125,10 @@ export default function RegisterClient({ locale }: Props) {
           },
     [locale]
   );
+
+  // Adjust only these two paths if your web legal pages currently use different slugs.
+  const termsHref = `/${locale}/nutzungsbedingungen`;
+  const privacyHref = `/${locale}/datenschutz`;
 
   const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -118,16 +149,38 @@ export default function RegisterClient({ locale }: Props) {
         return;
       }
 
+      if (!termsAccepted) {
+        setErrorText(copy.termsMissing);
+        return;
+      }
+
+      if (!ageConfirmed) {
+        setErrorText(copy.ageMissing);
+        return;
+      }
+
       const redirectTo =
         typeof window !== "undefined"
           ? `${window.location.origin}/${locale}/dashboard`
           : undefined;
+
+      const acceptedAt = new Date().toISOString();
 
       const { error } = await supabase.auth.signUp({
         email: normalizedEmail,
         password,
         options: {
           emailRedirectTo: redirectTo,
+          data: {
+            terms_accepted: true,
+            terms_version: CURRENT_TERMS_VERSION,
+            terms_effective_date: CURRENT_TERMS_DATE,
+            terms_accepted_at_client: acceptedAt,
+            terms_language: locale,
+            terms_source: "web",
+            age_confirmed_16: true,
+            age_confirmed_at_client: acceptedAt,
+          },
         },
       });
 
@@ -152,7 +205,7 @@ export default function RegisterClient({ locale }: Props) {
     <main className={styles.page}>
       <header className={styles.topbar}>
         <Link href={`/${locale}`} className={styles.brand}>
-          <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
+          <img src="/logo-white.png" alt="Mioseg qr Logo" />
         </Link>
 
         <Link href={`/${locale}`} className={styles.navLink}>
@@ -234,10 +287,68 @@ export default function RegisterClient({ locale }: Props) {
               />
             </div>
 
+            <label
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 10,
+                fontSize: 13,
+                lineHeight: 1.5,
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(event) => setTermsAccepted(event.target.checked)}
+                disabled={working}
+                style={{ marginTop: 3 }}
+              />
+              <span>
+                {copy.termsPrefix}{" "}
+                <Link href={termsHref} target="_blank">
+                  {copy.terms}
+                </Link>
+                {copy.termsSuffix}
+              </span>
+            </label>
+
+            <label
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 10,
+                fontSize: 13,
+                lineHeight: 1.5,
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={ageConfirmed}
+                onChange={(event) => setAgeConfirmed(event.target.checked)}
+                disabled={working}
+                style={{ marginTop: 3 }}
+              />
+              <span>{copy.age}</span>
+            </label>
+
+            <p style={{ fontSize: 12, lineHeight: 1.5, opacity: 0.78, margin: 0 }}>
+              {copy.privacyPrefix}{" "}
+              <Link href={privacyHref} target="_blank">
+                {copy.privacy}
+              </Link>
+              .
+            </p>
+
             {message ? <div className={styles.message}>{message}</div> : null}
             {errorText ? <div className={styles.error}>{errorText}</div> : null}
 
-            <button className={styles.primaryButton} type="submit" disabled={working}>
+            <button
+              className={styles.primaryButton}
+              type="submit"
+              disabled={working || !termsAccepted || !ageConfirmed}
+            >
               {working ? copy.loading : copy.submit}
             </button>
           </form>
