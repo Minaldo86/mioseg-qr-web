@@ -7201,7 +7201,21 @@ const handleWarningOpenMediaJobs = async () => {
             <div style={styles.stateCard}>Keine gemeldeten QR-X mit offenem Moderationsstatus.</div>
           ) : (
             <div style={styles.ticketList}>
-              {reportedQrx.map((qrx) => (
+              {reportedQrx.map((qrx) => {
+                const relatedReports = tickets
+                  .filter(
+                    (ticket) =>
+                      ticket.qrx_id === qrx.id &&
+                      (ticket.problem_type === "qrx_report" ||
+                        ticket.title?.toLowerCase().startsWith("qr-x meldung"))
+                  )
+                  .sort(
+                    (a, b) =>
+                      new Date(b.created_at).getTime() -
+                      new Date(a.created_at).getTime()
+                  );
+
+                return (
                 <div key={qrx.id} style={styles.ticketItem}>
                   <div style={styles.ticketTop}>
                     <div>
@@ -7227,6 +7241,78 @@ const handleWarningOpenMediaJobs = async () => {
                   {qrx.suspended_reason ? (
                     <div style={styles.historyNote}>Sperrgrund: {qrx.suspended_reason}</div>
                   ) : null}
+
+                  {relatedReports.length > 0 ? (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        display: "grid",
+                        gap: 10,
+                      }}
+                    >
+                      <div style={{ ...styles.ticketMeta, fontWeight: 900, color: "#cbd5e1" }}>
+                        Eingegangene Meldungen
+                      </div>
+
+                      {relatedReports.map((report, reportIndex) => (
+                        <div
+                          key={report.id}
+                          style={{
+                            borderRadius: 14,
+                            padding: 12,
+                            background: "rgba(255,255,255,0.035)",
+                            border: "1px solid rgba(148,163,184,0.14)",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: 10,
+                              flexWrap: "wrap",
+                              marginBottom: 7,
+                            }}
+                          >
+                            <strong style={{ color: "#f8fafc", fontSize: 13 }}>
+                              Meldung {relatedReports.length - reportIndex}
+                              {report.report_reason ? ` · ${report.report_reason}` : ""}
+                            </strong>
+                            <span style={{ color: "#93a5bd", fontSize: 11 }}>
+                              {new Date(report.created_at).toLocaleString("de-DE")}
+                            </span>
+                          </div>
+
+                          {report.reporter_email ? (
+                            <div style={{ ...styles.ticketMeta, marginBottom: 7 }}>
+                              Rückfrage: {report.reporter_email}
+                            </div>
+                          ) : null}
+
+                          <div
+                            style={{
+                              color: "#dbe4ef",
+                              fontSize: 13,
+                              lineHeight: 1.55,
+                              whiteSpace: "pre-wrap",
+                              overflowWrap: "anywhere",
+                            }}
+                          >
+                            {report.description || "Keine zusätzliche Beschreibung."}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        color: "#718096",
+                        fontSize: 12,
+                      }}
+                    >
+                      Zu diesem QR-X wurde keine detaillierte Meldungsbeschreibung geladen.
+                    </div>
+                  )}
 
                   <div style={styles.bottomRow}>
                     <a
@@ -7274,7 +7360,8 @@ const handleWarningOpenMediaJobs = async () => {
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
