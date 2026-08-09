@@ -49,6 +49,67 @@ function getBillingDetails(session: Stripe.Checkout.Session) {
   };
 }
 
+
+type PurchaseLegalAcceptance = {
+  id: string;
+  user_id: string;
+  consent_version: string;
+  immediate_performance_text: string;
+  withdrawal_loss_text: string;
+  accepted_locale: string | null;
+  accepted_at: string;
+  checkout_status: string | null;
+  stripe_checkout_session_id: string | null;
+};
+
+async function getPurchaseLegalAcceptance(
+  session: Stripe.Checkout.Session,
+  userId: string,
+): Promise<PurchaseLegalAcceptance | null> {
+  const metadata = session.metadata ?? {};
+  const legalAcceptanceId = clean(metadata.legal_acceptance_id);
+
+  if (!legalAcceptanceId) {
+    console.warn("Stripe checkout has no legal_acceptance_id metadata.", {
+      sessionId: session.id,
+      userId,
+    });
+    return null;
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("purchase_legal_acceptances")
+    .select(
+      "id,user_id,consent_version,immediate_performance_text,withdrawal_loss_text,accepted_locale,accepted_at,checkout_status,stripe_checkout_session_id",
+    )
+    .eq("id", legalAcceptanceId)
+    .eq("user_id", userId)
+    .maybeSingle<PurchaseLegalAcceptance>();
+
+  if (error) {
+    throw new Error(
+      `purchase_legal_acceptances lookup failed: ${error.message}`,
+    );
+  }
+
+  if (!data) {
+    throw new Error(
+      `Keine Kaufzustimmung für Stripe Session ${session.id} gefunden.`,
+    );
+  }
+
+  if (
+    data.stripe_checkout_session_id &&
+    data.stripe_checkout_session_id !== session.id
+  ) {
+    throw new Error(
+      `Kaufzustimmung ${data.id} gehört nicht zu Stripe Session ${session.id}.`,
+    );
+  }
+
+  return data;
+}
+
 function formatMoney(cents: number, currency: string) {
   const value = (cents || 0) / 100;
   const ccy = (currency || "EUR").toUpperCase();
@@ -232,7 +293,30 @@ async function createInvoicePdfBytes(params: {
           "Der ausgewiesene Betrag enthält die gesetzliche Umsatzsteuer, soweit ausgewiesen.",
           "Die Leistung wird als digitale Bereitstellung von Nutzungscredits erbracht.",
         ];
-  hintLines.forEach((line) => drawLeft(line, 10, false, true));
+  const wrapHintLine = (value: string, maxWidth = pageW - marginL - marginR) => {
+    const words = value.split(/\s+/).filter(Boolean);
+    const lines: string[] = [];
+    let current = "";
+
+    for (const word of words) {
+      const candidate = current ? `${current} ${word}` : word;
+      const width = font.widthOfTextAtSize(candidate, 10);
+
+      if (width <= maxWidth || !current) {
+        current = candidate;
+      } else {
+        lines.push(current);
+        current = word;
+      }
+    }
+
+    if (current) lines.push(current);
+    return lines;
+  };
+
+  hintLines.forEach((line) => {
+    wrapHintLine(line).forEach((wrapped) => drawLeft(wrapped, 10, false, true));
+  });
 
   const footerY = 34;
   drawRule(footerY + 16);
@@ -434,6 +518,7 @@ async function finalizeInvoice(input: {
   netCents: number;
   taxCents: number;
   currency: string;
+  legalAcceptance: PurchaseLegalAcceptance | null;
 }) {
   if (!input.billing.customerEmail) throw new Error("Rechnungs-E-Mail fehlt.");
   const dateISO = new Date().toISOString().slice(0, 10);
@@ -454,6 +539,18 @@ async function finalizeInvoice(input: {
     grossAmountCents: input.amountCents,
     taxRate: input.taxCents > 0 ? 0.19 : 0,
     currency: input.currency,
+    extraHintLines: input.legalAcceptance
+      ? [
+          "Bestätigung zum sofortigen Leistungsbeginn / Widerrufsrecht:",
+          `Zustimmung vom ${new Date(input.legalAcceptance.accepted_at).toLocaleString("de-DE")} (Version ${input.legalAcceptance.consent_version}).`,
+          input.legalAcceptance.immediate_performance_text,
+          input.legalAcceptance.withdrawal_loss_text,
+          `Nachweis-ID: ${input.legalAcceptance.id}`,
+        ]
+      : [
+          "Der ausgewiesene Betrag enthält die gesetzliche Umsatzsteuer, soweit ausgewiesen.",
+          "Die Leistung wird als digitale Bereitstellung von Nutzungscredits erbracht.",
+        ],
   });
 
   const upload = await supabaseAdmin.storage.from("invoices").upload(input.pdfPath, pdfBytes, {
@@ -465,12 +562,27 @@ async function finalizeInvoice(input: {
     throw new Error(`Storage upload failed: ${upload.error.message}`);
   }
 
+  const legalConfirmationText = input.legalAcceptance
+    ? [
+        "",
+        "Bestätigung zum sofortigen Leistungsbeginn / Widerrufsrecht",
+        `Zustimmung dokumentiert am: ${new Date(input.legalAcceptance.accepted_at).toLocaleString("de-DE")}`,
+        `Version: ${input.legalAcceptance.consent_version}`,
+        `Nachweis-ID: ${input.legalAcceptance.id}`,
+        "",
+        `1. ${input.legalAcceptance.immediate_performance_text}`,
+        `2. ${input.legalAcceptance.withdrawal_loss_text}`,
+        "",
+      ].join("\n")
+    : "";
+
   const emailText =
     `Hallo,\n\n` +
     `vielen Dank für deinen Kauf bei mioseg qr.\n\n` +
     `Im Anhang findest du deine Rechnung ${input.invoiceNumber}.\n` +
-    `Leistungsdatum: ${dateISO}.\n\n` +
-    `Bei Fragen antworte einfach auf diese E-Mail oder kontaktiere uns unter ${SELLER.email}.\n\n` +
+    `Leistungsdatum: ${dateISO}.\n` +
+    legalConfirmationText +
+    `\nBei Fragen antworte einfach auf diese E-Mail oder kontaktiere uns unter ${SELLER.email}.\n\n` +
     `Freundliche Grüße\n` +
     `${SELLER.name}\n`;
 
@@ -857,6 +969,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const amountCents = Number(session.metadata?.amountCents || session.metadata?.amount_cents || session.amount_total || 0);
   const paymentIntentId = getPaymentIntentId(session);
   const billing = getBillingDetails(session);
+  const legalAcceptance = await getPurchaseLegalAcceptance(session, userId);
   const currency = (session.currency || "eur").toUpperCase();
 
   if (!userId) throw new Error(`Stripe Session ${sessionId}: userId fehlt.`);
@@ -893,15 +1006,53 @@ if (stripeTax > 0) {
   }
 
   const invoice = await getOrCreateInvoice({ userId, purchaseId: purchase.id, sessionId, paymentIntentId, amountCents, netCents, taxCents, currency, packId, credits, billing });
-  if (invoice.status === "sent" && invoice.pdf_path) return;
+
+  if (invoice.status === "sent" && invoice.pdf_path) {
+    if (legalAcceptance?.id) {
+      await supabaseAdmin
+        .from("purchase_legal_acceptances")
+        .update({ checkout_status: "completed" })
+        .eq("id", legalAcceptance.id)
+        .eq("user_id", userId);
+    }
+    return;
+  }
   const pdfPath = invoice.pdf_path || `${userId}/${invoice.invoice_number}.pdf`;
 
   try {
-    await finalizeInvoice({ invoiceId: invoice.id, invoiceNumber: invoice.invoice_number, pdfPath, paymentIntentId, billing, packId, credits, amountCents, netCents, taxCents, currency });
+    await finalizeInvoice({
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoice_number,
+      pdfPath,
+      paymentIntentId,
+      billing,
+      packId,
+      credits,
+      amountCents,
+      netCents,
+      taxCents,
+      currency,
+      legalAcceptance,
+    });
   } catch (error) {
     console.error("Invoice generation/sending failed:", error);
     await supabaseAdmin.from("qrx_invoices").update({ status: "failed" }).eq("id", invoice.id);
     throw error;
+  }
+
+  if (legalAcceptance?.id) {
+    const { error: legalUpdateError } = await supabaseAdmin
+      .from("purchase_legal_acceptances")
+      .update({ checkout_status: "completed" })
+      .eq("id", legalAcceptance.id)
+      .eq("user_id", userId);
+
+    if (legalUpdateError) {
+      console.warn(
+        "purchase_legal_acceptances completion update failed:",
+        legalUpdateError.message,
+      );
+    }
   }
 }
 
