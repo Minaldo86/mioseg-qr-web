@@ -817,18 +817,70 @@ function getPaymentIntentIdFromCharge(charge: Stripe.Charge) {
   return null;
 }
 
-function getLatestRefundFromCharge(charge: Stripe.Charge) {
-  const refunds = charge.refunds?.data ?? [];
-  const usableRefunds = refunds.filter((refund) => refund.status !== "failed" && refund.status !== "canceled");
-  const latest = usableRefunds.sort((a, b) => (b.created || 0) - (a.created || 0))[0];
+async function getLatestRefundFromCharge(
+  stripe: Stripe,
+  charge: Stripe.Charge,
+) {
+  const embeddedRefunds = charge.refunds?.data ?? [];
+  let usableRefunds = embeddedRefunds.filter(
+    (refund) => refund.status !== "failed" && refund.status !== "canceled",
+  );
+
+  // Einige Stripe-Webhook-Payloads enthalten keine vollständige Refund-Liste.
+  // In diesem Fall fragen wir Stripe serverseitig nach der Refund-ID.
+  if (usableRefunds.length === 0) {
+    try {
+      const listed = await stripe.refunds.list({
+        charge: charge.id,
+        limit: 10,
+      });
+
+      usableRefunds = listed.data.filter(
+        (refund) => refund.status !== "failed" && refund.status !== "canceled",
+      );
+    } catch (error) {
+      console.warn("Stripe refund lookup by charge failed:", {
+        chargeId: charge.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      const paymentIntentId = getPaymentIntentIdFromCharge(charge);
+
+      if (paymentIntentId) {
+        try {
+          const listed = await stripe.refunds.list({
+            payment_intent: paymentIntentId,
+            limit: 10,
+          });
+
+          usableRefunds = listed.data.filter(
+            (refund) =>
+              refund.status !== "failed" && refund.status !== "canceled",
+          );
+        } catch (fallbackError) {
+          console.warn("Stripe refund lookup by payment intent failed:", {
+            paymentIntentId,
+            error:
+              fallbackError instanceof Error
+                ? fallbackError.message
+                : String(fallbackError),
+          });
+        }
+      }
+    }
+  }
+
+  const latest = [...usableRefunds].sort(
+    (a, b) => (b.created || 0) - (a.created || 0),
+  )[0];
 
   return {
     refundId: latest?.id || null,
     refundAmountCents:
-      typeof latest?.amount === "number" && latest.amount > 0
-        ? latest.amount
-        : typeof charge.amount_refunded === "number" && charge.amount_refunded > 0
-          ? charge.amount_refunded
+      typeof charge.amount_refunded === "number" && charge.amount_refunded > 0
+        ? charge.amount_refunded
+        : typeof latest?.amount === "number" && latest.amount > 0
+          ? latest.amount
           : 0,
   };
 }
@@ -1098,13 +1150,15 @@ async function createCreditNoteForRefund(input: {
 }
 
 async function handleChargeRefunded(charge: Stripe.Charge) {
+  const stripe = getStripe();
   const paymentIntentId = getPaymentIntentIdFromCharge(charge);
   if (!paymentIntentId) {
     console.warn("Refund ignored: payment_intent missing on charge.", { chargeId: charge.id });
     return;
   }
 
-  const { refundId, refundAmountCents } = getLatestRefundFromCharge(charge);
+  const { refundId, refundAmountCents } =
+    await getLatestRefundFromCharge(stripe, charge);
 
   if (refundAmountCents <= 0) {
     console.warn("Refund ignored: refund amount missing.", { chargeId: charge.id, refundId });
