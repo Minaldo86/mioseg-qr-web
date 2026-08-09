@@ -601,6 +601,165 @@ async function finalizeInvoice(input: {
   if (updateError) throw new Error(`Invoice status update failed: ${updateError.message}`);
 }
 
+
+type CreditPurchaseRefundRow = {
+  id: string;
+  user_id: string;
+  credits: number | null;
+  amount_cents: number | null;
+  status: string | null;
+  refunded_cents: number | null;
+  refunded_amount_cents: number | null;
+  refunded_credits: number | null;
+};
+
+async function syncCreditPurchaseRefund(input: {
+  charge: Stripe.Charge;
+  paymentIntentId: string;
+  refundId: string | null;
+  refundAmountCents: number;
+}) {
+  const { data: purchase, error: purchaseError } = await supabaseAdmin
+    .from("qrx_credit_purchases")
+    .select(
+      "id,user_id,credits,amount_cents,status,refunded_cents,refunded_amount_cents,refunded_credits",
+    )
+    .eq("stripe_payment_intent_id", input.paymentIntentId)
+    .maybeSingle<CreditPurchaseRefundRow>();
+
+  if (purchaseError) {
+    throw new Error(
+      `Refund-Kauf konnte nicht geladen werden: ${purchaseError.message}`,
+    );
+  }
+
+  if (!purchase?.id || !purchase.user_id) {
+    console.warn("Refund purchase not found.", {
+      paymentIntentId: input.paymentIntentId,
+      refundId: input.refundId,
+    });
+    return;
+  }
+
+  const purchaseCredits =
+    typeof purchase.credits === "number" && purchase.credits > 0
+      ? purchase.credits
+      : 0;
+  const purchaseAmountCents =
+    typeof purchase.amount_cents === "number" && purchase.amount_cents > 0
+      ? purchase.amount_cents
+      : 0;
+
+  if (purchaseCredits <= 0 || purchaseAmountCents <= 0) {
+    throw new Error(
+      `Refund-Kauf ${purchase.id} enthält ungültige Credits oder einen ungültigen Betrag.`,
+    );
+  }
+
+  // Stripe liefert bei charge.refunded den kumuliert erstatteten Betrag.
+  const stripeRefundedTotal =
+    typeof input.charge.amount_refunded === "number" &&
+    input.charge.amount_refunded > 0
+      ? input.charge.amount_refunded
+      : input.refundAmountCents;
+
+  const refundedAmountCentsTotal = Math.min(
+    purchaseAmountCents,
+    Math.max(0, stripeRefundedTotal),
+  );
+
+  if (refundedAmountCentsTotal <= 0) {
+    console.warn("Refund amount is zero; purchase refund sync skipped.", {
+      purchaseId: purchase.id,
+      paymentIntentId: input.paymentIntentId,
+    });
+    return;
+  }
+
+  const fullyRefunded = refundedAmountCentsTotal >= purchaseAmountCents;
+  const ratio = refundedAmountCentsTotal / purchaseAmountCents;
+
+  const targetRefundedCredits = fullyRefunded
+    ? purchaseCredits
+    : Math.floor(purchaseCredits * ratio);
+
+  const alreadyRefundedCredits =
+    typeof purchase.refunded_credits === "number" &&
+    purchase.refunded_credits > 0
+      ? purchase.refunded_credits
+      : 0;
+
+  const creditsDelta = Math.max(
+    0,
+    targetRefundedCredits - alreadyRefundedCredits,
+  );
+
+  if (creditsDelta > 0) {
+    const { data: newCredits, error: adjustError } = await supabaseAdmin.rpc(
+      "adjust_credits_admin",
+      {
+        p_user_id: purchase.user_id,
+        p_delta: -creditsDelta,
+        p_reason: "refund",
+        p_ref: input.refundId || input.paymentIntentId,
+      },
+    );
+
+    if (adjustError) {
+      throw new Error(
+        `Refund-Credits konnten nicht entfernt werden: ${adjustError.message}`,
+      );
+    }
+
+    console.log("Refund credits revoked.", {
+      purchaseId: purchase.id,
+      userId: purchase.user_id,
+      creditsDelta,
+      newCredits,
+    });
+  }
+
+  const refundedAt = new Date().toISOString();
+  const refundStatus = fullyRefunded ? "refunded" : "partially_refunded";
+
+  const { error: updatePurchaseError } = await supabaseAdmin
+    .from("qrx_credit_purchases")
+    .update({
+      status: refundStatus,
+      refunded_cents: refundedAmountCentsTotal,
+      refunded_amount_cents: refundedAmountCentsTotal,
+      refunded_credits: targetRefundedCredits,
+      refunded_at: refundedAt,
+      stripe_refund_id: input.refundId,
+      refund_reason: "Stripe refund webhook",
+      updated_at: refundedAt,
+    })
+    .eq("id", purchase.id);
+
+  if (updatePurchaseError) {
+    throw new Error(
+      `Refund-Kaufstatus konnte nicht aktualisiert werden: ${updatePurchaseError.message}`,
+    );
+  }
+
+  const { error: logError } = await supabaseAdmin
+    .from("admin_action_log")
+    .insert({
+      action_type: "credits_refunded_stripe",
+      target_user_id: purchase.user_id,
+      amount: creditsDelta > 0 ? -creditsDelta : 0,
+      note:
+        `Stripe-Rückerstattung synchronisiert. Kauf: ${purchase.id}. ` +
+        `PaymentIntent: ${input.paymentIntentId}. Refund: ${input.refundId || "-"}. ` +
+        `Erstatteter Betrag kumuliert: ${refundedAmountCentsTotal} Cent. ` +
+        `Erstattete Credits kumuliert: ${targetRefundedCredits}.`,
+    });
+
+  if (logError) {
+    console.warn("Refund admin log insert failed:", logError.message);
+  }
+}
+
 type InvoiceLookupRow = {
   id: string;
   user_id: string;
@@ -951,6 +1110,13 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     console.warn("Refund ignored: refund amount missing.", { chargeId: charge.id, refundId });
     return;
   }
+
+  await syncCreditPurchaseRefund({
+    charge,
+    paymentIntentId,
+    refundId,
+    refundAmountCents,
+  });
 
   await createCreditNoteForRefund({
     charge,
