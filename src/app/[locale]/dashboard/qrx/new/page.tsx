@@ -2640,6 +2640,65 @@ export default function NewQrxPage() {
 
           {isBusiness ? (
             <div style={verificationSectionStyle(wantsVerification)}>
+              <div>
+                <h3 style={{ margin: "0 0 7px", color: "#ffffff", fontSize: 18 }}>
+                  Verifizierung
+                </h3>
+                <p
+                  style={{
+                    margin: 0,
+                    color: "#94a3b8",
+                    lineHeight: 1.55,
+                    fontSize: 13,
+                  }}
+                >
+                  Mit einer Verifizierung zeigst du Besuchern, dass Angaben und
+                  Nachweise zu diesem QR-X geprüft wurden.
+                </p>
+              </div>
+
+              <div style={verificationBenefitsGridStyle}>
+                <div style={verificationBenefitCardStyle}>
+                  <span style={verificationBenefitIconStyle}>✓</span>
+                  <div>
+                    <strong style={verificationBenefitHeadingStyle}>Mehr Vertrauen</strong>
+                    <p style={verificationBenefitCopyStyle}>
+                      Das Verifiziert-Abzeichen macht den geprüften Status für Nutzer sofort erkennbar.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={verificationBenefitCardStyle}>
+                  <span style={verificationBenefitIconStyle}>◇</span>
+                  <div>
+                    <strong style={verificationBenefitHeadingStyle}>Höhere Glaubwürdigkeit</strong>
+                    <p style={verificationBenefitCopyStyle}>
+                      Besonders wertvoll für Unternehmen, Vereine, Wohltätigkeitsorganisationen und Sehenswürdigkeiten.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={verificationBenefitCardStyle}>
+                  <span style={verificationBenefitIconStyle}>●</span>
+                  <div>
+                    <strong style={verificationBenefitHeadingStyle}>Sichtbarer Verifizierungsstatus</strong>
+                    <p style={verificationBenefitCopyStyle}>
+                      Nach erfolgreicher Prüfung erscheint ein dezentes Verifiziert-Abzeichen direkt am QR-X.
+                    </p>
+                  </div>
+                </div>
+
+                <div style={verificationBenefitCardStyle}>
+                  <span style={verificationBenefitIconStyle}>▣</span>
+                  <div>
+                    <strong style={verificationBenefitHeadingStyle}>Nachweise bleiben privat</strong>
+                    <p style={verificationBenefitCopyStyle}>
+                      Hochgeladene Nachweise dienen nur der Prüfung und werden nicht öffentlich im QR-X angezeigt.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <label
                 style={{
                   display: "flex",
@@ -2649,9 +2708,30 @@ export default function NewQrxPage() {
                   color: "#ffffff",
                   fontWeight: 950,
                   cursor: "pointer",
+                  padding: "14px 15px",
+                  borderRadius: 16,
+                  background: wantsVerification
+                    ? "rgba(250,204,21,0.10)"
+                    : "rgba(255,255,255,0.035)",
+                  border: wantsVerification
+                    ? "1px solid rgba(250,204,21,0.28)"
+                    : "1px solid rgba(148,163,184,0.14)",
                 }}
               >
-                <span>Business-Verifizierung beantragen</span>
+                <span>
+                  Verifizierung beantragen · {QRX_VERIFICATION_COST_CREDITS} Credits
+                  <small
+                    style={{
+                      display: "block",
+                      marginTop: 4,
+                      color: "#94a3b8",
+                      fontWeight: 700,
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    Bei Ablehnung werden die Verifizierungs-Credits zurückerstattet.
+                  </small>
+                </span>
                 <input
                   type="checkbox"
                   checked={wantsVerification}
@@ -2672,10 +2752,7 @@ export default function NewQrxPage() {
                   fontSize: 13,
                 }}
               >
-                Lade ein Dokument oder Bild hoch, mit dem dein Business QR-X
-                geprüft werden kann. Die Anfrage kostet{" "}
-                {QRX_VERIFICATION_COST_CREDITS} Credits und wird in der
-                Kommandozentrale geprüft.
+                Lade für die Prüfung einen geeigneten Nachweis als Bild oder PDF hoch.
               </p>
 
               {wantsVerification ? (
@@ -3278,6 +3355,51 @@ const previewRemoveButtonStyle: CSSProperties = {
   fontWeight: 950,
   cursor: "pointer",
   padding: "0 12px",
+};
+
+const verificationBenefitsGridStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+  gap: 10,
+};
+
+const verificationBenefitCardStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "34px minmax(0, 1fr)",
+  gap: 10,
+  alignItems: "start",
+  padding: 12,
+  borderRadius: 15,
+  background: "rgba(255,255,255,0.035)",
+  border: "1px solid rgba(148,163,184,0.12)",
+};
+
+const verificationBenefitIconStyle: CSSProperties = {
+  width: 30,
+  height: 30,
+  display: "grid",
+  placeItems: "center",
+  borderRadius: 10,
+  color: "#e7c66f",
+  background: "rgba(212,168,79,0.09)",
+  border: "1px solid rgba(212,168,79,0.18)",
+  fontWeight: 950,
+  fontSize: 12,
+};
+
+const verificationBenefitHeadingStyle: CSSProperties = {
+  display: "block",
+  color: "#f8fafc",
+  fontSize: 13,
+  lineHeight: 1.35,
+  marginBottom: 3,
+};
+
+const verificationBenefitCopyStyle: CSSProperties = {
+  margin: 0,
+  color: "#94a3b8",
+  fontSize: 12,
+  lineHeight: 1.55,
 };
 
 function verificationSectionStyle(active: boolean): CSSProperties {
