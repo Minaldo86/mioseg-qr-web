@@ -204,6 +204,9 @@ export default function CreditsPage() {
   const [loading, setLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [checkoutPack, setCheckoutPack] = useState<PricingPack | null>(null);
+  const [immediatePerformanceConsent, setImmediatePerformanceConsent] = useState(false);
+  const [withdrawalLossAcknowledged, setWithdrawalLossAcknowledged] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [pricingPacks, setPricingPacks] = useState<PricingPack[]>(FALLBACK_PACKAGES);
   const [pricingConfig, setPricingConfig] = useState<PricingConfig | null>({
@@ -337,15 +340,41 @@ export default function CreditsPage() {
     [credits, pricingPacks.length, pricingConfig?.qrx_creation_credit_cost, pricingConfig?.free_storage_mb]
   );
 
+  function openCheckoutConfirmation(pack: PricingPack) {
+    setCheckoutPack(pack);
+    setImmediatePerformanceConsent(false);
+    setWithdrawalLossAcknowledged(false);
+  }
+
+  function closeCheckoutConfirmation() {
+    if (checkoutLoading) return;
+    setCheckoutPack(null);
+    setImmediatePerformanceConsent(false);
+    setWithdrawalLossAcknowledged(false);
+  }
+
   async function handleStripeCheckout(pack: PricingPack) {
+    if (!immediatePerformanceConsent || !withdrawalLossAcknowledged) {
+      alert("Bitte bestätige beide Hinweise zum sofortigen Leistungsbeginn und zum Widerrufsrecht.");
+      return;
+    }
+
     try {
       setCheckoutLoading(pack.id);
 
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      const user = session?.user;
+      const accessToken = session?.access_token;
+
+      if (!user || !accessToken) {
         alert("Bitte zuerst anmelden.");
         return;
       }
@@ -360,10 +389,13 @@ export default function CreditsPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          userId: user.id,
           packId,
+          immediatePerformanceConsent: true,
+          withdrawalLossAcknowledged: true,
+          consentLocale: locale,
         }),
       });
 
@@ -544,7 +576,7 @@ export default function CreditsPage() {
 
                 <button
                   type="button"
-                  onClick={() => void handleStripeCheckout(pack)}
+                  onClick={() => openCheckoutConfirmation(pack)}
                   disabled={checkoutLoading === pack.id}
                   className={styles.primaryButton}
                   style={{
@@ -657,6 +689,124 @@ export default function CreditsPage() {
           ) : null}
         </aside>
       </section>
+      {checkoutPack ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="checkout-confirmation-title"
+          style={withdrawalOverlayStyle}
+          onClick={closeCheckoutConfirmation}
+        >
+          <section
+            style={withdrawalCardStyle}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div style={withdrawalIconStyle}>€</div>
+
+            <h2 id="checkout-confirmation-title" style={withdrawalTitleStyle}>
+              Credit-Kauf bestätigen
+            </h2>
+
+            <p style={withdrawalIntroStyle}>
+              Bitte prüfe deinen Kauf und bestätige die Hinweise, bevor du zu Stripe weitergeleitet wirst.
+            </p>
+
+            <div style={withdrawalOrderBoxStyle}>
+              <div style={withdrawalOrderRowStyle}>
+                <span>{checkoutPack.credits} Credits</span>
+                <strong>
+                  {formatEuro(
+                    getPackPriceCents(checkoutPack, pricingConfig),
+                    pricingConfig?.currency ?? "EUR",
+                  )}
+                </strong>
+              </div>
+              <div style={withdrawalTaxNoteStyle}>
+                Gesamtpreis inkl. gesetzlich anfallender Umsatzsteuer, soweit diese anfällt.
+              </div>
+            </div>
+
+            <label style={withdrawalCheckRowStyle}>
+              <input
+                type="checkbox"
+                checked={immediatePerformanceConsent}
+                onChange={(event) =>
+                  setImmediatePerformanceConsent(event.target.checked)
+                }
+                style={withdrawalCheckboxStyle}
+              />
+              <span>
+                Ich stimme ausdrücklich zu, dass mioseg qr vor Ablauf der
+                Widerrufsfrist mit der Ausführung beginnt und die gekauften
+                Credits nach erfolgreicher Zahlung unmittelbar meinem Konto
+                gutschreibt.
+              </span>
+            </label>
+
+            <label style={withdrawalCheckRowStyle}>
+              <input
+                type="checkbox"
+                checked={withdrawalLossAcknowledged}
+                onChange={(event) =>
+                  setWithdrawalLossAcknowledged(event.target.checked)
+                }
+                style={withdrawalCheckboxStyle}
+              />
+              <span>
+                Mir ist bekannt, dass mein Widerrufsrecht bei Vorliegen der
+                gesetzlichen Voraussetzungen mit Beginn der Ausführung
+                erlöschen kann.
+              </span>
+            </label>
+
+            <p style={withdrawalFinePrintStyle}>
+              Die Bestätigungen werden zusammen mit dem Kaufvorgang dokumentiert.
+              Gesetzliche Rechte bleiben unberührt.
+            </p>
+
+            <div style={withdrawalButtonRowStyle}>
+              <button
+                type="button"
+                onClick={closeCheckoutConfirmation}
+                disabled={checkoutLoading === checkoutPack.id}
+                style={withdrawalCancelButtonStyle}
+              >
+                Abbrechen
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleStripeCheckout(checkoutPack)}
+                disabled={
+                  checkoutLoading === checkoutPack.id ||
+                  !immediatePerformanceConsent ||
+                  !withdrawalLossAcknowledged
+                }
+                style={{
+                  ...withdrawalContinueButtonStyle,
+                  opacity:
+                    checkoutLoading === checkoutPack.id ||
+                    !immediatePerformanceConsent ||
+                    !withdrawalLossAcknowledged
+                      ? 0.45
+                      : 1,
+                  cursor:
+                    checkoutLoading === checkoutPack.id ||
+                    !immediatePerformanceConsent ||
+                    !withdrawalLossAcknowledged
+                      ? "not-allowed"
+                      : "pointer",
+                }}
+              >
+                {checkoutLoading === checkoutPack.id
+                  ? "Weiterleitung zu Stripe …"
+                  : "Zustimmen & weiter zu Stripe"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
     </main>
   );
 }
@@ -716,5 +866,136 @@ const documentBadgeStyle: React.CSSProperties = {
   borderRadius: 999,
   padding: "0 10px",
   fontSize: 12,
+  fontWeight: 950,
+};
+
+
+const withdrawalOverlayStyle: React.CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  zIndex: 1200,
+  display: "grid",
+  placeItems: "center",
+  padding: 18,
+  background: "rgba(2,6,23,0.78)",
+};
+
+const withdrawalCardStyle: React.CSSProperties = {
+  width: "min(620px, 100%)",
+  maxHeight: "calc(100vh - 36px)",
+  overflowY: "auto",
+  borderRadius: 26,
+  padding: 24,
+  background: "#0f172a",
+  border: "1px solid rgba(148,163,184,0.18)",
+  boxShadow: "0 32px 90px rgba(0,0,0,0.4)",
+};
+
+const withdrawalIconStyle: React.CSSProperties = {
+  width: 52,
+  height: 52,
+  margin: "0 auto 14px",
+  borderRadius: 17,
+  display: "grid",
+  placeItems: "center",
+  color: "#f8fafc",
+  background: "rgba(37,99,235,0.18)",
+  border: "1px solid rgba(96,165,250,0.22)",
+  fontSize: 22,
+  fontWeight: 950,
+};
+
+const withdrawalTitleStyle: React.CSSProperties = {
+  margin: 0,
+  color: "#fff",
+  textAlign: "center",
+  fontSize: 24,
+  fontWeight: 950,
+};
+
+const withdrawalIntroStyle: React.CSSProperties = {
+  margin: "9px 0 0",
+  color: "#94a3b8",
+  textAlign: "center",
+  fontSize: 13,
+  lineHeight: 1.6,
+};
+
+const withdrawalOrderBoxStyle: React.CSSProperties = {
+  marginTop: 18,
+  padding: 15,
+  borderRadius: 16,
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(148,163,184,0.14)",
+};
+
+const withdrawalOrderRowStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  gap: 14,
+  color: "#f8fafc",
+  fontSize: 16,
+  fontWeight: 850,
+};
+
+const withdrawalTaxNoteStyle: React.CSSProperties = {
+  marginTop: 7,
+  color: "#718096",
+  fontSize: 11,
+  lineHeight: 1.5,
+};
+
+const withdrawalCheckRowStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "flex-start",
+  gap: 11,
+  marginTop: 17,
+  color: "#d6dee8",
+  fontSize: 13,
+  lineHeight: 1.6,
+  cursor: "pointer",
+};
+
+const withdrawalCheckboxStyle: React.CSSProperties = {
+  width: 20,
+  height: 20,
+  marginTop: 2,
+  flex: "0 0 auto",
+  accentColor: "#f8fafc",
+};
+
+const withdrawalFinePrintStyle: React.CSSProperties = {
+  margin: "16px 0 0",
+  paddingTop: 13,
+  borderTop: "1px solid rgba(148,163,184,0.12)",
+  color: "#718096",
+  fontSize: 11,
+  lineHeight: 1.55,
+};
+
+const withdrawalButtonRowStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 0.8fr) minmax(0, 1.3fr)",
+  gap: 10,
+  marginTop: 18,
+};
+
+const withdrawalCancelButtonStyle: React.CSSProperties = {
+  minHeight: 48,
+  borderRadius: 14,
+  border: "1px solid rgba(148,163,184,0.18)",
+  background: "rgba(255,255,255,0.035)",
+  color: "#d6dee8",
+  fontWeight: 900,
+  cursor: "pointer",
+};
+
+const withdrawalContinueButtonStyle: React.CSSProperties = {
+  minHeight: 48,
+  borderRadius: 14,
+  border: 0,
+  background: "#f8fafc",
+  color: "#0f172a",
   fontWeight: 950,
 };

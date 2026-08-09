@@ -4,6 +4,12 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const WITHDRAWAL_CONSENT_VERSION = "1.0";
+const IMMEDIATE_PERFORMANCE_CONSENT_TEXT =
+  "Ich stimme ausdrücklich zu, dass mioseg qr vor Ablauf der Widerrufsfrist mit der Ausführung beginnt und die gekauften Credits nach erfolgreicher Zahlung unmittelbar meinem Konto gutschreibt.";
+const WITHDRAWAL_LOSS_ACKNOWLEDGEMENT_TEXT =
+  "Mir ist bekannt, dass mein Widerrufsrecht bei Vorliegen der gesetzlichen Voraussetzungen mit Beginn der Ausführung erlöschen kann.";
+
 type PricingConfig = {
   launch_discount_enabled?: boolean | null;
   currency?: string | null;
@@ -181,16 +187,46 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const userId = String(body?.userId || "").trim();
     const packId = String(body?.packId || "").trim();
-
-    if (!userId) {
-      return Response.json({ error: "User-ID fehlt." }, { status: 400 });
-    }
+    const immediatePerformanceConsent =
+      body?.immediatePerformanceConsent === true;
+    const withdrawalLossAcknowledged =
+      body?.withdrawalLossAcknowledged === true;
+    const consentLocale = clean(body?.consentLocale || "de").slice(0, 10) || "de";
 
     if (!packId) {
       return Response.json({ error: "Paket-ID fehlt." }, { status: 400 });
     }
+
+    if (!immediatePerformanceConsent || !withdrawalLossAcknowledged) {
+      return Response.json(
+        {
+          error:
+            "Die erforderlichen Bestätigungen zum sofortigen Leistungsbeginn und zum Widerrufsrecht fehlen.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const authorization = req.headers.get("authorization") || "";
+    const token = authorization.startsWith("Bearer ")
+      ? authorization.slice(7).trim()
+      : "";
+
+    if (!token) {
+      return Response.json({ error: "Anmeldung erforderlich." }, { status: 401 });
+    }
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabaseAdmin.auth.getUser(token);
+
+    if (authError || !user?.id) {
+      return Response.json({ error: "Ungültige oder abgelaufene Sitzung." }, { status: 401 });
+    }
+
+    const userId = user.id;
 
     const billing = await loadBillingProfile(userId);
     const missingBillingFields = validateBillingProfile(billing);
@@ -227,6 +263,39 @@ export async function POST(req: Request) {
       );
     }
 
+    const acceptedAt = new Date().toISOString();
+
+    const { data: consentRow, error: consentInsertError } = await supabaseAdmin
+      .from("purchase_legal_acceptances")
+      .insert({
+        user_id: userId,
+        purchase_channel: "web_stripe",
+        pack_id: pack.id,
+        credits: pack.credits,
+        amount_cents: amount,
+        currency: currency.toUpperCase(),
+        immediate_performance_consent: true,
+        withdrawal_loss_acknowledged: true,
+        consent_version: WITHDRAWAL_CONSENT_VERSION,
+        immediate_performance_text: IMMEDIATE_PERFORMANCE_CONSENT_TEXT,
+        withdrawal_loss_text: WITHDRAWAL_LOSS_ACKNOWLEDGEMENT_TEXT,
+        accepted_locale: consentLocale,
+        accepted_at: acceptedAt,
+        checkout_status: "initiated",
+      })
+      .select("id")
+      .single();
+
+    if (consentInsertError || !consentRow?.id) {
+      console.error("purchase_legal_acceptances insert failed:", consentInsertError);
+      return Response.json(
+        { error: "Die Kaufbestätigung konnte nicht dokumentiert werden. Bitte versuche es erneut." },
+        { status: 500 },
+      );
+    }
+
+    const consentId = String(consentRow.id);
+
     const stripe = getStripe();
     const origin = getOrigin(req);
 
@@ -241,6 +310,13 @@ export async function POST(req: Request) {
       amount_cents: String(amount),
       source: "web_checkout",
 
+      legal_acceptance_id: consentId,
+      withdrawal_consent_version: WITHDRAWAL_CONSENT_VERSION,
+      immediate_performance_consent: "true",
+      withdrawal_loss_acknowledged: "true",
+      legal_accepted_at: acceptedAt,
+      legal_accepted_locale: consentLocale,
+
       billing_email: billing.billingEmail,
       billing_company: billing.billingCompany,
       billing_name: billing.billingName || billing.billingCompany,
@@ -251,7 +327,10 @@ export async function POST(req: Request) {
       billing_vat_id: billing.billingVatId,
     };
 
-    const session = await stripe.checkout.sessions.create({
+    let session: Stripe.Checkout.Session;
+
+    try {
+      session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
 
@@ -286,12 +365,35 @@ export async function POST(req: Request) {
       payment_intent_data: {
         metadata,
       },
-    });
+      });
+
+      const { error: consentUpdateError } = await supabaseAdmin
+        .from("purchase_legal_acceptances")
+        .update({
+          stripe_checkout_session_id: session.id,
+          checkout_status: "stripe_session_created",
+        })
+        .eq("id", consentId)
+        .eq("user_id", userId);
+
+      if (consentUpdateError) {
+        console.error("purchase_legal_acceptances session update failed:", consentUpdateError);
+      }
+    } catch (stripeError) {
+      await supabaseAdmin
+        .from("purchase_legal_acceptances")
+        .update({ checkout_status: "stripe_session_failed" })
+        .eq("id", consentId)
+        .eq("user_id", userId);
+
+      throw stripeError;
+    }
 
     return Response.json({
       ok: true,
       url: session.url,
       sessionId: session.id,
+      legalAcceptanceId: consentId,
     });
   } catch (e: unknown) {
     return Response.json(
