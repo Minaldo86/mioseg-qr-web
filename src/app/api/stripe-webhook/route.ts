@@ -1,5 +1,6 @@
 import Stripe from "stripe";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export const runtime = "nodejs";
@@ -202,7 +203,270 @@ const MAIL_COPY: Record<DocumentLanguage, MailCopy> = {
       `Per qualsiasi domanda, rispondi a questa e-mail o contattaci all’indirizzo ${sellerEmail}.\n\n` +
       `Cordiali saluti\n${sellerName}\n`,
   },
+
 };
+
+type PurchaseLegalAcceptance = {
+  id: string;
+  user_id: string;
+  consent_version: string;
+  immediate_performance_text: string;
+  withdrawal_loss_text: string;
+  accepted_locale: string | null;
+  accepted_at: string;
+  checkout_status: string | null;
+  stripe_checkout_session_id: string | null;
+};
+
+type PdfCopy = {
+  invoiceTitle: string;
+  creditTitle: string;
+  invoiceNumber: string;
+  creditNumber: string;
+  date: string;
+  serviceDate: string;
+  serviceDescription: string;
+  invoiceReference: string;
+  paymentReference: string;
+  refundReference: string;
+  invoiceRecipient: string;
+  creditRecipient: string;
+  positionTitle: string;
+  creditPositionTitle: string;
+  invoicePosition: string;
+  creditPosition: string;
+  package: string;
+  quantity: string;
+  net: string;
+  vat: string;
+  total: string;
+  creditTotal: string;
+  note: string;
+  invoiceHint1: string;
+  invoiceHint2: string;
+  creditHint1: string;
+  creditHint2: string;
+  email: string;
+  vatId: string;
+  taxNumber: string;
+  page: string;
+  legalTitle: string;
+  consentOn: string;
+  version: string;
+  evidenceId: string;
+};
+
+const PDF_COPY: Record<DocumentLanguage, PdfCopy> = {
+  de: {
+    invoiceTitle: "Rechnung", creditTitle: "Gutschrift",
+    invoiceNumber: "Rechnungsnummer", creditNumber: "Gutschriftsnummer",
+    date: "Datum", serviceDate: "Leistungsdatum",
+    serviceDescription: "Bereitstellung digitaler Nutzungscredits",
+    invoiceReference: "Bezug auf Rechnung",
+    paymentReference: "Zahlungsreferenz (Stripe)",
+    refundReference: "Rückerstattungsreferenz (Stripe)",
+    invoiceRecipient: "Rechnung an:", creditRecipient: "Gutschrift an:",
+    positionTitle: "Leistungsposition", creditPositionTitle: "Gutschriftsposition",
+    invoicePosition: "Erwerb digitaler Nutzungscredits (QR-X Credits)",
+    creditPosition: "Gutschrift zur Rückerstattung digitaler Nutzungscredits (QR-X Credits)",
+    package: "Paket", quantity: "Menge", net: "Netto", vat: "Umsatzsteuer",
+    total: "Gesamtbetrag", creditTotal: "Gutschriftbetrag", note: "Hinweis",
+    invoiceHint1: "Der ausgewiesene Betrag enthält die gesetzliche Umsatzsteuer, soweit ausgewiesen.",
+    invoiceHint2: "Die Leistung wird als digitale Bereitstellung von Nutzungscredits erbracht.",
+    creditHint1: "Diese Gutschrift bezieht sich auf die oben genannte Originalrechnung.",
+    creditHint2: "Der ausgewiesene Betrag korrigiert die ursprüngliche Bereitstellung digitaler Nutzungscredits.",
+    email: "E-Mail", vatId: "USt-IdNr.", taxNumber: "St.-Nr.", page: "Seite",
+    legalTitle: "Bestätigung zum sofortigen Leistungsbeginn / Widerrufsrecht:",
+    consentOn: "Zustimmung vom", version: "Version", evidenceId: "Nachweis-ID",
+  },
+  en: {
+    invoiceTitle: "Invoice", creditTitle: "Credit note",
+    invoiceNumber: "Invoice number", creditNumber: "Credit note number",
+    date: "Date", serviceDate: "Service date",
+    serviceDescription: "Provision of digital usage credits",
+    invoiceReference: "Reference to invoice",
+    paymentReference: "Payment reference (Stripe)",
+    refundReference: "Refund reference (Stripe)",
+    invoiceRecipient: "Invoice to:", creditRecipient: "Credit note to:",
+    positionTitle: "Item", creditPositionTitle: "Credit item",
+    invoicePosition: "Purchase of digital usage credits (QR-X Credits)",
+    creditPosition: "Credit for refunded digital usage credits (QR-X Credits)",
+    package: "Package", quantity: "Quantity", net: "Net", vat: "VAT",
+    total: "Total amount", creditTotal: "Credit amount", note: "Note",
+    invoiceHint1: "The stated amount includes statutory VAT where shown.",
+    invoiceHint2: "The service is provided as digital usage credits.",
+    creditHint1: "This credit note refers to the original invoice stated above.",
+    creditHint2: "The stated amount corrects the original provision of digital usage credits.",
+    email: "Email", vatId: "VAT ID", taxNumber: "Tax no.", page: "Page",
+    legalTitle: "Confirmation of immediate performance / withdrawal right:",
+    consentOn: "Consent on", version: "Version", evidenceId: "Evidence ID",
+  },
+  tr: {
+    invoiceTitle: "Fatura", creditTitle: "Alacak dekontu",
+    invoiceNumber: "Fatura numarası", creditNumber: "Alacak dekontu numarası",
+    date: "Tarih", serviceDate: "Hizmet tarihi",
+    serviceDescription: "Dijital kullanım kredilerinin sağlanması",
+    invoiceReference: "İlgili fatura",
+    paymentReference: "Ödeme referansı (Stripe)",
+    refundReference: "İade referansı (Stripe)",
+    invoiceRecipient: "Fatura alıcısı:", creditRecipient: "Alacak dekontu alıcısı:",
+    positionTitle: "Kalem", creditPositionTitle: "Alacak kalemi",
+    invoicePosition: "Dijital kullanım kredisi satın alımı (QR-X Credits)",
+    creditPosition: "İade edilen dijital kullanım kredileri için alacak (QR-X Credits)",
+    package: "Paket", quantity: "Miktar", net: "Net", vat: "KDV",
+    total: "Toplam tutar", creditTotal: "Alacak tutarı", note: "Not",
+    invoiceHint1: "Belirtilen tutar, gösterildiği ölçüde yasal KDV'yi içerir.",
+    invoiceHint2: "Hizmet dijital kullanım kredileri olarak sağlanır.",
+    creditHint1: "Bu alacak dekontu yukarıda belirtilen asıl faturaya ilişkindir.",
+    creditHint2: "Belirtilen tutar, dijital kullanım kredilerinin ilk sağlanmasını düzeltir.",
+    email: "E-posta", vatId: "KDV No.", taxNumber: "Vergi No.", page: "Sayfa",
+    legalTitle: "Hizmetin derhal başlaması / cayma hakkı onayı:",
+    consentOn: "Onay tarihi", version: "Sürüm", evidenceId: "Kanıt kimliği",
+  },
+  pl: {
+    invoiceTitle: "Faktura", creditTitle: "Nota uznaniowa",
+    invoiceNumber: "Numer faktury", creditNumber: "Numer noty uznaniowej",
+    date: "Data", serviceDate: "Data świadczenia",
+    serviceDescription: "Udostępnienie cyfrowych kredytów użytkowych",
+    invoiceReference: "Odniesienie do faktury",
+    paymentReference: "Referencja płatności (Stripe)",
+    refundReference: "Referencja zwrotu (Stripe)",
+    invoiceRecipient: "Nabywca:", creditRecipient: "Nota uznaniowa dla:",
+    positionTitle: "Pozycja", creditPositionTitle: "Pozycja noty uznaniowej",
+    invoicePosition: "Zakup cyfrowych kredytów użytkowych (QR-X Credits)",
+    creditPosition: "Zwrot cyfrowych kredytów użytkowych (QR-X Credits)",
+    package: "Pakiet", quantity: "Ilość", net: "Netto", vat: "VAT",
+    total: "Kwota całkowita", creditTotal: "Kwota uznania", note: "Informacja",
+    invoiceHint1: "Wskazana kwota zawiera ustawowy VAT, o ile został wykazany.",
+    invoiceHint2: "Usługa jest świadczona w formie cyfrowych kredytów użytkowych.",
+    creditHint1: "Niniejsza nota uznaniowa odnosi się do wskazanej powyżej faktury pierwotnej.",
+    creditHint2: "Wskazana kwota koryguje pierwotne udostępnienie cyfrowych kredytów użytkowych.",
+    email: "E-mail", vatId: "NIP UE", taxNumber: "Nr podatkowy", page: "Strona",
+    legalTitle: "Potwierdzenie natychmiastowego rozpoczęcia świadczenia / prawa odstąpienia:",
+    consentOn: "Zgoda z dnia", version: "Wersja", evidenceId: "ID potwierdzenia",
+  },
+  ar: {
+    invoiceTitle: "فاتورة", creditTitle: "إشعار دائن",
+    invoiceNumber: "رقم الفاتورة", creditNumber: "رقم الإشعار الدائن",
+    date: "التاريخ", serviceDate: "تاريخ الخدمة",
+    serviceDescription: "توفير أرصدة استخدام رقمية",
+    invoiceReference: "مرجع الفاتورة",
+    paymentReference: "مرجع الدفع (Stripe)",
+    refundReference: "مرجع الاسترداد (Stripe)",
+    invoiceRecipient: "الفاتورة إلى:", creditRecipient: "الإشعار الدائن إلى:",
+    positionTitle: "البند", creditPositionTitle: "بند الإشعار الدائن",
+    invoicePosition: "شراء أرصدة استخدام رقمية (QR-X Credits)",
+    creditPosition: "إشعار دائن لاسترداد أرصدة استخدام رقمية (QR-X Credits)",
+    package: "الباقة", quantity: "الكمية", net: "الصافي", vat: "ضريبة القيمة المضافة",
+    total: "المبلغ الإجمالي", creditTotal: "مبلغ الإشعار الدائن", note: "ملاحظة",
+    invoiceHint1: "يتضمن المبلغ الموضح ضريبة القيمة المضافة القانونية حيثما تم بيانها.",
+    invoiceHint2: "يتم تقديم الخدمة في صورة أرصدة استخدام رقمية.",
+    creditHint1: "يشير هذا الإشعار الدائن إلى الفاتورة الأصلية المذكورة أعلاه.",
+    creditHint2: "يصحح المبلغ الموضح التوفير الأصلي لأرصدة الاستخدام الرقمية.",
+    email: "البريد الإلكتروني", vatId: "رقم ضريبة القيمة المضافة", taxNumber: "الرقم الضريبي", page: "الصفحة",
+    legalTitle: "تأكيد البدء الفوري في تقديم الخدمة / حق الانسحاب:",
+    consentOn: "تاريخ الموافقة", version: "الإصدار", evidenceId: "معرّف الإثبات",
+  },
+  fr: {
+    invoiceTitle: "Facture", creditTitle: "Avoir",
+    invoiceNumber: "Numéro de facture", creditNumber: "Numéro d’avoir",
+    date: "Date", serviceDate: "Date de prestation",
+    serviceDescription: "Mise à disposition de crédits d’utilisation numériques",
+    invoiceReference: "Référence à la facture",
+    paymentReference: "Référence de paiement (Stripe)",
+    refundReference: "Référence de remboursement (Stripe)",
+    invoiceRecipient: "Facturé à :", creditRecipient: "Avoir pour :",
+    positionTitle: "Poste", creditPositionTitle: "Poste de l’avoir",
+    invoicePosition: "Achat de crédits d’utilisation numériques (QR-X Credits)",
+    creditPosition: "Avoir pour remboursement de crédits d’utilisation numériques (QR-X Credits)",
+    package: "Forfait", quantity: "Quantité", net: "Net", vat: "TVA",
+    total: "Montant total", creditTotal: "Montant de l’avoir", note: "Remarque",
+    invoiceHint1: "Le montant indiqué comprend la TVA légale lorsqu’elle est mentionnée.",
+    invoiceHint2: "La prestation est fournie sous forme de crédits d’utilisation numériques.",
+    creditHint1: "Cet avoir se rapporte à la facture d’origine indiquée ci-dessus.",
+    creditHint2: "Le montant indiqué corrige la mise à disposition initiale des crédits d’utilisation numériques.",
+    email: "E-mail", vatId: "N° TVA", taxNumber: "N° fiscal", page: "Page",
+    legalTitle: "Confirmation du début immédiat de l’exécution / droit de rétractation :",
+    consentOn: "Consentement du", version: "Version", evidenceId: "ID de preuve",
+  },
+  es: {
+    invoiceTitle: "Factura", creditTitle: "Abono",
+    invoiceNumber: "Número de factura", creditNumber: "Número de abono",
+    date: "Fecha", serviceDate: "Fecha de prestación",
+    serviceDescription: "Suministro de créditos de uso digitales",
+    invoiceReference: "Referencia a la factura",
+    paymentReference: "Referencia de pago (Stripe)",
+    refundReference: "Referencia de reembolso (Stripe)",
+    invoiceRecipient: "Facturar a:", creditRecipient: "Abono para:",
+    positionTitle: "Concepto", creditPositionTitle: "Concepto del abono",
+    invoicePosition: "Compra de créditos de uso digitales (QR-X Credits)",
+    creditPosition: "Abono por reembolso de créditos de uso digitales (QR-X Credits)",
+    package: "Paquete", quantity: "Cantidad", net: "Neto", vat: "IVA",
+    total: "Importe total", creditTotal: "Importe del abono", note: "Nota",
+    invoiceHint1: "El importe indicado incluye el IVA legal cuando se muestra.",
+    invoiceHint2: "El servicio se presta mediante créditos de uso digitales.",
+    creditHint1: "Este abono se refiere a la factura original indicada anteriormente.",
+    creditHint2: "El importe indicado corrige el suministro original de créditos de uso digitales.",
+    email: "Correo electrónico", vatId: "N.º IVA", taxNumber: "N.º fiscal", page: "Página",
+    legalTitle: "Confirmación del inicio inmediato de la prestación / derecho de desistimiento:",
+    consentOn: "Consentimiento del", version: "Versión", evidenceId: "ID de prueba",
+  },
+  it: {
+    invoiceTitle: "Fattura", creditTitle: "Nota di credito",
+    invoiceNumber: "Numero fattura", creditNumber: "Numero nota di credito",
+    date: "Data", serviceDate: "Data della prestazione",
+    serviceDescription: "Fornitura di crediti di utilizzo digitali",
+    invoiceReference: "Riferimento alla fattura",
+    paymentReference: "Riferimento pagamento (Stripe)",
+    refundReference: "Riferimento rimborso (Stripe)",
+    invoiceRecipient: "Fattura a:", creditRecipient: "Nota di credito a:",
+    positionTitle: "Voce", creditPositionTitle: "Voce nota di credito",
+    invoicePosition: "Acquisto di crediti di utilizzo digitali (QR-X Credits)",
+    creditPosition: "Nota di credito per rimborso di crediti di utilizzo digitali (QR-X Credits)",
+    package: "Pacchetto", quantity: "Quantità", net: "Netto", vat: "IVA",
+    total: "Importo totale", creditTotal: "Importo nota di credito", note: "Nota",
+    invoiceHint1: "L’importo indicato comprende l’IVA prevista dalla legge, se riportata.",
+    invoiceHint2: "La prestazione viene fornita sotto forma di crediti di utilizzo digitali.",
+    creditHint1: "Questa nota di credito si riferisce alla fattura originale indicata sopra.",
+    creditHint2: "L’importo indicato rettifica la fornitura originale dei crediti di utilizzo digitali.",
+    email: "E-mail", vatId: "P. IVA", taxNumber: "N. fiscale", page: "Pagina",
+    legalTitle: "Conferma dell’inizio immediato della prestazione / diritto di recesso:",
+    consentOn: "Consenso del", version: "Versione", evidenceId: "ID prova",
+  },
+};
+
+const MONEY_LOCALE: Record<DocumentLanguage, string> = {
+  de: "de-DE",
+  en: "en-GB",
+  tr: "tr-TR",
+  pl: "pl-PL",
+  ar: "ar",
+  fr: "fr-FR",
+  es: "es-ES",
+  it: "it-IT",
+};
+
+function buildLegalAcceptancePdfLines(
+  acceptance: PurchaseLegalAcceptance,
+  language: DocumentLanguage,
+) {
+  const copy = PDF_COPY[language];
+  return [
+    copy.legalTitle,
+    `${copy.consentOn} ${new Date(acceptance.accepted_at).toLocaleString(MONEY_LOCALE[language])} (${copy.version} ${acceptance.consent_version}).`,
+    acceptance.immediate_performance_text,
+    acceptance.withdrawal_loss_text,
+    `${copy.evidenceId}: ${acceptance.id}`,
+  ];
+}
+
+function buildLegalAcceptanceEmailText(
+  acceptance: PurchaseLegalAcceptance | null,
+  language: DocumentLanguage,
+) {
+  if (!acceptance) return "";
+  return `\n${buildLegalAcceptancePdfLines(acceptance, language).join("\n")}\n`;
+}
 
 async function getUserDocumentLanguage(
   userId: string,
@@ -258,18 +522,6 @@ function getBillingDetails(session: Stripe.Checkout.Session) {
 }
 
 
-type PurchaseLegalAcceptance = {
-  id: string;
-  user_id: string;
-  consent_version: string;
-  immediate_performance_text: string;
-  withdrawal_loss_text: string;
-  accepted_locale: string | null;
-  accepted_at: string;
-  checkout_status: string | null;
-  stripe_checkout_session_id: string | null;
-};
-
 async function getPurchaseLegalAcceptance(
   session: Stripe.Checkout.Session,
   userId: string,
@@ -318,11 +570,15 @@ async function getPurchaseLegalAcceptance(
   return data;
 }
 
-function formatMoney(cents: number, currency: string) {
+function formatMoney(
+  cents: number,
+  currency: string,
+  language: DocumentLanguage = "de",
+) {
   const value = (cents || 0) / 100;
   const ccy = (currency || "EUR").toUpperCase();
   try {
-    return new Intl.NumberFormat("de-DE", {
+    return new Intl.NumberFormat(MONEY_LOCALE[language], {
       style: "currency",
       currency: ccy,
       minimumFractionDigits: 2,
@@ -352,6 +608,80 @@ const SELLER = {
 const LOGO_URL =
   clean(process.env.INVOICE_LOGO_URL) ||
   "https://ljnuzfjlxsecsdcbcpny.supabase.co/storage/v1/object/public/invoices/mioseg-logo.png";
+
+const INVOICE_FONT_REGULAR_URL = clean(process.env.INVOICE_FONT_REGULAR_URL);
+const INVOICE_FONT_BOLD_URL = clean(process.env.INVOICE_FONT_BOLD_URL);
+const INVOICE_FONT_ARABIC_REGULAR_URL = clean(
+  process.env.INVOICE_FONT_ARABIC_REGULAR_URL,
+);
+const INVOICE_FONT_ARABIC_BOLD_URL = clean(
+  process.env.INVOICE_FONT_ARABIC_BOLD_URL,
+);
+
+function needsUnicodeFont(language: DocumentLanguage) {
+  return language === "tr" || language === "pl" || language === "ar";
+}
+
+function getInvoiceFontUrls(language: DocumentLanguage) {
+  if (language === "ar") {
+    return {
+      regular: INVOICE_FONT_ARABIC_REGULAR_URL,
+      bold: INVOICE_FONT_ARABIC_BOLD_URL,
+    };
+  }
+
+  return {
+    regular: INVOICE_FONT_REGULAR_URL,
+    bold: INVOICE_FONT_BOLD_URL,
+  };
+}
+
+async function loadInvoiceFonts(
+  pdf: PDFDocument,
+  language: DocumentLanguage,
+): Promise<{
+  font: PDFFont;
+  bold: PDFFont;
+  effectiveLanguage: DocumentLanguage;
+  unicode: boolean;
+}> {
+  const urls = getInvoiceFontUrls(language);
+
+  if (urls.regular && urls.bold) {
+    try {
+      pdf.registerFontkit(fontkit);
+
+      const [regularBytes, boldBytes] = await Promise.all([
+        fetchBytes(urls.regular),
+        fetchBytes(urls.bold),
+      ]);
+
+      const [font, bold] = await Promise.all([
+        pdf.embedFont(regularBytes, { subset: true }),
+        pdf.embedFont(boldBytes, { subset: true }),
+      ]);
+
+      return { font, bold, effectiveLanguage: language, unicode: true };
+    } catch (error) {
+      console.warn("Unicode invoice font loading failed; using safe fallback.", {
+        language,
+        regularFontConfigured: Boolean(urls.regular),
+        boldFontConfigured: Boolean(urls.bold),
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+
+  // Helvetica/WinAnsi cannot safely encode Polish, Turkish or Arabic.
+  // Keep purchases functional by falling back to English PDF copy if the
+  // required Unicode font cannot be loaded.
+  const effectiveLanguage = needsUnicodeFont(language) ? "en" : language;
+
+  return { font, bold, effectiveLanguage, unicode: false };
+}
 
 async function fetchBytes(url: string): Promise<Uint8Array> {
   const res = await fetch(url);
@@ -401,11 +731,15 @@ async function createInvoicePdfBytes(params: {
   originalInvoiceNumber?: string | null;
   refundId?: string | null;
   extraHintLines?: string[];
+  language?: DocumentLanguage;
 }) {
+  const requestedLanguage = params.language ?? "de";
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([595.28, 841.89]);
-  const font = await pdf.embedFont(StandardFonts.Helvetica);
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const loadedFonts = await loadInvoiceFonts(pdf, requestedLanguage);
+  const { font, bold, effectiveLanguage, unicode } = loadedFonts;
+  const copy = PDF_COPY[effectiveLanguage];
+  const isRtl = effectiveLanguage === "ar" && unicode;
   const pageW = page.getWidth();
   const pageH = page.getHeight();
   const marginL = 50;
@@ -427,24 +761,37 @@ async function createInvoicePdfBytes(params: {
   const topY = pageH - 36;
   const titleY = await drawLogo({ pdf, page, x: marginL, topY });
 
-  page.drawText(params.documentTitle || "Rechnung", { x: marginL, y: titleY, size: 18, font: bold, color: colorText });
+  const documentTitle =
+    params.documentTitle ||
+    (params.originalInvoiceNumber ? copy.creditTitle : copy.invoiceTitle);
+  const titleWidth = bold.widthOfTextAtSize(documentTitle, 18);
+  page.drawText(documentTitle, {
+    x: isRtl ? pageW - marginR - titleWidth : marginL,
+    y: titleY,
+    size: 18,
+    font: bold,
+    color: colorText,
+  });
 
   const sellerLines = [
     SELLER.name,
     SELLER.street,
     [SELLER.postalCode, SELLER.city].filter(Boolean).join(" "),
     SELLER.country,
-    SELLER.email ? `E-Mail: ${SELLER.email}` : "",
+    SELLER.email ? `${copy.email}: ${SELLER.email}` : "",
     SELLER.website,
-    SELLER.vatId ? `USt-IdNr.: ${SELLER.vatId}` : SELLER.taxNumber ? `St.-Nr.: ${SELLER.taxNumber}` : "",
+    SELLER.vatId ? `${copy.vatId}: ${SELLER.vatId}` : SELLER.taxNumber ? `${copy.taxNumber}: ${SELLER.taxNumber}` : "",
   ].filter(Boolean);
 
   sellerLines.forEach((line, i) => {
+    const lineFont = i === 0 ? bold : font;
+    const lineSize = i === 0 ? 10.5 : 10;
+    const lineWidth = lineFont.widthOfTextAtSize(line, lineSize);
     page.drawText(line, {
-      x: rightX,
+      x: isRtl ? pageW - marginR - lineWidth : rightX,
       y: topY - 8 - i * 13,
-      size: i === 0 ? 10.5 : 10,
-      font: i === 0 ? bold : font,
+      size: lineSize,
+      font: lineFont,
       color: colorText,
     });
   });
@@ -453,26 +800,28 @@ async function createInvoicePdfBytes(params: {
   drawRule(y);
   y -= 24;
 
-  const drawLeft = (text: string, size = 11, isBold = false, muted = false) => {
-    page.drawText(text, {
-      x: marginL,
+  const drawLeft = (value: string, size = 11, isBold = false, muted = false) => {
+    const activeFont = isBold ? bold : font;
+    const textWidth = activeFont.widthOfTextAtSize(value, size);
+    page.drawText(value, {
+      x: isRtl ? pageW - marginR - textWidth : marginL,
       y,
       size,
-      font: isBold ? bold : font,
+      font: activeFont,
       color: muted ? colorMuted : colorText,
     });
     y -= size + 6;
   };
 
-  drawLeft(`${params.numberLabel || "Rechnungsnummer"}: ${params.invoiceNumber}`, 11, true);
-  drawLeft(`Datum: ${params.dateISO}`, 11);
-  drawLeft(`Leistungsdatum: ${params.dateISO} (Bereitstellung digitaler Nutzungscredits)`, 11);
-  if (params.originalInvoiceNumber) drawLeft(`Bezug auf Rechnung: ${params.originalInvoiceNumber}`, 9, false, true);
-  if (params.paymentIntentId) drawLeft(`Zahlungsreferenz (Stripe): ${params.paymentIntentId}`, 9, false, true);
-  if (params.refundId) drawLeft(`Rückerstattungsreferenz (Stripe): ${params.refundId}`, 9, false, true);
+  drawLeft(`${params.numberLabel || (params.originalInvoiceNumber ? copy.creditNumber : copy.invoiceNumber)}: ${params.invoiceNumber}`, 11, true);
+  drawLeft(`${copy.date}: ${params.dateISO}`, 11);
+  drawLeft(`${copy.serviceDate}: ${params.dateISO} (${copy.serviceDescription})`, 11);
+  if (params.originalInvoiceNumber) drawLeft(`${copy.invoiceReference}: ${params.originalInvoiceNumber}`, 9, false, true);
+  if (params.paymentIntentId) drawLeft(`${copy.paymentReference}: ${params.paymentIntentId}`, 9, false, true);
+  if (params.refundId) drawLeft(`${copy.refundReference}: ${params.refundId}`, 9, false, true);
   y -= 8;
 
-  drawLeft(params.recipientLabel || "Rechnung an:", 11, true);
+  drawLeft(params.recipientLabel || (params.originalInvoiceNumber ? copy.creditRecipient : copy.invoiceRecipient), 11, true);
   drawLeft(params.customerName || "-", 11);
   drawLeft(params.customerStreet || "-", 11);
   drawLeft([params.customerPostalCode, params.customerCity].filter(Boolean).join(" ") || "-", 11);
@@ -480,27 +829,24 @@ async function createInvoicePdfBytes(params: {
   drawLeft(params.customerEmail || "-", 11);
   y -= 10;
 
-  drawLeft(params.positionTitle || "Leistungsposition", 11, true);
-  drawLeft(params.positionDescription || "Erwerb digitaler Nutzungscredits (QR-X Credits)", 11);
-  drawLeft(`Paket: ${params.packId}`, 11);
-  drawLeft(`Menge: ${params.credits} Credits`, 11);
+  drawLeft(params.positionTitle || (params.originalInvoiceNumber ? copy.creditPositionTitle : copy.positionTitle), 11, true);
+  drawLeft(params.positionDescription || (params.originalInvoiceNumber ? copy.creditPosition : copy.invoicePosition), 11);
+  drawLeft(`${copy.package}: ${params.packId}`, 11);
+  drawLeft(`${copy.quantity}: ${params.credits} Credits`, 11);
   y -= 8;
 
   drawRule(y + 6);
-  drawLeft(`Netto: ${formatMoney(params.netAmountCents, params.currency)}`, 11);
+  drawLeft(`${copy.net}: ${formatMoney(params.netAmountCents, params.currency, effectiveLanguage)}`, 11);
   const rateText = params.taxRate !== null && params.taxRate !== undefined ? ` (${Math.round(params.taxRate * 100)} %)` : "";
-  drawLeft(`Umsatzsteuer${rateText}: ${formatMoney(params.taxAmountCents, params.currency)}`, 11);
-  drawLeft(`${params.totalLabel || "Gesamtbetrag"}: ${formatMoney(params.grossAmountCents, params.currency)}`, 12, true);
+  drawLeft(`${copy.vat}${rateText}: ${formatMoney(params.taxAmountCents, params.currency, effectiveLanguage)}`, 11);
+  drawLeft(`${params.totalLabel || (params.originalInvoiceNumber ? copy.creditTotal : copy.total)}: ${formatMoney(params.grossAmountCents, params.currency, effectiveLanguage)}`, 12, true);
   drawRule(y + 4);
   y -= 10;
-  drawLeft("Hinweis:", 11, true);
+  drawLeft(`${copy.note}:`, 11, true);
   const hintLines =
     params.extraHintLines && params.extraHintLines.length > 0
       ? params.extraHintLines
-      : [
-          "Der ausgewiesene Betrag enthält die gesetzliche Umsatzsteuer, soweit ausgewiesen.",
-          "Die Leistung wird als digitale Bereitstellung von Nutzungscredits erbracht.",
-        ];
+      : [copy.invoiceHint1, copy.invoiceHint2];
   const wrapHintLine = (value: string, maxWidth = pageW - marginL - marginR) => {
     const words = value.split(/\s+/).filter(Boolean);
     const lines: string[] = [];
@@ -530,7 +876,7 @@ async function createInvoicePdfBytes(params: {
   drawRule(footerY + 16);
   const footerLeft = `${SELLER.name} · ${SELLER.street} · ${SELLER.postalCode} ${SELLER.city}`;
   page.drawText(footerLeft, { x: marginL, y: footerY + 6, size: 8.5, font, color: colorMuted });
-  const pageLabel = "Seite 1/1";
+  const pageLabel = `${copy.page} 1/1`;
   const pageLabelW = font.widthOfTextAtSize(pageLabel, 8.5);
   page.drawText(pageLabel, { x: pageW - marginR - pageLabelW, y: 14, size: 8.5, font, color: colorMuted });
 
@@ -751,17 +1097,9 @@ async function finalizeInvoice(input: {
     taxRate: input.taxCents > 0 ? 0.19 : 0,
     currency: input.currency,
     extraHintLines: input.legalAcceptance
-      ? [
-          "Bestätigung zum sofortigen Leistungsbeginn / Widerrufsrecht:",
-          `Zustimmung vom ${new Date(input.legalAcceptance.accepted_at).toLocaleString("de-DE")} (Version ${input.legalAcceptance.consent_version}).`,
-          input.legalAcceptance.immediate_performance_text,
-          input.legalAcceptance.withdrawal_loss_text,
-          `Nachweis-ID: ${input.legalAcceptance.id}`,
-        ]
-      : [
-          "Der ausgewiesene Betrag enthält die gesetzliche Umsatzsteuer, soweit ausgewiesen.",
-          "Die Leistung wird als digitale Bereitstellung von Nutzungscredits erbracht.",
-        ],
+      ? buildLegalAcceptancePdfLines(input.legalAcceptance, input.language)
+      : undefined,
+    language: input.language,
   });
 
   const upload = await supabaseAdmin.storage.from("invoices").upload(input.pdfPath, pdfBytes, {
@@ -773,19 +1111,10 @@ async function finalizeInvoice(input: {
     throw new Error(`Storage upload failed: ${upload.error.message}`);
   }
 
-  const legalConfirmationText = input.legalAcceptance
-    ? [
-        "",
-        "Bestätigung zum sofortigen Leistungsbeginn / Widerrufsrecht",
-        `Zustimmung dokumentiert am: ${new Date(input.legalAcceptance.accepted_at).toLocaleString("de-DE")}`,
-        `Version: ${input.legalAcceptance.consent_version}`,
-        `Nachweis-ID: ${input.legalAcceptance.id}`,
-        "",
-        `1. ${input.legalAcceptance.immediate_performance_text}`,
-        `2. ${input.legalAcceptance.withdrawal_loss_text}`,
-        "",
-      ].join("\n")
-    : "";
+  const legalConfirmationText = buildLegalAcceptanceEmailText(
+    input.legalAcceptance,
+    input.language,
+  );
 
   const copy = MAIL_COPY[input.language];
   const emailText = copy.invoiceBody({
@@ -1214,6 +1543,7 @@ async function createCreditNoteForRefund(input: {
   const billing = billingFromInvoice(originalInvoice);
   const language = await languageFromInvoice(originalInvoice);
   const copy = MAIL_COPY[language];
+  const pdfCopy = PDF_COPY[language];
   if (!billing.customerEmail) throw new Error("E-Mail für Gutschrift fehlt.");
 
   const originalGrossCents = originalInvoice.gross_amount_cents ?? originalInvoice.amount_cents ?? input.refundAmountCents;
@@ -1301,18 +1631,16 @@ async function createCreditNoteForRefund(input: {
     grossAmountCents: input.refundAmountCents,
     taxRate: taxCents > 0 ? 0.19 : 0,
     currency,
-    documentTitle: "Gutschrift",
-    numberLabel: "Gutschriftsnummer",
-    recipientLabel: "Gutschrift an:",
-    positionTitle: "Gutschriftsposition",
-    positionDescription: "Gutschrift zur Rückerstattung digitaler Nutzungscredits (QR-X Credits)",
-    totalLabel: "Gutschriftbetrag",
+    documentTitle: pdfCopy.creditTitle,
+    numberLabel: pdfCopy.creditNumber,
+    recipientLabel: pdfCopy.creditRecipient,
+    positionTitle: pdfCopy.creditPositionTitle,
+    positionDescription: pdfCopy.creditPosition,
+    totalLabel: pdfCopy.creditTotal,
     originalInvoiceNumber: originalInvoice.invoice_number,
     refundId: input.refundId,
-    extraHintLines: [
-      "Diese Gutschrift bezieht sich auf die oben genannte Originalrechnung.",
-      "Der ausgewiesene Betrag korrigiert die ursprüngliche Bereitstellung digitaler Nutzungscredits.",
-    ],
+    extraHintLines: [pdfCopy.creditHint1, pdfCopy.creditHint2],
+    language,
   });
 
   const upload = await supabaseAdmin.storage.from("invoices").upload(pdfPath, pdfBytes, {
@@ -1328,7 +1656,7 @@ async function createCreditNoteForRefund(input: {
   const emailText = copy.creditBody({
     originalInvoiceNumber: originalInvoice.invoice_number || "-",
     creditNumber: creditNoteNumber,
-    amount: formatMoney(input.refundAmountCents, currency),
+    amount: formatMoney(input.refundAmountCents, currency, language),
     sellerEmail: SELLER.email,
     sellerName: SELLER.name,
   });
