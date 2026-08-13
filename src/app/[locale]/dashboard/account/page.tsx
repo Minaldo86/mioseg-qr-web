@@ -476,6 +476,684 @@ const ACCOUNT_TEXT = {
   },
 } as const;
 
+const ACCOUNT_BILLING_TEXT = {
+  de: {
+    billingData: "Rechnungsdaten",
+    billingText: "Diese Daten werden für Rechnungen, PDF-Erstellung und den automatischen E-Mail-Versand nach Credit-Käufen verwendet.",
+    billingBadge: "Rechnung",
+    contactName: "Ansprechpartner / Name",
+    billingEmail: "Rechnungs-E-Mail",
+    saveBilling: "Rechnungsdaten speichern",
+    billingSaved: "Rechnungsdaten gespeichert.",
+    myInvoices: "Meine Rechnungen",
+    myInvoicesText: "Hier findest du deine Rechnungen für Credit-Käufe und kannst verfügbare PDF-Dateien sicher herunterladen.",
+    noInvoices: "Keine Rechnungen",
+    oneInvoice: "1 Rechnung",
+    invoiceCount: "{{count}} Rechnungen",
+    loadingInvoices: "Rechnungen werden geladen …",
+    noInvoicesYet: "Noch keine Rechnungen",
+    noInvoicesText: "Nach jedem erfolgreichen Credit-Kauf wird deine Rechnung automatisch erstellt und hier dauerhaft gespeichert.",
+    pdfDownload: "PDF herunterladen",
+    invoiceNumber: "Rechnungsnummer",
+    paymentDate: "Zahlungsdatum",
+    amountStatus: "Betrag und Status",
+    pdfUnavailable: "PDF nicht verfügbar",
+    invoiceDownloadFailed: "Die Rechnung konnte nicht heruntergeladen werden.",
+    invoiceFileFallback: "Rechnung",
+    statusSent: "Versendet",
+    statusCreated: "Erstellt",
+    statusCreating: "Wird erstellt",
+    statusFailed: "Fehlgeschlagen",
+    statusRefunded: "Erstattet",
+    statusUnknown: "Unbekannt",
+  },
+  en: {
+    billingData: "Billing details",
+    billingText: "These details are used for invoices, PDF generation and automatic email delivery after Credit purchases.",
+    billingBadge: "Billing",
+    contactName: "Contact person / Name",
+    billingEmail: "Billing email",
+    saveBilling: "Save billing details",
+    billingSaved: "Billing details saved.",
+    myInvoices: "My invoices",
+    myInvoicesText: "Here you can find your invoices for Credit purchases and securely download available PDF files.",
+    noInvoices: "No invoices",
+    oneInvoice: "1 invoice",
+    invoiceCount: "{{count}} invoices",
+    loadingInvoices: "Loading invoices …",
+    noInvoicesYet: "No invoices yet",
+    noInvoicesText: "After each successful Credit purchase, your invoice is created automatically and stored here permanently.",
+    pdfDownload: "Download PDF",
+    invoiceNumber: "Invoice number",
+    paymentDate: "Payment date",
+    amountStatus: "Amount and status",
+    pdfUnavailable: "PDF unavailable",
+    invoiceDownloadFailed: "The invoice could not be downloaded.",
+    invoiceFileFallback: "Invoice",
+    statusSent: "Sent",
+    statusCreated: "Created",
+    statusCreating: "Creating",
+    statusFailed: "Failed",
+    statusRefunded: "Refunded",
+    statusUnknown: "Unknown",
+  },
+  tr: {
+    billingData: "Fatura bilgileri",
+    billingText: "Bu bilgiler faturalar, PDF oluşturma ve Credit satın alımlarından sonra otomatik e-posta gönderimi için kullanılır.",
+    billingBadge: "Fatura",
+    contactName: "Yetkili kişi / Ad",
+    billingEmail: "Fatura e-postası",
+    saveBilling: "Fatura bilgilerini kaydet",
+    billingSaved: "Fatura bilgileri kaydedildi.",
+    myInvoices: "Faturalarım",
+    myInvoicesText: "Credit satın alımlarına ait faturalarını burada bulabilir ve mevcut PDF dosyalarını güvenle indirebilirsin.",
+    noInvoices: "Fatura yok",
+    oneInvoice: "1 fatura",
+    invoiceCount: "{{count}} fatura",
+    loadingInvoices: "Faturalar yükleniyor …",
+    noInvoicesYet: "Henüz fatura yok",
+    noInvoicesText: "Her başarılı Credit satın alımından sonra faturan otomatik olarak oluşturulur ve burada kalıcı olarak saklanır.",
+    pdfDownload: "PDF indir",
+    invoiceNumber: "Fatura numarası",
+    paymentDate: "Ödeme tarihi",
+    amountStatus: "Tutar ve durum",
+    pdfUnavailable: "PDF mevcut değil",
+    invoiceDownloadFailed: "Fatura indirilemedi.",
+    invoiceFileFallback: "Fatura",
+    statusSent: "Gönderildi",
+    statusCreated: "Oluşturuldu",
+    statusCreating: "Oluşturuluyor",
+    statusFailed: "Başarısız",
+    statusRefunded: "İade edildi",
+    statusUnknown: "Bilinmiyor",
+  },
+  pl: {
+    billingData: "Dane do faktury",
+    billingText: "Dane te są używane do faktur, tworzenia plików PDF i automatycznej wysyłki e-mail po zakupach Credits.",
+    billingBadge: "Faktura",
+    contactName: "Osoba kontaktowa / Nazwa",
+    billingEmail: "E-mail do faktur",
+    saveBilling: "Zapisz dane do faktury",
+    billingSaved: "Dane do faktury zapisano.",
+    myInvoices: "Moje faktury",
+    myInvoicesText: "Tutaj znajdziesz faktury za zakupy Credits i bezpiecznie pobierzesz dostępne pliki PDF.",
+    noInvoices: "Brak faktur",
+    oneInvoice: "1 faktura",
+    invoiceCount: "{{count}} faktur",
+    loadingInvoices: "Ładowanie faktur …",
+    noInvoicesYet: "Brak faktur",
+    noInvoicesText: "Po każdym udanym zakupie Credits faktura jest tworzona automatycznie i trwale zapisywana tutaj.",
+    pdfDownload: "Pobierz PDF",
+    invoiceNumber: "Numer faktury",
+    paymentDate: "Data płatności",
+    amountStatus: "Kwota i status",
+    pdfUnavailable: "PDF niedostępny",
+    invoiceDownloadFailed: "Nie udało się pobrać faktury.",
+    invoiceFileFallback: "Faktura",
+    statusSent: "Wysłano",
+    statusCreated: "Utworzono",
+    statusCreating: "Tworzenie",
+    statusFailed: "Niepowodzenie",
+    statusRefunded: "Zwrócono",
+    statusUnknown: "Nieznany",
+  },
+  ar: {
+    billingData: "بيانات الفوترة",
+    billingText: "تُستخدم هذه البيانات للفواتير وإنشاء ملفات PDF والإرسال التلقائي للبريد الإلكتروني بعد شراء Credits.",
+    billingBadge: "الفاتورة",
+    contactName: "جهة الاتصال / الاسم",
+    billingEmail: "بريد الفوترة",
+    saveBilling: "حفظ بيانات الفوترة",
+    billingSaved: "تم حفظ بيانات الفوترة.",
+    myInvoices: "فواتيري",
+    myInvoicesText: "هنا يمكنك العثور على فواتير مشتريات Credits وتنزيل ملفات PDF المتاحة بأمان.",
+    noInvoices: "لا توجد فواتير",
+    oneInvoice: "فاتورة واحدة",
+    invoiceCount: "{{count}} فواتير",
+    loadingInvoices: "جارٍ تحميل الفواتير …",
+    noInvoicesYet: "لا توجد فواتير بعد",
+    noInvoicesText: "بعد كل عملية شراء ناجحة لـ Credits، يتم إنشاء فاتورتك تلقائيًا وحفظها هنا بشكل دائم.",
+    pdfDownload: "تنزيل PDF",
+    invoiceNumber: "رقم الفاتورة",
+    paymentDate: "تاريخ الدفع",
+    amountStatus: "المبلغ والحالة",
+    pdfUnavailable: "ملف PDF غير متاح",
+    invoiceDownloadFailed: "تعذر تنزيل الفاتورة.",
+    invoiceFileFallback: "فاتورة",
+    statusSent: "تم الإرسال",
+    statusCreated: "تم الإنشاء",
+    statusCreating: "جارٍ الإنشاء",
+    statusFailed: "فشل",
+    statusRefunded: "تم رد المبلغ",
+    statusUnknown: "غير معروف",
+  },
+  fr: {
+    billingData: "Données de facturation",
+    billingText: "Ces données sont utilisées pour les factures, la création des PDF et l’envoi automatique d’e-mails après les achats de Credits.",
+    billingBadge: "Facture",
+    contactName: "Contact / Nom",
+    billingEmail: "E-mail de facturation",
+    saveBilling: "Enregistrer les données de facturation",
+    billingSaved: "Données de facturation enregistrées.",
+    myInvoices: "Mes factures",
+    myInvoicesText: "Vous trouverez ici vos factures pour les achats de Credits et pourrez télécharger les PDF disponibles en toute sécurité.",
+    noInvoices: "Aucune facture",
+    oneInvoice: "1 facture",
+    invoiceCount: "{{count}} factures",
+    loadingInvoices: "Chargement des factures …",
+    noInvoicesYet: "Aucune facture pour le moment",
+    noInvoicesText: "Après chaque achat de Credits réussi, votre facture est créée automatiquement et conservée ici.",
+    pdfDownload: "Télécharger le PDF",
+    invoiceNumber: "Numéro de facture",
+    paymentDate: "Date de paiement",
+    amountStatus: "Montant et statut",
+    pdfUnavailable: "PDF indisponible",
+    invoiceDownloadFailed: "La facture n’a pas pu être téléchargée.",
+    invoiceFileFallback: "Facture",
+    statusSent: "Envoyée",
+    statusCreated: "Créée",
+    statusCreating: "Création en cours",
+    statusFailed: "Échec",
+    statusRefunded: "Remboursée",
+    statusUnknown: "Inconnu",
+  },
+  es: {
+    billingData: "Datos de facturación",
+    billingText: "Estos datos se utilizan para facturas, creación de PDF y envío automático de correos tras compras de Credits.",
+    billingBadge: "Factura",
+    contactName: "Persona de contacto / Nombre",
+    billingEmail: "Correo de facturación",
+    saveBilling: "Guardar datos de facturación",
+    billingSaved: "Datos de facturación guardados.",
+    myInvoices: "Mis facturas",
+    myInvoicesText: "Aquí encontrarás tus facturas de compras de Credits y podrás descargar de forma segura los PDF disponibles.",
+    noInvoices: "Sin facturas",
+    oneInvoice: "1 factura",
+    invoiceCount: "{{count}} facturas",
+    loadingInvoices: "Cargando facturas …",
+    noInvoicesYet: "Todavía no hay facturas",
+    noInvoicesText: "Después de cada compra de Credits realizada con éxito, tu factura se crea automáticamente y se guarda aquí de forma permanente.",
+    pdfDownload: "Descargar PDF",
+    invoiceNumber: "Número de factura",
+    paymentDate: "Fecha de pago",
+    amountStatus: "Importe y estado",
+    pdfUnavailable: "PDF no disponible",
+    invoiceDownloadFailed: "No se pudo descargar la factura.",
+    invoiceFileFallback: "Factura",
+    statusSent: "Enviada",
+    statusCreated: "Creada",
+    statusCreating: "Creando",
+    statusFailed: "Fallida",
+    statusRefunded: "Reembolsada",
+    statusUnknown: "Desconocido",
+  },
+  it: {
+    billingData: "Dati di fatturazione",
+    billingText: "Questi dati vengono utilizzati per fatture, creazione dei PDF e invio automatico di e-mail dopo gli acquisti di Credits.",
+    billingBadge: "Fattura",
+    contactName: "Referente / Nome",
+    billingEmail: "E-mail di fatturazione",
+    saveBilling: "Salva dati di fatturazione",
+    billingSaved: "Dati di fatturazione salvati.",
+    myInvoices: "Le mie fatture",
+    myInvoicesText: "Qui trovi le fatture degli acquisti di Credits e puoi scaricare in sicurezza i PDF disponibili.",
+    noInvoices: "Nessuna fattura",
+    oneInvoice: "1 fattura",
+    invoiceCount: "{{count}} fatture",
+    loadingInvoices: "Caricamento fatture …",
+    noInvoicesYet: "Ancora nessuna fattura",
+    noInvoicesText: "Dopo ogni acquisto di Credits completato con successo, la fattura viene creata automaticamente e salvata qui in modo permanente.",
+    pdfDownload: "Scarica PDF",
+    invoiceNumber: "Numero fattura",
+    paymentDate: "Data di pagamento",
+    amountStatus: "Importo e stato",
+    pdfUnavailable: "PDF non disponibile",
+    invoiceDownloadFailed: "Impossibile scaricare la fattura.",
+    invoiceFileFallback: "Fattura",
+    statusSent: "Inviata",
+    statusCreated: "Creata",
+    statusCreating: "Creazione in corso",
+    statusFailed: "Non riuscita",
+    statusRefunded: "Rimborsata",
+    statusUnknown: "Sconosciuto",
+  },
+} as const;
+
+const ACCOUNT_SECURITY_TEXT = {
+  de: {
+    securityTitle: "Sicherheit",
+    securityText: "Prüfe deine aktuelle Anmeldung und ändere bei Bedarf dein Passwort.",
+    secure: "Sicher",
+    loginEmail: "Login-E-Mail",
+    confirmedOn: "Bestätigt am",
+    emailNotConfirmed: "E-Mail noch nicht bestätigt",
+    loginProvider: "Login-Provider",
+    supabaseEmail: "Supabase E-Mail",
+    authActive: "Authentifizierung aktiv",
+    thisDevice: "Dieses Gerät",
+    currentBrowserSession: "Aktuelle Browsersitzung",
+    lastLogin: "Letzte Anmeldung",
+    reportedBySupabase: "Von Supabase Auth gemeldet",
+    password: "Passwort",
+    passwordHint: "Verwende mindestens acht Zeichen, Groß- und Kleinbuchstaben sowie eine Zahl.",
+    changePassword: "Passwort ändern",
+    deleteAccount: "Konto dauerhaft löschen",
+    deleteAccountText: "Diese Aktion kann nicht rückgängig gemacht werden. Deine Kontodaten, Credits und Zugänge werden entfernt; eigene QR-X werden deaktiviert.",
+    enableDelete: "Ich möchte die dauerhafte Kontolöschung freischalten.",
+    deletePrompt: "Zur Bestätigung bitte KONTO LÖSCHEN eingeben",
+    deletePhrase: "KONTO LÖSCHEN",
+    deletingAccount: "Konto wird gelöscht …",
+    deleteConfirmError: "Bitte bestätige die Löschung mit Checkbox und dem Text KONTO LÖSCHEN.",
+    deleteConfirmDialog: "Möchtest du dein Konto wirklich dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    deleteFailed: "Konto konnte nicht gelöscht werden.",
+    sessionExpired: "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+    signInFirst: "Bitte melde dich zuerst an.",
+    securityKicker: "SICHERHEIT",
+    closeWindow: "Fenster schließen",
+    currentPassword: "Aktuelles Passwort",
+    newPassword: "Neues Passwort",
+    repeatPassword: "Neues Passwort wiederholen",
+    ruleLength: "Mindestens 8 Zeichen",
+    ruleUpper: "Mindestens ein Großbuchstabe",
+    ruleLower: "Mindestens ein Kleinbuchstabe",
+    ruleNumber: "Mindestens eine Zahl",
+    cancel: "Abbrechen",
+    changing: "Wird geändert …",
+    savePassword: "Passwort speichern",
+    passwordChanged: "Passwort erfolgreich geändert.",
+    noEmail: "Für dieses Konto ist keine E-Mail-Adresse verfügbar.",
+    enterCurrentPassword: "Bitte gib dein aktuelles Passwort ein.",
+    passwordMismatch: "Die neuen Passwörter stimmen nicht überein.",
+    passwordDifferent: "Das neue Passwort muss sich vom aktuellen Passwort unterscheiden.",
+    currentPasswordWrong: "Das aktuelle Passwort ist nicht korrekt.",
+    passwordChangeFailed: "Das Passwort konnte nicht geändert werden.",
+    passwordTooShort: "Das neue Passwort muss mindestens 8 Zeichen lang sein.",
+    passwordNeedsUpper: "Das neue Passwort muss mindestens einen Großbuchstaben enthalten.",
+    passwordNeedsLower: "Das neue Passwort muss mindestens einen Kleinbuchstaben enthalten.",
+    passwordNeedsNumber: "Das neue Passwort muss mindestens eine Zahl enthalten.",
+    unknownBrowser: "Unbekannter Browser",
+    unknownDevice: "Unbekanntes Gerät",
+  },
+  en: {
+    securityTitle: "Security",
+    securityText: "Check your current sign-in and change your password if needed.",
+    secure: "Secure",
+    loginEmail: "Login email",
+    confirmedOn: "Confirmed on",
+    emailNotConfirmed: "Email not yet confirmed",
+    loginProvider: "Login provider",
+    supabaseEmail: "Supabase email",
+    authActive: "Authentication active",
+    thisDevice: "This device",
+    currentBrowserSession: "Current browser session",
+    lastLogin: "Last sign-in",
+    reportedBySupabase: "Reported by Supabase Auth",
+    password: "Password",
+    passwordHint: "Use at least eight characters, upper- and lowercase letters and a number.",
+    changePassword: "Change password",
+    deleteAccount: "Permanently delete account",
+    deleteAccountText: "This action cannot be undone. Your account data, Credits and access will be removed; your own QR-X will be disabled.",
+    enableDelete: "I want to enable permanent account deletion.",
+    deletePrompt: "To confirm, enter DELETE ACCOUNT",
+    deletePhrase: "DELETE ACCOUNT",
+    deletingAccount: "Deleting account …",
+    deleteConfirmError: "Please confirm deletion with the checkbox and the text DELETE ACCOUNT.",
+    deleteConfirmDialog: "Do you really want to permanently delete your account? This action cannot be undone.",
+    deleteFailed: "The account could not be deleted.",
+    sessionExpired: "Your session has expired. Please sign in again.",
+    signInFirst: "Please sign in first.",
+    securityKicker: "SECURITY",
+    closeWindow: "Close window",
+    currentPassword: "Current password",
+    newPassword: "New password",
+    repeatPassword: "Repeat new password",
+    ruleLength: "At least 8 characters",
+    ruleUpper: "At least one uppercase letter",
+    ruleLower: "At least one lowercase letter",
+    ruleNumber: "At least one number",
+    cancel: "Cancel",
+    changing: "Changing …",
+    savePassword: "Save password",
+    passwordChanged: "Password changed successfully.",
+    noEmail: "No email address is available for this account.",
+    enterCurrentPassword: "Please enter your current password.",
+    passwordMismatch: "The new passwords do not match.",
+    passwordDifferent: "The new password must be different from the current password.",
+    currentPasswordWrong: "The current password is incorrect.",
+    passwordChangeFailed: "The password could not be changed.",
+    passwordTooShort: "The new password must be at least 8 characters long.",
+    passwordNeedsUpper: "The new password must contain at least one uppercase letter.",
+    passwordNeedsLower: "The new password must contain at least one lowercase letter.",
+    passwordNeedsNumber: "The new password must contain at least one number.",
+    unknownBrowser: "Unknown browser",
+    unknownDevice: "Unknown device",
+  },
+  tr: {
+    securityTitle: "Güvenlik",
+    securityText: "Mevcut oturumunu kontrol et ve gerekirse şifreni değiştir.",
+    secure: "Güvenli",
+    loginEmail: "Giriş e-postası",
+    confirmedOn: "Onay tarihi",
+    emailNotConfirmed: "E-posta henüz doğrulanmadı",
+    loginProvider: "Giriş sağlayıcısı",
+    supabaseEmail: "Supabase e-posta",
+    authActive: "Kimlik doğrulama aktif",
+    thisDevice: "Bu cihaz",
+    currentBrowserSession: "Mevcut tarayıcı oturumu",
+    lastLogin: "Son giriş",
+    reportedBySupabase: "Supabase Auth tarafından bildirildi",
+    password: "Şifre",
+    passwordHint: "En az sekiz karakter, büyük ve küçük harf ile bir sayı kullan.",
+    changePassword: "Şifreyi değiştir",
+    deleteAccount: "Hesabı kalıcı olarak sil",
+    deleteAccountText: "Bu işlem geri alınamaz. Hesap verilerin, Credits ve erişimlerin kaldırılır; kendi QR-X'lerin devre dışı bırakılır.",
+    enableDelete: "Kalıcı hesap silmeyi etkinleştirmek istiyorum.",
+    deletePrompt: "Onaylamak için HESABI SİL yaz",
+    deletePhrase: "HESABI SİL",
+    deletingAccount: "Hesap siliniyor …",
+    deleteConfirmError: "Lütfen kutuyu işaretleyip HESABI SİL yazarak silme işlemini onayla.",
+    deleteConfirmDialog: "Hesabını gerçekten kalıcı olarak silmek istiyor musun? Bu işlem geri alınamaz.",
+    deleteFailed: "Hesap silinemedi.",
+    sessionExpired: "Oturumunun süresi doldu. Lütfen tekrar giriş yap.",
+    signInFirst: "Lütfen önce giriş yap.",
+    securityKicker: "GÜVENLİK",
+    closeWindow: "Pencereyi kapat",
+    currentPassword: "Mevcut şifre",
+    newPassword: "Yeni şifre",
+    repeatPassword: "Yeni şifreyi tekrarla",
+    ruleLength: "En az 8 karakter",
+    ruleUpper: "En az bir büyük harf",
+    ruleLower: "En az bir küçük harf",
+    ruleNumber: "En az bir sayı",
+    cancel: "İptal",
+    changing: "Değiştiriliyor …",
+    savePassword: "Şifreyi kaydet",
+    passwordChanged: "Şifre başarıyla değiştirildi.",
+    noEmail: "Bu hesap için e-posta adresi mevcut değil.",
+    enterCurrentPassword: "Lütfen mevcut şifreni gir.",
+    passwordMismatch: "Yeni şifreler eşleşmiyor.",
+    passwordDifferent: "Yeni şifre mevcut şifreden farklı olmalıdır.",
+    currentPasswordWrong: "Mevcut şifre yanlış.",
+    passwordChangeFailed: "Şifre değiştirilemedi.",
+    passwordTooShort: "Yeni şifre en az 8 karakter olmalıdır.",
+    passwordNeedsUpper: "Yeni şifre en az bir büyük harf içermelidir.",
+    passwordNeedsLower: "Yeni şifre en az bir küçük harf içermelidir.",
+    passwordNeedsNumber: "Yeni şifre en az bir sayı içermelidir.",
+    unknownBrowser: "Bilinmeyen tarayıcı",
+    unknownDevice: "Bilinmeyen cihaz",
+  },
+  pl: {
+    securityTitle: "Bezpieczeństwo",
+    securityText: "Sprawdź bieżące logowanie i w razie potrzeby zmień hasło.",
+    secure: "Bezpieczne",
+    loginEmail: "E-mail logowania",
+    confirmedOn: "Potwierdzono",
+    emailNotConfirmed: "E-mail nie został jeszcze potwierdzony",
+    loginProvider: "Dostawca logowania",
+    supabaseEmail: "E-mail Supabase",
+    authActive: "Uwierzytelnianie aktywne",
+    thisDevice: "To urządzenie",
+    currentBrowserSession: "Bieżąca sesja przeglądarki",
+    lastLogin: "Ostatnie logowanie",
+    reportedBySupabase: "Zgłoszone przez Supabase Auth",
+    password: "Hasło",
+    passwordHint: "Użyj co najmniej ośmiu znaków, wielkich i małych liter oraz cyfry.",
+    changePassword: "Zmień hasło",
+    deleteAccount: "Trwale usuń konto",
+    deleteAccountText: "Tej operacji nie można cofnąć. Dane konta, Credits i dostępy zostaną usunięte; własne QR-X zostaną wyłączone.",
+    enableDelete: "Chcę włączyć trwałe usunięcie konta.",
+    deletePrompt: "Aby potwierdzić, wpisz USUŃ KONTO",
+    deletePhrase: "USUŃ KONTO",
+    deletingAccount: "Usuwanie konta …",
+    deleteConfirmError: "Potwierdź usunięcie zaznaczając pole i wpisując USUŃ KONTO.",
+    deleteConfirmDialog: "Czy na pewno chcesz trwale usunąć konto? Tej operacji nie można cofnąć.",
+    deleteFailed: "Nie udało się usunąć konta.",
+    sessionExpired: "Sesja wygasła. Zaloguj się ponownie.",
+    signInFirst: "Najpierw się zaloguj.",
+    securityKicker: "BEZPIECZEŃSTWO",
+    closeWindow: "Zamknij okno",
+    currentPassword: "Aktualne hasło",
+    newPassword: "Nowe hasło",
+    repeatPassword: "Powtórz nowe hasło",
+    ruleLength: "Co najmniej 8 znaków",
+    ruleUpper: "Co najmniej jedna wielka litera",
+    ruleLower: "Co najmniej jedna mała litera",
+    ruleNumber: "Co najmniej jedna cyfra",
+    cancel: "Anuluj",
+    changing: "Zmiana …",
+    savePassword: "Zapisz hasło",
+    passwordChanged: "Hasło zostało zmienione.",
+    noEmail: "Dla tego konta nie ma dostępnego adresu e-mail.",
+    enterCurrentPassword: "Wpisz aktualne hasło.",
+    passwordMismatch: "Nowe hasła nie są zgodne.",
+    passwordDifferent: "Nowe hasło musi różnić się od aktualnego.",
+    currentPasswordWrong: "Aktualne hasło jest nieprawidłowe.",
+    passwordChangeFailed: "Nie udało się zmienić hasła.",
+    passwordTooShort: "Nowe hasło musi mieć co najmniej 8 znaków.",
+    passwordNeedsUpper: "Nowe hasło musi zawierać co najmniej jedną wielką literę.",
+    passwordNeedsLower: "Nowe hasło musi zawierać co najmniej jedną małą literę.",
+    passwordNeedsNumber: "Nowe hasło musi zawierać co najmniej jedną cyfrę.",
+    unknownBrowser: "Nieznana przeglądarka",
+    unknownDevice: "Nieznane urządzenie",
+  },
+  ar: {
+    securityTitle: "الأمان",
+    securityText: "تحقق من تسجيل الدخول الحالي وغيّر كلمة المرور عند الحاجة.",
+    secure: "آمن",
+    loginEmail: "بريد تسجيل الدخول",
+    confirmedOn: "تم التأكيد في",
+    emailNotConfirmed: "لم يتم تأكيد البريد بعد",
+    loginProvider: "موفر تسجيل الدخول",
+    supabaseEmail: "بريد Supabase",
+    authActive: "المصادقة مفعلة",
+    thisDevice: "هذا الجهاز",
+    currentBrowserSession: "جلسة المتصفح الحالية",
+    lastLogin: "آخر تسجيل دخول",
+    reportedBySupabase: "تم الإبلاغ بواسطة Supabase Auth",
+    password: "كلمة المرور",
+    passwordHint: "استخدم ثمانية أحرف على الأقل، مع أحرف كبيرة وصغيرة ورقم.",
+    changePassword: "تغيير كلمة المرور",
+    deleteAccount: "حذف الحساب نهائيًا",
+    deleteAccountText: "لا يمكن التراجع عن هذا الإجراء. ستتم إزالة بيانات حسابك وCredits ووسائل الوصول؛ وسيتم تعطيل QR-X الخاصة بك.",
+    enableDelete: "أريد تفعيل الحذف الدائم للحساب.",
+    deletePrompt: "للتأكيد، اكتب حذف الحساب",
+    deletePhrase: "حذف الحساب",
+    deletingAccount: "جارٍ حذف الحساب …",
+    deleteConfirmError: "يرجى تأكيد الحذف بتحديد المربع وكتابة حذف الحساب.",
+    deleteConfirmDialog: "هل تريد حقًا حذف حسابك نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.",
+    deleteFailed: "تعذر حذف الحساب.",
+    sessionExpired: "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    signInFirst: "يرجى تسجيل الدخول أولًا.",
+    securityKicker: "الأمان",
+    closeWindow: "إغلاق النافذة",
+    currentPassword: "كلمة المرور الحالية",
+    newPassword: "كلمة المرور الجديدة",
+    repeatPassword: "تكرار كلمة المرور الجديدة",
+    ruleLength: "8 أحرف على الأقل",
+    ruleUpper: "حرف كبير واحد على الأقل",
+    ruleLower: "حرف صغير واحد على الأقل",
+    ruleNumber: "رقم واحد على الأقل",
+    cancel: "إلغاء",
+    changing: "جارٍ التغيير …",
+    savePassword: "حفظ كلمة المرور",
+    passwordChanged: "تم تغيير كلمة المرور بنجاح.",
+    noEmail: "لا يوجد عنوان بريد إلكتروني متاح لهذا الحساب.",
+    enterCurrentPassword: "يرجى إدخال كلمة المرور الحالية.",
+    passwordMismatch: "كلمتا المرور الجديدتان غير متطابقتين.",
+    passwordDifferent: "يجب أن تختلف كلمة المرور الجديدة عن الحالية.",
+    currentPasswordWrong: "كلمة المرور الحالية غير صحيحة.",
+    passwordChangeFailed: "تعذر تغيير كلمة المرور.",
+    passwordTooShort: "يجب أن تتكون كلمة المرور الجديدة من 8 أحرف على الأقل.",
+    passwordNeedsUpper: "يجب أن تحتوي كلمة المرور الجديدة على حرف كبير واحد على الأقل.",
+    passwordNeedsLower: "يجب أن تحتوي كلمة المرور الجديدة على حرف صغير واحد على الأقل.",
+    passwordNeedsNumber: "يجب أن تحتوي كلمة المرور الجديدة على رقم واحد على الأقل.",
+    unknownBrowser: "متصفح غير معروف",
+    unknownDevice: "جهاز غير معروف",
+  },
+  fr: {
+    securityTitle: "Sécurité",
+    securityText: "Vérifiez votre connexion actuelle et modifiez votre mot de passe si nécessaire.",
+    secure: "Sécurisé",
+    loginEmail: "E-mail de connexion",
+    confirmedOn: "Confirmé le",
+    emailNotConfirmed: "E-mail pas encore confirmé",
+    loginProvider: "Fournisseur de connexion",
+    supabaseEmail: "E-mail Supabase",
+    authActive: "Authentification active",
+    thisDevice: "Cet appareil",
+    currentBrowserSession: "Session de navigateur actuelle",
+    lastLogin: "Dernière connexion",
+    reportedBySupabase: "Signalé par Supabase Auth",
+    password: "Mot de passe",
+    passwordHint: "Utilisez au moins huit caractères, des majuscules, des minuscules et un chiffre.",
+    changePassword: "Modifier le mot de passe",
+    deleteAccount: "Supprimer définitivement le compte",
+    deleteAccountText: "Cette action est irréversible. Vos données de compte, Credits et accès seront supprimés ; vos propres QR-X seront désactivés.",
+    enableDelete: "Je souhaite activer la suppression définitive du compte.",
+    deletePrompt: "Pour confirmer, saisissez SUPPRIMER LE COMPTE",
+    deletePhrase: "SUPPRIMER LE COMPTE",
+    deletingAccount: "Suppression du compte …",
+    deleteConfirmError: "Confirmez la suppression en cochant la case et en saisissant SUPPRIMER LE COMPTE.",
+    deleteConfirmDialog: "Voulez-vous vraiment supprimer définitivement votre compte ? Cette action est irréversible.",
+    deleteFailed: "Le compte n’a pas pu être supprimé.",
+    sessionExpired: "Votre session a expiré. Veuillez vous reconnecter.",
+    signInFirst: "Veuillez d’abord vous connecter.",
+    securityKicker: "SÉCURITÉ",
+    closeWindow: "Fermer la fenêtre",
+    currentPassword: "Mot de passe actuel",
+    newPassword: "Nouveau mot de passe",
+    repeatPassword: "Répéter le nouveau mot de passe",
+    ruleLength: "Au moins 8 caractères",
+    ruleUpper: "Au moins une majuscule",
+    ruleLower: "Au moins une minuscule",
+    ruleNumber: "Au moins un chiffre",
+    cancel: "Annuler",
+    changing: "Modification …",
+    savePassword: "Enregistrer le mot de passe",
+    passwordChanged: "Mot de passe modifié avec succès.",
+    noEmail: "Aucune adresse e-mail n’est disponible pour ce compte.",
+    enterCurrentPassword: "Saisissez votre mot de passe actuel.",
+    passwordMismatch: "Les nouveaux mots de passe ne correspondent pas.",
+    passwordDifferent: "Le nouveau mot de passe doit être différent du mot de passe actuel.",
+    currentPasswordWrong: "Le mot de passe actuel est incorrect.",
+    passwordChangeFailed: "Le mot de passe n’a pas pu être modifié.",
+    passwordTooShort: "Le nouveau mot de passe doit comporter au moins 8 caractères.",
+    passwordNeedsUpper: "Le nouveau mot de passe doit contenir au moins une majuscule.",
+    passwordNeedsLower: "Le nouveau mot de passe doit contenir au moins une minuscule.",
+    passwordNeedsNumber: "Le nouveau mot de passe doit contenir au moins un chiffre.",
+    unknownBrowser: "Navigateur inconnu",
+    unknownDevice: "Appareil inconnu",
+  },
+  es: {
+    securityTitle: "Seguridad",
+    securityText: "Comprueba tu inicio de sesión actual y cambia la contraseña si es necesario.",
+    secure: "Seguro",
+    loginEmail: "Correo de acceso",
+    confirmedOn: "Confirmado el",
+    emailNotConfirmed: "Correo todavía no confirmado",
+    loginProvider: "Proveedor de acceso",
+    supabaseEmail: "Correo de Supabase",
+    authActive: "Autenticación activa",
+    thisDevice: "Este dispositivo",
+    currentBrowserSession: "Sesión actual del navegador",
+    lastLogin: "Último acceso",
+    reportedBySupabase: "Informado por Supabase Auth",
+    password: "Contraseña",
+    passwordHint: "Utiliza al menos ocho caracteres, mayúsculas, minúsculas y un número.",
+    changePassword: "Cambiar contraseña",
+    deleteAccount: "Eliminar cuenta permanentemente",
+    deleteAccountText: "Esta acción no se puede deshacer. Se eliminarán los datos de tu cuenta, Credits y accesos; tus propios QR-X se desactivarán.",
+    enableDelete: "Quiero habilitar la eliminación permanente de la cuenta.",
+    deletePrompt: "Para confirmar, escribe ELIMINAR CUENTA",
+    deletePhrase: "ELIMINAR CUENTA",
+    deletingAccount: "Eliminando cuenta …",
+    deleteConfirmError: "Confirma la eliminación marcando la casilla y escribiendo ELIMINAR CUENTA.",
+    deleteConfirmDialog: "¿Realmente quieres eliminar tu cuenta permanentemente? Esta acción no se puede deshacer.",
+    deleteFailed: "No se pudo eliminar la cuenta.",
+    sessionExpired: "Tu sesión ha caducado. Vuelve a iniciar sesión.",
+    signInFirst: "Inicia sesión primero.",
+    securityKicker: "SEGURIDAD",
+    closeWindow: "Cerrar ventana",
+    currentPassword: "Contraseña actual",
+    newPassword: "Nueva contraseña",
+    repeatPassword: "Repetir nueva contraseña",
+    ruleLength: "Al menos 8 caracteres",
+    ruleUpper: "Al menos una mayúscula",
+    ruleLower: "Al menos una minúscula",
+    ruleNumber: "Al menos un número",
+    cancel: "Cancelar",
+    changing: "Cambiando …",
+    savePassword: "Guardar contraseña",
+    passwordChanged: "Contraseña cambiada correctamente.",
+    noEmail: "No hay ninguna dirección de correo disponible para esta cuenta.",
+    enterCurrentPassword: "Introduce tu contraseña actual.",
+    passwordMismatch: "Las nuevas contraseñas no coinciden.",
+    passwordDifferent: "La nueva contraseña debe ser diferente de la actual.",
+    currentPasswordWrong: "La contraseña actual no es correcta.",
+    passwordChangeFailed: "No se pudo cambiar la contraseña.",
+    passwordTooShort: "La nueva contraseña debe tener al menos 8 caracteres.",
+    passwordNeedsUpper: "La nueva contraseña debe contener al menos una mayúscula.",
+    passwordNeedsLower: "La nueva contraseña debe contener al menos una minúscula.",
+    passwordNeedsNumber: "La nueva contraseña debe contener al menos un número.",
+    unknownBrowser: "Navegador desconocido",
+    unknownDevice: "Dispositivo desconocido",
+  },
+  it: {
+    securityTitle: "Sicurezza",
+    securityText: "Controlla l’accesso attuale e modifica la password se necessario.",
+    secure: "Sicuro",
+    loginEmail: "E-mail di accesso",
+    confirmedOn: "Confermata il",
+    emailNotConfirmed: "E-mail non ancora confermata",
+    loginProvider: "Provider di accesso",
+    supabaseEmail: "E-mail Supabase",
+    authActive: "Autenticazione attiva",
+    thisDevice: "Questo dispositivo",
+    currentBrowserSession: "Sessione browser corrente",
+    lastLogin: "Ultimo accesso",
+    reportedBySupabase: "Segnalato da Supabase Auth",
+    password: "Password",
+    passwordHint: "Usa almeno otto caratteri, lettere maiuscole e minuscole e un numero.",
+    changePassword: "Cambia password",
+    deleteAccount: "Elimina definitivamente l’account",
+    deleteAccountText: "Questa azione non può essere annullata. I dati dell’account, i Credits e gli accessi verranno rimossi; i tuoi QR-X saranno disattivati.",
+    enableDelete: "Voglio abilitare l’eliminazione permanente dell’account.",
+    deletePrompt: "Per confermare, inserisci ELIMINA ACCOUNT",
+    deletePhrase: "ELIMINA ACCOUNT",
+    deletingAccount: "Eliminazione account …",
+    deleteConfirmError: "Conferma l’eliminazione selezionando la casella e inserendo ELIMINA ACCOUNT.",
+    deleteConfirmDialog: "Vuoi davvero eliminare definitivamente il tuo account? Questa azione non può essere annullata.",
+    deleteFailed: "Impossibile eliminare l’account.",
+    sessionExpired: "La sessione è scaduta. Accedi di nuovo.",
+    signInFirst: "Accedi prima di continuare.",
+    securityKicker: "SICUREZZA",
+    closeWindow: "Chiudi finestra",
+    currentPassword: "Password attuale",
+    newPassword: "Nuova password",
+    repeatPassword: "Ripeti nuova password",
+    ruleLength: "Almeno 8 caratteri",
+    ruleUpper: "Almeno una lettera maiuscola",
+    ruleLower: "Almeno una lettera minuscola",
+    ruleNumber: "Almeno un numero",
+    cancel: "Annulla",
+    changing: "Modifica …",
+    savePassword: "Salva password",
+    passwordChanged: "Password modificata con successo.",
+    noEmail: "Nessun indirizzo e-mail disponibile per questo account.",
+    enterCurrentPassword: "Inserisci la password attuale.",
+    passwordMismatch: "Le nuove password non corrispondono.",
+    passwordDifferent: "La nuova password deve essere diversa da quella attuale.",
+    currentPasswordWrong: "La password attuale non è corretta.",
+    passwordChangeFailed: "Impossibile modificare la password.",
+    passwordTooShort: "La nuova password deve contenere almeno 8 caratteri.",
+    passwordNeedsUpper: "La nuova password deve contenere almeno una lettera maiuscola.",
+    passwordNeedsLower: "La nuova password deve contenere almeno una lettera minuscola.",
+    passwordNeedsNumber: "La nuova password deve contenere almeno un numero.",
+    unknownBrowser: "Browser sconosciuto",
+    unknownDevice: "Dispositivo sconosciuto",
+  },
+} as const;
+
 function normalizeAccountLocale(value: string): AccountLocale {
   const normalized = value.trim().toLowerCase().split(/[-_]/)[0];
   return (["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const).includes(
@@ -509,22 +1187,30 @@ function formatDate(
 }
 
 
-function formatMoney(cents: number | null | undefined, currency: string | null | undefined) {
+function formatMoney(
+  cents: number | null | undefined,
+  currency: string | null | undefined,
+  locale: AccountLocale = "de",
+) {
   const value = Number(cents ?? 0);
   const safeValue = Number.isFinite(value) ? value / 100 : 0;
-  return new Intl.NumberFormat("de-DE", {
+  return new Intl.NumberFormat(ACCOUNT_LOCALE[locale], {
     style: "currency",
     currency: (currency || "EUR").toUpperCase(),
   }).format(safeValue);
 }
 
-function getInvoiceStatusLabel(status: string | null | undefined) {
-  if (status === "sent") return "Versendet";
-  if (status === "created") return "Erstellt";
-  if (status === "creating") return "Wird erstellt";
-  if (status === "failed") return "Fehlgeschlagen";
-  if (status === "refunded") return "Erstattet";
-  return status?.trim() || "Unbekannt";
+function getInvoiceStatusLabel(
+  status: string | null | undefined,
+  locale: AccountLocale = "de",
+) {
+  const text = ACCOUNT_BILLING_TEXT[locale];
+  if (status === "sent") return text.statusSent;
+  if (status === "created") return text.statusCreated;
+  if (status === "creating") return text.statusCreating;
+  if (status === "failed") return text.statusFailed;
+  if (status === "refunded") return text.statusRefunded;
+  return status?.trim() || text.statusUnknown;
 }
 
 function getInvoiceStatusStyle(status: string | null | undefined): React.CSSProperties {
@@ -565,13 +1251,16 @@ function getInvoiceStatusStyle(status: string | null | undefined): React.CSSProp
 }
 
 
-function formatDateTime(value: string | null | undefined) {
+function formatDateTime(
+  value: string | null | undefined,
+  locale: AccountLocale = "de",
+) {
   if (!value) return "–";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "–";
 
-  return new Intl.DateTimeFormat("de-DE", {
+  return new Intl.DateTimeFormat(ACCOUNT_LOCALE[locale], {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -598,23 +1287,15 @@ function getPlatformName(platform: string, userAgent: string) {
   return platform || "Unbekanntes Gerät";
 }
 
-function validateNewPassword(value: string) {
-  if (value.length < 8) {
-    return "Das neue Passwort muss mindestens 8 Zeichen lang sein.";
-  }
-
-  if (!/[A-ZÄÖÜ]/.test(value)) {
-    return "Das neue Passwort muss mindestens einen Großbuchstaben enthalten.";
-  }
-
-  if (!/[a-zäöüß]/.test(value)) {
-    return "Das neue Passwort muss mindestens einen Kleinbuchstaben enthalten.";
-  }
-
-  if (!/[0-9]/.test(value)) {
-    return "Das neue Passwort muss mindestens eine Zahl enthalten.";
-  }
-
+function validateNewPassword(
+  value: string,
+  locale: AccountLocale = "de",
+) {
+  const text = ACCOUNT_SECURITY_TEXT[locale];
+  if (value.length < 8) return text.passwordTooShort;
+  if (!/[A-ZÄÖÜ]/.test(value)) return text.passwordNeedsUpper;
+  if (!/[a-zäöüß]/.test(value)) return text.passwordNeedsLower;
+  if (!/[0-9]/.test(value)) return text.passwordNeedsNumber;
   return null;
 }
 
@@ -633,6 +1314,8 @@ export default function AccountPage() {
 
   const accountLocale = normalizeAccountLocale(locale);
   const ui = ACCOUNT_TEXT[accountLocale];
+  const billingUi = ACCOUNT_BILLING_TEXT[accountLocale];
+  const securityUi = ACCOUNT_SECURITY_TEXT[accountLocale];
 
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
@@ -678,8 +1361,8 @@ export default function AccountPage() {
     lastSignInAt: null,
     emailConfirmedAt: null,
     provider: "E-Mail",
-    browser: "Unbekannter Browser",
-    platform: "Unbekanntes Gerät",
+    browser: "",
+    platform: "",
   });
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -718,7 +1401,7 @@ export default function AccountPage() {
     }
 
     if (!user) {
-      setErrorText("Bitte melde dich zuerst an.");
+      setErrorText(securityUi.signInFirst);
       setLoading(false);
       setLoadingInvoices(false);
       return;
@@ -740,8 +1423,8 @@ export default function AccountPage() {
         typeof user.app_metadata?.provider === "string"
           ? user.app_metadata.provider
           : "email",
-      browser: getBrowserName(userAgent),
-      platform: getPlatformName(platform, userAgent),
+      browser: getBrowserName(userAgent) === "Unbekannter Browser" ? securityUi.unknownBrowser : getBrowserName(userAgent),
+      platform: getPlatformName(platform, userAgent) === "Unbekanntes Gerät" ? securityUi.unknownDevice : getPlatformName(platform, userAgent),
     });
 
     const { data, error } = await supabase
@@ -820,7 +1503,7 @@ export default function AccountPage() {
     setErrorText(null);
     setDeleteMessage("");
 
-    if (!deleteChecked || deleteConfirm !== "KONTO LÖSCHEN") {
+    if (!deleteChecked || deleteConfirm !== securityUi.deletePhrase) {
       setDeleteMessage(
         "Bitte bestätige die Löschung mit Checkbox und dem Text KONTO LÖSCHEN.",
       );
@@ -913,14 +1596,14 @@ export default function AccountPage() {
 
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(payload?.error || "Die Rechnung konnte nicht heruntergeladen werden.");
+        throw new Error(payload?.error || billingUi.invoiceDownloadFailed);
       }
 
       const blob = await response.blob();
       const objectUrl = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = objectUrl;
-      anchor.download = `${invoice.invoice_number || "Rechnung"}.pdf`;
+      anchor.download = `${invoice.invoice_number || billingUi.invoiceFileFallback}.pdf`;
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
@@ -929,7 +1612,7 @@ export default function AccountPage() {
       setInvoiceError(
         error instanceof Error
           ? error.message
-          : "Die Rechnung konnte nicht heruntergeladen werden.",
+          : billingUi.invoiceDownloadFailed,
       );
     } finally {
       setDownloadingInvoiceId(null);
@@ -961,7 +1644,7 @@ export default function AccountPage() {
       return;
     }
 
-    const passwordError = validateNewPassword(newPassword);
+    const passwordError = validateNewPassword(newPassword, accountLocale);
     if (passwordError) {
       setPasswordMessage(passwordError);
       return;
@@ -1081,9 +1764,9 @@ export default function AccountPage() {
       .eq("id", userId);
 
     if (error) {
-      setBillingMessage(`Fehler: ${error.message}`);
+      setBillingMessage(`${ui.error}: ${error.message}`);
     } else {
-      setBillingMessage("Rechnungsdaten gespeichert.");
+      setBillingMessage(billingUi.billingSaved);
       await loadAccount();
     }
 
@@ -1450,28 +2133,27 @@ export default function AccountPage() {
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2>Rechnungsdaten</h2>
+              <h2>{billingUi.billingData}</h2>
               <p>
-                Diese Daten werden für Rechnungen, PDF-Erstellung und den
-                automatischen E-Mail-Versand nach Credit-Käufen verwendet.
+                {billingUi.billingText}
               </p>
             </div>
-            <span>Rechnung</span>
+            <span>{billingUi.billingBadge}</span>
           </div>
 
           <div style={{ display: "grid", gap: 12 }}>
             <label style={labelStyle}>
-              Firma
+              {ui.companyField}
               <input
                 value={billingCompany}
                 onChange={(event) => setBillingCompany(event.target.value)}
-                placeholder="Firma"
+                placeholder={ui.companyField}
                 style={inputStyle}
               />
             </label>
 
             <label style={labelStyle}>
-              Ansprechpartner / Name
+              {billingUi.contactName}
               <input
                 value={billingName}
                 onChange={(event) => setBillingName(event.target.value)}
@@ -1481,7 +2163,7 @@ export default function AccountPage() {
             </label>
 
             <label style={labelStyle}>
-              Rechnungs-E-Mail
+              {billingUi.billingEmail}
               <input
                 value={billingEmail}
                 onChange={(event) => setBillingEmail(event.target.value)}
@@ -1492,7 +2174,7 @@ export default function AccountPage() {
             </label>
 
             <label style={labelStyle}>
-              Straße und Hausnummer
+              {ui.street}
               <input
                 value={billingStreet}
                 onChange={(event) => setBillingStreet(event.target.value)}
@@ -1503,7 +2185,7 @@ export default function AccountPage() {
 
             <div className="mioseg-account-grid-postal">
               <label style={labelStyle}>
-                PLZ
+                {ui.postalCode}
                 <input
                   value={billingPostalCode}
                   onChange={(event) => setBillingPostalCode(event.target.value)}
@@ -1513,7 +2195,7 @@ export default function AccountPage() {
               </label>
 
               <label style={labelStyle}>
-                Ort
+                {ui.city}
                 <input
                   value={billingCity}
                   onChange={(event) => setBillingCity(event.target.value)}
@@ -1524,7 +2206,7 @@ export default function AccountPage() {
             </div>
 
             <label style={labelStyle}>
-              Land
+              {ui.country}
               <input
                 value={billingCountryCode}
                 onChange={(event) =>
@@ -1539,11 +2221,11 @@ export default function AccountPage() {
             </label>
 
             <label style={labelStyle}>
-              USt.-ID
+              {ui.vatId}
               <input
                 value={billingVatId}
                 onChange={(event) => setBillingVatId(event.target.value)}
-                placeholder="Optional, z. B. DE123456789"
+                placeholder={ui.vatPlaceholder}
                 style={inputStyle}
               />
             </label>
@@ -1553,13 +2235,13 @@ export default function AccountPage() {
                 style={{
                   borderRadius: 16,
                   padding: "12px 14px",
-                  background: billingMessage.startsWith("Fehler")
+                  background: billingMessage.startsWith(`${ui.error}:`)
                     ? "rgba(239, 68, 68, 0.14)"
                     : "rgba(34, 197, 94, 0.14)",
-                  border: billingMessage.startsWith("Fehler")
+                  border: billingMessage.startsWith(`${ui.error}:`)
                     ? "1px solid rgba(252, 165, 165, 0.22)"
                     : "1px solid rgba(134, 239, 172, 0.22)",
-                  color: billingMessage.startsWith("Fehler")
+                  color: billingMessage.startsWith(`${ui.error}:`)
                     ? "#fecaca"
                     : "#bbf7d0",
                   fontWeight: 850,
@@ -1580,7 +2262,7 @@ export default function AccountPage() {
                 opacity: savingBilling ? 0.72 : 1,
               }}
             >
-              {savingBilling ? "Speichert …" : "Rechnungsdaten speichern"}
+              {savingBilling ? ui.saving : billingUi.saveBilling}
             </button>
           </div>
         </article>
@@ -1588,20 +2270,19 @@ export default function AccountPage() {
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2>Meine Rechnungen</h2>
+              <h2>{billingUi.myInvoices}</h2>
               <p>
-                Hier findest du deine Rechnungen für Credit-Käufe und kannst
-                verfügbare PDF-Dateien sicher herunterladen.
+                {billingUi.myInvoicesText}
               </p>
             </div>
             <span>
               {loadingInvoices
-                ? "Lädt"
+                ? ui.loading
                 : invoices.length === 0
-                  ? "Keine Rechnungen"
+                  ? billingUi.noInvoices
                   : invoices.length === 1
-                    ? "1 Rechnung"
-                    : `${invoices.length} Rechnungen`}
+                    ? billingUi.oneInvoice
+                    : billingUi.invoiceCount.replace("{{count}}", String(invoices.length))}
             </span>
           </div>
 
@@ -1617,7 +2298,7 @@ export default function AccountPage() {
                 fontWeight: 900,
               }}
             >
-              Rechnungen werden geladen …
+              {billingUi.loadingInvoices}
             </div>
           ) : null}
 
@@ -1625,18 +2306,17 @@ export default function AccountPage() {
             <div style={emptyInvoiceStyle}>
               <div style={emptyInvoiceIconStyle}>🧾</div>
               <strong style={{ color: "#ffffff", fontSize: 17 }}>
-                Noch keine Rechnungen
+                {billingUi.noInvoicesYet}
               </strong>
               <span>
-                Nach jedem erfolgreichen Credit-Kauf wird deine Rechnung
-                automatisch erstellt und hier dauerhaft gespeichert.
+                {billingUi.noInvoicesText}
               </span>
 
               <div style={emptyInvoiceFeatureGridStyle}>
-                <span>✓ PDF herunterladen</span>
-                <span>✓ Rechnungsnummer</span>
-                <span>✓ Zahlungsdatum</span>
-                <span>✓ Betrag und Status</span>
+                <span>✓ {billingUi.pdfDownload}</span>
+                <span>✓ {billingUi.invoiceNumber}</span>
+                <span>✓ {billingUi.paymentDate}</span>
+                <span>✓ {billingUi.amountStatus}</span>
               </div>
             </div>
           ) : null}
@@ -1657,14 +2337,14 @@ export default function AccountPage() {
                       <div style={{ minWidth: 0 }}>
                         <strong style={invoiceNumberStyle}>{invoice.invoice_number}</strong>
                         <div style={invoiceMetaStyle}>
-                          {formatDate(invoice.created_at)} · {formatMoney(amount, invoice.currency)}
+                          {formatDate(invoice.created_at, accountLocale)} · {formatMoney(amount, invoice.currency, accountLocale)}
                         </div>
                       </div>
                     </div>
 
                     <div style={invoiceActionsStyle}>
                       <span style={getInvoiceStatusStyle(invoice.status)}>
-                        {getInvoiceStatusLabel(invoice.status)}
+                        {getInvoiceStatusLabel(invoice.status, accountLocale)}
                       </span>
 
                       <button
@@ -1678,10 +2358,10 @@ export default function AccountPage() {
                         }}
                       >
                         {downloading
-                          ? "Lädt …"
+                          ? ui.loading
                           : canDownload
-                            ? "PDF herunterladen"
-                            : "PDF nicht verfügbar"}
+                            ? billingUi.pdfDownload
+                            : billingUi.pdfUnavailable}
                       </button>
                     </div>
                   </article>
@@ -1698,56 +2378,56 @@ export default function AccountPage() {
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2>Sicherheit</h2>
+              <h2>{securityUi.securityTitle}</h2>
               <p>
-                Prüfe deine aktuelle Anmeldung und ändere bei Bedarf dein
-                Passwort.
+                {securityUi.securityText}
               </p>
             </div>
-            <span>Sicher</span>
+            <span>{securityUi.secure}</span>
           </div>
 
           <div style={{ display: "grid", gap: 14 }}>
             <div className="mioseg-security-grid">
               <SecurityInfoCard
                 icon="✉️"
-                label="Login-E-Mail"
+                label={securityUi.loginEmail}
                 value={email || "–"}
                 detail={
                   securityInfo.emailConfirmedAt
-                    ? `Bestätigt am ${formatDateTime(
+                    ? `${securityUi.confirmedOn} ${formatDateTime(
                         securityInfo.emailConfirmedAt,
+                        accountLocale,
                       )}`
-                    : "E-Mail noch nicht bestätigt"
+                    : securityUi.emailNotConfirmed
                 }
                 positive={Boolean(securityInfo.emailConfirmedAt)}
               />
 
               <SecurityInfoCard
                 icon="🔐"
-                label="Login-Provider"
+                label={securityUi.loginProvider}
                 value={
                   securityInfo.provider === "email"
-                    ? "Supabase E-Mail"
+                    ? securityUi.supabaseEmail
                     : securityInfo.provider
                 }
-                detail="Authentifizierung aktiv"
+                detail={securityUi.authActive}
                 positive
               />
 
               <SecurityInfoCard
                 icon="💻"
-                label="Dieses Gerät"
+                label={securityUi.thisDevice}
                 value={`${securityInfo.browser} · ${securityInfo.platform}`}
-                detail="Aktuelle Browsersitzung"
+                detail={securityUi.currentBrowserSession}
                 positive
               />
 
               <SecurityInfoCard
                 icon="🕘"
-                label="Letzte Anmeldung"
-                value={formatDateTime(securityInfo.lastSignInAt)}
-                detail="Von Supabase Auth gemeldet"
+                label={securityUi.lastLogin}
+                value={formatDateTime(securityInfo.lastSignInAt, accountLocale)}
+                detail={securityUi.reportedBySupabase}
                 positive
               />
             </div>
@@ -1755,7 +2435,7 @@ export default function AccountPage() {
             <div style={securityActionCardStyle}>
               <div>
                 <strong style={{ color: "#ffffff", fontSize: 16 }}>
-                  Passwort
+                  {securityUi.password}
                 </strong>
                 <p
                   style={{
@@ -1765,8 +2445,7 @@ export default function AccountPage() {
                     lineHeight: 1.5,
                   }}
                 >
-                  Verwende mindestens acht Zeichen, Groß- und Kleinbuchstaben
-                  sowie eine Zahl.
+                  {securityUi.passwordHint}
                 </p>
               </div>
 
@@ -1778,7 +2457,7 @@ export default function AccountPage() {
                 }}
                 style={securityPrimaryButtonStyle}
               >
-                Passwort ändern
+                {securityUi.changePassword}
               </button>
             </div>
 
@@ -1804,12 +2483,10 @@ export default function AccountPage() {
                 >
                   🛡️
                 </span>
-                Konto dauerhaft löschen
+                {securityUi.deleteAccount}
               </h2>
               <p style={{ maxWidth: 820 }}>
-                Diese Aktion kann nicht rückgängig gemacht werden. Deine
-                Kontodaten, Credits und Zugänge werden entfernt; eigene QR-X
-                werden deaktiviert.
+                {securityUi.deleteAccountText}
               </p>
             </div>
             <span
@@ -1819,7 +2496,7 @@ export default function AccountPage() {
                 border: "1px solid rgba(148,163,184,0.12)",
               }}
             >
-              Optional
+              {ui.optional}
             </span>
           </div>
 
@@ -1839,16 +2516,16 @@ export default function AccountPage() {
                 style={{ width: 18, height: 18, accentColor: "#ef4444" }}
               />
               <span>
-                Ich möchte die dauerhafte Kontolöschung freischalten.
+                {securityUi.enableDelete}
               </span>
             </label>
 
             <label style={labelStyle}>
-              Zur Bestätigung bitte KONTO LÖSCHEN eingeben
+              {securityUi.deletePrompt}
               <input
                 value={deleteConfirm}
                 onChange={(event) => setDeleteConfirm(event.target.value)}
-                placeholder="KONTO LÖSCHEN"
+                placeholder={securityUi.deletePhrase}
                 disabled={deletingAccount}
                 style={inputStyle}
               />
@@ -1864,7 +2541,7 @@ export default function AccountPage() {
               disabled={
                 deletingAccount ||
                 !deleteChecked ||
-                deleteConfirm !== "KONTO LÖSCHEN"
+                deleteConfirm !== securityUi.deletePhrase
               }
               style={{
                 minHeight: 44,
@@ -1879,20 +2556,20 @@ export default function AccountPage() {
                 cursor:
                   deletingAccount ||
                   !deleteChecked ||
-                  deleteConfirm !== "KONTO LÖSCHEN"
+                  deleteConfirm !== securityUi.deletePhrase
                     ? "not-allowed"
                     : "pointer",
                 opacity:
                   deletingAccount ||
                   !deleteChecked ||
-                  deleteConfirm !== "KONTO LÖSCHEN"
+                  deleteConfirm !== securityUi.deletePhrase
                     ? 0.52
                     : 1,
               }}
             >
               {deletingAccount
-                ? "Konto wird gelöscht …"
-                : "Konto dauerhaft löschen"}
+                ? securityUi.deletingAccount
+                : securityUi.deleteAccount}
             </button>
           </div>
         </article>
@@ -1919,12 +2596,12 @@ export default function AccountPage() {
           <div style={modalCardStyle}>
             <div style={modalHeaderStyle}>
               <div>
-                <span style={modalKickerStyle}>SICHERHEIT</span>
+                <span style={modalKickerStyle}>{securityUi.securityKicker}</span>
                 <h2
                   id="password-modal-title"
                   style={{ margin: "7px 0 0", color: "#ffffff" }}
                 >
-                  Passwort ändern
+                  {securityUi.changePassword}
                 </h2>
               </div>
 
@@ -1932,7 +2609,7 @@ export default function AccountPage() {
                 type="button"
                 onClick={closePasswordModal}
                 disabled={changingPassword}
-                aria-label="Fenster schließen"
+                aria-label={securityUi.closeWindow}
                 style={modalCloseButtonStyle}
               >
                 ×
@@ -1941,7 +2618,7 @@ export default function AccountPage() {
 
             <div style={{ display: "grid", gap: 13 }}>
               <label style={labelStyle}>
-                Aktuelles Passwort
+                {securityUi.currentPassword}
                 <input
                   type="password"
                   value={currentPassword}
@@ -1952,7 +2629,7 @@ export default function AccountPage() {
               </label>
 
               <label style={labelStyle}>
-                Neues Passwort
+                {securityUi.newPassword}
                 <input
                   type="password"
                   value={newPassword}
@@ -1963,7 +2640,7 @@ export default function AccountPage() {
               </label>
 
               <label style={labelStyle}>
-                Neues Passwort wiederholen
+                {securityUi.repeatPassword}
                 <input
                   type="password"
                   value={repeatPassword}
@@ -1974,16 +2651,16 @@ export default function AccountPage() {
               </label>
 
               <div style={passwordRulesStyle}>
-                <span>Mindestens 8 Zeichen</span>
-                <span>Mindestens ein Großbuchstabe</span>
-                <span>Mindestens ein Kleinbuchstabe</span>
-                <span>Mindestens eine Zahl</span>
+                <span>{securityUi.ruleLength}</span>
+                <span>{securityUi.ruleUpper}</span>
+                <span>{securityUi.ruleLower}</span>
+                <span>{securityUi.ruleNumber}</span>
               </div>
 
               {passwordMessage ? (
                 <div
                   style={
-                    passwordMessage.includes("erfolgreich")
+                    passwordMessage === securityUi.passwordChanged
                       ? successStyle
                       : errorStyle
                   }
@@ -1999,7 +2676,7 @@ export default function AccountPage() {
                   disabled={changingPassword}
                   style={modalSecondaryButtonStyle}
                 >
-                  Abbrechen
+                  {securityUi.cancel}
                 </button>
 
                 <button
@@ -2012,7 +2689,7 @@ export default function AccountPage() {
                     opacity: changingPassword ? 0.65 : 1,
                   }}
                 >
-                  {changingPassword ? "Wird geändert …" : "Passwort speichern"}
+                  {changingPassword ? securityUi.changing : securityUi.savePassword}
                 </button>
               </div>
             </div>
