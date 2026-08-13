@@ -78,7 +78,7 @@ export default function DashboardLanguageSwitcher({
       style={{
         position: "fixed",
         right: 18,
-        bottom: 18,
+        top: 84,
         zIndex: 1000,
         display: "flex",
         alignItems: "center",
@@ -93,7 +93,7 @@ export default function DashboardLanguageSwitcher({
     >
       <span aria-hidden="true" style={{ fontSize: 15 }}>🌐</span>
       <select
-        aria-label="Language"
+        aria-label="Dashboard language"
         value={locale}
         disabled={saving}
         onChange={(event) => {

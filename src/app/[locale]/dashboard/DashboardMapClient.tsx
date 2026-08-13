@@ -106,26 +106,426 @@ type WindowWithLeaflet = Window & {
   L?: LeafletApi;
 };
 
-const LEGEND: Array<{ kind: MarkerKind; label: string; color: string }> = [
-  { kind: "own_business", label: "Gold = Mein Business QR-X", color: "#f2b705" },
-  { kind: "saved_business", label: "Dunkelgrün = Gespeichertes Business QR-X", color: "#059669" },
-  { kind: "own_normal", label: "Hellgrün = Mein normaler QR-X", color: "#22c55e" },
-  { kind: "saved_normal", label: "Lila = Gespeicherter QR-X", color: "#8b5cf6" },
-  { kind: "scan", label: "Blau = Normaler Scan", color: "#2563eb" },
-];
+const LEGEND_COLORS: Record<MarkerKind, string> = {
+  own_business: "#f2b705",
+  saved_business: "#059669",
+  own_normal: "#22c55e",
+  saved_normal: "#8b5cf6",
+  scan: "#2563eb",
+};
 
 type FilterMode = "all" | "own" | "saved" | "business" | "normal" | "scan" | "verified";
 
-const FILTERS: Array<{ value: FilterMode; label: string }> = [
-  { value: "all", label: "Alle" },
-  { value: "own", label: "Meine QR-X" },
-  { value: "saved", label: "Gespeicherte" },
-  { value: "business", label: "Business" },
-  { value: "normal", label: "Normal" },
-  { value: "scan", label: "QR-Codes" },
-  { value: "verified", label: "Verifiziert" },
+const FILTERS: FilterMode[] = [
+  "all",
+  "own",
+  "saved",
+  "business",
+  "normal",
+  "scan",
+  "verified",
 ];
 
+type MapLocale = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+
+const MAP_TEXT = {
+  de: {
+    legendOwnBusiness: "Gold = Mein Business QR-X",
+    legendSavedBusiness: "Dunkelgrün = Gespeichertes Business QR-X",
+    legendOwnNormal: "Hellgrün = Mein normaler QR-X",
+    legendSavedNormal: "Lila = Gespeicherter QR-X",
+    legendScan: "Blau = Normaler Scan",
+    filterAll: "Alle",
+    filterOwn: "Meine QR-X",
+    filterSaved: "Gespeicherte",
+    filterBusiness: "Business",
+    filterNormal: "Normal",
+    filterScan: "QR-Codes",
+    filterVerified: "Verifiziert",
+    marker: "Marker",
+    untitledQrx: "Unbenannter QR-X",
+    qrxFallback: "QR-X auf mioseg qr",
+    geoUnsupported: "Standortbestimmung wird von diesem Browser nicht unterstützt.",
+    geoDenied: "Der Standortzugriff wurde nicht erlaubt.",
+    geoUnavailable: "Der Standort ist derzeit nicht verfügbar.",
+    geoTimeout: "Die Standortabfrage hat zu lange gedauert.",
+    youAreHere: "Du bist hier",
+    open: "Öffnen",
+    normalScan: "Normaler Scan",
+    savedQrCode: "Gespeicherter QR-Code",
+    clusterEntries: "{{count}} Einträge",
+    searchPlaceholder: "QR-X, Ort oder Kategorie suchen …",
+    entry: "Eintrag",
+    entries: "Einträge",
+    loaded: "geladen",
+    singleMarkers: "Einzelne Marker",
+    groupedMarkers: "Zu {{count}} Markern gruppiert",
+    showMyPosition: "Meine Position anzeigen",
+    locating: "Standort wird gesucht …",
+    myPosition: "Meine Position",
+    mapLoading: "Karte wird geladen …",
+    mapEmpty: "Im aktuellen Kartenausschnitt wurden keine passenden QR-X oder Scans gefunden.",
+    visibleEntries: "Sichtbare Einträge",
+    currentMapArea: "Aktueller Kartenausschnitt",
+    noVisible: "Im aktuellen Ausschnitt ist kein passender Eintrag sichtbar.",
+    verified: "Verifiziert",
+    edit: "Bearbeiten",
+    navigation: "Navigation",
+    linkCopied: "Link kopiert",
+    share: "Teilen",
+    legend: "Legende",
+    hide: "Ausblenden",
+    show: "Einblenden",
+  },
+  en: {
+    legendOwnBusiness: "Gold = My Business QR-X",
+    legendSavedBusiness: "Dark green = Saved Business QR-X",
+    legendOwnNormal: "Light green = My normal QR-X",
+    legendSavedNormal: "Purple = Saved QR-X",
+    legendScan: "Blue = Normal scan",
+    filterAll: "All",
+    filterOwn: "My QR-X",
+    filterSaved: "Saved",
+    filterBusiness: "Business",
+    filterNormal: "Normal",
+    filterScan: "QR codes",
+    filterVerified: "Verified",
+    marker: "Marker",
+    untitledQrx: "Untitled QR-X",
+    qrxFallback: "QR-X on mioseg qr",
+    geoUnsupported: "Location services are not supported by this browser.",
+    geoDenied: "Location access was not allowed.",
+    geoUnavailable: "Your location could not be determined.",
+    geoTimeout: "The location request took too long.",
+    youAreHere: "You are here",
+    open: "Open",
+    normalScan: "Normal scan",
+    savedQrCode: "Saved QR code",
+    clusterEntries: "{{count}} entries",
+    searchPlaceholder: "Search QR-X, place or category …",
+    entry: "entry",
+    entries: "entries",
+    loaded: "loaded",
+    singleMarkers: "Individual markers",
+    groupedMarkers: "Grouped into {{count}} markers",
+    showMyPosition: "Show my position",
+    locating: "Finding location …",
+    myPosition: "My position",
+    mapLoading: "Loading map …",
+    mapEmpty: "No matching QR-X or scans were found in the current map area.",
+    visibleEntries: "Visible entries",
+    currentMapArea: "Current map area",
+    noVisible: "No matching entry is visible in the current area.",
+    verified: "Verified",
+    edit: "Edit",
+    navigation: "Navigation",
+    linkCopied: "Link copied",
+    share: "Share",
+    legend: "Legend",
+    hide: "Hide",
+    show: "Show",
+  },
+  tr: {
+    legendOwnBusiness: "Altın = Benim Business QR-X",
+    legendSavedBusiness: "Koyu yeşil = Kaydedilen Business QR-X",
+    legendOwnNormal: "Açık yeşil = Benim normal QR-X",
+    legendSavedNormal: "Mor = Kaydedilen QR-X",
+    legendScan: "Mavi = Normal tarama",
+    filterAll: "Tümü",
+    filterOwn: "QR-X'lerim",
+    filterSaved: "Kaydedilen",
+    filterBusiness: "Business",
+    filterNormal: "Normal",
+    filterScan: "QR kodları",
+    filterVerified: "Doğrulanmış",
+    marker: "İşaretçi",
+    untitledQrx: "Adsız QR-X",
+    qrxFallback: "mioseg qr üzerindeki QR-X",
+    geoUnsupported: "Bu tarayıcı konum belirlemeyi desteklemiyor.",
+    geoDenied: "Konum erişimine izin verilmedi.",
+    geoUnavailable: "Konumun belirlenemedi.",
+    geoTimeout: "Konum isteği çok uzun sürdü.",
+    youAreHere: "Buradasın",
+    open: "Aç",
+    normalScan: "Normal tarama",
+    savedQrCode: "Kaydedilen QR kodu",
+    clusterEntries: "{{count}} kayıt",
+    searchPlaceholder: "QR-X, yer veya kategori ara …",
+    entry: "kayıt",
+    entries: "kayıt",
+    loaded: "yüklendi",
+    singleMarkers: "Tekil işaretçiler",
+    groupedMarkers: "{{count}} işaretçide gruplandı",
+    showMyPosition: "Konumumu göster",
+    locating: "Konum aranıyor …",
+    myPosition: "Konumum",
+    mapLoading: "Harita yükleniyor …",
+    mapEmpty: "Mevcut harita alanında eşleşen QR-X veya tarama bulunamadı.",
+    visibleEntries: "Görünür kayıtlar",
+    currentMapArea: "Mevcut harita alanı",
+    noVisible: "Mevcut alanda eşleşen kayıt görünmüyor.",
+    verified: "Doğrulanmış",
+    edit: "Düzenle",
+    navigation: "Navigasyon",
+    linkCopied: "Bağlantı kopyalandı",
+    share: "Paylaş",
+    legend: "Gösterge",
+    hide: "Gizle",
+    show: "Göster",
+  },
+  pl: {
+    legendOwnBusiness: "Złoty = Mój Business QR-X",
+    legendSavedBusiness: "Ciemnozielony = Zapisany Business QR-X",
+    legendOwnNormal: "Jasnozielony = Mój zwykły QR-X",
+    legendSavedNormal: "Fioletowy = Zapisany QR-X",
+    legendScan: "Niebieski = Zwykły skan",
+    filterAll: "Wszystkie",
+    filterOwn: "Moje QR-X",
+    filterSaved: "Zapisane",
+    filterBusiness: "Business",
+    filterNormal: "Normalne",
+    filterScan: "Kody QR",
+    filterVerified: "Zweryfikowane",
+    marker: "Znacznik",
+    untitledQrx: "QR-X bez nazwy",
+    qrxFallback: "QR-X w mioseg qr",
+    geoUnsupported: "Ta przeglądarka nie obsługuje lokalizacji.",
+    geoDenied: "Nie zezwolono na dostęp do lokalizacji.",
+    geoUnavailable: "Nie udało się ustalić Twojej lokalizacji.",
+    geoTimeout: "Żądanie lokalizacji trwało zbyt długo.",
+    youAreHere: "Jesteś tutaj",
+    open: "Otwórz",
+    normalScan: "Zwykły skan",
+    savedQrCode: "Zapisany kod QR",
+    clusterEntries: "{{count}} wpisów",
+    searchPlaceholder: "Szukaj QR-X, miejsca lub kategorii …",
+    entry: "wpis",
+    entries: "wpisów",
+    loaded: "wczytano",
+    singleMarkers: "Pojedyncze znaczniki",
+    groupedMarkers: "Zgrupowano w {{count}} znaczników",
+    showMyPosition: "Pokaż moją pozycję",
+    locating: "Ustalanie lokalizacji …",
+    myPosition: "Moja pozycja",
+    mapLoading: "Ładowanie mapy …",
+    mapEmpty: "W bieżącym obszarze mapy nie znaleziono pasujących QR-X ani skanów.",
+    visibleEntries: "Widoczne wpisy",
+    currentMapArea: "Bieżący obszar mapy",
+    noVisible: "W bieżącym obszarze nie ma pasującego widocznego wpisu.",
+    verified: "Zweryfikowane",
+    edit: "Edytuj",
+    navigation: "Nawigacja",
+    linkCopied: "Link skopiowany",
+    share: "Udostępnij",
+    legend: "Legenda",
+    hide: "Ukryj",
+    show: "Pokaż",
+  },
+  ar: {
+    legendOwnBusiness: "ذهبي = Business QR-X الخاصة بي",
+    legendSavedBusiness: "أخضر داكن = Business QR-X محفوظة",
+    legendOwnNormal: "أخضر فاتح = QR-X عادية خاصة بي",
+    legendSavedNormal: "بنفسجي = QR-X محفوظة",
+    legendScan: "أزرق = مسح عادي",
+    filterAll: "الكل",
+    filterOwn: "QR-X الخاصة بي",
+    filterSaved: "المحفوظة",
+    filterBusiness: "Business",
+    filterNormal: "عادي",
+    filterScan: "رموز QR",
+    filterVerified: "موثّق",
+    marker: "علامة",
+    untitledQrx: "QR-X بدون اسم",
+    qrxFallback: "QR-X على mioseg qr",
+    geoUnsupported: "هذا المتصفح لا يدعم تحديد الموقع.",
+    geoDenied: "لم يتم السماح بالوصول إلى الموقع.",
+    geoUnavailable: "تعذر تحديد موقعك.",
+    geoTimeout: "استغرق طلب الموقع وقتًا طويلًا.",
+    youAreHere: "أنت هنا",
+    open: "فتح",
+    normalScan: "مسح عادي",
+    savedQrCode: "رمز QR محفوظ",
+    clusterEntries: "{{count}} إدخالات",
+    searchPlaceholder: "ابحث عن QR-X أو موقع أو فئة …",
+    entry: "إدخال",
+    entries: "إدخالات",
+    loaded: "تم التحميل",
+    singleMarkers: "علامات منفردة",
+    groupedMarkers: "مجمعة في {{count}} علامات",
+    showMyPosition: "إظهار موقعي",
+    locating: "جارٍ تحديد الموقع …",
+    myPosition: "موقعي",
+    mapLoading: "جارٍ تحميل الخريطة …",
+    mapEmpty: "لم يتم العثور على QR-X أو عمليات مسح مطابقة في منطقة الخريطة الحالية.",
+    visibleEntries: "الإدخالات الظاهرة",
+    currentMapArea: "منطقة الخريطة الحالية",
+    noVisible: "لا يوجد إدخال مطابق ظاهر في المنطقة الحالية.",
+    verified: "موثّق",
+    edit: "تعديل",
+    navigation: "التنقل",
+    linkCopied: "تم نسخ الرابط",
+    share: "مشاركة",
+    legend: "وسيلة الإيضاح",
+    hide: "إخفاء",
+    show: "إظهار",
+  },
+  fr: {
+    legendOwnBusiness: "Or = Mon Business QR-X",
+    legendSavedBusiness: "Vert foncé = Business QR-X enregistré",
+    legendOwnNormal: "Vert clair = Mon QR-X normal",
+    legendSavedNormal: "Violet = QR-X enregistré",
+    legendScan: "Bleu = Scan normal",
+    filterAll: "Tous",
+    filterOwn: "Mes QR-X",
+    filterSaved: "Enregistrés",
+    filterBusiness: "Business",
+    filterNormal: "Normal",
+    filterScan: "Codes QR",
+    filterVerified: "Vérifiés",
+    marker: "Marqueur",
+    untitledQrx: "QR-X sans titre",
+    qrxFallback: "QR-X sur mioseg qr",
+    geoUnsupported: "La localisation n’est pas prise en charge par ce navigateur.",
+    geoDenied: "L’accès à la localisation n’a pas été autorisé.",
+    geoUnavailable: "Votre position n’a pas pu être déterminée.",
+    geoTimeout: "La demande de localisation a pris trop de temps.",
+    youAreHere: "Vous êtes ici",
+    open: "Ouvrir",
+    normalScan: "Scan normal",
+    savedQrCode: "Code QR enregistré",
+    clusterEntries: "{{count}} entrées",
+    searchPlaceholder: "Rechercher un QR-X, un lieu ou une catégorie …",
+    entry: "entrée",
+    entries: "entrées",
+    loaded: "chargées",
+    singleMarkers: "Marqueurs individuels",
+    groupedMarkers: "Regroupés en {{count}} marqueurs",
+    showMyPosition: "Afficher ma position",
+    locating: "Recherche de la position …",
+    myPosition: "Ma position",
+    mapLoading: "Chargement de la carte …",
+    mapEmpty: "Aucun QR-X ou scan correspondant n’a été trouvé dans la zone actuelle.",
+    visibleEntries: "Entrées visibles",
+    currentMapArea: "Zone actuelle de la carte",
+    noVisible: "Aucune entrée correspondante n’est visible dans la zone actuelle.",
+    verified: "Vérifié",
+    edit: "Modifier",
+    navigation: "Navigation",
+    linkCopied: "Lien copié",
+    share: "Partager",
+    legend: "Légende",
+    hide: "Masquer",
+    show: "Afficher",
+  },
+  es: {
+    legendOwnBusiness: "Dorado = Mi Business QR-X",
+    legendSavedBusiness: "Verde oscuro = Business QR-X guardado",
+    legendOwnNormal: "Verde claro = Mi QR-X normal",
+    legendSavedNormal: "Morado = QR-X guardado",
+    legendScan: "Azul = Escaneo normal",
+    filterAll: "Todos",
+    filterOwn: "Mis QR-X",
+    filterSaved: "Guardados",
+    filterBusiness: "Business",
+    filterNormal: "Normal",
+    filterScan: "Códigos QR",
+    filterVerified: "Verificados",
+    marker: "Marcador",
+    untitledQrx: "QR-X sin título",
+    qrxFallback: "QR-X en mioseg qr",
+    geoUnsupported: "Este navegador no admite la ubicación.",
+    geoDenied: "No se permitió el acceso a la ubicación.",
+    geoUnavailable: "No se pudo determinar tu ubicación.",
+    geoTimeout: "La solicitud de ubicación tardó demasiado.",
+    youAreHere: "Estás aquí",
+    open: "Abrir",
+    normalScan: "Escaneo normal",
+    savedQrCode: "Código QR guardado",
+    clusterEntries: "{{count}} entradas",
+    searchPlaceholder: "Buscar QR-X, lugar o categoría …",
+    entry: "entrada",
+    entries: "entradas",
+    loaded: "cargadas",
+    singleMarkers: "Marcadores individuales",
+    groupedMarkers: "Agrupados en {{count}} marcadores",
+    showMyPosition: "Mostrar mi posición",
+    locating: "Buscando ubicación …",
+    myPosition: "Mi posición",
+    mapLoading: "Cargando mapa …",
+    mapEmpty: "No se encontraron QR-X ni escaneos coincidentes en el área actual del mapa.",
+    visibleEntries: "Entradas visibles",
+    currentMapArea: "Área actual del mapa",
+    noVisible: "No hay ninguna entrada coincidente visible en el área actual.",
+    verified: "Verificado",
+    edit: "Editar",
+    navigation: "Navegación",
+    linkCopied: "Enlace copiado",
+    share: "Compartir",
+    legend: "Leyenda",
+    hide: "Ocultar",
+    show: "Mostrar",
+  },
+  it: {
+    legendOwnBusiness: "Oro = Il mio Business QR-X",
+    legendSavedBusiness: "Verde scuro = Business QR-X salvato",
+    legendOwnNormal: "Verde chiaro = Il mio QR-X normale",
+    legendSavedNormal: "Viola = QR-X salvato",
+    legendScan: "Blu = Scansione normale",
+    filterAll: "Tutti",
+    filterOwn: "I miei QR-X",
+    filterSaved: "Salvati",
+    filterBusiness: "Business",
+    filterNormal: "Normale",
+    filterScan: "Codici QR",
+    filterVerified: "Verificati",
+    marker: "Indicatore",
+    untitledQrx: "QR-X senza titolo",
+    qrxFallback: "QR-X su mioseg qr",
+    geoUnsupported: "Questo browser non supporta la localizzazione.",
+    geoDenied: "L’accesso alla posizione non è stato consentito.",
+    geoUnavailable: "Non è stato possibile determinare la tua posizione.",
+    geoTimeout: "La richiesta della posizione ha impiegato troppo tempo.",
+    youAreHere: "Sei qui",
+    open: "Apri",
+    normalScan: "Scansione normale",
+    savedQrCode: "Codice QR salvato",
+    clusterEntries: "{{count}} elementi",
+    searchPlaceholder: "Cerca QR-X, luogo o categoria …",
+    entry: "elemento",
+    entries: "elementi",
+    loaded: "caricati",
+    singleMarkers: "Indicatori singoli",
+    groupedMarkers: "Raggruppati in {{count}} indicatori",
+    showMyPosition: "Mostra la mia posizione",
+    locating: "Ricerca posizione …",
+    myPosition: "La mia posizione",
+    mapLoading: "Caricamento mappa …",
+    mapEmpty: "Nell’area corrente della mappa non sono stati trovati QR-X o scansioni corrispondenti.",
+    visibleEntries: "Elementi visibili",
+    currentMapArea: "Area corrente della mappa",
+    noVisible: "Nell’area corrente non è visibile alcun elemento corrispondente.",
+    verified: "Verificato",
+    edit: "Modifica",
+    navigation: "Navigazione",
+    linkCopied: "Link copiato",
+    share: "Condividi",
+    legend: "Legenda",
+    hide: "Nascondi",
+    show: "Mostra",
+  },
+} as const;
+
+function normalizeMapLocale(value: string): MapLocale {
+  return (["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const).includes(
+    value as MapLocale,
+  )
+    ? (value as MapLocale)
+    : "de";
+}
+
+function interpolate(value: string, count: number) {
+  return value.replace("{{count}}", String(count));
+}
 function getLeafletWindow() {
   return window as WindowWithLeaflet;
 }
@@ -143,17 +543,25 @@ function escapeAttr(value: string) {
 }
 
 function getMarkerColor(kind: MarkerKind) {
-  return LEGEND.find((item) => item.kind === kind)?.color ?? "#2563eb";
+  return LEGEND_COLORS[kind] ?? "#2563eb";
 }
 
-function getMarkerLabel(kind: MarkerKind) {
-  return LEGEND.find((item) => item.kind === kind)?.label ?? "Marker";
+function getMarkerLabel(kind: MarkerKind, text: (typeof MAP_TEXT)[MapLocale]) {
+  if (kind === "own_business") return text.legendOwnBusiness;
+  if (kind === "saved_business") return text.legendSavedBusiness;
+  if (kind === "own_normal") return text.legendOwnNormal;
+  if (kind === "saved_normal") return text.legendSavedNormal;
+  if (kind === "scan") return text.legendScan;
+  return text.marker;
 }
 
-function formatNumber(value: number | null | undefined) {
+function formatNumber(value: number | null | undefined, locale: MapLocale) {
   const parsed = Number(value ?? 0);
   if (!Number.isFinite(parsed)) return "0";
-  return new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.max(0, parsed));
+  return new Intl.NumberFormat(
+    locale === "ar" ? "ar" : locale,
+    { maximumFractionDigits: 0 },
+  ).format(Math.max(0, parsed));
 }
 
 function matchesFilter(point: MapPoint, filter: FilterMode) {
@@ -167,12 +575,12 @@ function matchesFilter(point: MapPoint, filter: FilterMode) {
   return true;
 }
 
-function getQrxTitle(entry: QrxEntry) {
-  return entry.company_name?.trim() || entry.title?.trim() || "Unbenannter QR-X";
+function getQrxTitle(entry: QrxEntry, text: (typeof MAP_TEXT)[MapLocale]) {
+  return entry.company_name?.trim() || entry.title?.trim() || text.untitledQrx;
 }
 
-function getQrxDescription(entry: QrxEntry) {
-  return entry.description?.trim() || entry.location_name?.trim() || "QR-X auf mioseg qr";
+function getQrxDescription(entry: QrxEntry, text: (typeof MAP_TEXT)[MapLocale]) {
+  return entry.description?.trim() || entry.location_name?.trim() || text.qrxFallback;
 }
 
 function isValidCoordinate(lat: unknown, lng: unknown): lat is number {
@@ -263,10 +671,10 @@ type UserLocation = {
   longitude: number;
 };
 
-function requestUserLocation(): Promise<UserLocation> {
+function requestUserLocation(text: (typeof MAP_TEXT)[MapLocale]): Promise<UserLocation> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("Standortbestimmung wird von diesem Browser nicht unterstützt."));
+      reject(new Error(text.geoUnsupported));
       return;
     }
 
@@ -279,21 +687,21 @@ function requestUserLocation(): Promise<UserLocation> {
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
-          reject(new Error("Der Standortzugriff wurde nicht erlaubt."));
+          reject(new Error(text.geoDenied));
           return;
         }
 
         if (error.code === error.POSITION_UNAVAILABLE) {
-          reject(new Error("Dein Standort konnte nicht bestimmt werden."));
+          reject(new Error(text.geoUnavailable));
           return;
         }
 
         if (error.code === error.TIMEOUT) {
-          reject(new Error("Die Standortabfrage hat zu lange gedauert."));
+          reject(new Error(text.geoTimeout));
           return;
         }
 
-        reject(new Error("Dein Standort konnte nicht bestimmt werden."));
+        reject(new Error(text.geoUnavailable));
       },
       {
         enableHighAccuracy: true,
@@ -304,9 +712,9 @@ function requestUserLocation(): Promise<UserLocation> {
   });
 }
 
-function createUserLocationHtml() {
+function createUserLocationHtml(text: (typeof MAP_TEXT)[MapLocale]) {
   return `
-    <div class="mioseg-dashboard-user-location" title="Du bist hier">
+    <div class="mioseg-dashboard-user-location" title="${escapeAttr(text.youAreHere)}">
       <span class="mioseg-dashboard-user-location-pulse"></span>
       <span class="mioseg-dashboard-user-location-dot"></span>
     </div>
@@ -349,16 +757,16 @@ async function ensureLeaflet(): Promise<LeafletApi | null> {
   return leafletWindow.L ?? null;
 }
 
-function buildPopup(point: MapPoint) {
+function buildPopup(point: MapPoint, text: (typeof MAP_TEXT)[MapLocale]) {
   const href = point.href
-    ? `<a href="${escapeAttr(point.href)}" style="display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:13px;background:linear-gradient(180deg,#0d1726 0%,#17304d 100%);color:#ffffff;text-decoration:none;font-weight:900;font-size:13px;">Öffnen →</a>`
+    ? `<a href="${escapeAttr(point.href)}" style="display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:13px;background:linear-gradient(180deg,#0d1726 0%,#17304d 100%);color:#ffffff;text-decoration:none;font-weight:900;font-size:13px;">${escapeHtml(text.open)} →</a>`
     : "";
 
   return `
     <div style="width:240px;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#0e1726;">
       <div style="display:inline-flex;align-items:center;gap:8px;border-radius:999px;background:#eef4fb;color:#28496f;font-size:11px;font-weight:900;padding:7px 10px;margin-bottom:10px;">
         <span style="width:10px;height:10px;border-radius:999px;background:${escapeAttr(getMarkerColor(point.kind))};display:inline-block;"></span>
-        ${escapeHtml(getMarkerLabel(point.kind))}
+        ${escapeHtml(getMarkerLabel(point.kind, text))}
       </div>
       <div style="font-weight:950;font-size:17px;line-height:1.25;margin-bottom:7px;">${escapeHtml(point.title)}</div>
       <div style="
@@ -457,13 +865,13 @@ function clusterMapPoints(points: MapPoint[], zoom: number): MapCluster[] {
   }));
 }
 
-function createClusterHtml(count: number) {
+function createClusterHtml(count: number, text: (typeof MAP_TEXT)[MapLocale]) {
   const size = count >= 100 ? 58 : count >= 10 ? 52 : 46;
 
   return `
     <div
       class="mioseg-dashboard-cluster"
-      title="${count} Einträge"
+      title="${escapeAttr(interpolate(text.clusterEntries, count))}"
       style="width:${size}px;height:${size}px;"
     >
       <span>${count}</span>
@@ -508,6 +916,8 @@ async function shareMapPoint(point: MapPoint) {
 }
 
 export default function DashboardMapClient({ locale }: { locale: string }) {
+  const mapLocale = normalizeMapLocale(locale);
+  const ui = MAP_TEXT[mapLocale];
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const leafletRef = useRef<LeafletApi | null>(null);
@@ -656,8 +1066,8 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         .map((entry) => ({
           id: `own-${entry.id}`,
           rawId: entry.id,
-          title: getQrxTitle(entry),
-          description: getQrxDescription(entry),
+          title: getQrxTitle(entry, ui),
+          description: getQrxDescription(entry, ui),
           href: `/qrx/${entry.id}`,
           editHref: `/${locale}/dashboard/qrx/${entry.id}/edit`,
           latitude: entry.location_lat as number,
@@ -680,8 +1090,8 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         .map((entry) => ({
           id: `saved-${entry.id}`,
           rawId: entry.id,
-          title: getQrxTitle(entry),
-          description: getQrxDescription(entry),
+          title: getQrxTitle(entry, ui),
+          description: getQrxDescription(entry, ui),
           href: `/qrx/${entry.id}`,
           editHref: null,
           latitude: entry.location_lat as number,
@@ -703,8 +1113,8 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         .map((scan) => ({
           id: `scan-${scan.id}`,
           rawId: scan.id,
-          title: scan.name?.trim() || "Normaler Scan",
-          description: scan.data?.trim() || "Gespeicherter QR-Code",
+          title: scan.name?.trim() || ui.normalScan,
+          description: scan.data?.trim() || ui.savedQrCode,
           href:
             scan.data?.startsWith("http://") ||
             scan.data?.startsWith("https://")
@@ -725,7 +1135,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       setPoints([...ownPoints, ...savedPoints, ...scanPoints]);
       setLoading(false);
     },
-    [locale],
+    [locale, ui],
   );
 
   const filteredPoints = useMemo(() => {
@@ -839,7 +1249,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         className: "",
         html: isSinglePoint
           ? createMarkerHtml(point, activeId === point.id)
-          : createClusterHtml(cluster.points.length),
+          : createClusterHtml(cluster.points.length, ui),
         iconSize: isSinglePoint ? [42, 42] : [58, 58],
         iconAnchor: isSinglePoint ? [21, 39] : [29, 29],
       });
@@ -850,7 +1260,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       ).addTo(map);
 
       if (isSinglePoint) {
-        marker.bindPopup(buildPopup(point), {
+        marker.bindPopup(buildPopup(point, ui), {
           maxWidth: 280,
           className: "miosegDashboardPopup",
         });
@@ -900,7 +1310,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         window.setTimeout(() => activeMarker.openPopup(), 80);
       }
     }
-  }, [activeId, clusteredPoints, filteredPoints]);
+  }, [activeId, clusteredPoints, filteredPoints, ui]);
 
 
   const visiblePoints = useMemo(() => {
@@ -968,7 +1378,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
     setLocationError(null);
 
     try {
-      const location = await requestUserLocation();
+      const location = await requestUserLocation(ui);
 
       const target: [number, number] = [
         location.latitude,
@@ -982,7 +1392,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
 
       const icon = L.divIcon({
         className: "",
-        html: createUserLocationHtml(),
+        html: createUserLocationHtml(ui),
         iconSize: [34, 34],
         iconAnchor: [17, 17],
       });
@@ -990,7 +1400,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       const marker = L.marker(target, { icon })
         .addTo(map)
         .bindPopup(
-          '<div style="font-family:Inter,system-ui,sans-serif;font-weight:900;color:#0f172a;">Du bist hier</div>',
+          `<div style="font-family:Inter,system-ui,sans-serif;font-weight:900;color:#0f172a;">${escapeHtml(ui.youAreHere)}</div>`,
           {
             maxWidth: 220,
             className: "miosegDashboardPopup",
@@ -1015,7 +1425,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       setLocationError(
         error instanceof Error
           ? error.message
-          : "Dein Standort konnte nicht bestimmt werden.",
+          : ui.geoUnavailable,
       );
     } finally {
       setLocatingUser(false);
@@ -1043,7 +1453,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           type="search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="QR-X, Ort oder Kategorie suchen …"
+          placeholder={ui.searchPlaceholder}
           style={{
             width: "100%",
             minHeight: 46,
@@ -1058,13 +1468,20 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         />
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {FILTERS.map((item) => {
-            const active = filter === item.value;
+          {FILTERS.map((value) => {
+            const active = filter === value;
+            const label =
+              value === "all" ? ui.filterAll :
+              value === "own" ? ui.filterOwn :
+              value === "saved" ? ui.filterSaved :
+              value === "business" ? ui.filterBusiness :
+              value === "normal" ? ui.filterNormal :
+              value === "scan" ? ui.filterScan : ui.filterVerified;
             return (
               <button
-                key={item.value}
+                key={value}
                 type="button"
-                onClick={() => setFilter(item.value)}
+                onClick={() => setFilter(value)}
                 style={{
                   minHeight: 38,
                   borderRadius: 999,
@@ -1077,7 +1494,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                   fontSize: 12,
                 }}
               >
-                {item.label}
+                {label}
               </button>
             );
           })}
@@ -1095,12 +1512,12 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           }}
         >
           <span>
-            {filteredPoints.length} {filteredPoints.length === 1 ? "Eintrag" : "Einträge"} geladen
+            {filteredPoints.length} {filteredPoints.length === 1 ? ui.entry : ui.entries} {ui.loaded}
           </span>
           <span>
             {mapZoom >= CLUSTER_EXPAND_ZOOM
-              ? "Einzelne Marker"
-              : `Zu ${clusteredPoints.length} Markern gruppiert`}
+              ? ui.singleMarkers
+              : interpolate(ui.groupedMarkers, clusteredPoints.length)}
           </span>
         </div>
       </div>
@@ -1120,7 +1537,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
             type="button"
             onClick={() => void handleLocateUser()}
             disabled={locatingUser || !mapReady}
-            title="Meine Position anzeigen"
+            title={ui.showMyPosition}
             style={{
               position: "absolute",
               top: 14,
@@ -1138,7 +1555,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
               opacity: !mapReady ? 0.55 : 1,
             }}
           >
-            {locatingUser ? "Standort wird gesucht …" : "◎ Meine Position"}
+            {locatingUser ? ui.locating : `◎ ${ui.myPosition}`}
           </button>
 
           {locationError ? (
@@ -1169,7 +1586,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
               position: "absolute", inset: 0, zIndex: 5, display: "grid", placeItems: "center",
               background: "rgba(15,23,42,0.72)", color: "#ffffff", fontWeight: 950
             }}>
-              Karte wird geladen …
+              {ui.mapLoading}
             </div>
           ) : null}
 
@@ -1201,7 +1618,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                   backdropFilter: "blur(10px)",
                 }}
               >
-                Im aktuellen Kartenausschnitt wurden keine passenden QR-X oder Scans gefunden.
+                {ui.mapEmpty}
               </div>
             </div>
           ) : null}
@@ -1224,9 +1641,9 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
             display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12
           }}>
             <div>
-              <strong style={{ color: "#ffffff", fontSize: 18 }}>Sichtbare Einträge</strong>
+              <strong style={{ color: "#ffffff", fontSize: 18 }}>{ui.visibleEntries}</strong>
               <div style={{ marginTop: 4, color: "#94a3b8", fontSize: 12, fontWeight: 800 }}>
-                Aktueller Kartenausschnitt
+                {ui.currentMapArea}
               </div>
             </div>
             <span style={{
@@ -1244,7 +1661,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                 borderRadius: 18, padding: 18, background: "rgba(255,255,255,0.035)",
                 color: "#94a3b8", lineHeight: 1.55, fontWeight: 800
               }}>
-                Im aktuellen Ausschnitt ist kein passender Eintrag sichtbar.
+                {ui.noVisible}
               </div>
             ) : (
               visiblePoints.map((point) => {
@@ -1274,7 +1691,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                       <span style={{ width: 10, height: 10, borderRadius: 999, background: getMarkerColor(point.kind) }} />
                       <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>
-                        {getMarkerLabel(point.kind)}
+                        {getMarkerLabel(point.kind, ui)}
                       </span>
                     </div>
 
@@ -1287,9 +1704,9 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                     ) : null}
 
                     <div style={{ marginTop: 8, display: "flex", gap: 9, flexWrap: "wrap", color: "#cbd5e1", fontSize: 11, fontWeight: 800 }}>
-                      {point.verified ? <span>✓ Verifiziert</span> : null}
-                      <span>👥 {formatNumber(point.followerCount)}</span>
-                      <span>👁 {formatNumber(point.viewCount)}</span>
+                      {point.verified ? <span>✓ {ui.verified}</span> : null}
+                      <span>👥 {formatNumber(point.followerCount, mapLocale)}</span>
+                      <span>👁 {formatNumber(point.viewCount, mapLocale)}</span>
                     </div>
 
                     <div
@@ -1301,7 +1718,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                           href={point.href}
                           className="mioseg-dashboard-list-button primary"
                         >
-                          Öffnen
+                          {ui.open}
                         </a>
                       ) : null}
 
@@ -1310,7 +1727,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                           href={point.editHref}
                           className="mioseg-dashboard-list-button"
                         >
-                          Bearbeiten
+                          {ui.edit}
                         </a>
                       ) : null}
 
@@ -1320,7 +1737,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                         rel="noreferrer"
                         className="mioseg-dashboard-list-button"
                       >
-                        Navigation
+                        {ui.navigation}
                       </a>
 
                       <button
@@ -1329,8 +1746,8 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                         className="mioseg-dashboard-list-button"
                       >
                         {shareFeedbackId === point.id
-                          ? "Link kopiert"
-                          : "Teilen"}
+                          ? ui.linkCopied
+                          : ui.share}
                       </button>
                     </div>
                   </article>
@@ -1359,7 +1776,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
             marginBottom: legendOpen ? "14px" : 0,
           }}
         >
-          <strong style={{ color: "#ffffff", fontSize: "18px" }}>🗺️ Legende</strong>
+          <strong style={{ color: "#ffffff", fontSize: "18px" }}>🗺️ {ui.legend}</strong>
           <button
             type="button"
             onClick={() => setLegendOpen((value) => !value)}
@@ -1371,15 +1788,21 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
               fontWeight: 950,
             }}
           >
-            {legendOpen ? "Ausblenden" : "Einblenden"}
+            {legendOpen ? ui.hide : ui.show}
           </button>
         </div>
 
         {legendOpen ? (
           <div style={{ display: "grid", gap: "10px" }}>
-            {LEGEND.map((item) => (
+            {([
+              ["own_business", ui.legendOwnBusiness],
+              ["saved_business", ui.legendSavedBusiness],
+              ["own_normal", ui.legendOwnNormal],
+              ["saved_normal", ui.legendSavedNormal],
+              ["scan", ui.legendScan],
+            ] as const).map(([kind, label]) => (
               <div
-                key={item.kind}
+                key={kind}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -1394,13 +1817,13 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                     width: "13px",
                     height: "13px",
                     borderRadius: "999px",
-                    background: item.color,
+                    background: getMarkerColor(kind),
                     display: "inline-block",
                     boxShadow: "0 0 0 4px rgba(255,255,255,0.04)",
                   }}
                 />
-                <span>{item.label}</span>
-                <span style={{ marginLeft: "auto", color: "#94a3b8" }}>{countByKind[item.kind]}</span>
+                <span>{label}</span>
+                <span style={{ marginLeft: "auto", color: "#94a3b8" }}>{countByKind[kind]}</span>
               </div>
             ))}
           </div>
