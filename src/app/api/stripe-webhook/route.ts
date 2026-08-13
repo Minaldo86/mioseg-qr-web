@@ -17,6 +17,214 @@ function clean(value: unknown) {
   return String(value ?? "").trim();
 }
 
+type DocumentLanguage = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+
+function normalizeDocumentLanguage(value: unknown): DocumentLanguage {
+  const raw = clean(value).toLowerCase();
+  const base = raw.split(/[-_]/)[0];
+
+  return (["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const).includes(
+    base as DocumentLanguage,
+  )
+    ? (base as DocumentLanguage)
+    : "de";
+}
+
+type MailCopy = {
+  invoiceSubject: (invoiceNumber: string) => string;
+  invoiceBody: (args: {
+    invoiceNumber: string;
+    serviceDate: string;
+    sellerEmail: string;
+    sellerName: string;
+    legalConfirmationText: string;
+  }) => string;
+  creditSubject: (creditNumber: string) => string;
+  creditBody: (args: {
+    originalInvoiceNumber: string;
+    creditNumber: string;
+    amount: string;
+    sellerEmail: string;
+    sellerName: string;
+  }) => string;
+};
+
+const MAIL_COPY: Record<DocumentLanguage, MailCopy> = {
+  de: {
+    invoiceSubject: (n) => `Rechnung ${n} – mioseg qr`,
+    invoiceBody: ({ invoiceNumber, serviceDate, sellerEmail, sellerName, legalConfirmationText }) =>
+      `Hallo,\n\n` +
+      `vielen Dank für deinen Kauf bei mioseg qr.\n\n` +
+      `Im Anhang findest du deine Rechnung ${invoiceNumber}.\n` +
+      `Leistungsdatum: ${serviceDate}.\n` +
+      legalConfirmationText +
+      `\nBei Fragen antworte einfach auf diese E-Mail oder kontaktiere uns unter ${sellerEmail}.\n\n` +
+      `Freundliche Grüße\n${sellerName}\n`,
+    creditSubject: (n) => `Gutschrift ${n} – mioseg qr`,
+    creditBody: ({ originalInvoiceNumber, creditNumber, amount, sellerEmail, sellerName }) =>
+      `Hallo,\n\n` +
+      `zu deiner Rechnung ${originalInvoiceNumber} wurde eine Gutschrift erstellt.\n\n` +
+      `Im Anhang findest du deine Gutschrift ${creditNumber}.\n` +
+      `Betrag: ${amount}.\n\n` +
+      `Bei Fragen antworte einfach auf diese E-Mail oder kontaktiere uns unter ${sellerEmail}.\n\n` +
+      `Freundliche Grüße\n${sellerName}\n`,
+  },
+  en: {
+    invoiceSubject: (n) => `Invoice ${n} – mioseg qr`,
+    invoiceBody: ({ invoiceNumber, serviceDate, sellerEmail, sellerName, legalConfirmationText }) =>
+      `Hello,\n\n` +
+      `thank you for your purchase from mioseg qr.\n\n` +
+      `Your invoice ${invoiceNumber} is attached.\n` +
+      `Service date: ${serviceDate}.\n` +
+      legalConfirmationText +
+      `\nIf you have any questions, reply to this email or contact us at ${sellerEmail}.\n\n` +
+      `Kind regards\n${sellerName}\n`,
+    creditSubject: (n) => `Credit note ${n} – mioseg qr`,
+    creditBody: ({ originalInvoiceNumber, creditNumber, amount, sellerEmail, sellerName }) =>
+      `Hello,\n\n` +
+      `a credit note has been created for invoice ${originalInvoiceNumber}.\n\n` +
+      `Your credit note ${creditNumber} is attached.\n` +
+      `Amount: ${amount}.\n\n` +
+      `If you have any questions, reply to this email or contact us at ${sellerEmail}.\n\n` +
+      `Kind regards\n${sellerName}\n`,
+  },
+  tr: {
+    invoiceSubject: (n) => `Fatura ${n} – mioseg qr`,
+    invoiceBody: ({ invoiceNumber, serviceDate, sellerEmail, sellerName, legalConfirmationText }) =>
+      `Merhaba,\n\n` +
+      `mioseg qr satın alımınız için teşekkür ederiz.\n\n` +
+      `${invoiceNumber} numaralı faturanız ektedir.\n` +
+      `Hizmet tarihi: ${serviceDate}.\n` +
+      legalConfirmationText +
+      `\nSorularınız için bu e-postayı yanıtlayabilir veya ${sellerEmail} adresinden bize ulaşabilirsiniz.\n\n` +
+      `Saygılarımızla\n${sellerName}\n`,
+    creditSubject: (n) => `Alacak dekontu ${n} – mioseg qr`,
+    creditBody: ({ originalInvoiceNumber, creditNumber, amount, sellerEmail, sellerName }) =>
+      `Merhaba,\n\n` +
+      `${originalInvoiceNumber} numaralı faturanız için bir alacak dekontu oluşturuldu.\n\n` +
+      `${creditNumber} numaralı alacak dekontunuz ektedir.\n` +
+      `Tutar: ${amount}.\n\n` +
+      `Sorularınız için bu e-postayı yanıtlayabilir veya ${sellerEmail} adresinden bize ulaşabilirsiniz.\n\n` +
+      `Saygılarımızla\n${sellerName}\n`,
+  },
+  pl: {
+    invoiceSubject: (n) => `Faktura ${n} – mioseg qr`,
+    invoiceBody: ({ invoiceNumber, serviceDate, sellerEmail, sellerName, legalConfirmationText }) =>
+      `Dzień dobry,\n\n` +
+      `dziękujemy za zakup w mioseg qr.\n\n` +
+      `W załączniku znajduje się faktura ${invoiceNumber}.\n` +
+      `Data świadczenia: ${serviceDate}.\n` +
+      legalConfirmationText +
+      `\nW razie pytań odpowiedz na tę wiadomość lub skontaktuj się z nami pod adresem ${sellerEmail}.\n\n` +
+      `Pozdrawiamy\n${sellerName}\n`,
+    creditSubject: (n) => `Nota uznaniowa ${n} – mioseg qr`,
+    creditBody: ({ originalInvoiceNumber, creditNumber, amount, sellerEmail, sellerName }) =>
+      `Dzień dobry,\n\n` +
+      `dla faktury ${originalInvoiceNumber} została utworzona nota uznaniowa.\n\n` +
+      `W załączniku znajduje się nota ${creditNumber}.\n` +
+      `Kwota: ${amount}.\n\n` +
+      `W razie pytań odpowiedz na tę wiadomość lub skontaktuj się z nami pod adresem ${sellerEmail}.\n\n` +
+      `Pozdrawiamy\n${sellerName}\n`,
+  },
+  ar: {
+    invoiceSubject: (n) => `فاتورة ${n} – mioseg qr`,
+    invoiceBody: ({ invoiceNumber, serviceDate, sellerEmail, sellerName, legalConfirmationText }) =>
+      `مرحبًا،\n\n` +
+      `شكرًا لشرائك من mioseg qr.\n\n` +
+      `ستجد الفاتورة ${invoiceNumber} مرفقة بهذه الرسالة.\n` +
+      `تاريخ الخدمة: ${serviceDate}.\n` +
+      legalConfirmationText +
+      `\nإذا كانت لديك أي أسئلة، يمكنك الرد على هذه الرسالة أو التواصل معنا عبر ${sellerEmail}.\n\n` +
+      `مع أطيب التحيات\n${sellerName}\n`,
+    creditSubject: (n) => `إشعار دائن ${n} – mioseg qr`,
+    creditBody: ({ originalInvoiceNumber, creditNumber, amount, sellerEmail, sellerName }) =>
+      `مرحبًا،\n\n` +
+      `تم إنشاء إشعار دائن للفاتورة ${originalInvoiceNumber}.\n\n` +
+      `ستجد الإشعار الدائن ${creditNumber} مرفقًا بهذه الرسالة.\n` +
+      `المبلغ: ${amount}.\n\n` +
+      `إذا كانت لديك أي أسئلة، يمكنك الرد على هذه الرسالة أو التواصل معنا عبر ${sellerEmail}.\n\n` +
+      `مع أطيب التحيات\n${sellerName}\n`,
+  },
+  fr: {
+    invoiceSubject: (n) => `Facture ${n} – mioseg qr`,
+    invoiceBody: ({ invoiceNumber, serviceDate, sellerEmail, sellerName, legalConfirmationText }) =>
+      `Bonjour,\n\n` +
+      `merci pour votre achat chez mioseg qr.\n\n` +
+      `Votre facture ${invoiceNumber} est jointe à cet e-mail.\n` +
+      `Date de prestation : ${serviceDate}.\n` +
+      legalConfirmationText +
+      `\nPour toute question, répondez à cet e-mail ou contactez-nous à ${sellerEmail}.\n\n` +
+      `Cordialement\n${sellerName}\n`,
+    creditSubject: (n) => `Avoir ${n} – mioseg qr`,
+    creditBody: ({ originalInvoiceNumber, creditNumber, amount, sellerEmail, sellerName }) =>
+      `Bonjour,\n\n` +
+      `un avoir a été créé pour votre facture ${originalInvoiceNumber}.\n\n` +
+      `Votre avoir ${creditNumber} est joint à cet e-mail.\n` +
+      `Montant : ${amount}.\n\n` +
+      `Pour toute question, répondez à cet e-mail ou contactez-nous à ${sellerEmail}.\n\n` +
+      `Cordialement\n${sellerName}\n`,
+  },
+  es: {
+    invoiceSubject: (n) => `Factura ${n} – mioseg qr`,
+    invoiceBody: ({ invoiceNumber, serviceDate, sellerEmail, sellerName, legalConfirmationText }) =>
+      `Hola,\n\n` +
+      `gracias por tu compra en mioseg qr.\n\n` +
+      `Adjuntamos tu factura ${invoiceNumber}.\n` +
+      `Fecha de prestación: ${serviceDate}.\n` +
+      legalConfirmationText +
+      `\nSi tienes alguna pregunta, responde a este correo o contacta con nosotros en ${sellerEmail}.\n\n` +
+      `Un saludo\n${sellerName}\n`,
+    creditSubject: (n) => `Abono ${n} – mioseg qr`,
+    creditBody: ({ originalInvoiceNumber, creditNumber, amount, sellerEmail, sellerName }) =>
+      `Hola,\n\n` +
+      `se ha creado un abono para tu factura ${originalInvoiceNumber}.\n\n` +
+      `Adjuntamos tu abono ${creditNumber}.\n` +
+      `Importe: ${amount}.\n\n` +
+      `Si tienes alguna pregunta, responde a este correo o contacta con nosotros en ${sellerEmail}.\n\n` +
+      `Un saludo\n${sellerName}\n`,
+  },
+  it: {
+    invoiceSubject: (n) => `Fattura ${n} – mioseg qr`,
+    invoiceBody: ({ invoiceNumber, serviceDate, sellerEmail, sellerName, legalConfirmationText }) =>
+      `Ciao,\n\n` +
+      `grazie per il tuo acquisto su mioseg qr.\n\n` +
+      `In allegato trovi la fattura ${invoiceNumber}.\n` +
+      `Data della prestazione: ${serviceDate}.\n` +
+      legalConfirmationText +
+      `\nPer qualsiasi domanda, rispondi a questa e-mail o contattaci all’indirizzo ${sellerEmail}.\n\n` +
+      `Cordiali saluti\n${sellerName}\n`,
+    creditSubject: (n) => `Nota di credito ${n} – mioseg qr`,
+    creditBody: ({ originalInvoiceNumber, creditNumber, amount, sellerEmail, sellerName }) =>
+      `Ciao,\n\n` +
+      `è stata creata una nota di credito per la fattura ${originalInvoiceNumber}.\n\n` +
+      `In allegato trovi la nota di credito ${creditNumber}.\n` +
+      `Importo: ${amount}.\n\n` +
+      `Per qualsiasi domanda, rispondi a questa e-mail o contattaci all’indirizzo ${sellerEmail}.\n\n` +
+      `Cordiali saluti\n${sellerName}\n`,
+  },
+};
+
+async function getUserDocumentLanguage(
+  userId: string,
+  preferredLocale?: unknown,
+): Promise<DocumentLanguage> {
+  const preferred = clean(preferredLocale);
+  if (preferred) return normalizeDocumentLanguage(preferred);
+
+  const { data, error } = await supabaseAdmin
+    .from("profiles")
+    .select("language")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.warn("profiles.language lookup failed:", error.message);
+    return "de";
+  }
+
+  return normalizeDocumentLanguage(data?.language);
+}
+
 function getPaymentIntentId(session: Stripe.Checkout.Session) {
   return typeof session.payment_intent === "string" ? session.payment_intent : null;
 }
@@ -447,6 +655,7 @@ async function getOrCreateInvoice(input: {
   packId: string;
   credits: number;
   billing: ReturnType<typeof getBillingDetails>;
+  language: DocumentLanguage;
 }) {
   if (input.paymentIntentId) {
     const { data: existingInvoice, error: existingError } = await supabaseAdmin
@@ -494,6 +703,7 @@ async function getOrCreateInvoice(input: {
         billing_vat_id: input.billing.customerVatId,
         pack_id: input.packId,
         credits: input.credits,
+        language: input.language,
       },
       invoice_type: "invoice",
       status: "creating",
@@ -519,6 +729,7 @@ async function finalizeInvoice(input: {
   taxCents: number;
   currency: string;
   legalAcceptance: PurchaseLegalAcceptance | null;
+  language: DocumentLanguage;
 }) {
   if (!input.billing.customerEmail) throw new Error("Rechnungs-E-Mail fehlt.");
   const dateISO = new Date().toISOString().slice(0, 10);
@@ -576,19 +787,18 @@ async function finalizeInvoice(input: {
       ].join("\n")
     : "";
 
-  const emailText =
-    `Hallo,\n\n` +
-    `vielen Dank für deinen Kauf bei mioseg qr.\n\n` +
-    `Im Anhang findest du deine Rechnung ${input.invoiceNumber}.\n` +
-    `Leistungsdatum: ${dateISO}.\n` +
-    legalConfirmationText +
-    `\nBei Fragen antworte einfach auf diese E-Mail oder kontaktiere uns unter ${SELLER.email}.\n\n` +
-    `Freundliche Grüße\n` +
-    `${SELLER.name}\n`;
+  const copy = MAIL_COPY[input.language];
+  const emailText = copy.invoiceBody({
+    invoiceNumber: input.invoiceNumber,
+    serviceDate: dateISO,
+    sellerEmail: SELLER.email,
+    sellerName: SELLER.name,
+    legalConfirmationText,
+  });
 
   await sendInvoiceEmailResend({
     toEmail: input.billing.customerEmail,
-    subject: `Rechnung ${input.invoiceNumber} – mioseg qr`,
+    subject: copy.invoiceSubject(input.invoiceNumber),
     text: emailText,
     filename: `${input.invoiceNumber}.pdf`,
     pdfBytes,
@@ -811,6 +1021,18 @@ function billingFromInvoice(invoice: InvoiceLookupRow) {
   };
 }
 
+async function languageFromInvoice(invoice: InvoiceLookupRow): Promise<DocumentLanguage> {
+  const details = asRecord(invoice.billing_details);
+  const storedLanguage = stringFromRecord(details, "language");
+
+  if (storedLanguage) {
+    return normalizeDocumentLanguage(storedLanguage);
+  }
+
+  return getUserDocumentLanguage(invoice.user_id);
+}
+
+
 function getPaymentIntentIdFromCharge(charge: Stripe.Charge) {
   if (typeof charge.payment_intent === "string") return charge.payment_intent;
   if (charge.payment_intent && typeof charge.payment_intent === "object") return charge.payment_intent.id;
@@ -990,6 +1212,8 @@ async function createCreditNoteForRefund(input: {
   if (existing?.status === "sent" && existing.pdf_path) return;
 
   const billing = billingFromInvoice(originalInvoice);
+  const language = await languageFromInvoice(originalInvoice);
+  const copy = MAIL_COPY[language];
   if (!billing.customerEmail) throw new Error("E-Mail für Gutschrift fehlt.");
 
   const originalGrossCents = originalInvoice.gross_amount_cents ?? originalInvoice.amount_cents ?? input.refundAmountCents;
@@ -1041,6 +1265,7 @@ async function createCreditNoteForRefund(input: {
           billing_vat_id: billing.customerVatId,
           pack_id: billing.packId,
           credits: billing.credits,
+          language,
         },
         invoice_type: "credit_note",
         original_invoice_id: originalInvoice.id,
@@ -1100,18 +1325,17 @@ async function createCreditNoteForRefund(input: {
     throw new Error(`Gutschrift-Upload fehlgeschlagen: ${upload.error.message}`);
   }
 
-  const emailText =
-    `Hallo,\n\n` +
-    `zu deiner Rechnung ${originalInvoice.invoice_number || "-"} wurde eine Gutschrift erstellt.\n\n` +
-    `Im Anhang findest du deine Gutschrift ${creditNoteNumber}.\n` +
-    `Betrag: ${formatMoney(input.refundAmountCents, currency)}.\n\n` +
-    `Bei Fragen antworte einfach auf diese E-Mail oder kontaktiere uns unter ${SELLER.email}.\n\n` +
-    `Freundliche Grüße\n` +
-    `${SELLER.name}\n`;
+  const emailText = copy.creditBody({
+    originalInvoiceNumber: originalInvoice.invoice_number || "-",
+    creditNumber: creditNoteNumber,
+    amount: formatMoney(input.refundAmountCents, currency),
+    sellerEmail: SELLER.email,
+    sellerName: SELLER.name,
+  });
 
   await sendInvoiceEmailResend({
     toEmail: billing.customerEmail,
-    subject: `Gutschrift ${creditNoteNumber} – mioseg qr`,
+    subject: copy.creditSubject(creditNoteNumber),
     text: emailText,
     filename: `${creditNoteNumber}.pdf`,
     pdfBytes,
@@ -1190,6 +1414,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const paymentIntentId = getPaymentIntentId(session);
   const billing = getBillingDetails(session);
   const legalAcceptance = await getPurchaseLegalAcceptance(session, userId);
+  const language = await getUserDocumentLanguage(
+    userId,
+    legalAcceptance?.accepted_locale ||
+      session.metadata?.language ||
+      session.metadata?.locale,
+  );
   const currency = (session.currency || "eur").toUpperCase();
 
   if (!userId) throw new Error(`Stripe Session ${sessionId}: userId fehlt.`);
@@ -1225,7 +1455,7 @@ if (stripeTax > 0) {
     await writeAdminLog({ userId, amount: credits, note: `Stripe Web-Kauf erfolgreich. Session: ${sessionId}, Paket: ${packId}, Betrag: ${amountCents} Cent, neuer Stand: ${newCredits}` });
   }
 
-  const invoice = await getOrCreateInvoice({ userId, purchaseId: purchase.id, sessionId, paymentIntentId, amountCents, netCents, taxCents, currency, packId, credits, billing });
+  const invoice = await getOrCreateInvoice({ userId, purchaseId: purchase.id, sessionId, paymentIntentId, amountCents, netCents, taxCents, currency, packId, credits, billing, language });
 
   if (invoice.status === "sent" && invoice.pdf_path) {
     if (legalAcceptance?.id) {
@@ -1253,6 +1483,7 @@ if (stripeTax > 0) {
       taxCents,
       currency,
       legalAcceptance,
+      language,
     });
   } catch (error) {
     console.error("Invoice generation/sending failed:", error);
