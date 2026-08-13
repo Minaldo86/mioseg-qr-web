@@ -11,6 +11,37 @@ type Props = {
   locale: string;
 };
 
+const SUPPORTED_ACCOUNT_LANGUAGES = [
+  "de",
+  "en",
+  "tr",
+  "pl",
+  "ar",
+  "fr",
+  "es",
+  "it",
+] as const;
+
+type AccountLanguage = (typeof SUPPORTED_ACCOUNT_LANGUAGES)[number];
+
+function isAccountLanguage(value: string | null | undefined): value is AccountLanguage {
+  return Boolean(
+    value && SUPPORTED_ACCOUNT_LANGUAGES.includes(value as AccountLanguage),
+  );
+}
+
+function replaceLocaleInUrl(url: string, language: AccountLanguage) {
+  if (!url.startsWith("/")) return `/${language}/dashboard`;
+
+  const parts = url.split("/");
+  if (parts.length > 1 && isAccountLanguage(parts[1])) {
+    parts[1] = language;
+    return parts.join("/");
+  }
+
+  return `/${language}/dashboard`;
+}
+
 function getAuthErrorMessage(message: string, locale: string) {
   const lower = message.toLowerCase();
 
@@ -116,7 +147,25 @@ export default function LoginClient({ locale }: Props) {
         return;
       }
 
-      router.push(nextUrl);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      let destination = nextUrl;
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("language")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (isAccountLanguage(profile?.language)) {
+          destination = replaceLocaleInUrl(nextUrl, profile.language);
+        }
+      }
+
+      router.push(destination);
       router.refresh();
     } finally {
       setWorking(false);
