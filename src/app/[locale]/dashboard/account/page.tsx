@@ -58,6 +58,433 @@ type SecurityInfo = {
 
 
 
+type AccountLocale = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+
+const ACCOUNT_LOCALE: Record<AccountLocale, string> = {
+  de: "de-DE", en: "en-GB", tr: "tr-TR", pl: "pl-PL",
+  ar: "ar", fr: "fr-FR", es: "es-ES", it: "it-IT",
+};
+
+const ACCOUNT_TEXT = {
+  de: {
+    navAccount: "Konto Navigation",
+    dashboard: "Dashboard",
+    myQrx: "Meine QR-X",
+    credits: "Credits",
+    account: "Konto",
+    heroText: "Verwalte deine Kontodaten, Rechnungen und Sicherheit an einem Ort.",
+    backDashboard: "Zurück zum Dashboard",
+    signingOut: "Meldet ab …",
+    signOut: "Abmelden",
+    accountOverview: "Konto Übersicht",
+    active: "Aktiv",
+    accountStatus: "Konto-Status",
+    creditSystem: "Credit-System",
+    invoices: "Rechnungen",
+    authLogin: "Supabase Login",
+    accountSections: "Kontobereiche",
+    overview: "Übersicht",
+    profile: "Profil",
+    security: "Sicherheit",
+    accountData: "Kontodaten",
+    accountDataText: "Diese Daten kommen direkt aus deiner Supabase-Anmeldung und dem Profil.",
+    loading: "Lädt",
+    live: "Live",
+    loadingAccount: "Konto wird geladen …",
+    displayName: "Name / Anzeige",
+    email: "E-Mail",
+    userId: "User-ID",
+    registeredSince: "Registriert seit",
+    editProfile: "Profil bearbeiten",
+    editProfileText: "Diese Angaben werden für dein Konto, Support-Anfragen und spätere Profilfunktionen verwendet. Die Login-E-Mail bleibt in Supabase Auth.",
+    firstName: "Vorname",
+    lastName: "Nachname",
+    accountType: "Kontotyp",
+    privatePerson: "Privatperson",
+    company: "Unternehmen",
+    companyField: "Firma",
+    optional: "Optional",
+    street: "Straße und Hausnummer",
+    postalCode: "PLZ",
+    city: "Ort",
+    country: "Land",
+    language: "Sprache",
+    vatId: "USt.-ID",
+    vatPlaceholder: "Optional, z. B. DE123456789",
+    saving: "Speichert …",
+    saveProfile: "Profil speichern",
+    profileSaved: "Profil gespeichert.",
+    error: "Fehler",
+    userFallback: "mioseg qr Nutzer",
+  },
+  en: {
+    navAccount: "Account navigation",
+    dashboard: "Dashboard",
+    myQrx: "My QR-X",
+    credits: "Credits",
+    account: "Account",
+    heroText: "Manage your account details, invoices and security in one place.",
+    backDashboard: "Back to dashboard",
+    signingOut: "Signing out …",
+    signOut: "Sign out",
+    accountOverview: "Account overview",
+    active: "Active",
+    accountStatus: "Account status",
+    creditSystem: "Credit system",
+    invoices: "Invoices",
+    authLogin: "Supabase login",
+    accountSections: "Account sections",
+    overview: "Overview",
+    profile: "Profile",
+    security: "Security",
+    accountData: "Account details",
+    accountDataText: "This information comes directly from your Supabase sign-in and profile.",
+    loading: "Loading",
+    live: "Live",
+    loadingAccount: "Loading account …",
+    displayName: "Name / display",
+    email: "Email",
+    userId: "User ID",
+    registeredSince: "Registered since",
+    editProfile: "Edit profile",
+    editProfileText: "These details are used for your account, support requests and future profile features. Your login email remains in Supabase Auth.",
+    firstName: "First name",
+    lastName: "Last name",
+    accountType: "Account type",
+    privatePerson: "Private individual",
+    company: "Business",
+    companyField: "Company",
+    optional: "Optional",
+    street: "Street and house number",
+    postalCode: "Postal code",
+    city: "City",
+    country: "Country",
+    language: "Language",
+    vatId: "VAT ID",
+    vatPlaceholder: "Optional, e.g. DE123456789",
+    saving: "Saving …",
+    saveProfile: "Save profile",
+    profileSaved: "Profile saved.",
+    error: "Error",
+    userFallback: "mioseg qr user",
+  },
+  tr: {
+    navAccount: "Hesap navigasyonu",
+    dashboard: "Kontrol paneli",
+    myQrx: "QR-X'lerim",
+    credits: "Credits",
+    account: "Hesap",
+    heroText: "Hesap bilgilerini, faturaları ve güvenliği tek bir yerden yönet.",
+    backDashboard: "Kontrol paneline dön",
+    signingOut: "Çıkış yapılıyor …",
+    signOut: "Çıkış yap",
+    accountOverview: "Hesap özeti",
+    active: "Aktif",
+    accountStatus: "Hesap durumu",
+    creditSystem: "Credit sistemi",
+    invoices: "Faturalar",
+    authLogin: "Supabase girişi",
+    accountSections: "Hesap bölümleri",
+    overview: "Genel bakış",
+    profile: "Profil",
+    security: "Güvenlik",
+    accountData: "Hesap bilgileri",
+    accountDataText: "Bu bilgiler doğrudan Supabase girişinden ve profilinden alınır.",
+    loading: "Yükleniyor",
+    live: "Canlı",
+    loadingAccount: "Hesap yükleniyor …",
+    displayName: "Ad / görünen ad",
+    email: "E-posta",
+    userId: "Kullanıcı kimliği",
+    registeredSince: "Kayıt tarihi",
+    editProfile: "Profili düzenle",
+    editProfileText: "Bu bilgiler hesabın, destek taleplerin ve gelecekteki profil özellikleri için kullanılır. Giriş e-postan Supabase Auth'ta kalır.",
+    firstName: "Ad",
+    lastName: "Soyad",
+    accountType: "Hesap türü",
+    privatePerson: "Bireysel",
+    company: "Şirket",
+    companyField: "Firma",
+    optional: "İsteğe bağlı",
+    street: "Sokak ve bina numarası",
+    postalCode: "Posta kodu",
+    city: "Şehir",
+    country: "Ülke",
+    language: "Dil",
+    vatId: "KDV No.",
+    vatPlaceholder: "İsteğe bağlı, örn. DE123456789",
+    saving: "Kaydediliyor …",
+    saveProfile: "Profili kaydet",
+    profileSaved: "Profil kaydedildi.",
+    error: "Hata",
+    userFallback: "mioseg qr kullanıcısı",
+  },
+  pl: {
+    navAccount: "Nawigacja konta",
+    dashboard: "Panel",
+    myQrx: "Moje QR-X",
+    credits: "Credits",
+    account: "Konto",
+    heroText: "Zarządzaj danymi konta, fakturami i bezpieczeństwem w jednym miejscu.",
+    backDashboard: "Wróć do panelu",
+    signingOut: "Wylogowywanie …",
+    signOut: "Wyloguj",
+    accountOverview: "Przegląd konta",
+    active: "Aktywne",
+    accountStatus: "Status konta",
+    creditSystem: "System Credits",
+    invoices: "Faktury",
+    authLogin: "Logowanie Supabase",
+    accountSections: "Sekcje konta",
+    overview: "Przegląd",
+    profile: "Profil",
+    security: "Bezpieczeństwo",
+    accountData: "Dane konta",
+    accountDataText: "Te dane pochodzą bezpośrednio z logowania Supabase i Twojego profilu.",
+    loading: "Ładowanie",
+    live: "Aktywne",
+    loadingAccount: "Ładowanie konta …",
+    displayName: "Nazwa / wyświetlana nazwa",
+    email: "E-mail",
+    userId: "ID użytkownika",
+    registeredSince: "Zarejestrowany od",
+    editProfile: "Edytuj profil",
+    editProfileText: "Te dane są używane dla konta, zgłoszeń do pomocy i przyszłych funkcji profilu. E-mail logowania pozostaje w Supabase Auth.",
+    firstName: "Imię",
+    lastName: "Nazwisko",
+    accountType: "Typ konta",
+    privatePerson: "Osoba prywatna",
+    company: "Firma",
+    companyField: "Firma",
+    optional: "Opcjonalnie",
+    street: "Ulica i numer domu",
+    postalCode: "Kod pocztowy",
+    city: "Miejscowość",
+    country: "Kraj",
+    language: "Język",
+    vatId: "NIP UE",
+    vatPlaceholder: "Opcjonalnie, np. DE123456789",
+    saving: "Zapisywanie …",
+    saveProfile: "Zapisz profil",
+    profileSaved: "Profil zapisany.",
+    error: "Błąd",
+    userFallback: "użytkownik mioseg qr",
+  },
+  ar: {
+    navAccount: "التنقل في الحساب",
+    dashboard: "لوحة التحكم",
+    myQrx: "QR-X الخاصة بي",
+    credits: "Credits",
+    account: "الحساب",
+    heroText: "أدر بيانات حسابك وفواتيرك وإعدادات الأمان في مكان واحد.",
+    backDashboard: "العودة إلى لوحة التحكم",
+    signingOut: "جارٍ تسجيل الخروج …",
+    signOut: "تسجيل الخروج",
+    accountOverview: "نظرة عامة على الحساب",
+    active: "نشط",
+    accountStatus: "حالة الحساب",
+    creditSystem: "نظام Credits",
+    invoices: "الفواتير",
+    authLogin: "تسجيل دخول Supabase",
+    accountSections: "أقسام الحساب",
+    overview: "نظرة عامة",
+    profile: "الملف الشخصي",
+    security: "الأمان",
+    accountData: "بيانات الحساب",
+    accountDataText: "تأتي هذه البيانات مباشرة من تسجيل الدخول في Supabase ومن ملفك الشخصي.",
+    loading: "جارٍ التحميل",
+    live: "مباشر",
+    loadingAccount: "جارٍ تحميل الحساب …",
+    displayName: "الاسم / اسم العرض",
+    email: "البريد الإلكتروني",
+    userId: "معرّف المستخدم",
+    registeredSince: "مسجل منذ",
+    editProfile: "تعديل الملف الشخصي",
+    editProfileText: "تُستخدم هذه البيانات لحسابك وطلبات الدعم وميزات الملف الشخصي المستقبلية. يبقى بريد تسجيل الدخول في Supabase Auth.",
+    firstName: "الاسم الأول",
+    lastName: "اسم العائلة",
+    accountType: "نوع الحساب",
+    privatePerson: "فرد",
+    company: "شركة",
+    companyField: "الشركة",
+    optional: "اختياري",
+    street: "الشارع ورقم المنزل",
+    postalCode: "الرمز البريدي",
+    city: "المدينة",
+    country: "الدولة",
+    language: "اللغة",
+    vatId: "رقم ضريبة القيمة المضافة",
+    vatPlaceholder: "اختياري، مثال DE123456789",
+    saving: "جارٍ الحفظ …",
+    saveProfile: "حفظ الملف الشخصي",
+    profileSaved: "تم حفظ الملف الشخصي.",
+    error: "خطأ",
+    userFallback: "مستخدم mioseg qr",
+  },
+  fr: {
+    navAccount: "Navigation du compte",
+    dashboard: "Tableau de bord",
+    myQrx: "Mes QR-X",
+    credits: "Credits",
+    account: "Compte",
+    heroText: "Gérez vos données de compte, vos factures et votre sécurité au même endroit.",
+    backDashboard: "Retour au tableau de bord",
+    signingOut: "Déconnexion …",
+    signOut: "Se déconnecter",
+    accountOverview: "Aperçu du compte",
+    active: "Actif",
+    accountStatus: "Statut du compte",
+    creditSystem: "Système de Credits",
+    invoices: "Factures",
+    authLogin: "Connexion Supabase",
+    accountSections: "Sections du compte",
+    overview: "Aperçu",
+    profile: "Profil",
+    security: "Sécurité",
+    accountData: "Données du compte",
+    accountDataText: "Ces données proviennent directement de votre connexion Supabase et de votre profil.",
+    loading: "Chargement",
+    live: "En direct",
+    loadingAccount: "Chargement du compte …",
+    displayName: "Nom / affichage",
+    email: "E-mail",
+    userId: "ID utilisateur",
+    registeredSince: "Inscrit depuis",
+    editProfile: "Modifier le profil",
+    editProfileText: "Ces informations sont utilisées pour votre compte, les demandes d’assistance et les futures fonctions de profil. L’e-mail de connexion reste dans Supabase Auth.",
+    firstName: "Prénom",
+    lastName: "Nom",
+    accountType: "Type de compte",
+    privatePerson: "Particulier",
+    company: "Entreprise",
+    companyField: "Entreprise",
+    optional: "Facultatif",
+    street: "Rue et numéro",
+    postalCode: "Code postal",
+    city: "Ville",
+    country: "Pays",
+    language: "Langue",
+    vatId: "N° TVA",
+    vatPlaceholder: "Facultatif, p. ex. DE123456789",
+    saving: "Enregistrement …",
+    saveProfile: "Enregistrer le profil",
+    profileSaved: "Profil enregistré.",
+    error: "Erreur",
+    userFallback: "utilisateur mioseg qr",
+  },
+  es: {
+    navAccount: "Navegación de la cuenta",
+    dashboard: "Panel",
+    myQrx: "Mis QR-X",
+    credits: "Credits",
+    account: "Cuenta",
+    heroText: "Gestiona los datos de tu cuenta, facturas y seguridad en un solo lugar.",
+    backDashboard: "Volver al panel",
+    signingOut: "Cerrando sesión …",
+    signOut: "Cerrar sesión",
+    accountOverview: "Resumen de la cuenta",
+    active: "Activa",
+    accountStatus: "Estado de la cuenta",
+    creditSystem: "Sistema de Credits",
+    invoices: "Facturas",
+    authLogin: "Inicio de sesión Supabase",
+    accountSections: "Secciones de la cuenta",
+    overview: "Resumen",
+    profile: "Perfil",
+    security: "Seguridad",
+    accountData: "Datos de la cuenta",
+    accountDataText: "Estos datos proceden directamente de tu inicio de sesión en Supabase y de tu perfil.",
+    loading: "Cargando",
+    live: "En vivo",
+    loadingAccount: "Cargando cuenta …",
+    displayName: "Nombre / visualización",
+    email: "Correo electrónico",
+    userId: "ID de usuario",
+    registeredSince: "Registrado desde",
+    editProfile: "Editar perfil",
+    editProfileText: "Estos datos se utilizan para tu cuenta, solicitudes de soporte y futuras funciones del perfil. El correo de inicio de sesión permanece en Supabase Auth.",
+    firstName: "Nombre",
+    lastName: "Apellidos",
+    accountType: "Tipo de cuenta",
+    privatePerson: "Particular",
+    company: "Empresa",
+    companyField: "Empresa",
+    optional: "Opcional",
+    street: "Calle y número",
+    postalCode: "Código postal",
+    city: "Ciudad",
+    country: "País",
+    language: "Idioma",
+    vatId: "N.º IVA",
+    vatPlaceholder: "Opcional, p. ej. DE123456789",
+    saving: "Guardando …",
+    saveProfile: "Guardar perfil",
+    profileSaved: "Perfil guardado.",
+    error: "Error",
+    userFallback: "usuario de mioseg qr",
+  },
+  it: {
+    navAccount: "Navigazione account",
+    dashboard: "Dashboard",
+    myQrx: "I miei QR-X",
+    credits: "Credits",
+    account: "Account",
+    heroText: "Gestisci dati dell’account, fatture e sicurezza in un unico posto.",
+    backDashboard: "Torna alla dashboard",
+    signingOut: "Disconnessione …",
+    signOut: "Disconnetti",
+    accountOverview: "Panoramica account",
+    active: "Attivo",
+    accountStatus: "Stato account",
+    creditSystem: "Sistema Credits",
+    invoices: "Fatture",
+    authLogin: "Accesso Supabase",
+    accountSections: "Sezioni account",
+    overview: "Panoramica",
+    profile: "Profilo",
+    security: "Sicurezza",
+    accountData: "Dati account",
+    accountDataText: "Questi dati provengono direttamente dall’accesso Supabase e dal tuo profilo.",
+    loading: "Caricamento",
+    live: "Live",
+    loadingAccount: "Caricamento account …",
+    displayName: "Nome / visualizzazione",
+    email: "E-mail",
+    userId: "ID utente",
+    registeredSince: "Registrato dal",
+    editProfile: "Modifica profilo",
+    editProfileText: "Questi dati vengono utilizzati per l’account, le richieste di assistenza e le future funzioni del profilo. L’e-mail di accesso rimane in Supabase Auth.",
+    firstName: "Nome",
+    lastName: "Cognome",
+    accountType: "Tipo di account",
+    privatePerson: "Privato",
+    company: "Azienda",
+    companyField: "Azienda",
+    optional: "Facoltativo",
+    street: "Via e numero civico",
+    postalCode: "CAP",
+    city: "Città",
+    country: "Paese",
+    language: "Lingua",
+    vatId: "P. IVA",
+    vatPlaceholder: "Facoltativo, es. DE123456789",
+    saving: "Salvataggio …",
+    saveProfile: "Salva profilo",
+    profileSaved: "Profilo salvato.",
+    error: "Errore",
+    userFallback: "utente mioseg qr",
+  },
+} as const;
+
+function normalizeAccountLocale(value: string): AccountLocale {
+  const normalized = value.trim().toLowerCase().split(/[-_]/)[0];
+  return (["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const).includes(
+    normalized as AccountLocale,
+  )
+    ? (normalized as AccountLocale)
+    : "de";
+}
+
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
   if (Array.isArray(value) && typeof value[0] === "string" && value[0].trim())
@@ -65,13 +492,16 @@ function getParam(value: string | string[] | undefined, fallback: string) {
   return fallback;
 }
 
-function formatDate(value: string | null | undefined) {
+function formatDate(
+  value: string | null | undefined,
+  locale: AccountLocale = "de",
+) {
   if (!value) return "–";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "–";
 
-  return new Intl.DateTimeFormat("de-DE", {
+  return new Intl.DateTimeFormat(ACCOUNT_LOCALE[locale], {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -200,6 +630,9 @@ export default function AccountPage() {
     params?.locale as string | string[] | undefined,
     "de",
   );
+
+  const accountLocale = normalizeAccountLocale(locale);
+  const ui = ACCOUNT_TEXT[accountLocale];
 
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
@@ -614,10 +1047,14 @@ export default function AccountPage() {
       );
 
     if (error) {
-      setProfileMessage(`Fehler: ${error.message}`);
+      setProfileMessage(`${ui.error}: ${error.message}`);
     } else {
-      setProfileMessage("Profil gespeichert.");
+      setProfileMessage(ui.profileSaved);
       await loadAccount();
+
+      if (language !== locale) {
+        router.replace(`/${language}/dashboard/account`);
+      }
     }
 
     setSavingProfile(false);
@@ -660,7 +1097,7 @@ export default function AccountPage() {
     profile?.full_name?.trim() ||
     billingName.trim() ||
     email ||
-    "Mioseg qr Nutzer";
+    ui.userFallback;
 
   return (
     <main className={styles.page}>
@@ -669,10 +1106,10 @@ export default function AccountPage() {
           <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
         </Link>
 
-        <nav className={styles.nav} aria-label="Konto Navigation">
-          <Link href={`/${locale}/dashboard`}>Dashboard</Link>
-          <Link href={`/${locale}/dashboard/qrx`}>Meine QR-X</Link>
-          <Link href={`/${locale}/dashboard/credits`}>Credits</Link>
+        <nav className={styles.nav} aria-label={ui.navAccount}>
+          <Link href={`/${locale}/dashboard`}>{ui.dashboard}</Link>
+          <Link href={`/${locale}/dashboard/qrx`}>{ui.myQrx}</Link>
+          <Link href={`/${locale}/dashboard/credits`}>{ui.credits}</Link>
         </nav>
       </header>
 
@@ -686,10 +1123,10 @@ export default function AccountPage() {
         }}
       >
         <div>
-          <span className={styles.kicker}>Konto</span>
-          <h1 style={{ marginBottom: 10 }}>Konto</h1>
+          <span className={styles.kicker}>{ui.account}</span>
+          <h1 style={{ marginBottom: 10 }}>{ui.account}</h1>
           <p style={{ maxWidth: 760 }}>
-            Verwalte deine Kontodaten, Rechnungen und Sicherheit an einem Ort.
+            {ui.heroText}
           </p>
         </div>
 
@@ -698,7 +1135,7 @@ export default function AccountPage() {
             href={`/${locale}/dashboard`}
             className={styles.secondaryButton}
           >
-            Zurück zum Dashboard
+            {ui.backDashboard}
           </Link>
           <button
             type="button"
@@ -711,17 +1148,17 @@ export default function AccountPage() {
               opacity: signingOut ? 0.72 : 1,
             }}
           >
-            {signingOut ? "Meldet ab …" : "Abmelden"}
+            {signingOut ? ui.signingOut : ui.signOut}
           </button>
         </div>
       </section>
 
-      <section className={styles.statsGrid} aria-label="Konto Übersicht">
+      <section className={styles.statsGrid} aria-label={ui.accountOverview}>
         <article className={styles.statCard}>
           <div className={styles.statIcon}>👤</div>
           <div>
-            <div className={styles.statValue}>{loading ? "…" : "Aktiv"}</div>
-            <div className={styles.statLabel}>Konto-Status</div>
+            <div className={styles.statValue}>{loading ? "…" : ui.active}</div>
+            <div className={styles.statLabel}>{ui.accountStatus}</div>
           </div>
         </article>
 
@@ -729,7 +1166,7 @@ export default function AccountPage() {
           <div className={styles.statIcon}>💳</div>
           <div>
             <div className={styles.statValue}>Pay</div>
-            <div className={styles.statLabel}>Credit-System</div>
+            <div className={styles.statLabel}>{ui.creditSystem}</div>
           </div>
         </article>
 
@@ -737,7 +1174,7 @@ export default function AccountPage() {
           <div className={styles.statIcon}>🧾</div>
           <div>
             <div className={styles.statValue}>{loadingInvoices ? "…" : invoices.length}</div>
-            <div className={styles.statLabel}>Rechnungen</div>
+            <div className={styles.statLabel}>{ui.invoices}</div>
           </div>
         </article>
 
@@ -745,19 +1182,19 @@ export default function AccountPage() {
           <div className={styles.statIcon}>🔐</div>
           <div>
             <div className={styles.statValue}>Auth</div>
-            <div className={styles.statLabel}>Supabase Login</div>
+            <div className={styles.statLabel}>{ui.authLogin}</div>
           </div>
         </article>
       </section>
 
-      <nav className="mioseg-account-tabs" aria-label="Kontobereiche">
+      <nav className="mioseg-account-tabs" aria-label={ui.accountSections}>
         <button
           type="button"
           onClick={() => setActiveTab("overview")}
           className={activeTab === "overview" ? "is-active" : ""}
         >
           <span>◉</span>
-          Übersicht
+          {ui.overview}
         </button>
         <button
           type="button"
@@ -765,7 +1202,7 @@ export default function AccountPage() {
           className={activeTab === "profile" ? "is-active" : ""}
         >
           <span>👤</span>
-          Profil
+          {ui.profile}
         </button>
         <button
           type="button"
@@ -773,7 +1210,7 @@ export default function AccountPage() {
           className={activeTab === "billing" ? "is-active" : ""}
         >
           <span>🧾</span>
-          Rechnungen
+          {ui.invoices}
         </button>
         <button
           type="button"
@@ -781,7 +1218,7 @@ export default function AccountPage() {
           className={activeTab === "security" ? "is-active" : ""}
         >
           <span>🔐</span>
-          Sicherheit
+          {ui.security}
         </button>
       </nav>
 
@@ -800,13 +1237,12 @@ export default function AccountPage() {
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2>Kontodaten</h2>
+              <h2>{ui.accountData}</h2>
               <p>
-                Diese Daten kommen direkt aus deiner Supabase-Anmeldung und dem
-                Profil.
+                {ui.accountDataText}
               </p>
             </div>
-            <span>{loading ? "Lädt" : "Live"}</span>
+            <span>{loading ? ui.loading : ui.live}</span>
           </div>
 
           {errorText ? <div style={errorStyle}>{errorText}</div> : null}
@@ -821,16 +1257,16 @@ export default function AccountPage() {
                 fontWeight: 950,
               }}
             >
-              Konto wird geladen …
+              {ui.loadingAccount}
             </div>
           ) : null}
 
           {!loading && !errorText ? (
             <div style={{ display: "grid", gap: 12 }}>
-              <InfoRow label="Name / Anzeige" value={displayName} />
-              <InfoRow label="E-Mail" value={email || "–"} />
-              <InfoRow label="User-ID" value={userId || "–"} monospace />
-              <InfoRow label="Registriert seit" value={formatDate(createdAt)} />
+              <InfoRow label={ui.displayName} value={displayName} />
+              <InfoRow label={ui.email} value={email || "–"} />
+              <InfoRow label={ui.userId} value={userId || "–"} monospace />
+              <InfoRow label={ui.registeredSince} value={formatDate(createdAt, accountLocale)} />
             </div>
           ) : null}
         </article>
@@ -842,87 +1278,86 @@ export default function AccountPage() {
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2>Profil bearbeiten</h2>
+              <h2>{ui.editProfile}</h2>
               <p>
-                Diese Angaben werden für dein Konto, Support-Anfragen und spätere
-                Profilfunktionen verwendet. Die Login-E-Mail bleibt in Supabase Auth.
+                {ui.editProfileText}
               </p>
             </div>
-            <span>Profil</span>
+            <span>{ui.profile}</span>
           </div>
 
           <div style={{ display: "grid", gap: 12 }}>
             <div className="mioseg-account-grid-2">
               <label style={labelStyle}>
-                Vorname
+                {ui.firstName}
                 <input
                   value={firstName}
                   onChange={(event) => setFirstName(event.target.value)}
-                  placeholder="Vorname"
+                  placeholder={ui.firstName}
                   style={inputStyle}
                 />
               </label>
 
               <label style={labelStyle}>
-                Nachname
+                {ui.lastName}
                 <input
                   value={lastName}
                   onChange={(event) => setLastName(event.target.value)}
-                  placeholder="Nachname"
+                  placeholder={ui.lastName}
                   style={inputStyle}
                 />
               </label>
             </div>
 
             <label style={labelStyle}>
-              Kontotyp
+              {ui.accountType}
               <select
                 value={accountType}
                 onChange={(event) => setAccountType(event.target.value)}
                 style={selectStyle}
               >
-                <option value="private" style={optionStyle}>Privatperson</option>
-                <option value="business" style={optionStyle}>Unternehmen</option>
+                <option value="private" style={optionStyle}>{ui.privatePerson}</option>
+                <option value="business" style={optionStyle}>{ui.company}</option>
               </select>
             </label>
 
             <label style={labelStyle}>
-              Firma
+              {ui.companyField}
               <input
                 value={companyName}
                 onChange={(event) => setCompanyName(event.target.value)}
-                placeholder="Optional"
+                placeholder={ui.optional}
                 style={inputStyle}
               />
             </label>
 
             <label style={labelStyle}>
-              Straße und Hausnummer
+              {ui.street}
               <input
                 value={street}
                 onChange={(event) => setStreet(event.target.value)}
-                placeholder="Straße und Hausnummer"
+                placeholder={ui.street}
                 style={inputStyle}
               />
             </label>
 
             <div className="mioseg-account-grid-postal">
               <label style={labelStyle}>
-                PLZ
+                {ui.postalCode}
                 <input
                   value={postalCode}
                   onChange={(event) => setPostalCode(event.target.value)}
-                  placeholder="PLZ"
+                  placeholder={ui.postalCode}
                   style={inputStyle}
                 />
               </label>
 
               <label style={labelStyle}>
-                Ort
+                {ui.city}
                 <input
                   value={city}
                   onChange={(event) => setCity(event.target.value)}
-                  placeholder="Ort"
+                  placeholder={ui.city}
                   style={inputStyle}
                 />
               </label>
@@ -930,7 +1365,7 @@ export default function AccountPage() {
 
             <div className="mioseg-account-grid-2">
               <label style={labelStyle}>
-                Land
+                {ui.country}
                 <input
                   value={country}
                   onChange={(event) =>
@@ -943,7 +1378,7 @@ export default function AccountPage() {
               </label>
 
               <label style={labelStyle}>
-                Sprache
+                {ui.language}
                 <select
                   value={language}
                   onChange={(event) => setLanguage(event.target.value)}
@@ -951,18 +1386,22 @@ export default function AccountPage() {
                 >
                   <option value="de" style={optionStyle}>Deutsch</option>
                   <option value="en" style={optionStyle}>English</option>
-                  <option value="fr" style={optionStyle}>Français</option>
                   <option value="tr" style={optionStyle}>Türkçe</option>
+                  <option value="pl" style={optionStyle}>Polski</option>
+                  <option value="ar" style={optionStyle}>العربية</option>
+                  <option value="fr" style={optionStyle}>Français</option>
+                  <option value="es" style={optionStyle}>Español</option>
+                  <option value="it" style={optionStyle}>Italiano</option>
                 </select>
               </label>
             </div>
 
             <label style={labelStyle}>
-              USt.-ID
+              {ui.vatId}
               <input
                 value={vatId}
                 onChange={(event) => setVatId(event.target.value)}
-                placeholder="Optional, z. B. DE123456789"
+                placeholder={ui.vatPlaceholder}
                 style={inputStyle}
               />
             </label>
@@ -972,13 +1411,13 @@ export default function AccountPage() {
                 style={{
                   borderRadius: 16,
                   padding: "12px 14px",
-                  background: profileMessage.startsWith("Fehler")
+                  background: profileMessage.startsWith(`${ui.error}:`)
                     ? "rgba(239, 68, 68, 0.14)"
                     : "rgba(34, 197, 94, 0.14)",
-                  border: profileMessage.startsWith("Fehler")
+                  border: profileMessage.startsWith(`${ui.error}:`)
                     ? "1px solid rgba(252, 165, 165, 0.22)"
                     : "1px solid rgba(134, 239, 172, 0.22)",
-                  color: profileMessage.startsWith("Fehler")
+                  color: profileMessage.startsWith(`${ui.error}:`)
                     ? "#fecaca"
                     : "#bbf7d0",
                   fontWeight: 850,
@@ -999,7 +1438,7 @@ export default function AccountPage() {
                 opacity: savingProfile ? 0.72 : 1,
               }}
             >
-              {savingProfile ? "Speichert …" : "Profil speichern"}
+              {savingProfile ? ui.saving : ui.saveProfile}
             </button>
           </div>
         </article>
