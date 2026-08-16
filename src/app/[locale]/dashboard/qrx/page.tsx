@@ -8,6 +8,547 @@ import { supabase } from "@/lib/supabase";
 import { getBestMediaUrl } from "@/lib/media";
 import styles from "../dashboard.module.css";
 
+
+type QrxWebLocale = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+
+function normalizeQrxLocale(value: string): QrxWebLocale {
+  const normalized = value.trim().toLowerCase().split(/[-_]/)[0];
+  return (["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const).includes(normalized as QrxWebLocale)
+    ? (normalized as QrxWebLocale)
+    : "de";
+}
+
+const QRLIST_TEXT = {
+  de: {
+    untitled: "Unbenannter QR-X",
+    qrxFallback: "QR-X auf mioseg qr",
+    loginRequired: "Bitte melde dich zuerst an, um deine QR-X zu sehen.",
+    copyFailed: "Link konnte nicht kopiert werden.",
+    deleteConfirm: "Möchtest du diesen QR-X wirklich löschen?\n\n{{title}}\n\nDer QR-X wird aus deinem Konto entfernt.",
+    sessionExpired: "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+    deleteFailed: "QR-X konnte nicht gelöscht werden.",
+    removeSavedConfirm: "Möchtest du diesen gespeicherten QR-X entfernen?\n\n{{title}}",
+    loginAgain: "Bitte melde dich erneut an.",
+    removeFailed: "QR-X konnte nicht entfernt werden.",
+    ownQrx: "Eigene QR-X",
+    savedQrx: "Gespeicherte QR-X",
+    businessQrx: "Business QR-X",
+    normalQrx: "Normale QR-X",
+    verified: "Verifiziert",
+    createdTitle: "Deine erstellten QR-X",
+    savedTitle: "Deine gespeicherten QR-X",
+    createdText: "Alle QR-X aus deinem Konto, sortiert nach dem neuesten Eintrag.",
+    savedText: "Alle QR-X, denen du folgst. Änderungen werden automatisch mit der App synchronisiert.",
+    myQrx: "Meine QR-X",
+    heroText: "Verwalte deine eigenen QR-X und gespeicherten QR-X bequem im Browser.",
+    create: "QR-X erstellen",
+    backDashboard: "Zurück zum Dashboard",
+    loading: "Lädt ...",
+    count: "{{filtered}} von {{total}} Einträgen",
+    search: "QR-X suchen",
+    searchPlaceholder: "Titel, Firma, Ort oder Kategorie suchen …",
+    clearSearch: "Suche löschen",
+    noneOwn: "Noch keine QR-X erstellt",
+    noneSaved: "Noch keine QR-X gespeichert",
+    noneOwnText: "Sobald du deinen ersten QR-X erstellt hast, erscheint er hier in deiner Web-Verwaltung.",
+    noneSavedText: "Sobald du einem QR-X folgst, erscheint er hier automatisch.",
+    openExplore: "Explore öffnen",
+    noMatch: "Kein passender QR-X gefunden",
+    noMatchText: "Prüfe den Suchbegriff oder lösche die Suche.",
+    loadingQrx: "QR-X werden geladen …",
+    businessBadge: "🏢 Business QR-X",
+    normalBadge: "⌗ Normaler QR-X",
+    created: "Erstellt",
+    views: "QR-X Aufrufe",
+    followers: "Follower",
+    imageViews: "Bildaufrufe",
+    downloads: "Downloads",
+    fileOpens: "{{count}} Dateiöffnungen",
+    analyticsBuilding: "Analytics werden aufgebaut",
+    open: "Öffnen",
+    copied: "Kopiert",
+    share: "Teilen",
+    edit: "Bearbeiten",
+    mediaAnalytics: "📷 Medien & Analytics",
+    deleting: "Löscht …",
+    delete: "🗑️ Löschen",
+    removing: "Entfernt …",
+    removeSaved: "✕ Aus gespeicherten entfernen",
+    catHealth: "Praxis & Gesundheit",
+    catFood: "Gastronomie",
+    catCompany: "Unternehmen",
+    catService: "Dienstleistung",
+    catCraft: "Handwerk",
+    catEvent: "Event",
+    catClub: "Verein",
+    catCharity: "Wohltätigkeit",
+    catSight: "Sehenswürdigkeit",
+    catOther: "Sonstiges",
+  },
+  en: {
+    untitled: "Untitled QR-X",
+    qrxFallback: "QR-X on mioseg qr",
+    loginRequired: "Please sign in first to view your QR-X.",
+    copyFailed: "The link could not be copied.",
+    deleteConfirm: "Do you really want to delete this QR-X?\n\n{{title}}\n\nThe QR-X will be removed from your account.",
+    sessionExpired: "Your session has expired. Please sign in again.",
+    deleteFailed: "The QR-X could not be deleted.",
+    removeSavedConfirm: "Do you want to remove this saved QR-X?\n\n{{title}}",
+    loginAgain: "Please sign in again.",
+    removeFailed: "The QR-X could not be removed.",
+    ownQrx: "My QR-X",
+    savedQrx: "Saved QR-X",
+    businessQrx: "Business QR-X",
+    normalQrx: "Normal QR-X",
+    verified: "Verified",
+    createdTitle: "Your created QR-X",
+    savedTitle: "Your saved QR-X",
+    createdText: "All QR-X in your account, sorted by newest first.",
+    savedText: "All QR-X you follow. Changes are automatically synced with the app.",
+    myQrx: "My QR-X",
+    heroText: "Manage your own and saved QR-X conveniently in the browser.",
+    create: "Create QR-X",
+    backDashboard: "Back to dashboard",
+    loading: "Loading ...",
+    count: "{{filtered}} of {{total}} entries",
+    search: "Search QR-X",
+    searchPlaceholder: "Search title, company, location or category …",
+    clearSearch: "Clear search",
+    noneOwn: "No QR-X created yet",
+    noneSaved: "No QR-X saved yet",
+    noneOwnText: "Once you create your first QR-X, it will appear here in your web management.",
+    noneSavedText: "Once you follow a QR-X, it will appear here automatically.",
+    openExplore: "Open Explore",
+    noMatch: "No matching QR-X found",
+    noMatchText: "Check the search term or clear the search.",
+    loadingQrx: "Loading QR-X …",
+    businessBadge: "🏢 Business QR-X",
+    normalBadge: "⌗ Normal QR-X",
+    created: "Created",
+    views: "QR-X views",
+    followers: "Followers",
+    imageViews: "Image views",
+    downloads: "Downloads",
+    fileOpens: "{{count}} file opens",
+    analyticsBuilding: "Analytics are being built",
+    open: "Open",
+    copied: "Copied",
+    share: "Share",
+    edit: "Edit",
+    mediaAnalytics: "📷 Media & analytics",
+    deleting: "Deleting …",
+    delete: "🗑️ Delete",
+    removing: "Removing …",
+    removeSaved: "✕ Remove from saved",
+    catHealth: "Health & practice",
+    catFood: "Food & dining",
+    catCompany: "Company",
+    catService: "Services",
+    catCraft: "Trades",
+    catEvent: "Event",
+    catClub: "Club",
+    catCharity: "Charity",
+    catSight: "Attraction",
+    catOther: "Other",
+  },
+  tr: {
+    untitled: "Adsız QR-X",
+    qrxFallback: "mioseg qr üzerinde QR-X",
+    loginRequired: "QR-X'lerini görmek için önce giriş yap.",
+    copyFailed: "Bağlantı kopyalanamadı.",
+    deleteConfirm: "Bu QR-X'i gerçekten silmek istiyor musun?\n\n{{title}}\n\nQR-X hesabından kaldırılacak.",
+    sessionExpired: "Oturumunun süresi doldu. Lütfen tekrar giriş yap.",
+    deleteFailed: "QR-X silinemedi.",
+    removeSavedConfirm: "Bu kayıtlı QR-X'i kaldırmak istiyor musun?\n\n{{title}}",
+    loginAgain: "Lütfen tekrar giriş yap.",
+    removeFailed: "QR-X kaldırılamadı.",
+    ownQrx: "QR-X'lerim",
+    savedQrx: "Kayıtlı QR-X'ler",
+    businessQrx: "Business QR-X",
+    normalQrx: "Normal QR-X",
+    verified: "Doğrulandı",
+    createdTitle: "Oluşturduğun QR-X'ler",
+    savedTitle: "Kaydettiğin QR-X'ler",
+    createdText: "Hesabındaki tüm QR-X'ler, en yeniler önce.",
+    savedText: "Takip ettiğin tüm QR-X'ler. Değişiklikler uygulamayla otomatik senkronize edilir.",
+    myQrx: "QR-X'lerim",
+    heroText: "Kendi ve kayıtlı QR-X'lerini tarayıcıdan kolayca yönet.",
+    create: "QR-X oluştur",
+    backDashboard: "Kontrol paneline dön",
+    loading: "Yükleniyor ...",
+    count: "{{total}} kayıttan {{filtered}} tanesi",
+    search: "QR-X ara",
+    searchPlaceholder: "Başlık, firma, konum veya kategori ara …",
+    clearSearch: "Aramayı temizle",
+    noneOwn: "Henüz QR-X oluşturulmadı",
+    noneSaved: "Henüz QR-X kaydedilmedi",
+    noneOwnText: "İlk QR-X'ini oluşturduğunda burada görünecek.",
+    noneSavedText: "Bir QR-X'i takip ettiğinde burada otomatik görünecek.",
+    openExplore: "Explore'u aç",
+    noMatch: "Eşleşen QR-X bulunamadı",
+    noMatchText: "Arama terimini kontrol et veya aramayı temizle.",
+    loadingQrx: "QR-X yükleniyor …",
+    businessBadge: "🏢 Business QR-X",
+    normalBadge: "⌗ Normal QR-X",
+    created: "Oluşturuldu",
+    views: "QR-X görüntüleme",
+    followers: "Takipçiler",
+    imageViews: "Görsel görüntüleme",
+    downloads: "İndirmeler",
+    fileOpens: "{{count}} dosya açma",
+    analyticsBuilding: "Analitik hazırlanıyor",
+    open: "Aç",
+    copied: "Kopyalandı",
+    share: "Paylaş",
+    edit: "Düzenle",
+    mediaAnalytics: "📷 Medya ve analitik",
+    deleting: "Siliniyor …",
+    delete: "🗑️ Sil",
+    removing: "Kaldırılıyor …",
+    removeSaved: "✕ Kayıtlardan kaldır",
+    catHealth: "Sağlık & muayenehane",
+    catFood: "Yeme & içme",
+    catCompany: "Şirket",
+    catService: "Hizmetler",
+    catCraft: "Zanaat",
+    catEvent: "Etkinlik",
+    catClub: "Dernek",
+    catCharity: "Yardım kuruluşu",
+    catSight: "Gezilecek yer",
+    catOther: "Diğer",
+  },
+  pl: {
+    untitled: "QR-X bez nazwy",
+    qrxFallback: "QR-X w mioseg qr",
+    loginRequired: "Najpierw się zaloguj, aby zobaczyć swoje QR-X.",
+    copyFailed: "Nie udało się skopiować linku.",
+    deleteConfirm: "Czy na pewno chcesz usunąć ten QR-X?\n\n{{title}}\n\nQR-X zostanie usunięty z Twojego konta.",
+    sessionExpired: "Sesja wygasła. Zaloguj się ponownie.",
+    deleteFailed: "Nie udało się usunąć QR-X.",
+    removeSavedConfirm: "Czy chcesz usunąć ten zapisany QR-X?\n\n{{title}}",
+    loginAgain: "Zaloguj się ponownie.",
+    removeFailed: "Nie udało się usunąć QR-X.",
+    ownQrx: "Moje QR-X",
+    savedQrx: "Zapisane QR-X",
+    businessQrx: "Business QR-X",
+    normalQrx: "Zwykłe QR-X",
+    verified: "Zweryfikowane",
+    createdTitle: "Utworzone QR-X",
+    savedTitle: "Zapisane QR-X",
+    createdText: "Wszystkie QR-X na Twoim koncie, od najnowszych.",
+    savedText: "Wszystkie obserwowane QR-X. Zmiany są automatycznie synchronizowane z aplikacją.",
+    myQrx: "Moje QR-X",
+    heroText: "Zarządzaj własnymi i zapisanymi QR-X wygodnie w przeglądarce.",
+    create: "Utwórz QR-X",
+    backDashboard: "Wróć do panelu",
+    loading: "Ładowanie ...",
+    count: "{{filtered}} z {{total}} wpisów",
+    search: "Szukaj QR-X",
+    searchPlaceholder: "Szukaj tytułu, firmy, miejsca lub kategorii …",
+    clearSearch: "Wyczyść wyszukiwanie",
+    noneOwn: "Nie utworzono jeszcze QR-X",
+    noneSaved: "Nie zapisano jeszcze QR-X",
+    noneOwnText: "Po utworzeniu pierwszego QR-X pojawi się on tutaj.",
+    noneSavedText: "Gdy zaczniesz obserwować QR-X, pojawi się tutaj automatycznie.",
+    openExplore: "Otwórz Explore",
+    noMatch: "Nie znaleziono pasującego QR-X",
+    noMatchText: "Sprawdź wyszukiwane hasło lub wyczyść wyszukiwanie.",
+    loadingQrx: "Ładowanie QR-X …",
+    businessBadge: "🏢 Business QR-X",
+    normalBadge: "⌗ Zwykły QR-X",
+    created: "Utworzono",
+    views: "Wyświetlenia QR-X",
+    followers: "Obserwujący",
+    imageViews: "Wyświetlenia obrazów",
+    downloads: "Pobrania",
+    fileOpens: "{{count}} otwarć plików",
+    analyticsBuilding: "Analityka jest przygotowywana",
+    open: "Otwórz",
+    copied: "Skopiowano",
+    share: "Udostępnij",
+    edit: "Edytuj",
+    mediaAnalytics: "📷 Media i analityka",
+    deleting: "Usuwanie …",
+    delete: "🗑️ Usuń",
+    removing: "Usuwanie …",
+    removeSaved: "✕ Usuń z zapisanych",
+    catHealth: "Zdrowie i praktyka",
+    catFood: "Gastronomia",
+    catCompany: "Firma",
+    catService: "Usługi",
+    catCraft: "Rzemiosło",
+    catEvent: "Wydarzenie",
+    catClub: "Klub",
+    catCharity: "Organizacja charytatywna",
+    catSight: "Atrakcja",
+    catOther: "Inne",
+  },
+  ar: {
+    untitled: "QR-X بلا عنوان",
+    qrxFallback: "QR-X على mioseg qr",
+    loginRequired: "يرجى تسجيل الدخول أولًا لعرض QR-X الخاصة بك.",
+    copyFailed: "تعذر نسخ الرابط.",
+    deleteConfirm: "هل تريد حقًا حذف QR-X هذا؟\n\n{{title}}\n\nستتم إزالته من حسابك.",
+    sessionExpired: "انتهت جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    deleteFailed: "تعذر حذف QR-X.",
+    removeSavedConfirm: "هل تريد إزالة QR-X المحفوظ هذا؟\n\n{{title}}",
+    loginAgain: "يرجى تسجيل الدخول مرة أخرى.",
+    removeFailed: "تعذر إزالة QR-X.",
+    ownQrx: "QR-X الخاصة بي",
+    savedQrx: "QR-X المحفوظة",
+    businessQrx: "Business QR-X",
+    normalQrx: "QR-X عادية",
+    verified: "موثّق",
+    createdTitle: "QR-X التي أنشأتها",
+    savedTitle: "QR-X المحفوظة لديك",
+    createdText: "كل QR-X في حسابك مرتبة من الأحدث.",
+    savedText: "كل QR-X التي تتابعها. تتم مزامنة التغييرات تلقائيًا مع التطبيق.",
+    myQrx: "QR-X الخاصة بي",
+    heroText: "أدر QR-X الخاصة بك والمحفوظة بسهولة من المتصفح.",
+    create: "إنشاء QR-X",
+    backDashboard: "العودة إلى لوحة التحكم",
+    loading: "جارٍ التحميل ...",
+    count: "{{filtered}} من {{total}} عناصر",
+    search: "بحث QR-X",
+    searchPlaceholder: "ابحث بالعنوان أو الشركة أو الموقع أو الفئة …",
+    clearSearch: "مسح البحث",
+    noneOwn: "لم يتم إنشاء QR-X بعد",
+    noneSaved: "لا توجد QR-X محفوظة بعد",
+    noneOwnText: "عند إنشاء أول QR-X سيظهر هنا.",
+    noneSavedText: "عند متابعة QR-X سيظهر هنا تلقائيًا.",
+    openExplore: "فتح Explore",
+    noMatch: "لم يتم العثور على QR-X مطابق",
+    noMatchText: "تحقق من عبارة البحث أو امسح البحث.",
+    loadingQrx: "جارٍ تحميل QR-X …",
+    businessBadge: "🏢 Business QR-X",
+    normalBadge: "⌗ QR-X عادية",
+    created: "تم الإنشاء",
+    views: "مشاهدات QR-X",
+    followers: "المتابعون",
+    imageViews: "مشاهدات الصور",
+    downloads: "التنزيلات",
+    fileOpens: "{{count}} فتح ملف",
+    analyticsBuilding: "جارٍ إعداد التحليلات",
+    open: "فتح",
+    copied: "تم النسخ",
+    share: "مشاركة",
+    edit: "تعديل",
+    mediaAnalytics: "📷 الوسائط والتحليلات",
+    deleting: "جارٍ الحذف …",
+    delete: "🗑️ حذف",
+    removing: "جارٍ الإزالة …",
+    removeSaved: "✕ إزالة من المحفوظات",
+    catHealth: "الصحة والعيادات",
+    catFood: "المطاعم",
+    catCompany: "شركة",
+    catService: "خدمات",
+    catCraft: "حِرف",
+    catEvent: "فعالية",
+    catClub: "نادي",
+    catCharity: "خيري",
+    catSight: "معلم سياحي",
+    catOther: "أخرى",
+  },
+  fr: {
+    untitled: "QR-X sans titre",
+    qrxFallback: "QR-X sur mioseg qr",
+    loginRequired: "Connectez-vous pour voir vos QR-X.",
+    copyFailed: "Le lien n’a pas pu être copié.",
+    deleteConfirm: "Voulez-vous vraiment supprimer ce QR-X ?\n\n{{title}}\n\nLe QR-X sera supprimé de votre compte.",
+    sessionExpired: "Votre session a expiré. Veuillez vous reconnecter.",
+    deleteFailed: "Le QR-X n’a pas pu être supprimé.",
+    removeSavedConfirm: "Voulez-vous retirer ce QR-X enregistré ?\n\n{{title}}",
+    loginAgain: "Veuillez vous reconnecter.",
+    removeFailed: "Le QR-X n’a pas pu être retiré.",
+    ownQrx: "Mes QR-X",
+    savedQrx: "QR-X enregistrés",
+    businessQrx: "Business QR-X",
+    normalQrx: "QR-X normaux",
+    verified: "Vérifié",
+    createdTitle: "Vos QR-X créés",
+    savedTitle: "Vos QR-X enregistrés",
+    createdText: "Tous les QR-X de votre compte, du plus récent au plus ancien.",
+    savedText: "Tous les QR-X que vous suivez. Les modifications sont automatiquement synchronisées avec l’application.",
+    myQrx: "Mes QR-X",
+    heroText: "Gérez facilement vos QR-X et ceux enregistrés dans le navigateur.",
+    create: "Créer un QR-X",
+    backDashboard: "Retour au tableau de bord",
+    loading: "Chargement ...",
+    count: "{{filtered}} sur {{total}} éléments",
+    search: "Rechercher un QR-X",
+    searchPlaceholder: "Rechercher par titre, entreprise, lieu ou catégorie …",
+    clearSearch: "Effacer la recherche",
+    noneOwn: "Aucun QR-X créé",
+    noneSaved: "Aucun QR-X enregistré",
+    noneOwnText: "Après avoir créé votre premier QR-X, il apparaîtra ici.",
+    noneSavedText: "Lorsque vous suivez un QR-X, il apparaît automatiquement ici.",
+    openExplore: "Ouvrir Explore",
+    noMatch: "Aucun QR-X correspondant",
+    noMatchText: "Vérifiez le terme recherché ou effacez la recherche.",
+    loadingQrx: "Chargement des QR-X …",
+    businessBadge: "🏢 Business QR-X",
+    normalBadge: "⌗ QR-X normal",
+    created: "Créé",
+    views: "Vues QR-X",
+    followers: "Abonnés",
+    imageViews: "Vues des images",
+    downloads: "Téléchargements",
+    fileOpens: "{{count}} ouvertures de fichiers",
+    analyticsBuilding: "Les statistiques sont en cours de préparation",
+    open: "Ouvrir",
+    copied: "Copié",
+    share: "Partager",
+    edit: "Modifier",
+    mediaAnalytics: "📷 Médias et statistiques",
+    deleting: "Suppression …",
+    delete: "🗑️ Supprimer",
+    removing: "Retrait …",
+    removeSaved: "✕ Retirer des enregistrés",
+    catHealth: "Santé & cabinet",
+    catFood: "Restauration",
+    catCompany: "Entreprise",
+    catService: "Services",
+    catCraft: "Artisanat",
+    catEvent: "Événement",
+    catClub: "Association",
+    catCharity: "Caritatif",
+    catSight: "Attraction",
+    catOther: "Autre",
+  },
+  es: {
+    untitled: "QR-X sin título",
+    qrxFallback: "QR-X en mioseg qr",
+    loginRequired: "Inicia sesión para ver tus QR-X.",
+    copyFailed: "No se pudo copiar el enlace.",
+    deleteConfirm: "¿Quieres eliminar realmente este QR-X?\n\n{{title}}\n\nEl QR-X se eliminará de tu cuenta.",
+    sessionExpired: "Tu sesión ha caducado. Vuelve a iniciar sesión.",
+    deleteFailed: "No se pudo eliminar el QR-X.",
+    removeSavedConfirm: "¿Quieres quitar este QR-X guardado?\n\n{{title}}",
+    loginAgain: "Vuelve a iniciar sesión.",
+    removeFailed: "No se pudo quitar el QR-X.",
+    ownQrx: "Mis QR-X",
+    savedQrx: "QR-X guardados",
+    businessQrx: "Business QR-X",
+    normalQrx: "QR-X normales",
+    verified: "Verificado",
+    createdTitle: "Tus QR-X creados",
+    savedTitle: "Tus QR-X guardados",
+    createdText: "Todos los QR-X de tu cuenta, ordenados del más reciente.",
+    savedText: "Todos los QR-X que sigues. Los cambios se sincronizan automáticamente con la app.",
+    myQrx: "Mis QR-X",
+    heroText: "Gestiona tus QR-X propios y guardados cómodamente en el navegador.",
+    create: "Crear QR-X",
+    backDashboard: "Volver al panel",
+    loading: "Cargando ...",
+    count: "{{filtered}} de {{total}} elementos",
+    search: "Buscar QR-X",
+    searchPlaceholder: "Buscar por título, empresa, lugar o categoría …",
+    clearSearch: "Borrar búsqueda",
+    noneOwn: "Aún no hay QR-X creados",
+    noneSaved: "Aún no hay QR-X guardados",
+    noneOwnText: "Cuando crees tu primer QR-X aparecerá aquí.",
+    noneSavedText: "Cuando sigas un QR-X aparecerá aquí automáticamente.",
+    openExplore: "Abrir Explore",
+    noMatch: "No se encontró ningún QR-X",
+    noMatchText: "Comprueba el término o borra la búsqueda.",
+    loadingQrx: "Cargando QR-X …",
+    businessBadge: "🏢 Business QR-X",
+    normalBadge: "⌗ QR-X normal",
+    created: "Creado",
+    views: "Vistas de QR-X",
+    followers: "Seguidores",
+    imageViews: "Vistas de imágenes",
+    downloads: "Descargas",
+    fileOpens: "{{count}} aperturas de archivos",
+    analyticsBuilding: "Preparando analíticas",
+    open: "Abrir",
+    copied: "Copiado",
+    share: "Compartir",
+    edit: "Editar",
+    mediaAnalytics: "📷 Medios y analíticas",
+    deleting: "Eliminando …",
+    delete: "🗑️ Eliminar",
+    removing: "Quitando …",
+    removeSaved: "✕ Quitar de guardados",
+    catHealth: "Salud y consulta",
+    catFood: "Gastronomía",
+    catCompany: "Empresa",
+    catService: "Servicios",
+    catCraft: "Oficios",
+    catEvent: "Evento",
+    catClub: "Club",
+    catCharity: "Beneficencia",
+    catSight: "Atracción",
+    catOther: "Otros",
+  },
+  it: {
+    untitled: "QR-X senza titolo",
+    qrxFallback: "QR-X su mioseg qr",
+    loginRequired: "Accedi per vedere i tuoi QR-X.",
+    copyFailed: "Impossibile copiare il link.",
+    deleteConfirm: "Vuoi davvero eliminare questo QR-X?\n\n{{title}}\n\nIl QR-X verrà rimosso dal tuo account.",
+    sessionExpired: "La sessione è scaduta. Accedi di nuovo.",
+    deleteFailed: "Impossibile eliminare il QR-X.",
+    removeSavedConfirm: "Vuoi rimuovere questo QR-X salvato?\n\n{{title}}",
+    loginAgain: "Accedi di nuovo.",
+    removeFailed: "Impossibile rimuovere il QR-X.",
+    ownQrx: "I miei QR-X",
+    savedQrx: "QR-X salvati",
+    businessQrx: "Business QR-X",
+    normalQrx: "QR-X normali",
+    verified: "Verificato",
+    createdTitle: "I tuoi QR-X creati",
+    savedTitle: "I tuoi QR-X salvati",
+    createdText: "Tutti i QR-X del tuo account, ordinati dal più recente.",
+    savedText: "Tutti i QR-X che segui. Le modifiche vengono sincronizzate automaticamente con l’app.",
+    myQrx: "I miei QR-X",
+    heroText: "Gestisci comodamente dal browser i tuoi QR-X e quelli salvati.",
+    create: "Crea QR-X",
+    backDashboard: "Torna alla dashboard",
+    loading: "Caricamento ...",
+    count: "{{filtered}} di {{total}} elementi",
+    search: "Cerca QR-X",
+    searchPlaceholder: "Cerca titolo, azienda, luogo o categoria …",
+    clearSearch: "Cancella ricerca",
+    noneOwn: "Nessun QR-X creato",
+    noneSaved: "Nessun QR-X salvato",
+    noneOwnText: "Quando crei il tuo primo QR-X apparirà qui.",
+    noneSavedText: "Quando segui un QR-X apparirà automaticamente qui.",
+    openExplore: "Apri Explore",
+    noMatch: "Nessun QR-X corrispondente",
+    noMatchText: "Controlla il termine di ricerca o cancella la ricerca.",
+    loadingQrx: "Caricamento QR-X …",
+    businessBadge: "🏢 Business QR-X",
+    normalBadge: "⌗ QR-X normale",
+    created: "Creato",
+    views: "Visualizzazioni QR-X",
+    followers: "Follower",
+    imageViews: "Visualizzazioni immagini",
+    downloads: "Download",
+    fileOpens: "{{count}} aperture file",
+    analyticsBuilding: "Preparazione analytics",
+    open: "Apri",
+    copied: "Copiato",
+    share: "Condividi",
+    edit: "Modifica",
+    mediaAnalytics: "📷 Media e analytics",
+    deleting: "Eliminazione …",
+    delete: "🗑️ Elimina",
+    removing: "Rimozione …",
+    removeSaved: "✕ Rimuovi dai salvati",
+    catHealth: "Salute e studio",
+    catFood: "Ristorazione",
+    catCompany: "Azienda",
+    catService: "Servizi",
+    catCraft: "Artigianato",
+    catEvent: "Evento",
+    catClub: "Associazione",
+    catCharity: "Beneficenza",
+    catSight: "Attrazione",
+    catOther: "Altro",
+  },
+} as const;
+
 type BusinessCategory =
   | "praxis_gesundheit"
   | "gastronomie"
@@ -38,11 +579,14 @@ const BUSINESS_CATEGORY_OPTIONS: Array<{
   { value: "sonstiges", label: "Sonstiges" },
 ];
 
-function getBusinessCategoryLabel(value: string | null | undefined) {
+function getBusinessCategoryLabel(value: string | null | undefined, ui: (typeof QRLIST_TEXT)[QrxWebLocale]) {
   if (!value) return null;
   return (
-    BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value)?.label ??
-    value
+    ({
+      praxis_gesundheit: ui.catHealth, gastronomie: ui.catFood, unternehmen: ui.catCompany,
+      dienstleistung: ui.catService, handwerk: ui.catCraft, event: ui.catEvent, verein: ui.catClub,
+      wohltaetigkeit: ui.catCharity, sehenswuerdigkeit: ui.catSight, sonstiges: ui.catOther,
+    } as Record<string, string>)[value] ?? value
   );
 }
 
@@ -95,13 +639,13 @@ function getLocaleFromParams(value: unknown) {
   return "de";
 }
 
-function getQrxTitle(entry: QrxEntry) {
+function getQrxTitle(entry: QrxEntry, fallback = "Unbenannter QR-X") {
   return (
-    entry.company_name?.trim() || entry.title?.trim() || "Unbenannter QR-X"
+    entry.company_name?.trim() || entry.title?.trim() || fallback
   );
 }
 
-function getQrxText(entry: QrxEntry) {
+function getQrxText(entry: QrxEntry, fallback = "QR-X auf mioseg qr") {
   return (
     entry.description?.trim() ||
     entry.location_name?.trim() ||
@@ -127,12 +671,12 @@ function formatNumber(value: number | null | undefined) {
   return String(n);
 }
 
-function formatDate(value: string | null) {
+function formatDate(value: string | null, locale: QrxWebLocale = "de") {
   if (!value) return "–";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "–";
 
-  return new Intl.DateTimeFormat("de-DE", {
+  return new Intl.DateTimeFormat(locale === "en" ? "en-GB" : locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -142,6 +686,8 @@ function formatDate(value: string | null) {
 export default function DashboardQrxPage() {
   const params = useParams();
   const locale = getLocaleFromParams(params?.locale);
+  const qrxLocale = normalizeQrxLocale(locale);
+  const ui = QRLIST_TEXT[qrxLocale];
 
   const [activeTab, setActiveTab] = useState<QrxTab>("own");
   const [searchQuery, setSearchQuery] = useState("");
@@ -217,7 +763,7 @@ export default function DashboardQrxPage() {
     if (!user) {
       setOwnItems([]);
       setSavedItems([]);
-      setErrorText("Bitte melde dich zuerst an, um deine QR-X zu sehen.");
+      setErrorText(ui.loginRequired);
       setLoading(false);
       return;
     }
@@ -282,7 +828,7 @@ export default function DashboardQrxPage() {
 
   async function handleShare(entry: QrxEntry) {
     const url = `${window.location.origin}/qrx/${entry.id}`;
-    const title = getQrxTitle(entry);
+    const title = getQrxTitle(entry, ui.untitled);
 
     try {
       if (navigator.share) {
@@ -303,16 +849,16 @@ export default function DashboardQrxPage() {
         setCopiedId(entry.id);
         window.setTimeout(() => setCopiedId(null), 1800);
       } catch {
-        alert("Link konnte nicht kopiert werden.");
+        alert(ui.copyFailed);
       }
     }
   }
 
   async function handleDeleteOwn(entry: QrxEntry) {
-    const title = getQrxTitle(entry);
+    const title = getQrxTitle(entry, ui.untitled);
 
     const confirmed = window.confirm(
-      `Möchtest du diesen QR-X wirklich löschen?\n\n${title}\n\nDer QR-X wird aus deinem Konto entfernt.`,
+      ui.deleteConfirm.replace("{{title}}", title),
     );
 
     if (!confirmed) return;
@@ -331,7 +877,7 @@ export default function DashboardQrxPage() {
       const token = session?.access_token;
       if (!token) {
         throw new Error(
-          "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+          ui.sessionExpired,
         );
       }
 
@@ -351,7 +897,7 @@ export default function DashboardQrxPage() {
         step?: string;
       };
       if (response.error || response.success === false) {
-        throw new Error(response.error || "QR-X konnte nicht gelöscht werden.");
+        throw new Error(response.error || ui.deleteFailed);
       }
 
       setOwnItems((current) => current.filter((item) => item.id !== entry.id));
@@ -363,7 +909,7 @@ export default function DashboardQrxPage() {
       const message =
         error instanceof Error
           ? error.message
-          : "QR-X konnte nicht gelöscht werden.";
+          : ui.deleteFailed;
       setErrorText(message);
       alert(message);
     } finally {
@@ -373,7 +919,7 @@ export default function DashboardQrxPage() {
 
   async function handleRemoveSaved(entry: QrxEntry) {
     const confirmed = window.confirm(
-      `Möchtest du diesen gespeicherten QR-X entfernen?\n\n${getQrxTitle(entry)}`,
+      ui.removeSavedConfirm.replace("{{title}}", getQrxTitle(entry, ui.untitled)),
     );
 
     if (!confirmed) return;
@@ -386,7 +932,7 @@ export default function DashboardQrxPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) throw new Error("Bitte melde dich erneut an.");
+      if (!user) throw new Error(ui.loginAgain);
 
       const { error } = await supabase
         .from("qrx_saves")
@@ -403,7 +949,7 @@ export default function DashboardQrxPage() {
       const message =
         error instanceof Error
           ? error.message
-          : "QR-X konnte nicht entfernt werden.";
+          : ui.removeFailed;
       setErrorText(message);
       alert(message);
     } finally {
@@ -418,7 +964,7 @@ export default function DashboardQrxPage() {
     if (!query) return items;
 
     return items.filter((item) => {
-      const categoryLabel = getBusinessCategoryLabel(item.category) ?? "";
+      const categoryLabel = getBusinessCategoryLabel(item.category, ui) ?? "";
       const searchableText = [
         item.title ?? "",
         item.company_name ?? "",
@@ -442,22 +988,20 @@ export default function DashboardQrxPage() {
 
     return [
       {
-        label: activeTab === "own" ? "Eigene QR-X" : "Gespeicherte QR-X",
+        label: activeTab === "own" ? ui.ownQrx : ui.savedQrx,
         value: items.length,
         icon: "▣",
       },
-      { label: "Business QR-X", value: business, icon: "🏢" },
-      { label: "Normale QR-X", value: normal, icon: "⌗" },
-      { label: "Verifiziert", value: verified, icon: "✓" },
+      { label: ui.businessQrx, value: business, icon: "🏢" },
+      { label: ui.normalQrx, value: normal, icon: "⌗" },
+      { label: ui.verified, value: verified, icon: "✓" },
     ];
   }, [items, activeTab]);
 
   const sectionTitle =
-    activeTab === "own" ? "Deine erstellten QR-X" : "Deine gespeicherten QR-X";
+    activeTab === "own" ? ui.createdTitle : ui.savedTitle;
   const sectionText =
-    activeTab === "own"
-      ? "Alle QR-X aus deinem Konto, sortiert nach dem neuesten Eintrag."
-      : "Alle QR-X, denen du folgst. Änderungen werden automatisch mit der App synchronisiert.";
+    activeTab === "own" ? ui.createdText : ui.savedText;
 
   return (
     <main className={styles.page}>
@@ -474,11 +1018,10 @@ export default function DashboardQrxPage() {
 
       <section className={styles.hero}>
         <div>
-          <span className={styles.kicker}>Meine QR-X</span>
-          <h1>Meine QR-X</h1>
+          <span className={styles.kicker}>{ui.myQrx}</span>
+          <h1>{ui.myQrx}</h1>
           <p>
-            Verwalte deine eigenen QR-X und gespeicherten QR-X bequem im
-            Browser.
+            {ui.heroText}
           </p>
         </div>
 
@@ -487,13 +1030,13 @@ export default function DashboardQrxPage() {
             href={`/${locale}/dashboard/qrx/new`}
             className={styles.primaryButton}
           >
-            + QR-X erstellen
+            + {ui.create}
           </Link>
           <Link
             href={`/${locale}/dashboard`}
             className={styles.secondaryButton}
           >
-            Zurück zum Dashboard
+            {ui.backDashboard}
           </Link>
         </div>
       </section>
@@ -515,7 +1058,7 @@ export default function DashboardQrxPage() {
           }}
           style={tabButtonStyle(activeTab === "own")}
         >
-          Eigene QR-X
+          {ui.ownQrx}
           <span style={tabBadgeStyle}>{ownItems.length}</span>
         </button>
 
@@ -527,12 +1070,12 @@ export default function DashboardQrxPage() {
           }}
           style={tabButtonStyle(activeTab === "saved")}
         >
-          Gespeicherte QR-X
+          {ui.savedQrx}
           <span style={tabBadgeStyle}>{savedItems.length}</span>
         </button>
       </section>
 
-      <section className={styles.statsGrid} aria-label="Meine QR-X Kennzahlen">
+      <section className={styles.statsGrid} aria-label={ui.myQrx}>
         {stats.map((item) => (
           <article key={item.label} className={styles.statCard}>
             <div className={styles.statIcon}>{item.icon}</div>
@@ -562,8 +1105,8 @@ export default function DashboardQrxPage() {
           </div>
           <span>
             {loading
-              ? "Lädt ..."
-              : `${filteredItems.length} von ${items.length} Einträgen`}
+              ? ui.loading
+              : ui.count.replace("{{filtered}}", String(filteredItems.length)).replace("{{total}}", String(items.length))}
           </span>
         </div>
 
@@ -578,7 +1121,7 @@ export default function DashboardQrxPage() {
               fontWeight: 900,
             }}
           >
-            QR-X suchen
+            {ui.search}
           </label>
           <div style={{ position: "relative" }}>
             <span
@@ -599,7 +1142,7 @@ export default function DashboardQrxPage() {
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Titel, Firma, Ort oder Kategorie suchen …"
+              placeholder={ui.searchPlaceholder}
               style={{
                 width: "100%",
                 minHeight: 48,
@@ -618,7 +1161,7 @@ export default function DashboardQrxPage() {
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                aria-label="Suche löschen"
+                aria-label={ui.clearSearch}
                 style={{
                   position: "absolute",
                   right: 10,
@@ -675,8 +1218,8 @@ export default function DashboardQrxPage() {
               <div style={{ fontSize: 44, marginBottom: 12 }}>▣</div>
               <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 24 }}>
                 {activeTab === "own"
-                  ? "Noch keine QR-X erstellt"
-                  : "Noch keine QR-X gespeichert"}
+                  ? ui.noneOwn
+                  : ui.noneSaved}
               </h3>
               <p
                 style={{
@@ -687,22 +1230,22 @@ export default function DashboardQrxPage() {
                 }}
               >
                 {activeTab === "own"
-                  ? "Sobald du deinen ersten QR-X erstellt hast, erscheint er hier in deiner Web-Verwaltung."
-                  : "Sobald du einem QR-X folgst, erscheint er hier automatisch."}
+                  ? ui.noneOwnText
+                  : ui.noneSavedText}
               </p>
               {activeTab === "own" ? (
                 <Link
                   href={`/${locale}/dashboard/qrx/new`}
                   className={styles.primaryButton}
                 >
-                  + QR-X erstellen
+                  + {ui.create}
                 </Link>
               ) : (
                 <Link
                   href={`/${locale}/explore`}
                   className={styles.primaryButton}
                 >
-                  Explore öffnen
+                  {ui.openExplore}
                 </Link>
               )}
             </div>
@@ -728,10 +1271,10 @@ export default function DashboardQrxPage() {
             <div>
               <div style={{ fontSize: 40, marginBottom: 10 }}>🔎</div>
               <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 22 }}>
-                Kein passender QR-X gefunden
+                {ui.noMatch}
               </h3>
               <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.6 }}>
-                Prüfe den Suchbegriff oder lösche die Suche.
+                {ui.noMatchText}
               </p>
             </div>
           </div>
@@ -751,7 +1294,7 @@ export default function DashboardQrxPage() {
               fontWeight: 950,
             }}
           >
-            QR-X werden geladen …
+            {ui.loadingQrx}
           </div>
         ) : null}
 
@@ -764,10 +1307,10 @@ export default function DashboardQrxPage() {
             }}
           >
             {filteredItems.map((entry) => {
-              const title = getQrxTitle(entry);
+              const title = getQrxTitle(entry, ui.untitled);
               const image = getQrxCardImage(entry);
               const isBusiness = entry.type === "business";
-              const categoryLabel = getBusinessCategoryLabel(entry.category);
+              const categoryLabel = getBusinessCategoryLabel(entry.category, ui);
               const openHref = `/qrx/${entry.id}`;
               const editHref = `/${locale}/dashboard/qrx/${entry.id}/edit`;
               const mediaHref = `/${locale}/dashboard/qrx/${entry.id}/media`;
@@ -860,7 +1403,7 @@ export default function DashboardQrxPage() {
                             : "1px solid #bbf7d0",
                         }}
                       >
-                        {isBusiness ? "🏢 Business QR-X" : "⌗ Normaler QR-X"}
+                        {isBusiness ? ui.businessBadge : ui.normalBadge}
                       </span>
 
                       {entry.verified ? (
@@ -878,7 +1421,7 @@ export default function DashboardQrxPage() {
                             border: "1px solid rgba(255,255,255,0.18)",
                           }}
                         >
-                          ✓ Verifiziert
+                          ✓ {ui.verified}
                         </span>
                       ) : null}
                     </div>
@@ -911,7 +1454,7 @@ export default function DashboardQrxPage() {
                         overflow: "hidden",
                       }}
                     >
-                      {getQrxText(entry)}
+                      {getQrxText(entry, ui.qrxFallback)}
                     </p>
 
                     <div
@@ -972,7 +1515,7 @@ export default function DashboardQrxPage() {
                           fontWeight: 850,
                         }}
                       >
-                        Erstellt: {formatDate(entry.created_at)}
+                        {ui.created}: {formatDate(entry.created_at, qrxLocale)}
                       </span>
                     </div>
 
@@ -989,30 +1532,26 @@ export default function DashboardQrxPage() {
                     >
                       <MetricCard
                         value={entry.views_total}
-                        label="QR-X Aufrufe"
+                        label={ui.views}
                       />
                       <MetricCard
                         value={entry.follower_count}
-                        label="Follower"
+                        label={ui.followers}
                       />
 
                       {activeTab === "own" ? (
                         <>
                           <MetricCard
                             value={mediaAnalytics?.image_views_total}
-                            label="Bildaufrufe"
+                            label={ui.imageViews}
                           />
                           <MetricCard
                             value={mediaAnalytics?.file_downloads_total}
-                            label="Downloads"
+                            label={ui.downloads}
                             detail={
                               mediaAnalytics
-                                ? `${formatNumber(
-                                    Number(
-                                      mediaAnalytics.file_opens_total ?? 0,
-                                    ),
-                                  )} Dateiöffnungen`
-                                : "Analytics werden aufgebaut"
+                                ? ui.fileOpens.replace("{{count}}", formatNumber(Number(mediaAnalytics.file_opens_total ?? 0)))
+                                : ui.analyticsBuilding
                             }
                           />
                         </>
@@ -1027,7 +1566,7 @@ export default function DashboardQrxPage() {
                       }}
                     >
                       <Link href={openHref} className={styles.primaryButton}>
-                        Öffnen
+                        {ui.open}
                       </Link>
 
                       <button
@@ -1036,7 +1575,7 @@ export default function DashboardQrxPage() {
                         className={styles.secondaryButton}
                         style={{ cursor: "pointer" }}
                       >
-                        {copiedId === entry.id ? "Kopiert" : "Teilen"}
+                        {copiedId === entry.id ? ui.copied : ui.share}
                       </button>
 
                       {activeTab === "own" ? (
@@ -1045,7 +1584,7 @@ export default function DashboardQrxPage() {
                             href={editHref}
                             className={styles.secondaryButton}
                           >
-                            Bearbeiten
+                            {ui.edit}
                           </Link>
 
                           <Link
@@ -1053,7 +1592,7 @@ export default function DashboardQrxPage() {
                             className={styles.secondaryButton}
                             style={{ gridColumn: "1 / -1" }}
                           >
-                            📷 Medien & Analytics
+                            {ui.mediaAnalytics}
                           </Link>
 
                           <button
@@ -1073,8 +1612,8 @@ export default function DashboardQrxPage() {
                             }}
                           >
                             {deletingId === entry.id
-                              ? "Löscht …"
-                              : "🗑️ Löschen"}
+                              ? ui.deleting
+                              : ui.delete}
                           </button>
                         </>
                       ) : (
@@ -1096,8 +1635,8 @@ export default function DashboardQrxPage() {
                           }}
                         >
                           {deletingId === entry.id
-                            ? "Entfernt …"
-                            : "✕ Aus gespeicherten entfernen"}
+                            ? ui.removing
+                            : ui.removeSaved}
                         </button>
                       )}
                     </div>
