@@ -190,6 +190,22 @@ const QR_FORM_TEXT = {
     currentCoverAlt: "Aktuelles Coverbild",
     noCover: "Noch kein Coverbild hinterlegt.",
     removeSelection: "Auswahl entfernen",
+    companyName: "Firmenname",
+    categoryLabel: "Kategorie",
+    manualCoordinates: "Koordinaten manuell eingeben",
+    exampleLat: "z. B. 50.9375",
+    exampleLng: "z. B. 6.9603",
+    storageQuota: "Speicher-Kontingent",
+    storageQuotaHint: "{{free}} MB sind pro QR-X inklusive. Danach kostet jedes weitere Paket mit {{pack}} MB genau 1 Credit.",
+    quotaAfterCreation: "Kontingent nach Erstellung",
+    totalCosts: "Gesamtkosten",
+    qrxCreation: "QR-X Erstellung",
+    totalLabel: "Gesamt",
+    buyCreditsTitle: "Credits kaufen",
+    buyCreditsHint: "Kaufe Credits in einem neuen Tab. Deine Eingaben auf dieser Seite bleiben erhalten.",
+    newsScrollHint: "Max. {{count}} sichtbar · Bereich ist scrollbar",
+    logoPreviewAlt: "Logo Vorschau",
+    createFailed: "QR-X konnte nicht erstellt werden.",
   },
   en: {
     myQrx: "My QR-X",
@@ -361,6 +377,22 @@ const QR_FORM_TEXT = {
     currentCoverAlt: "Current cover image",
     noCover: "No cover image has been added yet.",
     removeSelection: "Remove selection",
+    companyName: "Company name",
+    categoryLabel: "Category",
+    manualCoordinates: "Enter coordinates manually",
+    exampleLat: "e.g. 50.9375",
+    exampleLng: "e.g. 6.9603",
+    storageQuota: "Storage allowance",
+    storageQuotaHint: "{{free}} MB are included per QR-X. Each additional {{pack}} MB package costs exactly 1 Credit.",
+    quotaAfterCreation: "Allowance after creation",
+    totalCosts: "Total cost",
+    qrxCreation: "QR-X creation",
+    totalLabel: "Total",
+    buyCreditsTitle: "Buy Credits",
+    buyCreditsHint: "Buy Credits in a new tab. Your entries on this page will be preserved.",
+    newsScrollHint: "Max. {{count}} visible · section is scrollable",
+    logoPreviewAlt: "Logo preview",
+    createFailed: "QR-X could not be created.",
   },
   tr: {
     myQrx: "QR-X'lerim",
@@ -532,6 +564,22 @@ const QR_FORM_TEXT = {
     currentCoverAlt: "Mevcut kapak görseli",
     noCover: "Henüz kapak görseli eklenmedi.",
     removeSelection: "Seçimi kaldır",
+    companyName: "Şirket adı",
+    categoryLabel: "Kategori",
+    manualCoordinates: "Koordinatları manuel gir",
+    exampleLat: "örn. 50.9375",
+    exampleLng: "örn. 6.9603",
+    storageQuota: "Depolama kotası",
+    storageQuotaHint: "Her QR-X için {{free}} MB dahildir. Sonraki her {{pack}} MB paket tam 1 Credit tutar.",
+    quotaAfterCreation: "Oluşturma sonrası kota",
+    totalCosts: "Toplam maliyet",
+    qrxCreation: "QR-X oluşturma",
+    totalLabel: "Toplam",
+    buyCreditsTitle: "Credits satın al",
+    buyCreditsHint: "Credits'i yeni bir sekmede satın al. Bu sayfadaki girişlerin korunur.",
+    newsScrollHint: "En fazla {{count}} görünür · alan kaydırılabilir",
+    logoPreviewAlt: "Logo önizlemesi",
+    createFailed: "QR-X oluşturulamadı.",
   },
   pl: {
     myQrx: "Moje QR-X",
@@ -703,6 +751,22 @@ const QR_FORM_TEXT = {
     currentCoverAlt: "Aktualna okładka",
     noCover: "Nie dodano jeszcze okładki.",
     removeSelection: "Usuń wybór",
+    companyName: "Nazwa firmy",
+    categoryLabel: "Kategoria",
+    manualCoordinates: "Wprowadź współrzędne ręcznie",
+    exampleLat: "np. 50.9375",
+    exampleLng: "np. 6.9603",
+    storageQuota: "Limit pamięci",
+    storageQuotaHint: "Każdy QR-X zawiera {{free}} MB. Każdy kolejny pakiet {{pack}} MB kosztuje dokładnie 1 Credit.",
+    quotaAfterCreation: "Limit po utworzeniu",
+    totalCosts: "Łączny koszt",
+    qrxCreation: "Utworzenie QR-X",
+    totalLabel: "Razem",
+    buyCreditsTitle: "Kup Credits",
+    buyCreditsHint: "Kup Credits w nowej karcie. Dane wprowadzone na tej stronie zostaną zachowane.",
+    newsScrollHint: "Maks. {{count}} widocznych · obszar można przewijać",
+    logoPreviewAlt: "Podgląd logo",
+    createFailed: "Nie udało się utworzyć QR-X.",
   },
   ar: {
     myQrx: "QR-X الخاصة بي",
@@ -874,6 +938,22 @@ const QR_FORM_TEXT = {
     currentCoverAlt: "صورة الغلاف الحالية",
     noCover: "لم تتم إضافة صورة غلاف بعد.",
     removeSelection: "إزالة التحديد",
+    companyName: "اسم الشركة",
+    categoryLabel: "الفئة",
+    manualCoordinates: "إدخال الإحداثيات يدويًا",
+    exampleLat: "مثال 50.9375",
+    exampleLng: "مثال 6.9603",
+    storageQuota: "حصة التخزين",
+    storageQuotaHint: "يتضمن كل QR-X مساحة {{free}} MB. كل حزمة إضافية بحجم {{pack}} MB تكلف Credit واحدًا.",
+    quotaAfterCreation: "الحصة بعد الإنشاء",
+    totalCosts: "التكلفة الإجمالية",
+    qrxCreation: "إنشاء QR-X",
+    totalLabel: "الإجمالي",
+    buyCreditsTitle: "شراء Credits",
+    buyCreditsHint: "اشترِ Credits في علامة تبويب جديدة. ستظل إدخالاتك في هذه الصفحة محفوظة.",
+    newsScrollHint: "بحد أقصى {{count}} ظاهرة · القسم قابل للتمرير",
+    logoPreviewAlt: "معاينة الشعار",
+    createFailed: "تعذر إنشاء QR-X.",
   },
   fr: {
     myQrx: "Mes QR-X",
@@ -1045,6 +1125,22 @@ const QR_FORM_TEXT = {
     currentCoverAlt: "Image de couverture actuelle",
     noCover: "Aucune image de couverture n’a encore été ajoutée.",
     removeSelection: "Supprimer la sélection",
+    companyName: "Nom de l’entreprise",
+    categoryLabel: "Catégorie",
+    manualCoordinates: "Saisir les coordonnées manuellement",
+    exampleLat: "p. ex. 50.9375",
+    exampleLng: "p. ex. 6.9603",
+    storageQuota: "Quota de stockage",
+    storageQuotaHint: "{{free}} Mo sont inclus par QR-X. Chaque paquet supplémentaire de {{pack}} Mo coûte exactement 1 Credit.",
+    quotaAfterCreation: "Quota après création",
+    totalCosts: "Coût total",
+    qrxCreation: "Création du QR-X",
+    totalLabel: "Total",
+    buyCreditsTitle: "Acheter des Credits",
+    buyCreditsHint: "Achetez des Credits dans un nouvel onglet. Vos saisies sur cette page seront conservées.",
+    newsScrollHint: "Max. {{count}} visibles · zone défilable",
+    logoPreviewAlt: "Aperçu du logo",
+    createFailed: "Le QR-X n’a pas pu être créé.",
   },
   es: {
     myQrx: "Mis QR-X",
@@ -1216,6 +1312,22 @@ const QR_FORM_TEXT = {
     currentCoverAlt: "Portada actual",
     noCover: "Todavía no se ha añadido ninguna portada.",
     removeSelection: "Eliminar selección",
+    companyName: "Nombre de la empresa",
+    categoryLabel: "Categoría",
+    manualCoordinates: "Introducir coordenadas manualmente",
+    exampleLat: "p. ej. 50.9375",
+    exampleLng: "p. ej. 6.9603",
+    storageQuota: "Cuota de almacenamiento",
+    storageQuotaHint: "Se incluyen {{free}} MB por QR-X. Cada paquete adicional de {{pack}} MB cuesta exactamente 1 Credit.",
+    quotaAfterCreation: "Cuota tras la creación",
+    totalCosts: "Coste total",
+    qrxCreation: "Creación de QR-X",
+    totalLabel: "Total",
+    buyCreditsTitle: "Comprar Credits",
+    buyCreditsHint: "Compra Credits en una nueva pestaña. Tus datos de esta página se conservarán.",
+    newsScrollHint: "Máx. {{count}} visibles · área desplazable",
+    logoPreviewAlt: "Vista previa del logotipo",
+    createFailed: "No se pudo crear el QR-X.",
   },
   it: {
     myQrx: "I miei QR-X",
@@ -1387,6 +1499,22 @@ const QR_FORM_TEXT = {
     currentCoverAlt: "Immagine di copertina attuale",
     noCover: "Non è stata ancora aggiunta un’immagine di copertina.",
     removeSelection: "Rimuovi selezione",
+    companyName: "Nome azienda",
+    categoryLabel: "Categoria",
+    manualCoordinates: "Inserisci coordinate manualmente",
+    exampleLat: "es. 50.9375",
+    exampleLng: "es. 6.9603",
+    storageQuota: "Quota di archiviazione",
+    storageQuotaHint: "Sono inclusi {{free}} MB per QR-X. Ogni pacchetto aggiuntivo da {{pack}} MB costa esattamente 1 Credit.",
+    quotaAfterCreation: "Quota dopo la creazione",
+    totalCosts: "Costo totale",
+    qrxCreation: "Creazione QR-X",
+    totalLabel: "Totale",
+    buyCreditsTitle: "Acquista Credits",
+    buyCreditsHint: "Acquista Credits in una nuova scheda. I dati inseriti in questa pagina verranno mantenuti.",
+    newsScrollHint: "Max. {{count}} visibili · area scorrevole",
+    logoPreviewAlt: "Anteprima logo",
+    createFailed: "Impossibile creare il QR-X.",
   },
 } as const;
 
@@ -3145,7 +3273,7 @@ export default function EditQrxPage() {
 
             {isBusiness ? (
               <label style={labelStyle}>
-                Firmenname
+                {ui.companyName}
                 <input value={companyName} onChange={(event) => setCompanyName(event.target.value)} style={inputStyle} />
               </label>
             ) : null}
@@ -3325,7 +3453,7 @@ export default function EditQrxPage() {
                   onClick={() => handleLocationModeChange("manual")}
                   style={locationModeButtonStyle(locationMode === "manual")}
                 >
-                  Koordinaten manuell eingeben
+                  {ui.manualCoordinates}
                 </button>
               </div>
 
@@ -3339,12 +3467,12 @@ export default function EditQrxPage() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <label style={labelStyle}>
                       {ui.latitude}
-                      <input value={locationLat} onChange={(event) => setLocationLat(event.target.value)} style={inputStyle} placeholder="z. B. 50.9375" />
+                      <input value={locationLat} onChange={(event) => setLocationLat(event.target.value)} style={inputStyle} placeholder={ui.exampleLat} />
                     </label>
 
                     <label style={labelStyle}>
                       {ui.longitude}
-                      <input value={locationLng} onChange={(event) => setLocationLng(event.target.value)} style={inputStyle} placeholder="z. B. 6.9603" />
+                      <input value={locationLng} onChange={(event) => setLocationLng(event.target.value)} style={inputStyle} placeholder={ui.exampleLng} />
                     </label>
                   </div>
                 </>

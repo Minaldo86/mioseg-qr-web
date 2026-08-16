@@ -2,6 +2,27 @@
 
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
+
+type CollectionLanguage = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+
+const COLLECTION_TEXT = {
+  de: { title: "QR-X Sammlung", description: "Optional: Verknüpfe eigenständige QR-X, zum Beispiel Produkte, Theaterstücke oder Häuser eines Projekts. Bilder, PDFs und Anleitungen gehören weiterhin in Medien und Dateien.", close: "Auswahl schließen", collect: "+ QR-X sammeln", linked: "{{count}} QR-X verknüpft", order: "Reihenfolge entspricht deiner Auswahl", untitled: "Unbenannter QR-X", own: "Mein QR-X", saved: "Gespeicherter QR-X", remove: "Entfernen", empty: "Noch keine QR-X verknüpft. Im öffentlichen Detailbereich bleibt die Sammlung deshalb ausgeblendet.", ownTab: "Meine QR-X", savedTab: "Gespeicherte", search: "QR-X durchsuchen …", loading: "QR-X werden geladen …", noResults: "In diesem Bereich wurden keine passenden QR-X gefunden.", business: "Business QR-X", normal: "Normaler QR-X" },
+  en: { title: "QR-X Collection", description: "Optionally link standalone QR-X, such as products, references or projects. Images, PDFs and instructions still belong in media and files.", close: "Close selection", collect: "+ Collect QR-X", linked: "{{count}} QR-X linked", order: "Order follows your selection", untitled: "Untitled QR-X", own: "My QR-X", saved: "Saved QR-X", remove: "Remove", empty: "No QR-X linked yet. The collection therefore remains hidden in the public detail view.", ownTab: "My QR-X", savedTab: "Saved", search: "Search QR-X …", loading: "Loading QR-X …", noResults: "No matching QR-X were found in this section.", business: "Business QR-X", normal: "Normal QR-X" },
+  tr: { title: "QR-X Koleksiyonu", description: "İsteğe bağlı olarak ürünler, referanslar veya projeler gibi bağımsız QR-X'leri bağla. Görseller, PDF'ler ve talimatlar medya ve dosyalarda kalır.", close: "Seçimi kapat", collect: "+ QR-X topla", linked: "{{count}} QR-X bağlı", order: "Sıralama seçimine göre", untitled: "Adsız QR-X", own: "QR-X'im", saved: "Kaydedilen QR-X", remove: "Kaldır", empty: "Henüz QR-X bağlanmadı. Bu nedenle koleksiyon herkese açık ayrıntı görünümünde gizli kalır.", ownTab: "QR-X'lerim", savedTab: "Kaydedilenler", search: "QR-X ara …", loading: "QR-X yükleniyor …", noResults: "Bu bölümde eşleşen QR-X bulunamadı.", business: "Business QR-X", normal: "Normal QR-X" },
+  pl: { title: "Kolekcja QR-X", description: "Opcjonalnie połącz niezależne QR-X, np. produkty, referencje lub projekty. Obrazy, PDF-y i instrukcje nadal należą do mediów i plików.", close: "Zamknij wybór", collect: "+ Dodaj QR-X", linked: "Połączono {{count}} QR-X", order: "Kolejność odpowiada Twojemu wyborowi", untitled: "QR-X bez nazwy", own: "Mój QR-X", saved: "Zapisany QR-X", remove: "Usuń", empty: "Nie połączono jeszcze żadnych QR-X. Kolekcja pozostaje więc ukryta w publicznym widoku szczegółów.", ownTab: "Moje QR-X", savedTab: "Zapisane", search: "Szukaj QR-X …", loading: "Ładowanie QR-X …", noResults: "W tej sekcji nie znaleziono pasujących QR-X.", business: "Business QR-X", normal: "Normalny QR-X" },
+  ar: { title: "مجموعة QR-X", description: "يمكنك اختياريًا ربط عناصر QR-X مستقلة مثل المنتجات أو المراجع أو المشاريع. تبقى الصور وملفات PDF والتعليمات ضمن الوسائط والملفات.", close: "إغلاق التحديد", collect: "+ إضافة QR-X", linked: "تم ربط {{count}} QR-X", order: "الترتيب يتبع اختيارك", untitled: "QR-X بلا عنوان", own: "QR-X الخاص بي", saved: "QR-X محفوظ", remove: "إزالة", empty: "لم يتم ربط أي QR-X بعد، لذلك تبقى المجموعة مخفية في صفحة التفاصيل العامة.", ownTab: "QR-X الخاصة بي", savedTab: "المحفوظة", search: "البحث في QR-X …", loading: "جارٍ تحميل QR-X …", noResults: "لم يتم العثور على QR-X مطابق في هذا القسم.", business: "Business QR-X", normal: "QR-X عادي" },
+  fr: { title: "Collection QR-X", description: "Associez facultativement des QR-X autonomes, par exemple des produits, références ou projets. Les images, PDF et instructions restent dans les médias et fichiers.", close: "Fermer la sélection", collect: "+ Ajouter des QR-X", linked: "{{count}} QR-X associés", order: "L’ordre suit votre sélection", untitled: "QR-X sans titre", own: "Mon QR-X", saved: "QR-X enregistré", remove: "Supprimer", empty: "Aucun QR-X n’est encore associé. La collection reste donc masquée dans la vue publique.", ownTab: "Mes QR-X", savedTab: "Enregistrés", search: "Rechercher un QR-X …", loading: "Chargement des QR-X …", noResults: "Aucun QR-X correspondant n’a été trouvé dans cette section.", business: "QR-X Business", normal: "QR-X normal" },
+  es: { title: "Colección QR-X", description: "Vincula opcionalmente QR-X independientes, como productos, referencias o proyectos. Las imágenes, PDF e instrucciones siguen perteneciendo a medios y archivos.", close: "Cerrar selección", collect: "+ Añadir QR-X", linked: "{{count}} QR-X vinculados", order: "El orden sigue tu selección", untitled: "QR-X sin título", own: "Mi QR-X", saved: "QR-X guardado", remove: "Eliminar", empty: "Todavía no hay ningún QR-X vinculado. Por ello, la colección permanece oculta en la vista pública.", ownTab: "Mis QR-X", savedTab: "Guardados", search: "Buscar QR-X …", loading: "Cargando QR-X …", noResults: "No se encontraron QR-X coincidentes en esta sección.", business: "QR-X Business", normal: "QR-X normal" },
+  it: { title: "Raccolta QR-X", description: "Collega facoltativamente QR-X autonomi, ad esempio prodotti, referenze o progetti. Immagini, PDF e istruzioni restano nei media e nei file.", close: "Chiudi selezione", collect: "+ Aggiungi QR-X", linked: "{{count}} QR-X collegati", order: "L’ordine segue la tua selezione", untitled: "QR-X senza titolo", own: "Il mio QR-X", saved: "QR-X salvato", remove: "Rimuovi", empty: "Non è ancora stato collegato alcun QR-X. La raccolta rimane quindi nascosta nella vista pubblica.", ownTab: "I miei QR-X", savedTab: "Salvati", search: "Cerca QR-X …", loading: "Caricamento QR-X …", noResults: "In questa sezione non sono stati trovati QR-X corrispondenti.", business: "QR-X Business", normal: "QR-X normale" },
+} as const;
+
+function normalizeCollectionLanguage(value: unknown): CollectionLanguage {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return typeof raw === "string" && ["de","en","tr","pl","ar","fr","es","it"].includes(raw)
+    ? (raw as CollectionLanguage)
+    : "de";
+}
 
 export type QrxCollectionCandidate = {
   id: string;
@@ -27,6 +48,9 @@ export default function CollectionSelector({
   loading = false,
   onChange,
 }: CollectionSelectorProps) {
+  const params = useParams<{ locale?: string }>();
+  const ui = COLLECTION_TEXT[normalizeCollectionLanguage(params?.locale)];
+
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<"own" | "saved">("own");
   const [search, setSearch] = useState("");
@@ -73,12 +97,8 @@ export default function CollectionSelector({
     <div style={sectionStyle}>
       <div style={headerStyle}>
         <div>
-          <h3 style={titleStyle}>QR-X Sammlung</h3>
-          <p style={descriptionStyle}>
-            Optional: Verknüpfe eigenständige QR-X, zum Beispiel Produkte,
-            Theaterstücke oder Häuser eines Projekts. Bilder, PDFs und
-            Anleitungen gehören weiterhin in Medien und Dateien.
-          </p>
+          <h3 style={titleStyle}>{ui.title}</h3>
+          <p style={descriptionStyle}>{ui.description}</p>
         </div>
 
         <button
@@ -86,15 +106,15 @@ export default function CollectionSelector({
           onClick={() => setOpen((current) => !current)}
           style={actionButtonStyle}
         >
-          {open ? "Auswahl schließen" : "+ QR-X sammeln"}
+          {open ? ui.close : ui.collect}
         </button>
       </div>
 
       {selectedItems.length > 0 ? (
         <div style={selectedBoxStyle}>
           <div style={selectionHeaderStyle}>
-            <strong>{selectedItems.length} QR-X verknüpft</strong>
-            <span style={hintStyle}>Reihenfolge entspricht deiner Auswahl</span>
+            <strong>{ui.linked.replace("{{count}}", String(selectedItems.length))}</strong>
+            <span style={hintStyle}>{ui.order}</span>
           </div>
 
           <div style={listStyle}>
@@ -103,7 +123,7 @@ export default function CollectionSelector({
                 item.custom_title?.trim() ||
                 item.company_name?.trim() ||
                 item.title?.trim() ||
-                "Unbenannter QR-X";
+                ui.untitled;
               const image =
                 item.logo_url?.trim() ||
                 item.cover_image_url?.trim() ||
@@ -128,9 +148,7 @@ export default function CollectionSelector({
                   <div style={itemTextStyle}>
                     <div style={itemTitleStyle}>{displayTitle}</div>
                     <div style={itemMetaStyle}>
-                      {item.source === "own"
-                        ? "Mein QR-X"
-                        : "Gespeicherter QR-X"}{" "}
+                      {item.source === "own" ? ui.own : ui.saved}{" "}
                       · {item.type === "business" ? "Business" : "Normal"}
                     </div>
                   </div>
@@ -140,7 +158,7 @@ export default function CollectionSelector({
                     onClick={() => remove(item.id)}
                     style={removeButtonStyle}
                   >
-                    Entfernen
+                    {ui.remove}
                   </button>
                 </div>
               );
@@ -149,8 +167,7 @@ export default function CollectionSelector({
         </div>
       ) : (
         <div style={emptyStyle}>
-          Noch keine QR-X verknüpft. Im öffentlichen Detailbereich bleibt die
-          Sammlung deshalb ausgeblendet.
+          {ui.empty}
         </div>
       )}
 
@@ -162,7 +179,7 @@ export default function CollectionSelector({
               onClick={() => setTab("own")}
               style={tabButtonStyle(tab === "own")}
             >
-              Meine QR-X ({ownCount})
+              {ui.ownTab} ({ownCount})
             </button>
 
             <button
@@ -170,7 +187,7 @@ export default function CollectionSelector({
               onClick={() => setTab("saved")}
               style={tabButtonStyle(tab === "saved")}
             >
-              Gespeicherte ({savedCount})
+              {ui.savedTab} ({savedCount})
             </button>
           </div>
 
@@ -178,14 +195,14 @@ export default function CollectionSelector({
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             style={inputStyle}
-            placeholder="QR-X durchsuchen …"
+            placeholder={ui.search}
           />
 
           {loading ? (
-            <div style={emptyStyle}>QR-X werden geladen …</div>
+            <div style={emptyStyle}>{ui.loading}</div>
           ) : visibleCandidates.length === 0 ? (
             <div style={emptyStyle}>
-              In diesem Bereich wurden keine passenden QR-X gefunden.
+              {ui.noResults}
             </div>
           ) : (
             <div style={candidateListStyle}>
@@ -227,9 +244,7 @@ export default function CollectionSelector({
                     <span style={candidateTextStyle}>
                       <span style={candidateTitleStyle}>{displayTitle}</span>
                       <span style={candidateMetaStyle}>
-                        {item.type === "business"
-                          ? "Business QR-X"
-                          : "Normaler QR-X"}
+                        {item.type === "business" ? ui.business : ui.normal}
                       </span>
                     </span>
                   </button>
