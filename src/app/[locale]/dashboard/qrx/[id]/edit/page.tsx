@@ -206,6 +206,9 @@ const QR_FORM_TEXT = {
     buyCreditsHint: "Kaufe Credits in einem neuen Tab. Deine Eingaben auf dieser Seite bleiben erhalten.",
     newsScrollHint: "Max. {{count}} sichtbar · Bereich ist scrollbar",
     logoPreviewAlt: "Logo Vorschau",
+    currentLogoAlt: "Aktuelles Logo",
+    noLogo: "Noch kein Logo hinterlegt.",
+    storageRuleShort: "2 MB kostenlos · danach +5 MB = 1 Credit",
     createFailed: "QR-X konnte nicht erstellt werden.",
   },
   en: {
@@ -394,6 +397,9 @@ const QR_FORM_TEXT = {
     buyCreditsHint: "Buy Credits in a new tab. Your entries on this page will be preserved.",
     newsScrollHint: "Max. {{count}} visible · section is scrollable",
     logoPreviewAlt: "Logo preview",
+    currentLogoAlt: "Current logo",
+    noLogo: "No logo added yet.",
+    storageRuleShort: "2 MB free · then +5 MB = 1 Credit",
     createFailed: "QR-X could not be created.",
   },
   tr: {
@@ -582,6 +588,9 @@ const QR_FORM_TEXT = {
     buyCreditsHint: "Credits'i yeni bir sekmede satın al. Bu sayfadaki girişlerin korunur.",
     newsScrollHint: "En fazla {{count}} görünür · alan kaydırılabilir",
     logoPreviewAlt: "Logo önizlemesi",
+    currentLogoAlt: "Mevcut logo",
+    noLogo: "Henüz logo eklenmedi.",
+    storageRuleShort: "2 MB ücretsiz · ardından +5 MB = 1 Credit",
     createFailed: "QR-X oluşturulamadı.",
   },
   pl: {
@@ -770,6 +779,9 @@ const QR_FORM_TEXT = {
     buyCreditsHint: "Kup Credits w nowej karcie. Dane wprowadzone na tej stronie zostaną zachowane.",
     newsScrollHint: "Maks. {{count}} widocznych · obszar można przewijać",
     logoPreviewAlt: "Podgląd logo",
+    currentLogoAlt: "Aktualne logo",
+    noLogo: "Nie dodano jeszcze logo.",
+    storageRuleShort: "2 MB bezpłatnie · potem +5 MB = 1 Credit",
     createFailed: "Nie udało się utworzyć QR-X.",
   },
   ar: {
@@ -958,6 +970,9 @@ const QR_FORM_TEXT = {
     buyCreditsHint: "اشترِ Credits في علامة تبويب جديدة. ستظل إدخالاتك في هذه الصفحة محفوظة.",
     newsScrollHint: "بحد أقصى {{count}} ظاهرة · القسم قابل للتمرير",
     logoPreviewAlt: "معاينة الشعار",
+    currentLogoAlt: "الشعار الحالي",
+    noLogo: "لم تتم إضافة شعار بعد.",
+    storageRuleShort: "2 MB مجانًا · ثم +5 MB = 1 Credit",
     createFailed: "تعذر إنشاء QR-X.",
   },
   fr: {
@@ -1146,6 +1161,9 @@ const QR_FORM_TEXT = {
     buyCreditsHint: "Achetez des Credits dans un nouvel onglet. Vos saisies sur cette page seront conservées.",
     newsScrollHint: "Max. {{count}} visibles · zone défilable",
     logoPreviewAlt: "Aperçu du logo",
+    currentLogoAlt: "Logo actuel",
+    noLogo: "Aucun logo ajouté pour le moment.",
+    storageRuleShort: "2 MB gratuits · puis +5 MB = 1 Credit",
     createFailed: "Le QR-X n’a pas pu être créé.",
   },
   es: {
@@ -1334,6 +1352,9 @@ const QR_FORM_TEXT = {
     buyCreditsHint: "Compra Credits en una nueva pestaña. Tus datos de esta página se conservarán.",
     newsScrollHint: "Máx. {{count}} visibles · área desplazable",
     logoPreviewAlt: "Vista previa del logotipo",
+    currentLogoAlt: "Logo actual",
+    noLogo: "Todavía no se ha añadido ningún logo.",
+    storageRuleShort: "2 MB gratis · después +5 MB = 1 Credit",
     createFailed: "No se pudo crear el QR-X.",
   },
   it: {
@@ -1522,6 +1543,9 @@ const QR_FORM_TEXT = {
     buyCreditsHint: "Acquista Credits in una nuova scheda. I dati inseriti in questa pagina verranno mantenuti.",
     newsScrollHint: "Max. {{count}} visibili · area scorrevole",
     logoPreviewAlt: "Anteprima logo",
+    currentLogoAlt: "Logo attuale",
+    noLogo: "Nessun logo aggiunto finora.",
+    storageRuleShort: "2 MB gratuiti · poi +5 MB = 1 Credit",
     createFailed: "Impossibile creare il QR-X.",
   },
 } as const;
@@ -3670,7 +3694,7 @@ export default function EditQrxPage() {
             </div>
             <div style={storageMetaStyle}>
               <span>{ui.availableStorage}: {freeMb.toFixed(1).replace(".", ",")} MB</span>
-              <span>2 MB kostenlos · danach +5 MB = 1 Credit</span>
+              <span>{ui.storageRuleShort}</span>
             </div>
             <p style={{ margin: "10px 0 0", color: "#94a3b8", fontSize: 13, lineHeight: 1.5, fontWeight: 750 }}>
               {ui.storagePermanent}
@@ -3755,7 +3779,7 @@ export default function EditQrxPage() {
           <div style={mediaGridStyle}>
             <div style={mediaUploadBoxStyle}>
               <h3 style={mediaTitleStyle}>{ui.logo}</h3>
-              {logoUrl ? <img src={logoUrl} alt="Aktuelles Logo" style={logoPreviewStyle} /> : <p style={emptyTextStyle}>Noch kein Logo hinterlegt.</p>}
+              {logoUrl ? <img src={logoUrl} alt={ui.currentLogoAlt} style={logoPreviewStyle} /> : <p style={emptyTextStyle}>{ui.noLogo}</p>}
               {logoFile ? <p style={selectedFileTextStyle}>{ui.newSelected}: {logoFile.name} · {formatBytes(logoFile.size)}</p> : null}
               <div style={mediaActionRowStyle}>
                 <label style={fileButtonStyle}>
