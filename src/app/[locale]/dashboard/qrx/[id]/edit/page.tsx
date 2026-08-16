@@ -165,6 +165,7 @@ const QR_FORM_TEXT = {
     chooseEvidence: "Nachweis auswählen",
     submitting: "Antrag wird eingereicht …",
     verificationSubmitted: "Verifizierungsantrag wurde eingereicht. Dein QR-X wird nun geprüft.",
+    lastRequest: "Letzter Antrag",
     pending: "In Prüfung",
     pendingText: "Dein Verifizierungsantrag liegt vor und wird geprüft.",
     rejectedText: "Dein letzter Verifizierungsantrag wurde abgelehnt. Du kannst einen neuen Antrag einreichen.",
@@ -352,6 +353,7 @@ const QR_FORM_TEXT = {
     chooseEvidence: "Choose evidence",
     submitting: "Submitting request …",
     verificationSubmitted: "Verification request submitted. Your QR-X will now be reviewed.",
+    lastRequest: "Last request",
     pending: "Under review",
     pendingText: "Your verification request has been submitted and is being reviewed.",
     rejectedText: "Your last verification request was rejected. You can submit a new request.",
@@ -539,6 +541,7 @@ const QR_FORM_TEXT = {
     chooseEvidence: "Belge seç",
     submitting: "İstek gönderiliyor …",
     verificationSubmitted: "Doğrulama isteği gönderildi. QR-X'in şimdi incelenecek.",
+    lastRequest: "Son başvuru",
     pending: "İnceleniyor",
     pendingText: "Doğrulama isteğin alındı ve inceleniyor.",
     rejectedText: "Son doğrulama isteğin reddedildi. Yeni bir istek gönderebilirsin.",
@@ -726,6 +729,7 @@ const QR_FORM_TEXT = {
     chooseEvidence: "Wybierz dokument",
     submitting: "Wysyłanie wniosku …",
     verificationSubmitted: "Wniosek o weryfikację został wysłany. QR-X zostanie teraz sprawdzony.",
+    lastRequest: "Ostatni wniosek",
     pending: "W trakcie weryfikacji",
     pendingText: "Wniosek o weryfikację został złożony i jest sprawdzany.",
     rejectedText: "Ostatni wniosek o weryfikację został odrzucony. Możesz wysłać nowy.",
@@ -913,6 +917,7 @@ const QR_FORM_TEXT = {
     chooseEvidence: "اختيار مستند",
     submitting: "جارٍ إرسال الطلب …",
     verificationSubmitted: "تم إرسال طلب التوثيق. سيجري الآن فحص QR-X.",
+    lastRequest: "آخر طلب",
     pending: "قيد المراجعة",
     pendingText: "تم استلام طلب التوثيق وهو قيد المراجعة.",
     rejectedText: "تم رفض طلب التوثيق الأخير. يمكنك إرسال طلب جديد.",
@@ -1100,6 +1105,7 @@ const QR_FORM_TEXT = {
     chooseEvidence: "Choisir un justificatif",
     submitting: "Envoi de la demande …",
     verificationSubmitted: "Demande de vérification envoyée. Votre QR-X va être examiné.",
+    lastRequest: "Dernière demande",
     pending: "En cours de vérification",
     pendingText: "Votre demande de vérification a été reçue et est en cours d’examen.",
     rejectedText: "Votre dernière demande a été refusée. Vous pouvez en envoyer une nouvelle.",
@@ -1287,6 +1293,7 @@ const QR_FORM_TEXT = {
     chooseEvidence: "Elegir justificante",
     submitting: "Enviando solicitud …",
     verificationSubmitted: "Solicitud de verificación enviada. Tu QR-X será revisado ahora.",
+    lastRequest: "Última solicitud",
     pending: "En revisión",
     pendingText: "Tu solicitud de verificación ha sido recibida y está en revisión.",
     rejectedText: "Tu última solicitud de verificación fue rechazada. Puedes enviar una nueva.",
@@ -1474,6 +1481,7 @@ const QR_FORM_TEXT = {
     chooseEvidence: "Scegli documento",
     submitting: "Invio richiesta …",
     verificationSubmitted: "Richiesta di verifica inviata. Il tuo QR-X verrà ora controllato.",
+    lastRequest: "Ultima richiesta",
     pending: "In verifica",
     pendingText: "La richiesta di verifica è stata ricevuta ed è in esame.",
     rejectedText: "L’ultima richiesta è stata rifiutata. Puoi inviarne una nuova.",
@@ -3587,7 +3595,7 @@ export default function EditQrxPage() {
 
                 {verificationRequest ? (
                   <div style={requestSummaryStyle}>
-                    <strong>Letzter Antrag</strong>
+                    <strong>{ui.lastRequest}</strong>
                     <span>{statusUi.status}: {getVerificationStatusLabel(verificationRequest.status, qrxLocale)}</span>
                     {verificationRequest.document_filename ? <span>Dokument: {verificationRequest.document_filename}</span> : null}
                     {verificationRequest.credits_charged ? <span>{extraUi.charged}: {verificationRequest.credits_charged} Credits</span> : null}

@@ -149,7 +149,7 @@ export default function CollectionSelector({
                     <div style={itemTitleStyle}>{displayTitle}</div>
                     <div style={itemMetaStyle}>
                       {item.source === "own" ? ui.own : ui.saved}{" "}
-                      · {item.type === "business" ? "Business" : "Normal"}
+                      · {item.type === "business" ? ui.business : ui.normal}
                     </div>
                   </div>
 
@@ -212,7 +212,7 @@ export default function CollectionSelector({
                   item.custom_title?.trim() ||
                   item.company_name?.trim() ||
                   item.title?.trim() ||
-                  "Unbenannter QR-X";
+                  ui.untitled;
                 const image =
                   item.logo_url?.trim() ||
                   item.cover_image_url?.trim() ||
