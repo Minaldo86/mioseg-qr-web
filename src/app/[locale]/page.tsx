@@ -599,7 +599,7 @@ export default async function Home({ params }: Props) {
               <Link href={`/${locale}/get-app`} className={styles.downloadPrimaryButton}>
                 {t.home.download.ctaPrimary}
               </Link>
-              <Link href="/datenschutz" className={styles.downloadSecondaryButton}>
+              <Link href={`/${locale}/datenschutz`} className={styles.downloadSecondaryButton}>
                 {t.home.download.ctaSecondary}
               </Link>
             </div>

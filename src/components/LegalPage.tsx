@@ -1,52 +1,187 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
-
-type LegalSection = {
-  id: string;
-  title: string;
-  paragraphs: string[];
-  listItems?: string[];
-};
+import LanguageSwitcher from "./LanguageSwitcher";
+import type { LegalDocument, LegalLocale } from "../legal/types";
 
 type LegalPageProps = {
+  locale: LegalLocale;
   eyebrow: string;
-  title: string;
-  subtitle: string;
-  sections: LegalSection[];
-  updatedLabel?: string;
-  updatedValue?: string;
+  document: LegalDocument;
 };
 
+type LegalUi = {
+  documentLabel: string;
+  currentVersion: string;
+  validityLabel: string;
+  validityValue: string;
+  languageLabel: string;
+  languageName: string;
+  contents: string;
+  home: string;
+  getApp: string;
+  privacy: string;
+  terms: string;
+  imprint: string;
+};
+
+const LEGAL_UI: Record<LegalLocale, LegalUi> = {
+  de: {
+    documentLabel: "Dokument",
+    currentVersion: "Aktuelle Fassung",
+    validityLabel: "Gültigkeit",
+    validityValue: "App + Webplattform",
+    languageLabel: "Sprache",
+    languageName: "Deutsch",
+    contents: "Inhalt",
+    home: "Startseite",
+    getApp: "Get App",
+    privacy: "Datenschutz",
+    terms: "Nutzungsbedingungen",
+    imprint: "Impressum",
+  },
+  en: {
+    documentLabel: "Document",
+    currentVersion: "Current version",
+    validityLabel: "Applies to",
+    validityValue: "App + web platform",
+    languageLabel: "Language",
+    languageName: "English",
+    contents: "Contents",
+    home: "Home",
+    getApp: "Get App",
+    privacy: "Privacy Policy",
+    terms: "Terms of Use",
+    imprint: "Legal Notice",
+  },
+  tr: {
+    documentLabel: "Belge",
+    currentVersion: "Güncel sürüm",
+    validityLabel: "Geçerlilik",
+    validityValue: "Uygulama + web platformu",
+    languageLabel: "Dil",
+    languageName: "Türkçe",
+    contents: "İçindekiler",
+    home: "Ana sayfa",
+    getApp: "Uygulamayı edin",
+    privacy: "Gizlilik Politikası",
+    terms: "Kullanım Koşulları",
+    imprint: "Yasal Bildirim",
+  },
+  pl: {
+    documentLabel: "Dokument",
+    currentVersion: "Aktualna wersja",
+    validityLabel: "Zakres",
+    validityValue: "Aplikacja + platforma internetowa",
+    languageLabel: "Język",
+    languageName: "Polski",
+    contents: "Spis treści",
+    home: "Strona główna",
+    getApp: "Pobierz aplikację",
+    privacy: "Polityka prywatności",
+    terms: "Warunki użytkowania",
+    imprint: "Impressum",
+  },
+  ar: {
+    documentLabel: "المستند",
+    currentVersion: "النسخة الحالية",
+    validityLabel: "النطاق",
+    validityValue: "التطبيق + منصة الويب",
+    languageLabel: "اللغة",
+    languageName: "العربية",
+    contents: "المحتويات",
+    home: "الرئيسية",
+    getApp: "احصل على التطبيق",
+    privacy: "سياسة الخصوصية",
+    terms: "شروط الاستخدام",
+    imprint: "البيانات القانونية",
+  },
+  fr: {
+    documentLabel: "Document",
+    currentVersion: "Version actuelle",
+    validityLabel: "Champ d’application",
+    validityValue: "App + plateforme web",
+    languageLabel: "Langue",
+    languageName: "Français",
+    contents: "Sommaire",
+    home: "Accueil",
+    getApp: "Télécharger l’app",
+    privacy: "Politique de confidentialité",
+    terms: "Conditions d’utilisation",
+    imprint: "Mentions légales",
+  },
+  es: {
+    documentLabel: "Documento",
+    currentVersion: "Versión actual",
+    validityLabel: "Ámbito",
+    validityValue: "App + plataforma web",
+    languageLabel: "Idioma",
+    languageName: "Español",
+    contents: "Contenido",
+    home: "Inicio",
+    getApp: "Descargar app",
+    privacy: "Política de privacidad",
+    terms: "Términos de uso",
+    imprint: "Aviso legal",
+  },
+  it: {
+    documentLabel: "Documento",
+    currentVersion: "Versione attuale",
+    validityLabel: "Ambito",
+    validityValue: "App + piattaforma web",
+    languageLabel: "Lingua",
+    languageName: "Italiano",
+    contents: "Indice",
+    home: "Home",
+    getApp: "Scarica l’app",
+    privacy: "Privacy",
+    terms: "Condizioni d’uso",
+    imprint: "Note legali",
+  },
+};
+
+function sectionId(index: number) {
+  return `section-${index + 1}`;
+}
+
 export default function LegalPage({
+  locale,
   eyebrow,
-  title,
-  subtitle,
-  sections,
-  updatedLabel = "Stand",
-  updatedValue = "März 2026",
+  document,
 }: LegalPageProps) {
+  const ui = LEGAL_UI[locale];
+
   return (
-    <main style={styles.page}>
+    <main style={styles.page} dir={locale === "ar" ? "rtl" : "ltr"}>
       <section style={styles.heroSection}>
         <div style={styles.container}>
+          <div style={styles.languageRow}>
+            <LanguageSwitcher currentLocale={locale} />
+          </div>
+
           <span style={styles.eyebrow}>{eyebrow}</span>
-          <h1 style={styles.title}>{title}</h1>
-          <p style={styles.subtitle}>{subtitle}</p>
+          <h1 style={styles.title}>{document.title}</h1>
+          <p style={styles.subtitle}>{document.subtitle}</p>
+
+          {document.fallbackNotice ? (
+            <p style={styles.fallbackNotice}>{document.fallbackNotice}</p>
+          ) : null}
 
           <div style={styles.metaRow}>
             <div style={styles.metaCard}>
-              <span style={styles.metaLabel}>{updatedLabel}</span>
-              <strong style={styles.metaValue}>{updatedValue}</strong>
+              <span style={styles.metaLabel}>{ui.documentLabel}</span>
+              <strong style={styles.metaValue}>{ui.currentVersion}</strong>
             </div>
 
             <div style={styles.metaCard}>
-              <span style={styles.metaLabel}>Gültigkeit</span>
-              <strong style={styles.metaValue}>App + Webplattform</strong>
+              <span style={styles.metaLabel}>{ui.validityLabel}</span>
+              <strong style={styles.metaValue}>{ui.validityValue}</strong>
             </div>
 
             <div style={styles.metaCard}>
-              <span style={styles.metaLabel}>Sprache</span>
-              <strong style={styles.metaValue}>Deutsch</strong>
+              <span style={styles.metaLabel}>{ui.languageLabel}</span>
+              <strong style={styles.metaValue}>{ui.languageName}</strong>
             </div>
           </div>
         </div>
@@ -56,10 +191,15 @@ export default function LegalPage({
         <div style={styles.contentWrap}>
           <aside style={styles.sidebar}>
             <div style={styles.sidebarCard}>
-              <p style={styles.sidebarTitle}>Inhalt</p>
+              <p style={styles.sidebarTitle}>{ui.contents}</p>
+
               <nav style={styles.nav}>
-                {sections.map((section) => (
-                  <a key={section.id} href={`#${section.id}`} style={styles.navLink}>
+                {document.sections.map((section, index) => (
+                  <a
+                    key={`${sectionId(index)}-${section.title}`}
+                    href={`#${sectionId(index)}`}
+                    style={styles.navLink}
+                  >
                     {section.title}
                   </a>
                 ))}
@@ -68,45 +208,42 @@ export default function LegalPage({
               <div style={styles.sidebarDivider} />
 
               <div style={styles.quickLinks}>
-                <Link href="/" style={styles.quickLink}>
-                  Startseite
+                <Link href={`/${locale}`} style={styles.quickLink}>
+                  {ui.home}
                 </Link>
-                <Link href="/get-app" style={styles.quickLink}>
-                  Get App
+                <Link href={`/${locale}/get-app`} style={styles.quickLink}>
+                  {ui.getApp}
                 </Link>
-                <Link href="/datenschutz" style={styles.quickLink}>
-                  Datenschutz
+                <Link href={`/${locale}/datenschutz`} style={styles.quickLink}>
+                  {ui.privacy}
                 </Link>
-                <Link href="/nutzungsbedingungen" style={styles.quickLink}>
-                  Nutzungsbedingungen
+                <Link href={`/${locale}/nutzungsbedingungen`} style={styles.quickLink}>
+                  {ui.terms}
                 </Link>
-                <Link href="/impressum" style={styles.quickLink}>
-                  Impressum
+                <Link href={`/${locale}/impressum`} style={styles.quickLink}>
+                  {ui.imprint}
                 </Link>
               </div>
             </div>
           </aside>
 
           <div style={styles.mainColumn}>
-            {sections.map((section) => (
-              <section key={section.id} id={section.id} style={styles.sectionCard}>
+            {document.sections.map((section, sectionIndex) => (
+              <section
+                key={`${sectionId(sectionIndex)}-${section.title}`}
+                id={sectionId(sectionIndex)}
+                style={styles.sectionCard}
+              >
                 <h2 style={styles.sectionTitle}>{section.title}</h2>
 
-                {section.paragraphs.map((paragraph, index) => (
-                  <p key={`${section.id}-p-${index}`} style={styles.paragraph}>
+                {section.content.map((paragraph, index) => (
+                  <p
+                    key={`${sectionId(sectionIndex)}-p-${index}`}
+                    style={styles.paragraph}
+                  >
                     {paragraph}
                   </p>
                 ))}
-
-                {section.listItems && section.listItems.length > 0 ? (
-                  <ul style={styles.list}>
-                    {section.listItems.map((item, index) => (
-                      <li key={`${section.id}-li-${index}`} style={styles.listItem}>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
               </section>
             ))}
           </div>
@@ -122,13 +259,16 @@ const styles: Record<string, React.CSSProperties> = {
     background:
       "linear-gradient(180deg, #08111d 0%, #0d1726 24%, #f8fafc 24%, #f8fafc 100%)",
   },
-
   container: {
     maxWidth: 1180,
     margin: "0 auto",
     padding: "0 24px",
   },
-
+  languageRow: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginBottom: 18,
+  },
   heroSection: {
     padding: "72px 0 44px",
     color: "#ffffff",
@@ -160,7 +300,17 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.8,
     color: "#bfd0e3",
   },
-
+  fallbackNotice: {
+    margin: "0 0 20px 0",
+    maxWidth: 820,
+    padding: "12px 14px",
+    borderRadius: 14,
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.14)",
+    color: "#d9e8ff",
+    fontSize: 14,
+    lineHeight: 1.7,
+  },
   metaRow: {
     display: "flex",
     gap: 14,
@@ -188,7 +338,6 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#ffffff",
     fontWeight: 800,
   },
-
   contentSection: {
     padding: "0 0 72px",
   },
@@ -201,7 +350,6 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 24,
     alignItems: "start",
   },
-
   sidebar: {
     position: "sticky",
     top: 24,
@@ -248,7 +396,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 14,
     fontWeight: 700,
   },
-
   mainColumn: {
     display: "flex",
     flexDirection: "column",
@@ -275,15 +422,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 15,
     lineHeight: 1.85,
     color: "#445064",
-  },
-  list: {
-    margin: "4px 0 6px 0",
-    paddingLeft: 22,
-    color: "#445064",
-  },
-  listItem: {
-    marginBottom: 10,
-    fontSize: 15,
-    lineHeight: 1.8,
+    whiteSpace: "pre-wrap",
   },
 };

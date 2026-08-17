@@ -540,10 +540,10 @@ export default async function GetAppPage({ params }: Props) {
                 <Link href={`/${locale}`} className={styles.inlineLink}>
                   {ui.home}
                 </Link>
-                <Link href="/datenschutz" className={styles.inlineLink}>
+                <Link href={`/${locale}/datenschutz`} className={styles.inlineLink}>
                   Datenschutz
                 </Link>
-                <Link href="/nutzungsbedingungen" className={styles.inlineLink}>
+                <Link href={`/${locale}/nutzungsbedingungen`} className={styles.inlineLink}>
                   Nutzungsbedingungen
                 </Link>
               </div>
