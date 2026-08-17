@@ -5,6 +5,156 @@ import { useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 
+
+const SUPPORTED_ACTIVITY_LOCALES = ["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const;
+type ActivityLocale = (typeof SUPPORTED_ACTIVITY_LOCALES)[number];
+
+type ActivityCopy = {
+  untitledQrx: string;
+  unknownTime: string;
+  changedTitle: string;
+  changedDescription: string;
+  changedNews: string;
+  changedImages: string;
+  changedFiles: string;
+  changedSuffix: string;
+  contentChanged: string;
+  savedQrx: string;
+  loading: string;
+  empty: string;
+  changedBadge: string;
+};
+
+const ACTIVITY_TEXT: Record<ActivityLocale, ActivityCopy> = {
+  de: {
+    untitledQrx: "Unbenannter QR-X",
+    unknownTime: "Unbekannter Zeitpunkt",
+    changedTitle: "Titel",
+    changedDescription: "Beschreibung",
+    changedNews: "News",
+    changedImages: "Bilder",
+    changedFiles: "Dateien",
+    changedSuffix: "geändert",
+    contentChanged: "Inhalt geändert",
+    savedQrx: "Gespeicherter QR-X",
+    loading: "Änderungen werden geladen …",
+    empty: "Seit dem Speichern gab es noch keine Änderungen an deinen gespeicherten QR-X.",
+    changedBadge: "Gespeicherter QR-X geändert",
+  },
+  en: {
+    untitledQrx: "Untitled QR-X",
+    unknownTime: "Unknown time",
+    changedTitle: "Title",
+    changedDescription: "Description",
+    changedNews: "News",
+    changedImages: "Images",
+    changedFiles: "Files",
+    changedSuffix: "changed",
+    contentChanged: "Content changed",
+    savedQrx: "Saved QR-X",
+    loading: "Loading changes …",
+    empty: "There have been no changes to your saved QR-X since you saved them.",
+    changedBadge: "Saved QR-X changed",
+  },
+  tr: {
+    untitledQrx: "Adsız QR-X",
+    unknownTime: "Bilinmeyen zaman",
+    changedTitle: "Başlık",
+    changedDescription: "Açıklama",
+    changedNews: "Haberler",
+    changedImages: "Görseller",
+    changedFiles: "Dosyalar",
+    changedSuffix: "değiştirildi",
+    contentChanged: "İçerik değiştirildi",
+    savedQrx: "Kaydedilen QR-X",
+    loading: "Değişiklikler yükleniyor …",
+    empty: "Kaydettiğinizden beri kayıtlı QR-X'lerinizde herhangi bir değişiklik olmadı.",
+    changedBadge: "Kaydedilen QR-X değiştirildi",
+  },
+  pl: {
+    untitledQrx: "QR-X bez nazwy",
+    unknownTime: "Nieznany czas",
+    changedTitle: "Tytuł",
+    changedDescription: "Opis",
+    changedNews: "Aktualności",
+    changedImages: "Obrazy",
+    changedFiles: "Pliki",
+    changedSuffix: "zmieniono",
+    contentChanged: "Zmieniono zawartość",
+    savedQrx: "Zapisany QR-X",
+    loading: "Ładowanie zmian …",
+    empty: "Od momentu zapisania nie było żadnych zmian w zapisanych QR-X.",
+    changedBadge: "Zapisany QR-X został zmieniony",
+  },
+  ar: {
+    untitledQrx: "QR-X بدون اسم",
+    unknownTime: "وقت غير معروف",
+    changedTitle: "العنوان",
+    changedDescription: "الوصف",
+    changedNews: "الأخبار",
+    changedImages: "الصور",
+    changedFiles: "الملفات",
+    changedSuffix: "تم التغيير",
+    contentChanged: "تم تغيير المحتوى",
+    savedQrx: "QR-X محفوظ",
+    loading: "جارٍ تحميل التغييرات …",
+    empty: "لم تحدث أي تغييرات على QR-X المحفوظة منذ حفظها.",
+    changedBadge: "تم تغيير QR-X محفوظ",
+  },
+  fr: {
+    untitledQrx: "QR-X sans titre",
+    unknownTime: "Heure inconnue",
+    changedTitle: "Titre",
+    changedDescription: "Description",
+    changedNews: "Actualités",
+    changedImages: "Images",
+    changedFiles: "Fichiers",
+    changedSuffix: "modifié",
+    contentChanged: "Contenu modifié",
+    savedQrx: "QR-X enregistré",
+    loading: "Chargement des modifications …",
+    empty: "Aucune modification n’a été apportée à vos QR-X enregistrés depuis leur enregistrement.",
+    changedBadge: "QR-X enregistré modifié",
+  },
+  es: {
+    untitledQrx: "QR-X sin título",
+    unknownTime: "Hora desconocida",
+    changedTitle: "Título",
+    changedDescription: "Descripción",
+    changedNews: "Noticias",
+    changedImages: "Imágenes",
+    changedFiles: "Archivos",
+    changedSuffix: "modificado",
+    contentChanged: "Contenido modificado",
+    savedQrx: "QR-X guardado",
+    loading: "Cargando cambios …",
+    empty: "No ha habido cambios en tus QR-X guardados desde que los guardaste.",
+    changedBadge: "QR-X guardado modificado",
+  },
+  it: {
+    untitledQrx: "QR-X senza titolo",
+    unknownTime: "Ora sconosciuta",
+    changedTitle: "Titolo",
+    changedDescription: "Descrizione",
+    changedNews: "Novità",
+    changedImages: "Immagini",
+    changedFiles: "File",
+    changedSuffix: "modificato",
+    contentChanged: "Contenuto modificato",
+    savedQrx: "QR-X salvato",
+    loading: "Caricamento modifiche …",
+    empty: "Non ci sono state modifiche ai QR-X salvati da quando li hai salvati.",
+    changedBadge: "QR-X salvato modificato",
+  },
+};
+
+function normalizeActivityLocale(value: string): ActivityLocale {
+  return SUPPORTED_ACTIVITY_LOCALES.includes(value as ActivityLocale)
+    ? (value as ActivityLocale)
+    : "de";
+}
+
+
 type ActivityItem = {
   id: string;
   qrxId: string;
@@ -37,15 +187,15 @@ type QrxUpdateRow = {
   changed_files: boolean | null;
 };
 
-function getTitle(row: QrxEntryRow) {
-  return row.company_name?.trim() || row.title?.trim() || "Unbenannter QR-X";
+function getTitle(row: QrxEntryRow, ui: ActivityCopy) {
+  return row.company_name?.trim() || row.title?.trim() || ui.untitledQrx;
 }
 
-function formatDate(value: string) {
+function formatDate(value: string, locale: ActivityLocale, ui: ActivityCopy) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unbekannter Zeitpunkt";
+  if (Number.isNaN(date.getTime())) return ui.unknownTime;
 
-  return new Intl.DateTimeFormat("de-DE", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
@@ -53,18 +203,18 @@ function formatDate(value: string) {
   }).format(date);
 }
 
-function buildUpdateDetail(row: QrxUpdateRow) {
+function buildUpdateDetail(row: QrxUpdateRow, ui: ActivityCopy) {
   const parts: string[] = [];
 
-  if (row.changed_title) parts.push("Titel");
-  if (row.changed_description) parts.push("Beschreibung");
-  if (row.changed_news) parts.push("News");
-  if (row.changed_images) parts.push("Bilder");
-  if (row.changed_files) parts.push("Dateien");
+  if (row.changed_title) parts.push(ui.changedTitle);
+  if (row.changed_description) parts.push(ui.changedDescription);
+  if (row.changed_news) parts.push(ui.changedNews);
+  if (row.changed_images) parts.push(ui.changedImages);
+  if (row.changed_files) parts.push(ui.changedFiles);
 
   return parts.length > 0
-    ? `${parts.join(", ")} geändert`
-    : "Inhalt geändert";
+    ? `${parts.join(", ")} ${ui.changedSuffix}`
+    : ui.contentChanged;
 }
 
 export default function DashboardActivityClient({
@@ -72,6 +222,8 @@ export default function DashboardActivityClient({
 }: {
   locale: string;
 }) {
+  const activityLocale = normalizeActivityLocale(locale);
+  const ui = ACTIVITY_TEXT[activityLocale];
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -152,7 +304,7 @@ export default function DashboardActivityClient({
     }
 
     const titleMap = new Map(
-      foreignEntries.map((entry) => [entry.id, getTitle(entry)]),
+      foreignEntries.map((entry) => [entry.id, getTitle(entry, ui)]),
     );
 
     const { data: updateRows, error: updatesError } = await supabase
@@ -181,9 +333,9 @@ export default function DashboardActivityClient({
       .map((row) => ({
         id: `saved-update-${row.id}`,
         qrxId: row.qrx_id,
-        title: titleMap.get(row.qrx_id) || "Gespeicherter QR-X",
+        title: titleMap.get(row.qrx_id) || ui.savedQrx,
         occurredAt: row.created_at,
-        detail: buildUpdateDetail(row),
+        detail: buildUpdateDetail(row, ui),
       }))
       .slice(0, 12);
 
@@ -204,7 +356,7 @@ export default function DashboardActivityClient({
           fontWeight: 850,
         }}
       >
-        Änderungen werden geladen …
+        {ui.loading}
       </div>
     );
   }
@@ -222,7 +374,7 @@ export default function DashboardActivityClient({
           fontWeight: 800,
         }}
       >
-        Seit dem Speichern gab es noch keine Änderungen an deinen gespeicherten QR-X.
+        {ui.empty}
       </div>
     );
   }
@@ -238,7 +390,7 @@ export default function DashboardActivityClient({
       {items.map((item) => (
         <Link
           key={item.id}
-          href={`/qrx/${item.qrxId}`}
+          href={`/${activityLocale}/qrx/${item.qrxId}`}
           style={{
             minHeight: "94px",
             borderRadius: "20px",
@@ -279,7 +431,7 @@ export default function DashboardActivityClient({
                 letterSpacing: "0.06em",
               }}
             >
-              Gespeicherter QR-X geändert
+              {ui.changedBadge}
             </span>
 
             <strong
@@ -303,7 +455,7 @@ export default function DashboardActivityClient({
                 lineHeight: 1.4,
               }}
             >
-              {item.detail} · {formatDate(item.occurredAt)}
+              {item.detail} · {formatDate(item.occurredAt, activityLocale, ui)}
             </span>
           </span>
         </Link>

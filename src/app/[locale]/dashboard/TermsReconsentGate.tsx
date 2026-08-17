@@ -4,6 +4,126 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
+
+const SUPPORTED_TERMS_LOCALES = ["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const;
+type TermsLocale = (typeof SUPPORTED_TERMS_LOCALES)[number];
+
+type TermsCopy = {
+  saveFailed: string;
+  checking: string;
+  updatedTitle: string;
+  updatedText: string;
+  viewTerms: string;
+  acceptCheck: string;
+  saving: string;
+  acceptContinue: string;
+  meta: string;
+};
+
+const TERMS_TEXT: Record<TermsLocale, TermsCopy> = {
+  de: {
+    saveFailed: "Die Zustimmung konnte nicht gespeichert werden. Bitte versuche es erneut.",
+    checking: "Nutzungsbedingungen werden geprüft …",
+    updatedTitle: "Aktualisierte Nutzungsbedingungen",
+    updatedText: "Wir haben unsere Nutzungsbedingungen aktualisiert. Bitte lies die Fassung {{version}} und bestätige sie, um mioseg qr weiter zu nutzen.",
+    viewTerms: "Nutzungsbedingungen ansehen ↗",
+    acceptCheck: "Ich akzeptiere die aktualisierten Nutzungsbedingungen (Version {{version}}).",
+    saving: "Wird gespeichert …",
+    acceptContinue: "Zustimmen und fortfahren",
+    meta: "Version {{version}} · Stand {{date}}",
+  },
+  en: {
+    saveFailed: "Your acceptance could not be saved. Please try again.",
+    checking: "Checking Terms of Use …",
+    updatedTitle: "Updated Terms of Use",
+    updatedText: "We have updated our Terms of Use. Please read version {{version}} and accept it to continue using mioseg qr.",
+    viewTerms: "View Terms of Use ↗",
+    acceptCheck: "I accept the updated Terms of Use (version {{version}}).",
+    saving: "Saving …",
+    acceptContinue: "Accept and continue",
+    meta: "Version {{version}} · Effective {{date}}",
+  },
+  tr: {
+    saveFailed: "Onayınız kaydedilemedi. Lütfen tekrar deneyin.",
+    checking: "Kullanım Koşulları kontrol ediliyor …",
+    updatedTitle: "Güncellenen Kullanım Koşulları",
+    updatedText: "Kullanım Koşullarımızı güncelledik. mioseg qr'ı kullanmaya devam etmek için lütfen {{version}} sürümünü okuyun ve kabul edin.",
+    viewTerms: "Kullanım Koşullarını görüntüle ↗",
+    acceptCheck: "Güncellenen Kullanım Koşullarını (sürüm {{version}}) kabul ediyorum.",
+    saving: "Kaydediliyor …",
+    acceptContinue: "Kabul et ve devam et",
+    meta: "Sürüm {{version}} · Tarih {{date}}",
+  },
+  pl: {
+    saveFailed: "Nie udało się zapisać zgody. Spróbuj ponownie.",
+    checking: "Sprawdzanie Warunków użytkowania …",
+    updatedTitle: "Zaktualizowane Warunki użytkowania",
+    updatedText: "Zaktualizowaliśmy nasze Warunki użytkowania. Przeczytaj wersję {{version}} i zaakceptuj ją, aby nadal korzystać z mioseg qr.",
+    viewTerms: "Zobacz Warunki użytkowania ↗",
+    acceptCheck: "Akceptuję zaktualizowane Warunki użytkowania (wersja {{version}}).",
+    saving: "Zapisywanie …",
+    acceptContinue: "Zaakceptuj i kontynuuj",
+    meta: "Wersja {{version}} · Stan na {{date}}",
+  },
+  ar: {
+    saveFailed: "تعذر حفظ موافقتك. يرجى المحاولة مرة أخرى.",
+    checking: "جارٍ التحقق من شروط الاستخدام …",
+    updatedTitle: "شروط استخدام محدّثة",
+    updatedText: "لقد قمنا بتحديث شروط الاستخدام. يرجى قراءة الإصدار {{version}} والموافقة عليه لمتابعة استخدام mioseg qr.",
+    viewTerms: "عرض شروط الاستخدام ↗",
+    acceptCheck: "أوافق على شروط الاستخدام المحدّثة (الإصدار {{version}}).",
+    saving: "جارٍ الحفظ …",
+    acceptContinue: "الموافقة والمتابعة",
+    meta: "الإصدار {{version}} · بتاريخ {{date}}",
+  },
+  fr: {
+    saveFailed: "Votre acceptation n’a pas pu être enregistrée. Veuillez réessayer.",
+    checking: "Vérification des Conditions d’utilisation …",
+    updatedTitle: "Conditions d’utilisation mises à jour",
+    updatedText: "Nous avons mis à jour nos Conditions d’utilisation. Veuillez lire la version {{version}} et l’accepter pour continuer à utiliser mioseg qr.",
+    viewTerms: "Voir les Conditions d’utilisation ↗",
+    acceptCheck: "J’accepte les Conditions d’utilisation mises à jour (version {{version}}).",
+    saving: "Enregistrement …",
+    acceptContinue: "Accepter et continuer",
+    meta: "Version {{version}} · Mise à jour {{date}}",
+  },
+  es: {
+    saveFailed: "No se pudo guardar tu aceptación. Inténtalo de nuevo.",
+    checking: "Comprobando los Términos de uso …",
+    updatedTitle: "Términos de uso actualizados",
+    updatedText: "Hemos actualizado nuestros Términos de uso. Lee la versión {{version}} y acéptala para seguir usando mioseg qr.",
+    viewTerms: "Ver Términos de uso ↗",
+    acceptCheck: "Acepto los Términos de uso actualizados (versión {{version}}).",
+    saving: "Guardando …",
+    acceptContinue: "Aceptar y continuar",
+    meta: "Versión {{version}} · Fecha {{date}}",
+  },
+  it: {
+    saveFailed: "Non è stato possibile salvare la tua accettazione. Riprova.",
+    checking: "Verifica delle Condizioni d’uso …",
+    updatedTitle: "Condizioni d’uso aggiornate",
+    updatedText: "Abbiamo aggiornato le nostre Condizioni d’uso. Leggi la versione {{version}} e accettala per continuare a usare mioseg qr.",
+    viewTerms: "Visualizza le Condizioni d’uso ↗",
+    acceptCheck: "Accetto le Condizioni d’uso aggiornate (versione {{version}}).",
+    saving: "Salvataggio …",
+    acceptContinue: "Accetta e continua",
+    meta: "Versione {{version}} · Aggiornata il {{date}}",
+  },
+};
+
+function normalizeTermsLocale(value: string): TermsLocale {
+  return SUPPORTED_TERMS_LOCALES.includes(value as TermsLocale)
+    ? (value as TermsLocale)
+    : "de";
+}
+
+function termsInterpolate(value: string, replacements: Record<string, string>) {
+  return Object.entries(replacements).reduce(
+    (result, [key, replacement]) => result.replaceAll(`{{${key}}}`, replacement),
+    value,
+  );
+}
+
 const CURRENT_TERMS_VERSION = "1.0";
 const CURRENT_TERMS_EFFECTIVE_DATE = "2026-08-08";
 
@@ -24,7 +144,8 @@ export default function TermsReconsentGate({
   locale: string;
   children: React.ReactNode;
 }) {
-  const isDe = locale === "de";
+  const termsLocale = normalizeTermsLocale(locale);
+  const ui = TERMS_TEXT[termsLocale];
   const [checking, setChecking] = useState(TERMS_RECONSENT_REQUIRED);
   const [accepted, setAccepted] = useState(!TERMS_RECONSENT_REQUIRED);
   const [checked, setChecked] = useState(false);
@@ -132,11 +253,7 @@ export default function TermsReconsentGate({
       setAccepted(true);
     } catch (error) {
       console.warn("Terms reconsent failed:", error);
-      setErrorText(
-        isDe
-          ? "Die Zustimmung konnte nicht gespeichert werden. Bitte versuche es erneut."
-          : "Your acceptance could not be saved. Please try again."
-      );
+      setErrorText(ui.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -150,7 +267,7 @@ export default function TermsReconsentGate({
     return (
       <main style={screenStyle}>
         <div style={{ color: "#94a3b8", fontWeight: 800 }}>
-          {isDe ? "Nutzungsbedingungen werden geprüft …" : "Checking Terms of Use …"}
+          {ui.checking}
         </div>
       </main>
     );
@@ -162,13 +279,13 @@ export default function TermsReconsentGate({
         <div style={iconStyle}>📄</div>
 
         <h1 style={titleStyle}>
-          {isDe ? "Aktualisierte Nutzungsbedingungen" : "Updated Terms of Use"}
+          {ui.updatedTitle}
         </h1>
 
         <p style={textStyle}>
-          {isDe
-            ? `Wir haben unsere Nutzungsbedingungen aktualisiert. Bitte lies die Fassung ${CURRENT_TERMS_VERSION} und bestätige sie, um mioseg qr weiter zu nutzen.`
-            : `We have updated our Terms of Use. Please read version ${CURRENT_TERMS_VERSION} and accept it to continue using mioseg qr.`}
+          {termsInterpolate(ui.updatedText, {
+            version: CURRENT_TERMS_VERSION,
+          })}
         </p>
 
         {/*
@@ -176,12 +293,12 @@ export default function TermsReconsentGate({
           Die App verwendet /nutzungsbedingungen.
         */}
         <Link
-          href={`/${locale}/terms`}
+          href={`/${termsLocale}/nutzungsbedingungen`}
           target="_blank"
           rel="noreferrer"
           style={termsLinkStyle}
         >
-          {isDe ? "Nutzungsbedingungen ansehen ↗" : "View Terms of Use ↗"}
+          {ui.viewTerms}
         </Link>
 
         <label style={checkRowStyle}>
@@ -192,9 +309,9 @@ export default function TermsReconsentGate({
             style={{ width: 20, height: 20, marginTop: 2, accentColor: "#f8fafc" }}
           />
           <span>
-            {isDe
-              ? `Ich akzeptiere die aktualisierten Nutzungsbedingungen (Version ${CURRENT_TERMS_VERSION}).`
-              : `I accept the updated Terms of Use (version ${CURRENT_TERMS_VERSION}).`}
+            {termsInterpolate(ui.acceptCheck, {
+              version: CURRENT_TERMS_VERSION,
+            })}
           </span>
         </label>
 
@@ -210,19 +327,14 @@ export default function TermsReconsentGate({
             cursor: !checked || saving || !userId ? "not-allowed" : "pointer",
           }}
         >
-          {saving
-            ? isDe
-              ? "Wird gespeichert …"
-              : "Saving …"
-            : isDe
-              ? "Zustimmen und fortfahren"
-              : "Accept and continue"}
+          {saving ? ui.saving : ui.acceptContinue}
         </button>
 
         <div style={metaStyle}>
-          {isDe
-            ? `Version ${CURRENT_TERMS_VERSION} · Stand ${CURRENT_TERMS_EFFECTIVE_DATE}`
-            : `Version ${CURRENT_TERMS_VERSION} · Effective ${CURRENT_TERMS_EFFECTIVE_DATE}`}
+          {termsInterpolate(ui.meta, {
+            version: CURRENT_TERMS_VERSION,
+            date: CURRENT_TERMS_EFFECTIVE_DATE,
+          })}
         </div>
       </section>
     </main>
