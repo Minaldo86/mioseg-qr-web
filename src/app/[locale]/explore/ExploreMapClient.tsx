@@ -2,6 +2,21 @@
 
 import { useEffect, useRef } from "react";
 
+
+
+type MapLanguage = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+const MAP_TEXT = {
+ de:{verified:"Verifiziert",open:"QR-X öffnen →",selected:"Marker ausgewählt · Ergebnisse unten aktualisiert",yourLocation:"Dein Standort",currentArea:"Aktueller Kartenausschnitt",noArea:"Keine Treffer im Ausschnitt"},
+ en:{verified:"Verified",open:"Open QR-X →",selected:"Marker selected · Results below updated",yourLocation:"Your location",currentArea:"Current map area",noArea:"No results in area"},
+ tr:{verified:"Doğrulandı",open:"QR-X'i aç →",selected:"İşaretçi seçildi · Aşağıdaki sonuçlar güncellendi",yourLocation:"Konumun",currentArea:"Geçerli harita alanı",noArea:"Bu alanda sonuç yok"},
+ pl:{verified:"Zweryfikowano",open:"Otwórz QR-X →",selected:"Wybrano znacznik · Wyniki poniżej zaktualizowano",yourLocation:"Twoja lokalizacja",currentArea:"Bieżący obszar mapy",noArea:"Brak wyników w obszarze"},
+ ar:{verified:"موثّق",open:"فتح QR-X ←",selected:"تم تحديد العلامة · تم تحديث النتائج أدناه",yourLocation:"موقعك",currentArea:"نطاق الخريطة الحالي",noArea:"لا توجد نتائج في النطاق"},
+ fr:{verified:"Vérifié",open:"Ouvrir le QR-X →",selected:"Marqueur sélectionné · Résultats mis à jour ci-dessous",yourLocation:"Votre position",currentArea:"Zone actuelle de la carte",noArea:"Aucun résultat dans la zone"},
+ es:{verified:"Verificado",open:"Abrir QR-X →",selected:"Marcador seleccionado · Resultados actualizados abajo",yourLocation:"Tu ubicación",currentArea:"Área actual del mapa",noArea:"Sin resultados en el área"},
+ it:{verified:"Verificato",open:"Apri QR-X →",selected:"Marker selezionato · Risultati aggiornati sotto",yourLocation:"La tua posizione",currentArea:"Area corrente della mappa",noArea:"Nessun risultato nell’area"}
+} as const;
+function normalizeMapLanguage(value:string):MapLanguage{const base=value.trim().toLowerCase().split(/[-_]/)[0];return (["de","en","tr","pl","ar","fr","es","it"] as const).includes(base as MapLanguage)?base as MapLanguage:"de";}
+
 type MapPoint = {
   id: string;
   title: string;
@@ -110,7 +125,7 @@ async function ensureLeaflet(): Promise<LeafletApi | null> {
   return window.L ?? null;
 }
 
-function buildPopup(point: MapPoint) {
+function buildPopup(point: MapPoint, ui: (typeof MAP_TEXT)[MapLanguage]) {
   const imageHtml = point.coverUrl
     ? `<div style="height:118px;border-radius:18px;overflow:hidden;background:#eef4fb;margin-bottom:12px;"><img src="${escapeAttr(
         point.coverUrl
@@ -128,7 +143,7 @@ function buildPopup(point: MapPoint) {
         </span>
         ${
           point.verified
-            ? '<span style="display:inline-flex;align-items:center;border-radius:999px;background:#0d1726;color:#ffffff;font-size:11px;font-weight:900;padding:7px 9px;">✓ Verifiziert</span>'
+            ? '<span style="display:inline-flex;align-items:center;border-radius:999px;background:#0d1726;color:#ffffff;font-size:11px;font-weight:900;padding:7px 9px;">✓ ${escapeHtml(ui.verified)}</span>'
             : ""
         }
         <span style="display:inline-flex;align-items:center;border-radius:999px;background:#fff7ed;color:#9a4f00;font-size:11px;font-weight:900;padding:7px 9px;">👥 ${escapeHtml(String(point.followerCount))}</span>
@@ -146,8 +161,8 @@ function buildPopup(point: MapPoint) {
       <div style="display:grid;grid-template-columns:1fr;gap:8px;">
         <a href="${escapeAttr(
           point.href
-        )}" style="display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:13px;background:linear-gradient(180deg,#0d1726 0%,#17304d 100%);color:#ffffff;text-decoration:none;font-weight:900;font-size:13px;box-shadow:0 10px 24px rgba(13,23,38,0.18);">QR-X öffnen →</a>
-        <div style="text-align:center;color:#64748b;font-size:11px;font-weight:800;">Marker ausgewählt · Ergebnisse unten aktualisiert</div>
+        )}" style="display:flex;align-items:center;justify-content:center;min-height:40px;border-radius:13px;background:linear-gradient(180deg,#0d1726 0%,#17304d 100%);color:#ffffff;text-decoration:none;font-weight:900;font-size:13px;box-shadow:0 10px 24px rgba(13,23,38,0.18);">${escapeHtml(ui.open)}</a>
+        <div style="text-align:center;color:#64748b;font-size:11px;font-weight:800;">${escapeHtml(ui.selected)}</div>
       </div>
     </div>
   `;
@@ -198,15 +213,18 @@ function dispatchMapIsMoving(isMoving: boolean) {
 
 export default function ExploreMapClient({
   points,
+  locale,
   hasUserLocation,
   userLat,
   userLng,
 }: {
   points: MapPoint[];
+  locale: string;
   hasUserLocation: boolean;
   userLat: number | null;
   userLng: number | null;
 }) {
+  const ui = MAP_TEXT[normalizeMapLanguage(locale)];
   const mapElRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const markersRef = useRef<Record<string, LeafletMarker>>({});
@@ -271,7 +289,7 @@ export default function ExploreMapClient({
 
         L.marker([userLat, userLng], { icon: userIcon })
           .addTo(map)
-          .bindPopup('<div style="font-weight:900;color:#0e1726;">Dein Standort</div>');
+          .bindPopup(`<div style="font-weight:900;color:#0e1726;">${escapeHtml(ui.yourLocation)}</div>`);
 
         bounds.push([userLat, userLng]);
       }
@@ -305,7 +323,7 @@ html: `
         const marker = L.marker([point.latitude, point.longitude], { icon }).addTo(map);
 
         markersRef.current[point.id] = marker;
-        marker.bindPopup(buildPopup(point), { maxWidth: 290, className: "miosegExplorePopup" });
+        marker.bindPopup(buildPopup(point, ui), { maxWidth: 290, className: "miosegExplorePopup" });
         marker.on("popupopen", () => {
           // Beim programmgesteuerten Öffnen aus einer Ergebnis-Karte
           // darf die Seite nicht wieder zurück zur Karte unterhalb scrollen.
@@ -392,7 +410,7 @@ html: `
       markersRef.current = {};
       activeIdRef.current = null;
     };
-  }, [points, hasUserLocation, userLat, userLng]);
+  }, [points, hasUserLocation, userLat, userLng, locale]);
 
 
   useEffect(() => {
@@ -479,7 +497,7 @@ html: `
       if (visibleCount) visibleCount.textContent = String(ids.length);
       if (visibleCountHub) visibleCountHub.textContent = String(ids.length);
       if (newCount) newCount.textContent = String(ids.length);
-      if (scope) scope.textContent = ids.length > 0 ? "Aktueller Kartenausschnitt" : "Keine Treffer im Ausschnitt";
+      if (scope) scope.textContent = ids.length > 0 ? ui.currentArea : ui.noArea;
       if (empty) empty.style.display = ids.length === 0 ? "" : "none";
 
       document.querySelectorAll<HTMLElement>("[data-visible-map-card], [data-new-qrx-card]").forEach((element) => {
@@ -559,7 +577,7 @@ html: `
       window.removeEventListener("mioseg-visible-qrx", onVisible);
       window.removeEventListener("mioseg-map-moving", onMapMoving);
     };
-  }, [points]);
+  }, [points, locale]);
 
   return (
     <div

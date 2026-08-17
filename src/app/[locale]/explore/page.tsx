@@ -58,37 +58,82 @@ type ExploreEntry = {
 type SearchParams = Record<string, string | string[] | undefined>;
 type RouteParams = { locale?: string };
 
+type ExploreLanguage = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+
+const EXPLORE_LOCALES: Record<ExploreLanguage, string> = {
+  de: "de-DE", en: "en-GB", tr: "tr-TR", pl: "pl-PL", ar: "ar", fr: "fr-FR", es: "es-ES", it: "it-IT",
+};
+
+const EXPLORE_TEXT = {
+  de: {
+    home:"Startseite",dashboard:"Dashboard",account:"Konto",heroTitle:"Entdecke Business QR-X in deiner Nähe",heroText:"Finde Restaurants, Praxen, Unternehmen, Dienstleistungen und besondere Orte auf einer modernen öffentlichen Karte. Jeder Eintrag führt direkt zur passenden QR-X Webansicht.",viewEntries:"Einträge ansehen",openMap:"Karte öffnen",totalBusiness:"Business QR-X insgesamt",visibleHits:"sichtbare Treffer",activeCategories:"aktive Kategorien",verifiedProfiles:"verifizierte Profile",totalFollowers:"Follower insgesamt",totalViews:"Aufrufe insgesamt",publicMap:"Öffentliche Business-Karte",publicMapText:"Suche, filtere und öffne öffentliche Business QR-X direkt auf der Karte. Entdecke neue Orte, Unternehmen und Angebote in deiner Umgebung.",search:"Suche",map:"Karte",verified:"Verifiziert",openQrx:"QR-X öffnen →",results:"Ergebnisse",mapLive:"Suche, bewege und entdecke QR-X live",qrxMap:"QR-X Karte",qrxMapText:"Suche echte QR-X, springe zu deinem Standort oder bewege die Karte – die Ergebnisse darunter reagieren live auf den Kartenausschnitt.",noMatches:"Keine passenden QR-X gefunden.",startSearch:"Suche starten",nearMe:"In meiner Nähe",locationActive:"Standort aktiv",reset:"Zurücksetzen",withLocation:"mit Standort",mapUpdating:"Karte wird aktualisiert …",currentResults:"Ergebnisse im aktuellen Kartenausschnitt",defaultRanking:"Standardmäßig zeigen wir die beliebtesten Einträge. Du kannst jederzeit auf Nähe oder neue QR-X wechseln.",locationOptional:"Standort optional",currentMapArea:"Aktueller Kartenausschnitt",allVisible:"Alle sichtbaren QR-X",popular:"Beliebt",rankingArea:"Ranking im Kartenausschnitt",distanceSorted:"Nach Entfernung sortiert",activateLocation:"Standort aktivieren",newLabel:"Neu",noVisible:"Keine QR-X im sichtbaren Bereich",noVisibleText:"Verschiebe die Karte oder zoome heraus, um wieder Business QR-X im aktuellen Kartenausschnitt zu sehen.",popularArea:"Beliebt im Kartenausschnitt",noPopular:"Keine beliebten QR-X gefunden",moveOrFilter:"Verschiebe die Karte oder ändere deine Filter.",nearbyText:"Nach Entfernung zu deinem Standort sortiert.",nearbyNoLocation:"Aktiviere deinen Standort, um QR-X in deiner Nähe zu sehen.",activateLocationHint:"Klicke auf „In meiner Nähe“, damit die nächsten Business QR-X direkt hier angezeigt werden.",newArea:"Neu im Kartenausschnitt",newestArea:"Die neuesten Business QR-X im aktuellen Kartenbereich.",errorState:"Fehlerzustand",loadError:"Fehler beim Laden",loadErrorText:"Die Explore-Einträge konnten gerade nicht geladen werden. Technische Meldung:",noNew:"Keine neuen QR-X gefunden",untitled:"Unbenannter QR-X",businessFallback:"Business QR-X auf mioseg qr",other:"Sonstiges",away:"entfernt",follower:"Follower",followers:"Follower",view:"Aufruf",views:"Aufrufe",uniqueVisitors:"eindeutige Besucher",popularBadge:"🔥 Beliebt",strongInterest:"📈 Starkes Interesse",manyVisitors:"👀 Viele Besucher",trustProfile:"⭐ Vertrauensprofil",highDemand:"🚀 Sehr gefragt",newSince:"Neu seit",tapMarker:"Tippen zeigt Marker",noLocationData:"Ohne Standortdaten",mapSelected:"Gerade auf der Karte ausgewählt",selectedQrx:"📍 Ausgewählter QR-X",topRank:"👑 Platz 1 im aktuellen Kartenausschnitt",more:"Mehr anzeigen",browserNoGeo:"Standort wird von diesem Browser nicht unterstützt.",geoFailed:"Standort konnte nicht abgerufen werden.",geoPermission:"Standort konnte nicht abgerufen werden. Bitte Standortfreigabe im Browser erlauben.",geoAllow:"Standort konnte nicht abgerufen werden. Bitte erlaube den Standortzugriff im Browser.",locationLoading:"Standort wird geladen ...",locationShort:"Standort ...",noNewArea:"Keine neuen QR-X in diesem Kartenausschnitt",noNewAreaText:"Bewege die Karte oder zoome heraus, um neue Business QR-X in einem anderen Bereich zu entdecken.",selectedSentence:"Dieser QR-X ist gerade auf der Karte ausgewählt.",categories:{praxis_gesundheit:"Praxis & Gesundheit",gastronomie:"Gastronomie",unternehmen:"Unternehmen",dienstleistung:"Dienstleistung",handwerk:"Handwerk",event:"Event",verein:"Verein",wohltaetigkeit:"Wohltätigkeit",sehenswuerdigkeit:"Sehenswürdigkeit",sonstiges:"Sonstiges"}
+  },
+  en: {
+    home:"Home",dashboard:"Dashboard",account:"Account",heroTitle:"Discover Business QR-X near you",heroText:"Find restaurants, practices, companies, services and special places on a modern public map. Every entry leads directly to the matching QR-X web view.",viewEntries:"View entries",openMap:"Open map",totalBusiness:"Business QR-X total",visibleHits:"visible results",activeCategories:"active categories",verifiedProfiles:"verified profiles",totalFollowers:"followers total",totalViews:"views total",publicMap:"Public business map",publicMapText:"Search, filter and open public Business QR-X directly on the map. Discover new places, companies and offers around you.",search:"Search",map:"Map",verified:"Verified",openQrx:"Open QR-X →",results:"Results",mapLive:"Search, move and discover QR-X live",qrxMap:"QR-X Map",qrxMapText:"Search real QR-X, jump to your location or move the map – the results below react live to the map area.",noMatches:"No matching QR-X found.",startSearch:"Start search",nearMe:"Near me",locationActive:"Location active",reset:"Reset",withLocation:"with location",mapUpdating:"Map is updating …",currentResults:"Results in the current map area",defaultRanking:"By default we show the most popular entries. You can switch to nearby or new QR-X at any time.",locationOptional:"Location optional",currentMapArea:"Current map area",allVisible:"All visible QR-X",popular:"Popular",rankingArea:"Ranking in map area",distanceSorted:"Sorted by distance",activateLocation:"Enable location",newLabel:"New",noVisible:"No QR-X in the visible area",noVisibleText:"Move the map or zoom out to see Business QR-X in the current map area again.",popularArea:"Popular in map area",noPopular:"No popular QR-X found",moveOrFilter:"Move the map or change your filters.",nearbyText:"Sorted by distance from your location.",nearbyNoLocation:"Enable your location to see QR-X near you.",activateLocationHint:"Click “Near me” to show the nearest Business QR-X here.",newArea:"New in map area",newestArea:"The newest Business QR-X in the current map area.",errorState:"Error state",loadError:"Loading error",loadErrorText:"Explore entries could not be loaded right now. Technical message:",noNew:"No new QR-X found",untitled:"Untitled QR-X",businessFallback:"Business QR-X on mioseg qr",other:"Other",away:"away",follower:"Follower",followers:"Followers",view:"view",views:"views",uniqueVisitors:"unique visitors",popularBadge:"🔥 Popular",strongInterest:"📈 Strong interest",manyVisitors:"👀 Many visitors",trustProfile:"⭐ Trusted profile",highDemand:"🚀 High demand",newSince:"New since",tapMarker:"Tap to show marker",noLocationData:"No location data",mapSelected:"Selected on the map",selectedQrx:"📍 Selected QR-X",topRank:"👑 #1 in current map area",more:"Show more",browserNoGeo:"Location is not supported by this browser.",geoFailed:"Location could not be retrieved.",geoPermission:"Location could not be retrieved. Please allow location access in your browser.",geoAllow:"Location could not be retrieved. Please allow browser location access.",locationLoading:"Loading location ...",locationShort:"Location ...",noNewArea:"No new QR-X in this map area",noNewAreaText:"Move the map or zoom out to discover new Business QR-X in another area.",selectedSentence:"This QR-X is currently selected on the map.",categories:{praxis_gesundheit:"Practice & Health",gastronomie:"Food & Dining",unternehmen:"Company",dienstleistung:"Services",handwerk:"Trades",event:"Event",verein:"Association",wohltaetigkeit:"Charity",sehenswuerdigkeit:"Attraction",sonstiges:"Other"}
+  },
+  tr: {
+    home:"Ana sayfa",dashboard:"Panel",account:"Hesap",heroTitle:"Yakınındaki Business QR-X’leri keşfet",heroText:"Restoranları, sağlık merkezlerini, şirketleri, hizmetleri ve özel yerleri modern bir herkese açık haritada bul. Her kayıt ilgili QR-X web görünümüne doğrudan gider.",viewEntries:"Kayıtları görüntüle",openMap:"Haritayı aç",totalBusiness:"Toplam Business QR-X",visibleHits:"görünür sonuç",activeCategories:"aktif kategori",verifiedProfiles:"doğrulanmış profil",totalFollowers:"toplam takipçi",totalViews:"toplam görüntüleme",publicMap:"Herkese açık işletme haritası",publicMapText:"Herkese açık Business QR-X’leri haritada ara, filtrele ve aç. Çevrendeki yeni yerleri, şirketleri ve fırsatları keşfet.",search:"Ara",map:"Harita",verified:"Doğrulandı",openQrx:"QR-X'i aç →",results:"Sonuçlar",mapLive:"QR-X’leri canlı ara, haritayı taşı ve keşfet",qrxMap:"QR-X Haritası",qrxMapText:"Gerçek QR-X’leri ara, konumuna git veya haritayı taşı – aşağıdaki sonuçlar harita alanına göre canlı güncellenir.",noMatches:"Eşleşen QR-X bulunamadı.",startSearch:"Aramayı başlat",nearMe:"Yakınımda",locationActive:"Konum aktif",reset:"Sıfırla",withLocation:"konumlu",mapUpdating:"Harita güncelleniyor …",currentResults:"Geçerli harita alanındaki sonuçlar",defaultRanking:"Varsayılan olarak en popüler kayıtları gösteriyoruz. İstediğin zaman yakındakilere veya yeni QR-X’lere geçebilirsin.",locationOptional:"Konum isteğe bağlı",currentMapArea:"Geçerli harita alanı",allVisible:"Tüm görünür QR-X’ler",popular:"Popüler",rankingArea:"Harita alanı sıralaması",distanceSorted:"Mesafeye göre sıralı",activateLocation:"Konumu etkinleştir",newLabel:"Yeni",noVisible:"Görünür alanda QR-X yok",noVisibleText:"Geçerli harita alanında Business QR-X görmek için haritayı taşı veya uzaklaştır.",popularArea:"Harita alanında popüler",noPopular:"Popüler QR-X bulunamadı",moveOrFilter:"Haritayı taşı veya filtrelerini değiştir.",nearbyText:"Konumuna olan mesafeye göre sıralı.",nearbyNoLocation:"Yakınındaki QR-X’leri görmek için konumunu etkinleştir.",activateLocationHint:"En yakın Business QR-X’leri burada göstermek için “Yakınımda” seçeneğine tıkla.",newArea:"Harita alanında yeni",newestArea:"Geçerli harita alanındaki en yeni Business QR-X’ler.",errorState:"Hata durumu",loadError:"Yükleme hatası",loadErrorText:"Explore kayıtları şu anda yüklenemedi. Teknik mesaj:",noNew:"Yeni QR-X bulunamadı",untitled:"Adsız QR-X",businessFallback:"mioseg qr üzerinde Business QR-X",other:"Diğer",away:"uzakta",follower:"Takipçi",followers:"Takipçi",view:"görüntüleme",views:"görüntüleme",uniqueVisitors:"benzersiz ziyaretçi",popularBadge:"🔥 Popüler",strongInterest:"📈 Yüksek ilgi",manyVisitors:"👀 Çok ziyaretçi",trustProfile:"⭐ Güvenilir profil",highDemand:"🚀 Çok talep görüyor",newSince:"Yeni",tapMarker:"İşaretçiyi göstermek için dokun",noLocationData:"Konum verisi yok",mapSelected:"Haritada seçili",selectedQrx:"📍 Seçili QR-X",topRank:"👑 Geçerli harita alanında 1. sıra",more:"Daha fazla göster",browserNoGeo:"Bu tarayıcı konumu desteklemiyor.",geoFailed:"Konum alınamadı.",geoPermission:"Konum alınamadı. Lütfen tarayıcıda konum izni ver.",geoAllow:"Konum alınamadı. Lütfen tarayıcı konum erişimine izin ver.",locationLoading:"Konum yükleniyor ...",locationShort:"Konum ...",noNewArea:"Bu harita alanında yeni QR-X yok",noNewAreaText:"Başka bir alandaki yeni Business QR-X’leri keşfetmek için haritayı taşı veya uzaklaştır.",selectedSentence:"Bu QR-X şu anda haritada seçili.",categories:{praxis_gesundheit:"Sağlık",gastronomie:"Gastronomi",unternehmen:"Şirket",dienstleistung:"Hizmet",handwerk:"Zanaat",event:"Etkinlik",verein:"Dernek",wohltaetigkeit:"Hayır kurumu",sehenswuerdigkeit:"Turistik yer",sonstiges:"Diğer"}
+  },
+  pl: {
+    home:"Strona główna",dashboard:"Panel",account:"Konto",heroTitle:"Odkrywaj Business QR-X w pobliżu",heroText:"Znajdź restauracje, gabinety, firmy, usługi i wyjątkowe miejsca na nowoczesnej publicznej mapie. Każdy wpis prowadzi bezpośrednio do odpowiedniego widoku QR-X.",viewEntries:"Zobacz wpisy",openMap:"Otwórz mapę",totalBusiness:"Business QR-X łącznie",visibleHits:"widoczne wyniki",activeCategories:"aktywne kategorie",verifiedProfiles:"zweryfikowane profile",totalFollowers:"obserwujący łącznie",totalViews:"wyświetlenia łącznie",publicMap:"Publiczna mapa firm",publicMapText:"Szukaj, filtruj i otwieraj publiczne Business QR-X bezpośrednio na mapie. Odkrywaj nowe miejsca, firmy i oferty w okolicy.",search:"Szukaj",map:"Mapa",verified:"Zweryfikowano",openQrx:"Otwórz QR-X →",results:"Wyniki",mapLive:"Szukaj, przesuwaj mapę i odkrywaj QR-X na żywo",qrxMap:"Mapa QR-X",qrxMapText:"Szukaj prawdziwych QR-X, przejdź do swojej lokalizacji lub przesuwaj mapę – wyniki poniżej reagują na bieżący obszar mapy.",noMatches:"Nie znaleziono pasujących QR-X.",startSearch:"Rozpocznij wyszukiwanie",nearMe:"W pobliżu",locationActive:"Lokalizacja aktywna",reset:"Resetuj",withLocation:"z lokalizacją",mapUpdating:"Mapa jest aktualizowana …",currentResults:"Wyniki w bieżącym obszarze mapy",defaultRanking:"Domyślnie pokazujemy najpopularniejsze wpisy. W każdej chwili możesz przełączyć się na pobliskie lub nowe QR-X.",locationOptional:"Lokalizacja opcjonalna",currentMapArea:"Bieżący obszar mapy",allVisible:"Wszystkie widoczne QR-X",popular:"Popularne",rankingArea:"Ranking w obszarze mapy",distanceSorted:"Sortowane według odległości",activateLocation:"Włącz lokalizację",newLabel:"Nowe",noVisible:"Brak QR-X w widocznym obszarze",noVisibleText:"Przesuń mapę lub oddal widok, aby ponownie zobaczyć Business QR-X.",popularArea:"Popularne w obszarze mapy",noPopular:"Nie znaleziono popularnych QR-X",moveOrFilter:"Przesuń mapę lub zmień filtry.",nearbyText:"Sortowane według odległości od Twojej lokalizacji.",nearbyNoLocation:"Włącz lokalizację, aby zobaczyć QR-X w pobliżu.",activateLocationHint:"Kliknij „W pobliżu”, aby wyświetlić tutaj najbliższe Business QR-X.",newArea:"Nowe w obszarze mapy",newestArea:"Najnowsze Business QR-X w bieżącym obszarze mapy.",errorState:"Stan błędu",loadError:"Błąd ładowania",loadErrorText:"Nie udało się teraz załadować wpisów Explore. Komunikat techniczny:",noNew:"Nie znaleziono nowych QR-X",untitled:"QR-X bez nazwy",businessFallback:"Business QR-X w mioseg qr",other:"Inne",away:"od Ciebie",follower:"Obserwujący",followers:"Obserwujący",view:"wyświetlenie",views:"wyświetlenia",uniqueVisitors:"unikalni odwiedzający",popularBadge:"🔥 Popularne",strongInterest:"📈 Duże zainteresowanie",manyVisitors:"👀 Wielu odwiedzających",trustProfile:"⭐ Profil zaufany",highDemand:"🚀 Bardzo popularne",newSince:"Nowe od",tapMarker:"Dotknij, aby pokazać znacznik",noLocationData:"Brak danych lokalizacji",mapSelected:"Wybrane na mapie",selectedQrx:"📍 Wybrany QR-X",topRank:"👑 1. miejsce w bieżącym obszarze mapy",more:"Pokaż więcej",browserNoGeo:"Ta przeglądarka nie obsługuje lokalizacji.",geoFailed:"Nie udało się pobrać lokalizacji.",geoPermission:"Nie udało się pobrać lokalizacji. Zezwól na dostęp do lokalizacji w przeglądarce.",geoAllow:"Nie udało się pobrać lokalizacji. Zezwól przeglądarce na dostęp do lokalizacji.",locationLoading:"Ładowanie lokalizacji ...",locationShort:"Lokalizacja ...",noNewArea:"Brak nowych QR-X w tym obszarze mapy",noNewAreaText:"Przesuń mapę lub oddal widok, aby odkryć nowe Business QR-X w innym obszarze.",selectedSentence:"Ten QR-X jest obecnie wybrany na mapie.",categories:{praxis_gesundheit:"Zdrowie",gastronomie:"Gastronomia",unternehmen:"Firma",dienstleistung:"Usługi",handwerk:"Rzemiosło",event:"Wydarzenie",verein:"Stowarzyszenie",wohltaetigkeit:"Organizacja charytatywna",sehenswuerdigkeit:"Atrakcja",sonstiges:"Inne"}
+  },
+  ar: {
+    home:"الرئيسية",dashboard:"لوحة التحكم",account:"الحساب",heroTitle:"اكتشف Business QR-X بالقرب منك",heroText:"اعثر على المطاعم والعيادات والشركات والخدمات والأماكن المميزة على خريطة عامة حديثة. كل إدخال يقود مباشرة إلى صفحة QR-X المناسبة.",viewEntries:"عرض الإدخالات",openMap:"فتح الخريطة",totalBusiness:"إجمالي Business QR-X",visibleHits:"نتائج ظاهرة",activeCategories:"فئات نشطة",verifiedProfiles:"ملفات موثقة",totalFollowers:"إجمالي المتابعين",totalViews:"إجمالي المشاهدات",publicMap:"خريطة الأعمال العامة",publicMapText:"ابحث عن Business QR-X العامة وصفِّها وافتحها مباشرة على الخريطة. اكتشف أماكن وشركات وعروضًا جديدة حولك.",search:"بحث",map:"الخريطة",verified:"موثّق",openQrx:"فتح QR-X ←",results:"النتائج",mapLive:"ابحث وحرّك الخريطة واكتشف QR-X مباشرة",qrxMap:"خريطة QR-X",qrxMapText:"ابحث عن QR-X، انتقل إلى موقعك أو حرّك الخريطة – تتحدث النتائج أدناه مباشرة حسب نطاق الخريطة.",noMatches:"لم يتم العثور على QR-X مطابق.",startSearch:"بدء البحث",nearMe:"بالقرب مني",locationActive:"الموقع مفعّل",reset:"إعادة تعيين",withLocation:"مع موقع",mapUpdating:"يتم تحديث الخريطة …",currentResults:"النتائج في نطاق الخريطة الحالي",defaultRanking:"نعرض افتراضيًا الإدخالات الأكثر شعبية. يمكنك التبديل في أي وقت إلى القريبة أو الجديدة.",locationOptional:"الموقع اختياري",currentMapArea:"نطاق الخريطة الحالي",allVisible:"كل QR-X الظاهرة",popular:"شائع",rankingArea:"الترتيب في نطاق الخريطة",distanceSorted:"مرتبة حسب المسافة",activateLocation:"تفعيل الموقع",newLabel:"جديد",noVisible:"لا توجد QR-X في النطاق الظاهر",noVisibleText:"حرّك الخريطة أو صغّرها لرؤية Business QR-X في النطاق الحالي.",popularArea:"الأكثر شعبية في النطاق",noPopular:"لم يتم العثور على QR-X شائعة",moveOrFilter:"حرّك الخريطة أو غيّر عوامل التصفية.",nearbyText:"مرتبة حسب المسافة من موقعك.",nearbyNoLocation:"فعّل موقعك لرؤية QR-X القريبة منك.",activateLocationHint:"اضغط «بالقرب مني» لإظهار أقرب Business QR-X هنا.",newArea:"جديد في نطاق الخريطة",newestArea:"أحدث Business QR-X في نطاق الخريطة الحالي.",errorState:"حالة خطأ",loadError:"خطأ في التحميل",loadErrorText:"تعذر تحميل إدخالات Explore الآن. الرسالة التقنية:",noNew:"لم يتم العثور على QR-X جديدة",untitled:"QR-X بلا عنوان",businessFallback:"Business QR-X على mioseg qr",other:"أخرى",away:"بعيدًا",follower:"متابع",followers:"متابعون",view:"مشاهدة",views:"مشاهدات",uniqueVisitors:"زوار فريدون",popularBadge:"🔥 شائع",strongInterest:"📈 اهتمام قوي",manyVisitors:"👀 زوار كثيرون",trustProfile:"⭐ ملف موثوق",highDemand:"🚀 مطلوب جدًا",newSince:"جديد منذ",tapMarker:"اضغط لإظهار العلامة",noLocationData:"لا توجد بيانات موقع",mapSelected:"محدد على الخريطة",selectedQrx:"📍 QR-X محدد",topRank:"👑 المركز الأول في نطاق الخريطة الحالي",more:"عرض المزيد",browserNoGeo:"هذا المتصفح لا يدعم الموقع.",geoFailed:"تعذر الحصول على الموقع.",geoPermission:"تعذر الحصول على الموقع. يرجى السماح بالوصول إلى الموقع في المتصفح.",geoAllow:"تعذر الحصول على الموقع. يرجى السماح للمتصفح بالوصول إلى موقعك.",locationLoading:"جارٍ تحميل الموقع ...",locationShort:"الموقع ...",noNewArea:"لا توجد QR-X جديدة في هذا النطاق",noNewAreaText:"حرّك الخريطة أو صغّرها لاكتشاف Business QR-X جديدة في نطاق آخر.",selectedSentence:"هذا QR-X محدد حاليًا على الخريطة.",categories:{praxis_gesundheit:"الصحة",gastronomie:"المطاعم",unternehmen:"شركة",dienstleistung:"خدمات",handwerk:"حِرف",event:"فعالية",verein:"جمعية",wohltaetigkeit:"أعمال خيرية",sehenswuerdigkeit:"معلم",sonstiges:"أخرى"}
+  },
+  fr: {
+    home:"Accueil",dashboard:"Tableau de bord",account:"Compte",heroTitle:"Découvrez les Business QR-X près de vous",heroText:"Trouvez restaurants, cabinets, entreprises, services et lieux remarquables sur une carte publique moderne. Chaque entrée mène directement à la vue web QR-X correspondante.",viewEntries:"Voir les entrées",openMap:"Ouvrir la carte",totalBusiness:"Total Business QR-X",visibleHits:"résultats visibles",activeCategories:"catégories actives",verifiedProfiles:"profils vérifiés",totalFollowers:"abonnés au total",totalViews:"vues au total",publicMap:"Carte publique des entreprises",publicMapText:"Recherchez, filtrez et ouvrez des Business QR-X publics directement sur la carte. Découvrez de nouveaux lieux, entreprises et offres autour de vous.",search:"Recherche",map:"Carte",verified:"Vérifié",openQrx:"Ouvrir le QR-X →",results:"Résultats",mapLive:"Recherchez, déplacez la carte et découvrez les QR-X en direct",qrxMap:"Carte QR-X",qrxMapText:"Recherchez de vrais QR-X, accédez à votre position ou déplacez la carte – les résultats ci-dessous réagissent en direct à la zone affichée.",noMatches:"Aucun QR-X correspondant trouvé.",startSearch:"Lancer la recherche",nearMe:"Près de moi",locationActive:"Position active",reset:"Réinitialiser",withLocation:"avec position",mapUpdating:"Mise à jour de la carte …",currentResults:"Résultats dans la zone actuelle",defaultRanking:"Par défaut, nous affichons les entrées les plus populaires. Vous pouvez passer aux QR-X proches ou nouveaux à tout moment.",locationOptional:"Position facultative",currentMapArea:"Zone actuelle de la carte",allVisible:"Tous les QR-X visibles",popular:"Populaire",rankingArea:"Classement dans la zone",distanceSorted:"Trié par distance",activateLocation:"Activer la position",newLabel:"Nouveau",noVisible:"Aucun QR-X dans la zone visible",noVisibleText:"Déplacez la carte ou dézoomez pour revoir les Business QR-X dans la zone actuelle.",popularArea:"Populaires dans la zone",noPopular:"Aucun QR-X populaire trouvé",moveOrFilter:"Déplacez la carte ou modifiez vos filtres.",nearbyText:"Triés selon la distance depuis votre position.",nearbyNoLocation:"Activez votre position pour voir les QR-X proches.",activateLocationHint:"Cliquez sur « Près de moi » pour afficher ici les Business QR-X les plus proches.",newArea:"Nouveaux dans la zone",newestArea:"Les Business QR-X les plus récents dans la zone actuelle.",errorState:"État d’erreur",loadError:"Erreur de chargement",loadErrorText:"Les entrées Explore n’ont pas pu être chargées. Message technique :",noNew:"Aucun nouveau QR-X trouvé",untitled:"QR-X sans titre",businessFallback:"Business QR-X sur mioseg qr",other:"Autre",away:"de distance",follower:"Abonné",followers:"Abonnés",view:"vue",views:"vues",uniqueVisitors:"visiteurs uniques",popularBadge:"🔥 Populaire",strongInterest:"📈 Fort intérêt",manyVisitors:"👀 Beaucoup de visiteurs",trustProfile:"⭐ Profil de confiance",highDemand:"🚀 Très demandé",newSince:"Nouveau depuis",tapMarker:"Touchez pour afficher le marqueur",noLocationData:"Aucune donnée de position",mapSelected:"Sélectionné sur la carte",selectedQrx:"📍 QR-X sélectionné",topRank:"👑 N°1 dans la zone actuelle",more:"Afficher plus",browserNoGeo:"La localisation n’est pas prise en charge par ce navigateur.",geoFailed:"Impossible d’obtenir la position.",geoPermission:"Impossible d’obtenir la position. Veuillez autoriser l’accès à la localisation dans le navigateur.",geoAllow:"Impossible d’obtenir la position. Veuillez autoriser l’accès du navigateur à votre position.",locationLoading:"Chargement de la position ...",locationShort:"Position ...",noNewArea:"Aucun nouveau QR-X dans cette zone",noNewAreaText:"Déplacez la carte ou dézoomez pour découvrir de nouveaux Business QR-X ailleurs.",selectedSentence:"Ce QR-X est actuellement sélectionné sur la carte.",categories:{praxis_gesundheit:"Santé",gastronomie:"Restauration",unternehmen:"Entreprise",dienstleistung:"Services",handwerk:"Artisanat",event:"Événement",verein:"Association",wohltaetigkeit:"Organisation caritative",sehenswuerdigkeit:"Site touristique",sonstiges:"Autre"}
+  },
+  es: {
+    home:"Inicio",dashboard:"Panel",account:"Cuenta",heroTitle:"Descubre Business QR-X cerca de ti",heroText:"Encuentra restaurantes, consultas, empresas, servicios y lugares especiales en un mapa público moderno. Cada entrada lleva directamente a la vista web QR-X correspondiente.",viewEntries:"Ver entradas",openMap:"Abrir mapa",totalBusiness:"Business QR-X en total",visibleHits:"resultados visibles",activeCategories:"categorías activas",verifiedProfiles:"perfiles verificados",totalFollowers:"seguidores totales",totalViews:"visualizaciones totales",publicMap:"Mapa público de negocios",publicMapText:"Busca, filtra y abre Business QR-X públicos directamente en el mapa. Descubre nuevos lugares, empresas y ofertas a tu alrededor.",search:"Buscar",map:"Mapa",verified:"Verificado",openQrx:"Abrir QR-X →",results:"Resultados",mapLive:"Busca, mueve el mapa y descubre QR-X en directo",qrxMap:"Mapa QR-X",qrxMapText:"Busca QR-X reales, ve a tu ubicación o mueve el mapa: los resultados inferiores reaccionan en directo al área mostrada.",noMatches:"No se encontraron QR-X coincidentes.",startSearch:"Iniciar búsqueda",nearMe:"Cerca de mí",locationActive:"Ubicación activa",reset:"Restablecer",withLocation:"con ubicación",mapUpdating:"Actualizando el mapa …",currentResults:"Resultados en el área actual del mapa",defaultRanking:"De forma predeterminada mostramos las entradas más populares. Puedes cambiar a cercanas o nuevas en cualquier momento.",locationOptional:"Ubicación opcional",currentMapArea:"Área actual del mapa",allVisible:"Todos los QR-X visibles",popular:"Popular",rankingArea:"Ranking en el área del mapa",distanceSorted:"Ordenado por distancia",activateLocation:"Activar ubicación",newLabel:"Nuevo",noVisible:"No hay QR-X en el área visible",noVisibleText:"Mueve el mapa o aleja el zoom para volver a ver Business QR-X en el área actual.",popularArea:"Popular en el área del mapa",noPopular:"No se encontraron QR-X populares",moveOrFilter:"Mueve el mapa o cambia los filtros.",nearbyText:"Ordenados por distancia desde tu ubicación.",nearbyNoLocation:"Activa tu ubicación para ver QR-X cercanos.",activateLocationHint:"Haz clic en «Cerca de mí» para mostrar aquí los Business QR-X más próximos.",newArea:"Nuevos en el área del mapa",newestArea:"Los Business QR-X más recientes del área actual.",errorState:"Estado de error",loadError:"Error de carga",loadErrorText:"Las entradas de Explore no se pudieron cargar ahora. Mensaje técnico:",noNew:"No se encontraron QR-X nuevos",untitled:"QR-X sin título",businessFallback:"Business QR-X en mioseg qr",other:"Otro",away:"de distancia",follower:"Seguidor",followers:"Seguidores",view:"vista",views:"vistas",uniqueVisitors:"visitantes únicos",popularBadge:"🔥 Popular",strongInterest:"📈 Gran interés",manyVisitors:"👀 Muchos visitantes",trustProfile:"⭐ Perfil de confianza",highDemand:"🚀 Muy solicitado",newSince:"Nuevo desde",tapMarker:"Toca para mostrar el marcador",noLocationData:"Sin datos de ubicación",mapSelected:"Seleccionado en el mapa",selectedQrx:"📍 QR-X seleccionado",topRank:"👑 N.º 1 en el área actual",more:"Mostrar más",browserNoGeo:"Este navegador no admite la ubicación.",geoFailed:"No se pudo obtener la ubicación.",geoPermission:"No se pudo obtener la ubicación. Permite el acceso a la ubicación en el navegador.",geoAllow:"No se pudo obtener la ubicación. Permite al navegador acceder a tu ubicación.",locationLoading:"Cargando ubicación ...",locationShort:"Ubicación ...",noNewArea:"No hay QR-X nuevos en esta área",noNewAreaText:"Mueve el mapa o aleja el zoom para descubrir nuevos Business QR-X en otra zona.",selectedSentence:"Este QR-X está seleccionado actualmente en el mapa.",categories:{praxis_gesundheit:"Salud",gastronomie:"Gastronomía",unternehmen:"Empresa",dienstleistung:"Servicios",handwerk:"Oficios",event:"Evento",verein:"Asociación",wohltaetigkeit:"Organización benéfica",sehenswuerdigkeit:"Atracción",sonstiges:"Otro"}
+  },
+  it: {
+    home:"Home",dashboard:"Dashboard",account:"Account",heroTitle:"Scopri i Business QR-X vicino a te",heroText:"Trova ristoranti, studi, aziende, servizi e luoghi speciali su una moderna mappa pubblica. Ogni voce porta direttamente alla relativa vista web QR-X.",viewEntries:"Visualizza voci",openMap:"Apri mappa",totalBusiness:"Business QR-X totali",visibleHits:"risultati visibili",activeCategories:"categorie attive",verifiedProfiles:"profili verificati",totalFollowers:"follower totali",totalViews:"visualizzazioni totali",publicMap:"Mappa pubblica delle attività",publicMapText:"Cerca, filtra e apri Business QR-X pubblici direttamente sulla mappa. Scopri nuovi luoghi, aziende e offerte nei dintorni.",search:"Cerca",map:"Mappa",verified:"Verificato",openQrx:"Apri QR-X →",results:"Risultati",mapLive:"Cerca, sposta la mappa e scopri QR-X in tempo reale",qrxMap:"Mappa QR-X",qrxMapText:"Cerca QR-X reali, vai alla tua posizione o sposta la mappa: i risultati sotto reagiscono in tempo reale all’area visualizzata.",noMatches:"Nessun QR-X corrispondente trovato.",startSearch:"Avvia ricerca",nearMe:"Vicino a me",locationActive:"Posizione attiva",reset:"Reimposta",withLocation:"con posizione",mapUpdating:"Aggiornamento mappa …",currentResults:"Risultati nell’area corrente della mappa",defaultRanking:"Per impostazione predefinita mostriamo le voci più popolari. Puoi passare in qualsiasi momento a QR-X vicini o nuovi.",locationOptional:"Posizione facoltativa",currentMapArea:"Area corrente della mappa",allVisible:"Tutti i QR-X visibili",popular:"Popolari",rankingArea:"Classifica nell’area",distanceSorted:"Ordinati per distanza",activateLocation:"Attiva posizione",newLabel:"Nuovi",noVisible:"Nessun QR-X nell’area visibile",noVisibleText:"Sposta la mappa o riduci lo zoom per vedere di nuovo Business QR-X nell’area corrente.",popularArea:"Popolari nell’area",noPopular:"Nessun QR-X popolare trovato",moveOrFilter:"Sposta la mappa o modifica i filtri.",nearbyText:"Ordinati in base alla distanza dalla tua posizione.",nearbyNoLocation:"Attiva la posizione per vedere QR-X vicino a te.",activateLocationHint:"Fai clic su “Vicino a me” per mostrare qui i Business QR-X più vicini.",newArea:"Nuovi nell’area",newestArea:"I Business QR-X più recenti nell’area corrente.",errorState:"Stato di errore",loadError:"Errore di caricamento",loadErrorText:"Le voci Explore non possono essere caricate ora. Messaggio tecnico:",noNew:"Nessun nuovo QR-X trovato",untitled:"QR-X senza titolo",businessFallback:"Business QR-X su mioseg qr",other:"Altro",away:"di distanza",follower:"Follower",followers:"Follower",view:"visualizzazione",views:"visualizzazioni",uniqueVisitors:"visitatori unici",popularBadge:"🔥 Popolare",strongInterest:"📈 Forte interesse",manyVisitors:"👀 Molti visitatori",trustProfile:"⭐ Profilo affidabile",highDemand:"🚀 Molto richiesto",newSince:"Nuovo dal",tapMarker:"Tocca per mostrare il marker",noLocationData:"Nessun dato di posizione",mapSelected:"Selezionato sulla mappa",selectedQrx:"📍 QR-X selezionato",topRank:"👑 N. 1 nell’area corrente",more:"Mostra altro",browserNoGeo:"La posizione non è supportata da questo browser.",geoFailed:"Impossibile ottenere la posizione.",geoPermission:"Impossibile ottenere la posizione. Consenti l’accesso alla posizione nel browser.",geoAllow:"Impossibile ottenere la posizione. Consenti al browser di accedere alla tua posizione.",locationLoading:"Caricamento posizione ...",locationShort:"Posizione ...",noNewArea:"Nessun nuovo QR-X in quest’area",noNewAreaText:"Sposta la mappa o riduci lo zoom per scoprire nuovi Business QR-X in un’altra area.",selectedSentence:"Questo QR-X è attualmente selezionato sulla mappa.",categories:{praxis_gesundheit:"Salute",gastronomie:"Ristorazione",unternehmen:"Azienda",dienstleistung:"Servizi",handwerk:"Artigianato",event:"Evento",verein:"Associazione",wohltaetigkeit:"Beneficenza",sehenswuerdigkeit:"Attrazione",sonstiges:"Altro"}
+  },
+} as const;
+
+type ExploreText = {
+  [K in keyof (typeof EXPLORE_TEXT)["de"]]: K extends "categories" ? Record<BusinessCategory, string> : string;
+};
+
+function normalizeExploreLanguage(value: string | null | undefined): ExploreLanguage {
+  const base = (value ?? "").trim().toLowerCase().split(/[-_]/)[0];
+  return (["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const).includes(base as ExploreLanguage)
+    ? (base as ExploreLanguage)
+    : "de";
+}
+
+
 const CATEGORY_OPTIONS: Array<{ value: BusinessCategory; label: string; icon: string }> = [
-  { value: "praxis_gesundheit", label: "Praxis & Gesundheit", icon: "🩺" },
-  { value: "gastronomie", label: "Gastronomie", icon: "🍽️" },
-  { value: "unternehmen", label: "Unternehmen", icon: "🏢" },
-  { value: "dienstleistung", label: "Dienstleistung", icon: "🛠️" },
-  { value: "handwerk", label: "Handwerk", icon: "🔨" },
-  { value: "event", label: "Event", icon: "✨" },
-  { value: "verein", label: "Verein", icon: "👥" },
-  { value: "wohltaetigkeit", label: "Wohltätigkeit", icon: "❤️" },
-  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit", icon: "📷" },
-  { value: "sonstiges", label: "Sonstiges", icon: "🧭" },
+  { value: "praxis_gesundheit", label: "praxis_gesundheit", icon: "🩺" },
+  { value: "gastronomie", label: "gastronomie", icon: "🍽️" },
+  { value: "unternehmen", label: "unternehmen", icon: "🏢" },
+  { value: "dienstleistung", label: "dienstleistung", icon: "🛠️" },
+  { value: "handwerk", label: "handwerk", icon: "🔨" },
+  { value: "event", label: "event", icon: "✨" },
+  { value: "verein", label: "verein", icon: "👥" },
+  { value: "wohltaetigkeit", label: "wohltaetigkeit", icon: "❤️" },
+  { value: "sehenswuerdigkeit", label: "sehenswuerdigkeit", icon: "📷" },
+  { value: "sonstiges", label: "sonstiges", icon: "🧭" },
 ];
 
 function getFirst(param: string | string[] | undefined): string {
   return Array.isArray(param) ? param[0] ?? "" : param ?? "";
 }
 
-function getCategoryLabel(category: BusinessCategory | null | undefined) {
-  return CATEGORY_OPTIONS.find((item) => item.value === category)?.label ?? "Sonstiges";
+function getCategoryLabel(category: BusinessCategory | null | undefined, ui: ExploreText) {
+  return ui.categories[(category ?? "sonstiges") as BusinessCategory] ?? ui.other;
 }
 
 function getCategoryIcon(category: BusinessCategory | null | undefined) {
   return CATEGORY_OPTIONS.find((item) => item.value === category)?.icon ?? "🧭";
 }
 
-function getEntryTitle(entry: ExploreEntry) {
-  return entry.company_name?.trim() || entry.title?.trim() || "Unbenannter QR-X";
+function getEntryTitle(entry: ExploreEntry, ui: ExploreText) {
+  return entry.company_name?.trim() || entry.title?.trim() || ui.untitled;
 }
 
-function getEntryText(entry: ExploreEntry) {
-  return entry.description?.trim() || entry.location_name?.trim() || "Business QR-X auf mioseg qr";
+function getEntryText(entry: ExploreEntry, ui: ExploreText) {
+  return entry.description?.trim() || entry.location_name?.trim() || ui.businessFallback;
 }
 
 function getExploreImage(entry: ExploreEntry, purpose: "card" | "map" | "hero" = "card") {
@@ -138,56 +183,56 @@ function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number) {
   return R * c;
 }
 
-function formatDistance(km: number) {
-  if (km < 1) return `${Math.round(km * 1000)} m entfernt`;
-  return `${km.toFixed(km < 10 ? 1 : 0)} km entfernt`;
+function formatDistance(km: number, ui: ExploreText, language: ExploreLanguage) {
+  if (km < 1) return `${Math.round(km * 1000)} m ${ui.away}`;
+  return `${new Intl.NumberFormat(EXPLORE_LOCALES[language], { maximumFractionDigits: km < 10 ? 1 : 0 }).format(km)} km ${ui.away}`;
 }
 
-function formatDate(value: string | null) {
+function formatDate(value: string | null, language: ExploreLanguage) {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat("de-DE", { day: "2-digit", month: "short", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat(EXPLORE_LOCALES[language], { day: "2-digit", month: "short", year: "numeric" }).format(date);
 }
-function formatExactMetric(value: number | null | undefined) {
+function formatExactMetric(value: number | null | undefined, language: ExploreLanguage) {
   const count = Math.max(0, Number(value ?? 0));
-  return new Intl.NumberFormat("de-DE").format(count);
+  return new Intl.NumberFormat(EXPLORE_LOCALES[language]).format(count);
 }
 
-function formatCompactMetric(value: number | null | undefined) {
+function formatCompactMetric(value: number | null | undefined, language: ExploreLanguage) {
   const count = Math.max(0, Number(value ?? 0));
 
   if (count >= 1000000) {
     const valueInMillions = count / 1000000;
-    return `${valueInMillions.toFixed(count >= 10000000 ? 0 : 1).replace(".", ",")} M`;
+    return `${new Intl.NumberFormat(EXPLORE_LOCALES[language], { maximumFractionDigits: count >= 10000000 ? 0 : 1 }).format(valueInMillions)} M`;
   }
 
   if (count >= 1000) {
     const valueInThousands = count / 1000;
-    return `${valueInThousands.toFixed(count >= 10000 ? 0 : 1).replace(".", ",")} K`;
+    return `${new Intl.NumberFormat(EXPLORE_LOCALES[language], { maximumFractionDigits: count >= 10000 ? 0 : 1 }).format(valueInThousands)} K`;
   }
 
   return String(count);
 }
 
-function formatFollowerCount(value: number | null | undefined) {
+function formatFollowerCount(value: number | null | undefined, ui: ExploreText, language: ExploreLanguage) {
   const count = Math.max(0, Number(value ?? 0));
-  return `${formatCompactMetric(count)} ${count === 1 ? "Follower" : "Follower"}`;
+  return `${formatCompactMetric(count, language)} ${count === 1 ? ui.follower : ui.followers}`;
 }
 
-function formatViewCount(value: number | null | undefined) {
+function formatViewCount(value: number | null | undefined, ui: ExploreText, language: ExploreLanguage) {
   const count = Math.max(0, Number(value ?? 0));
-  return `${formatCompactMetric(count)} ${count === 1 ? "Aufruf" : "Aufrufe"}`;
+  return `${formatCompactMetric(count, language)} ${count === 1 ? ui.view : ui.views}`;
 }
 
-function formatFollowerCountExact(value: number | null | undefined) {
+function formatFollowerCountExact(value: number | null | undefined, ui: ExploreText, language: ExploreLanguage) {
   const count = Math.max(0, Number(value ?? 0));
-  return `${formatExactMetric(count)} ${count === 1 ? "Follower" : "Follower"}`;
+  return `${formatExactMetric(count, language)} ${count === 1 ? ui.follower : ui.followers}`;
 }
 
-function formatViewCountExact(value: number | null | undefined) {
+function formatViewCountExact(value: number | null | undefined, ui: ExploreText, language: ExploreLanguage) {
   const count = Math.max(0, Number(value ?? 0));
-  return `${formatExactMetric(count)} ${count === 1 ? "Aufruf" : "Aufrufe"}`;
+  return `${formatExactMetric(count, language)} ${count === 1 ? ui.view : ui.views}`;
 }
 
 function getExploreRankScore(entry: ExploreEntry, followerCount: number, viewCount: number) {
@@ -200,12 +245,12 @@ function getExploreRankScore(entry: ExploreEntry, followerCount: number, viewCou
   return Math.round(followers * 10 + views * 0.2 + verifiedBonus + freshnessBonus);
 }
 
-function getSocialProofBadges(entry: ExploreEntry, followerCount: number, viewCount: number, uniqueViewCount: number) {
+function getSocialProofBadges(entry: ExploreEntry, followerCount: number, viewCount: number, uniqueViewCount: number, ui: ExploreText) {
   const badges: Array<{ label: string; background: string; color: string; border: string }> = [];
 
   if (followerCount >= 10) {
     badges.push({
-      label: "🔥 Beliebt",
+      label: ui.popularBadge,
       background: "#fff7ed",
       color: "#9a4f00",
       border: "#fed7aa",
@@ -214,7 +259,7 @@ function getSocialProofBadges(entry: ExploreEntry, followerCount: number, viewCo
 
   if (viewCount >= 100) {
     badges.push({
-      label: "📈 Starkes Interesse",
+      label: ui.strongInterest,
       background: "#eef4ff",
       color: "#1d4ed8",
       border: "#bfdbfe",
@@ -223,7 +268,7 @@ function getSocialProofBadges(entry: ExploreEntry, followerCount: number, viewCo
 
   if (uniqueViewCount >= 50) {
     badges.push({
-      label: "👀 Viele Besucher",
+      label: ui.manyVisitors,
       background: "#f5f3ff",
       color: "#5b21b6",
       border: "#ddd6fe",
@@ -232,7 +277,7 @@ function getSocialProofBadges(entry: ExploreEntry, followerCount: number, viewCo
 
   if (entry.verified && (followerCount >= 5 || viewCount >= 50)) {
     badges.push({
-      label: "⭐ Vertrauensprofil",
+      label: ui.trustProfile,
       background: "#ecfdf3",
       color: "#166534",
       border: "#bbf7d0",
@@ -241,7 +286,7 @@ function getSocialProofBadges(entry: ExploreEntry, followerCount: number, viewCo
 
   if (viewCount >= 500 || followerCount >= 50) {
     badges.unshift({
-      label: "🚀 Sehr gefragt",
+      label: ui.highDemand,
       background: "#0d1726",
       color: "#ffffff",
       border: "#17304d",
@@ -263,6 +308,8 @@ export default async function ExplorePage({
 }) {
   const routeParams = (await params) ?? {};
   const locale = routeParams.locale || "de";
+  const language = normalizeExploreLanguage(locale);
+  const ui = EXPLORE_TEXT[language];
   const explorePath = `/${locale}/explore`;
 
   const sp = (await searchParams) ?? {};
@@ -353,6 +400,7 @@ export default async function ExplorePage({
 
   const categoryCounts = CATEGORY_OPTIONS.map((option) => ({
     ...option,
+    label: ui.categories[option.value],
     count: publicEntries.filter((item) => item.category === option.value).length,
   }));
 
@@ -366,9 +414,9 @@ export default async function ExplorePage({
     .filter((entry) => entry.location_lat != null && entry.location_lng != null)
     .map((entry) => ({
       id: entry.id,
-      title: getEntryTitle(entry),
-      description: getEntryText(entry),
-      category: getCategoryLabel(entry.category),
+      title: getEntryTitle(entry, ui),
+      description: getEntryText(entry, ui),
+      category: getCategoryLabel(entry.category, ui),
       categoryIcon: getCategoryIcon(entry.category),
       verified: !!entry.verified,
       followerCount: getFollowerCountForEntry(entry),
@@ -406,11 +454,11 @@ export default async function ExplorePage({
   ) => {
     const image = getExploreImage(entry, "card");
     const key = `${opts?.keyPrefix ?? "card"}-${entry.id}`;
-    const createdLabel = formatDate(entry.created_at);
+    const createdLabel = formatDate(entry.created_at, language);
     const followerCount = getFollowerCountForEntry(entry);
     const viewCount = getViewTotalForEntry(entry);
     const uniqueViewCount = getUniqueViewCountForEntry(entry);
-    const socialProofBadges = getSocialProofBadges(entry, followerCount, viewCount, uniqueViewCount);
+    const socialProofBadges = getSocialProofBadges(entry, followerCount, viewCount, uniqueViewCount, ui);
 
     return (
       <div
@@ -453,7 +501,7 @@ export default async function ExplorePage({
               {image ? (
                 <img
                   src={image}
-                  alt={getEntryTitle(entry)}
+                  alt={getEntryTitle(entry, ui)}
                   loading="lazy"
                   decoding="async"
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
@@ -519,7 +567,7 @@ export default async function ExplorePage({
                   }}
                 >
                   <span>{getCategoryIcon(entry.category)}</span>
-                  <span>{getCategoryLabel(entry.category)}</span>
+                  <span>{getCategoryLabel(entry.category, ui)}</span>
                 </div>
 
                 {entry.verified ? (
@@ -541,7 +589,7 @@ export default async function ExplorePage({
                     }}
                   >
                     <span>✓</span>
-                    <span>Verifiziert</span>
+                    <span>{ui.verified}</span>
                   </div>
                 ) : null}
               </div>
@@ -588,7 +636,7 @@ export default async function ExplorePage({
                     letterSpacing: "-0.45px",
                   }}
                 >
-                  {getEntryTitle(entry)}
+                  {getEntryTitle(entry, ui)}
                 </h3>
                 <p
                   className={styles.featureText}
@@ -602,7 +650,7 @@ export default async function ExplorePage({
                     minHeight: "76px",
                   }}
                 >
-                  {getEntryText(entry)}
+                  {getEntryText(entry, ui)}
                 </p>
               </div>
 
@@ -633,8 +681,8 @@ export default async function ExplorePage({
                 ) : null}
 
                 <span
-                  title={formatFollowerCountExact(followerCount)}
-                  aria-label={formatFollowerCountExact(followerCount)}
+                  title={formatFollowerCountExact(followerCount, ui, language)}
+                  aria-label={formatFollowerCountExact(followerCount, ui, language)}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -647,12 +695,12 @@ export default async function ExplorePage({
                     fontWeight: 900,
                   }}
                 >
-                  👥 {formatFollowerCount(followerCount)}
+                  👥 {formatFollowerCount(followerCount, ui, language)}
                 </span>
 
                 <span
-                  title={`${formatViewCountExact(viewCount)}${uniqueViewCount > 0 ? ` · ${formatExactMetric(uniqueViewCount)} eindeutige Besucher` : ""}`}
-                  aria-label={`${formatViewCountExact(viewCount)}${uniqueViewCount > 0 ? ` · ${formatExactMetric(uniqueViewCount)} eindeutige Besucher` : ""}`}
+                  title={`${formatViewCountExact(viewCount, ui, language)}${uniqueViewCount > 0 ? ` · ${formatExactMetric(uniqueViewCount, language)} ${ui.uniqueVisitors}` : ""}`}
+                  aria-label={`${formatViewCountExact(viewCount, ui, language)}${uniqueViewCount > 0 ? ` · ${formatExactMetric(uniqueViewCount, language)} ${ui.uniqueVisitors}` : ""}`}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -665,8 +713,8 @@ export default async function ExplorePage({
                     fontWeight: 900,
                   }}
                 >
-                  👁️ {formatViewCount(viewCount)}
-                  {uniqueViewCount > 0 ? ` · ${formatCompactMetric(uniqueViewCount)} eindeutig` : ""}
+                  👁️ {formatViewCount(viewCount, ui, language)}
+                  {uniqueViewCount > 0 ? ` · ${formatCompactMetric(uniqueViewCount, language)} ${ui.uniqueVisitors}` : ""}
                 </span>
 
                 {entry.verified ? (
@@ -683,7 +731,7 @@ export default async function ExplorePage({
                       fontWeight: 900,
                     }}
                   >
-                    ✓ Verifiziert
+                    ✓ {ui.verified}
                   </span>
                 ) : null}
 
@@ -701,7 +749,7 @@ export default async function ExplorePage({
                       fontWeight: 800,
                     }}
                   >
-                    Neu seit {createdLabel}
+                    {ui.newSince} {createdLabel}
                   </span>
                 ) : null}
               </div>
@@ -755,7 +803,7 @@ export default async function ExplorePage({
                 }}
               >
                 <span style={{ color: "#6b788a", fontSize: "13px", fontWeight: 800 }}>
-                  {entry.location_lat != null && entry.location_lng != null ? "Tippen zeigt Marker" : "Ohne Standortdaten"}
+                  {entry.location_lat != null && entry.location_lng != null ? ui.tapMarker : ui.noLocationData}
                 </span>
 
                 <div
@@ -791,7 +839,7 @@ export default async function ExplorePage({
                       boxShadow: "0 12px 26px rgba(13, 23, 38, 0.18)",
                     }}
                   >
-                    QR-X öffnen →
+                    {ui.openQrx}
                   </Link>
                 </div>
               </div>
@@ -828,9 +876,9 @@ export default async function ExplorePage({
         </Link>
 
         <nav aria-label="Explore Navigation">
-          <Link href={`/${locale}`}>Startseite</Link>
-          <Link href={`/${locale}/dashboard`}>Dashboard</Link>
-          <Link href={`/${locale}/dashboard/account`}>Konto</Link>
+          <Link href={`/${locale}`}>{ui.home}</Link>
+          <Link href={`/${locale}/dashboard`}>{ui.dashboard}</Link>
+          <Link href={`/${locale}/dashboard/account`}>{ui.account}</Link>
         </nav>
       </header>
 
@@ -869,49 +917,48 @@ export default async function ExplorePage({
               </span>
             </div>
 
-            <h1 className={styles.heroTitle}>Entdecke Business QR-X in deiner Nähe</h1>
+            <h1 className={styles.heroTitle}>{ui.heroTitle}</h1>
             <p className={styles.heroText}>
-              Finde Restaurants, Praxen, Unternehmen, Dienstleistungen und besondere Orte auf einer modernen öffentlichen
-              Karte. Jeder Eintrag führt direkt zur passenden QR-X Webansicht.
+              {ui.heroText}
             </p>
 
             <div className={styles.heroButtons} style={{ marginBottom: "24px" }}>
               <Link href="#explore-results" className={styles.primaryButton}>
-                Einträge ansehen
+                {ui.viewEntries}
               </Link>
               <Link href="#explore-map" className={styles.secondaryButton}>
-                Karte öffnen
+                {ui.openMap}
               </Link>
             </div>
 
             <div className={styles.heroFacts}>
               <div className={styles.factCard}>
                 <div className={styles.factNumber}>{publicEntries.length}</div>
-                <div className={styles.factLabel}>Business QR-X insgesamt</div>
+                <div className={styles.factLabel}>{ui.totalBusiness}</div>
               </div>
               <div className={styles.factCard}>
                 <div className={styles.factNumber}>{items.length}</div>
-                <div className={styles.factLabel}>sichtbare Treffer</div>
+                <div className={styles.factLabel}>{ui.visibleHits}</div>
               </div>
               <div className={styles.factCard}>
                 <div className={styles.factNumber}>{activeCategoryCount}</div>
-                <div className={styles.factLabel}>aktive Kategorien</div>
+                <div className={styles.factLabel}>{ui.activeCategories}</div>
               </div>
               <div className={styles.factCard}>
                 <div className={styles.factNumber}>{verifiedCount}</div>
-                <div className={styles.factLabel}>verifizierte Profile</div>
+                <div className={styles.factLabel}>{ui.verifiedProfiles}</div>
               </div>
               <div className={styles.factCard}>
-                <div className={styles.factNumber} title={formatFollowerCountExact(totalFollowerCount)}>
-                  {formatFollowerCount(totalFollowerCount).replace(" Follower", "")}
+                <div className={styles.factNumber} title={formatFollowerCountExact(totalFollowerCount, ui, language)}>
+                  {formatCompactMetric(totalFollowerCount, language)}
                 </div>
-                <div className={styles.factLabel}>Follower insgesamt</div>
+                <div className={styles.factLabel}>{ui.totalFollowers}</div>
               </div>
               <div className={styles.factCard}>
-                <div className={styles.factNumber} title={formatViewCountExact(totalViewCount)}>
-                  {formatCompactMetric(totalViewCount)}
+                <div className={styles.factNumber} title={formatViewCountExact(totalViewCount, ui, language)}>
+                  {formatCompactMetric(totalViewCount, language)}
                 </div>
-                <div className={styles.factLabel}>Aufrufe insgesamt</div>
+                <div className={styles.factLabel}>{ui.totalViews}</div>
               </div>
             </div>
           </div>
@@ -935,10 +982,9 @@ export default async function ExplorePage({
                   }}
                 >
                   <p className={styles.phoneOverline}>Live Explore</p>
-                  <h3 className={styles.phoneCardTitle}>Öffentliche Business-Karte</h3>
+                  <h3 className={styles.phoneCardTitle}>{ui.publicMap}</h3>
                   <p className={styles.phoneCardText}>
-                    Suche, filtere und öffne öffentliche Business QR-X direkt auf der Karte. Entdecke neue Orte,
-                    Unternehmen und Angebote in deiner Umgebung.
+                    {ui.publicMapText}
                   </p>
                 </div>
 
@@ -968,9 +1014,9 @@ export default async function ExplorePage({
                 </div>
 
                 <div className={styles.phoneActionRow}>
-                  <span className={styles.phoneActionChip}>Suche</span>
-                  <span className={styles.phoneActionChip}>Karte</span>
-                  <span className={styles.phoneActionChip}>Verifiziert</span>
+                  <span className={styles.phoneActionChip}>{ui.search}</span>
+                  <span className={styles.phoneActionChip}>{ui.map}</span>
+                  <span className={styles.phoneActionChip}>{ui.verified}</span>
                 </div>
               </div>
             </div>
@@ -990,8 +1036,8 @@ export default async function ExplorePage({
       />
 
       <nav className="mioseg-explore-section-nav" aria-label="Explore Bereiche">
-        <a href="#explore-map">🗺️ Karte</a>
-        <a href="#explore-hub">🔥 Ergebnisse</a>
+        <a href="#explore-map">🗺️ {ui.map}</a>
+        <a href="#explore-hub">🔥 {ui.results}</a>
       </nav>
 
       <section
@@ -1012,15 +1058,15 @@ export default async function ExplorePage({
       >
         <div className="mioseg-section-topline">
           <span>01</span>
-          <strong>Karte</strong>
-          <em>Suche, bewege und entdecke QR-X live</em>
+          <strong>{ui.map}</strong>
+          <em>{ui.mapLive}</em>
         </div>
         <div className="mioseg-explore-compact-head">
           <div className={styles.sectionIntro} style={{ marginBottom: 0 }}>
             <span className={styles.sectionEyebrow}>Explore Map</span>
-            <h2 className={styles.sectionTitle}>QR-X Karte</h2>
+            <h2 className={styles.sectionTitle}>{ui.qrxMap}</h2>
             <p className={styles.sectionText}>
-              Suche echte QR-X, springe zu deinem Standort oder bewege die Karte – die Ergebnisse darunter reagieren live auf den Kartenausschnitt.
+              {ui.qrxMapText}
             </p>
 
             <div
@@ -1087,11 +1133,11 @@ export default async function ExplorePage({
                             type="button"
                             className="mioseg-qrx-suggestion"
                             data-suggest-id={entry.id}
-                            data-suggest-title={getEntryTitle(entry)}
+                            data-suggest-title={getEntryTitle(entry, ui)}
                             data-suggest-search={[
-                              getEntryTitle(entry),
-                              getEntryText(entry),
-                              getCategoryLabel(entry.category),
+                              getEntryTitle(entry, ui),
+                              getEntryText(entry, ui),
+                              getCategoryLabel(entry.category, ui),
                               entry.location_name ?? "",
                             ]
                               .join(" ")
@@ -1127,10 +1173,10 @@ export default async function ExplorePage({
                             </span>
                             <span style={{ display: "grid", gap: "2px", minWidth: 0 }}>
                               <strong style={{ fontSize: "14px", lineHeight: 1.2, color: "#0e1726" }}>
-                                {getEntryTitle(entry)}
+                                {getEntryTitle(entry, ui)}
                               </strong>
                               <span style={{ fontSize: "12px", color: "#64748b", fontWeight: 800 }}>
-                                {getCategoryLabel(entry.category)}
+                                {getCategoryLabel(entry.category, ui)}
                                 {entry.location_name?.trim() ? ` · ${entry.location_name.trim()}` : ""}
                               </span>
                             </span>
@@ -1147,13 +1193,13 @@ export default async function ExplorePage({
                           fontWeight: 800,
                         }}
                       >
-                        Keine passenden QR-X gefunden.
+                        {ui.noMatches}
                       </div>
                     </div>
                   </div>
 
                   <button type="submit" className={styles.primaryButton} style={{ border: 0, cursor: "pointer" }}>
-                    Suche starten
+                    {ui.startSearch}
                   </button>
 
                   <button
@@ -1163,16 +1209,16 @@ export default async function ExplorePage({
                     data-query={queryRaw}
                     data-category={selectedCategory}
                     data-explore-path={explorePath}
-                    aria-label="In meiner Nähe"
-                    title="In meiner Nähe"
+                    aria-label={ui.nearMe}
+                    title={ui.nearMe}
                     style={{ color: "#0d1726", borderColor: "#d9e5f2", cursor: "pointer" }}
                   >
-                    {hasUserLocation ? "Standort aktiv" : "In meiner Nähe"}
+                    {hasUserLocation ? ui.locationActive : ui.nearMe}
                   </button>
                 </div>
               </form>
 
-              <div className="mioseg-map-category-row" aria-label="Explore Kategorien">
+              <div className="mioseg-map-category-row" aria-label={`${ui.results} · ${ui.activeCategories}`}>
                 <Link
                   href={buildExploreHref(locale, "all", queryRaw)}
                   className={`mioseg-category-chip ${selectedCategory === "all" ? "is-active" : ""}`}
@@ -1192,7 +1238,7 @@ export default async function ExplorePage({
 
                 {(query || selectedCategory !== "all" || hasUserLocation) ? (
                   <Link href={explorePath} className="mioseg-category-chip mioseg-reset-chip">
-                    Zurücksetzen
+                    {ui.reset}
                   </Link>
                 ) : null}
               </div>
@@ -1201,12 +1247,12 @@ export default async function ExplorePage({
 
           <div>
             <div className="mioseg-map-status-pills">
-              <span>🗺️ {entriesWithLocationCount} mit Standort</span>
+              <span>🗺️ {entriesWithLocationCount} {ui.withLocation}</span>
               <span>📌 <strong id="visibleMapCount">{mapPoints.length}</strong> sichtbar</span>
               <span>🔥 Top zuerst</span>
             </div>
             <div id="mapMovingNotice" className="mioseg-map-moving-notice">
-              Karte wird aktualisiert …
+              {ui.mapUpdating}
             </div>
           </div>
         </div>
@@ -1220,25 +1266,25 @@ export default async function ExplorePage({
             boxShadow: "0 26px 74px rgba(14, 23, 38, 0.12)",
           }}
         >
-          <ExploreMapClient points={mapPoints} hasUserLocation={hasUserLocation} userLat={userLat} userLng={userLng} />
+          <ExploreMapClient points={mapPoints} locale={locale} hasUserLocation={hasUserLocation} userLat={userLat} userLng={userLng} />
         </div>
 
         <div id="explore-hub" className="mioseg-explore-hub">
           <div className="mioseg-explore-hub-head">
             <div>
-              <span className="mioseg-section-anchor">Ergebnisse im aktuellen Kartenausschnitt</span>
+              <span className="mioseg-section-anchor">{ui.currentResults}</span>
               <h2 className={styles.sectionTitle} style={{ fontSize: "30px", marginTop: "14px" }}>
                 Wähle, welche QR-X du sehen möchtest
               </h2>
               <p className={styles.sectionText}>
-                Standardmäßig zeigen wir die beliebtesten Einträge. Du kannst jederzeit auf Nähe oder neue QR-X wechseln.
+                {ui.defaultRanking}
               </p>
             </div>
 
             <div className="mioseg-live-section-pills">
               <span><strong id="visibleMapCountHub">{mapPoints.length}</strong> sichtbar</span>
-              <span>{hasUserLocation ? "📍 Standort aktiv" : "📍 Standort optional"}</span>
-              <span id="newMapScopeLabel">Aktueller Kartenausschnitt</span>
+              <span>{hasUserLocation ? `📍 ${ui.locationActive}` : `📍 ${ui.locationOptional}`}</span>
+              <span id="newMapScopeLabel">{ui.currentMapArea}</span>
             </div>
           </div>
 
@@ -1248,17 +1294,17 @@ export default async function ExplorePage({
 
           <div className="mioseg-explore-tabs" aria-label="Explore Ergebnis-Tabs">
             <label htmlFor="miosegTabPopular" className="mioseg-explore-tab mioseg-tab-popular">
-              <strong>🔥 Beliebt <span data-tab-count="popular">{mapVisibleEntries.length}</span></strong>
-              <em>Ranking im Kartenausschnitt</em>
+              <strong>🔥 {ui.popular} <span data-tab-count="popular">{mapVisibleEntries.length}</span></strong>
+              <em>{ui.rankingArea}</em>
             </label>
 
             <label htmlFor="miosegTabNearby" className={`mioseg-explore-tab mioseg-tab-nearby ${hasUserLocation ? "" : "is-disabled"}`}>
-              <strong>📍 In deiner Nähe <span data-tab-count="nearby">{nearbyTabEntries.length}</span></strong>
-              <em>{hasUserLocation ? "Nach Entfernung sortiert" : "Standort aktivieren"}</em>
+              <strong>📍 {ui.nearMe} <span data-tab-count="nearby">{nearbyTabEntries.length}</span></strong>
+              <em>{hasUserLocation ? ui.distanceSorted : ui.activateLocation}</em>
             </label>
 
             <label htmlFor="miosegTabNew" className="mioseg-explore-tab mioseg-tab-new">
-              <strong>🆕 Neu <span data-tab-count="new">{newMapEntries.length}</span></strong>
+              <strong>🆕 {ui.newLabel} <span data-tab-count="new">{newMapEntries.length}</span></strong>
               <em>Gerade erstellt</em>
             </label>
           </div>
@@ -1281,17 +1327,17 @@ export default async function ExplorePage({
           </div>
 
           <div id="visibleMapEmpty" className={styles.compareCard} style={{ display: "none", borderRadius: "28px" }}>
-            <h3 className={styles.compareTitle}>Keine QR-X im sichtbaren Bereich</h3>
+            <h3 className={styles.compareTitle}>{ui.noVisible}</h3>
             <p className={styles.featureText}>
-              Verschiebe die Karte oder zoome heraus, um wieder Business QR-X im aktuellen Kartenausschnitt zu sehen.
+              {ui.noVisibleText}
             </p>
           </div>
 
           <div className="mioseg-explore-tab-panels">
-            <section className="mioseg-explore-tab-panel mioseg-panel-popular" aria-label="Beliebt im Kartenausschnitt">
+            <section className="mioseg-explore-tab-panel mioseg-panel-popular" aria-label={ui.popularArea}>
               <div className="mioseg-panel-title-row">
                 <div>
-                  <h3>🔥 Beliebt im Kartenausschnitt</h3>
+                  <h3>🔥 {ui.popularArea}</h3>
                   <p>Sortiert nach Followern, Aufrufen, Verifizierung und Aktualität.</p>
                 </div>
                 <span>👑 Top QR-X zuerst</span>
@@ -1303,18 +1349,19 @@ export default async function ExplorePage({
                     <div
                       key={`visible-wrap-${entry.id}`}
                       data-visible-map-card={entry.id}
-                      data-visible-title={getEntryTitle(entry)}
-                      data-visible-category={getCategoryLabel(entry.category)}
+                      data-visible-title={getEntryTitle(entry, ui)}
+                      data-visible-category={getCategoryLabel(entry.category, ui)}
                       data-visible-followers={getFollowerCountForEntry(entry)}
-                      data-visible-followers-label={formatFollowerCount(getFollowerCountForEntry(entry))}
+                      data-visible-followers-label={formatFollowerCount(getFollowerCountForEntry(entry), ui, language)}
                       data-visible-views={getViewTotalForEntry(entry)}
-                      data-visible-views-label={formatViewCount(getViewTotalForEntry(entry))}
+                      data-visible-views-label={formatViewCount(getViewTotalForEntry(entry), ui, language)}
                       data-visible-social-label={
                         getSocialProofBadges(
                           entry,
                           getFollowerCountForEntry(entry),
                           getViewTotalForEntry(entry),
-                          getUniqueViewCountForEntry(entry)
+                          getUniqueViewCountForEntry(entry),
+                          ui
                         )[0]?.label ?? ""
                       }
                       data-visible-score={getExploreRankScore(entry, getFollowerCountForEntry(entry), getViewTotalForEntry(entry))}
@@ -1326,27 +1373,27 @@ export default async function ExplorePage({
                 </div>
               ) : (
                 <div className={styles.compareCard} style={{ borderRadius: "28px" }}>
-                  <h3 className={styles.compareTitle}>Keine beliebten QR-X gefunden</h3>
-                  <p className={styles.featureText}>Verschiebe die Karte oder ändere deine Filter.</p>
+                  <h3 className={styles.compareTitle}>{ui.noPopular}</h3>
+                  <p className={styles.featureText}>{ui.moveOrFilter}</p>
                 </div>
               )}
 
               {mapVisibleEntries.length > INITIAL_VISIBLE_QRX ? (
                 <div style={{ display: "flex", justifyContent: "center", marginTop: "28px" }}>
                   <button type="button" id="showMoreVisibleQrx" className={styles.primaryButton} style={{ border: 0, cursor: "pointer" }}>
-                    Mehr anzeigen ({mapVisibleEntries.length - INITIAL_VISIBLE_QRX}+)
+                    {ui.more} ({mapVisibleEntries.length - INITIAL_VISIBLE_QRX}+)
                   </button>
                 </div>
               ) : null}
             </section>
 
-            <section className="mioseg-explore-tab-panel mioseg-panel-nearby" aria-label="In deiner Nähe">
+            <section className="mioseg-explore-tab-panel mioseg-panel-nearby" aria-label={ui.nearMe}>
               <div className="mioseg-panel-title-row">
                 <div>
-                  <h3>📍 In deiner Nähe</h3>
-                  <p>{hasUserLocation ? "Nach Entfernung zu deinem Standort sortiert." : "Aktiviere deinen Standort, um QR-X in deiner Nähe zu sehen."}</p>
+                  <h3>📍 {ui.nearMe}</h3>
+                  <p>{hasUserLocation ? ui.nearbyText : ui.nearbyNoLocation}</p>
                 </div>
-                <span>{hasUserLocation ? "📍 Standort aktiv" : "Standort optional"}</span>
+                <span>{hasUserLocation ? `📍 ${ui.locationActive}` : ui.locationOptional}</span>
               </div>
 
               {hasUserLocation && nearbyTabEntries.length > 0 ? (
@@ -1354,41 +1401,41 @@ export default async function ExplorePage({
                   {nearbyTabEntries.map((entry) =>
                     renderExploreCard(entry, {
                       keyPrefix: "nearby-tab",
-                      distanceLabel: `📍 ${formatDistance(entry.distanceKm)}`,
+                      distanceLabel: `📍 ${formatDistance(entry.distanceKm, ui, language)}`,
                     })
                   )}
                 </div>
               ) : (
                 <div className={styles.compareCard} style={{ borderRadius: "28px" }}>
-                  <h3 className={styles.compareTitle}>Standort aktivieren</h3>
+                  <h3 className={styles.compareTitle}>{ui.activateLocation}</h3>
                   <p className={styles.featureText}>
-                    Klicke auf „In meiner Nähe“, damit die nächsten Business QR-X direkt hier angezeigt werden.
+                    {ui.activateLocationHint}
                   </p>
                 </div>
               )}
             </section>
 
-            <section className="mioseg-explore-tab-panel mioseg-panel-new" aria-label="Neue QR-X">
+            <section className="mioseg-explore-tab-panel mioseg-panel-new" aria-label={ui.newArea}>
               <div className="mioseg-panel-title-row">
                 <div>
-                  <h3>🆕 Neu im Kartenausschnitt</h3>
-                  <p>Die neuesten Business QR-X im aktuellen Kartenbereich.</p>
+                  <h3>🆕 {ui.newArea}</h3>
+                  <p>{ui.newestArea}</p>
                 </div>
                 <span><strong id="newMapCount">{newMapEntries.length}</strong> neue Treffer</span>
               </div>
 
               {error ? (
                 <div className={styles.compareCardFeatured} style={{ borderRadius: "30px" }}>
-                  <div className={styles.compareLabelFeatured}>Fehlerzustand</div>
-                  <h3 className={styles.compareTitleFeatured}>Fehler beim Laden</h3>
+                  <div className={styles.compareLabelFeatured}>{ui.errorState}</div>
+                  <h3 className={styles.compareTitleFeatured}>{ui.loadError}</h3>
                   <p style={{ margin: 0, color: "#dbe7f6", lineHeight: 1.7 }}>
-                    Die Explore-Einträge konnten gerade nicht geladen werden. Technische Meldung: {error.message}
+                    {ui.loadErrorText} {error.message}
                   </p>
                 </div>
               ) : newMapEntries.length === 0 ? (
                 <div className={styles.compareCard} style={{ borderRadius: "28px" }}>
-                  <h3 className={styles.compareTitle}>Keine neuen QR-X gefunden</h3>
-                  <p className={styles.featureText}>Verschiebe die Karte oder ändere deine Filter.</p>
+                  <h3 className={styles.compareTitle}>{ui.noNew}</h3>
+                  <p className={styles.featureText}>{ui.moveOrFilter}</p>
                 </div>
               ) : (
                 <>
@@ -1408,7 +1455,7 @@ export default async function ExplorePage({
                   {newMapEntries.length > INITIAL_VISIBLE_QRX ? (
                     <div style={{ display: "flex", justifyContent: "center", marginTop: "30px" }}>
                       <button type="button" id="showMoreNewQrx" className={styles.primaryButton} style={{ border: 0, cursor: "pointer" }}>
-                        Mehr anzeigen ({newMapEntries.length - INITIAL_VISIBLE_QRX}+)
+                        {ui.more} ({newMapEntries.length - INITIAL_VISIBLE_QRX}+)
                       </button>
                     </div>
                   ) : null}
@@ -2832,7 +2879,7 @@ nav,
 
 [data-visible-map-card].is-map-active::before,
 [data-new-qrx-card].is-map-active::before {
-  content: "Gerade auf der Karte ausgewählt";
+  content: '${ui.mapSelected.replace(/'/g, "\\'")}';
   display: inline-flex;
   align-items: center;
   min-height: 32px;
@@ -3074,7 +3121,7 @@ nav,
   if(btn){
     btn.addEventListener("click", function(){
       if(!navigator.geolocation){
-        alert("Standort wird von diesem Browser nicht unterstützt.");
+        alert(${JSON.stringify(ui.browserNoGeo)});
         return;
       }
 
@@ -3090,7 +3137,7 @@ nav,
         params.set("lng", String(pos.coords.longitude));
         window.location.href = explorePath + "?" + params.toString() + "#explore-map";
       }, function(){
-        alert("Standort konnte nicht abgerufen werden.");
+        alert(${JSON.stringify(ui.geoFailed)});
       }, { enableHighAccuracy: true, timeout: 10000 });
     });
   }
@@ -3104,7 +3151,7 @@ nav,
       title: card.getAttribute("data-visible-title") || "QR-X",
       category: card.getAttribute("data-visible-category") || "Business QR-X",
       followersLabel: card.getAttribute("data-visible-followers-label") || "0 Follower",
-      viewsLabel: card.getAttribute("data-visible-views-label") || "0 Aufrufe",
+      viewsLabel: card.getAttribute("data-visible-views-label") || ("0 " + ${JSON.stringify(ui.views)}),
       socialLabel: card.getAttribute("data-visible-social-label") || ""
     };
   }
@@ -3126,7 +3173,7 @@ nav,
 
     active.style.display = "";
     title.textContent = meta.title;
-    text.textContent = meta.category + " · " + meta.followersLabel + " · " + meta.viewsLabel + (meta.socialLabel ? " · " + meta.socialLabel : "") + " · Dieser QR-X ist gerade auf der Karte ausgewählt.";
+    text.textContent = meta.category + " · " + meta.followersLabel + " · " + meta.viewsLabel + (meta.socialLabel ? " · " + meta.socialLabel : "") + " · " + ${JSON.stringify(ui.selectedSentence)};
   }
 
 
@@ -3163,14 +3210,14 @@ nav,
     if(count) count.textContent = String(filteredCards.length);
 
     if(scopeLabel){
-      scopeLabel.textContent = visibleSet.size > 0 ? "Aktueller Kartenausschnitt" : "Alle sichtbaren QR-X";
+      scopeLabel.textContent = visibleSet.size > 0 ? ${JSON.stringify(ui.currentMapArea)} : ${JSON.stringify(ui.allVisible)};
     }
 
     if(showMoreNewBtn){
       showMoreNewBtn.style.display = filteredCards.length > newLimit ? "" : "none";
       showMoreNewBtn.textContent = filteredCards.length > newLimit
-        ? "Mehr anzeigen (" + (filteredCards.length - newLimit) + "+)"
-        : "Mehr anzeigen";
+        ? ${JSON.stringify(ui.more)} + " (" + (filteredCards.length - newLimit) + "+)"
+        : ${JSON.stringify(ui.more)};
     }
 
     if(filteredCards.length === 0){
@@ -3180,7 +3227,7 @@ nav,
         empty = document.createElement("div");
         empty.id = "newQrxMapEmpty";
         empty.className = "mioseg-new-map-empty";
-        empty.innerHTML = '<div style="font-size:42px;margin-bottom:10px;">🗺️</div><h3 style="margin:0 0 8px;color:#0d1726;font-size:24px;">Keine neuen QR-X in diesem Kartenausschnitt</h3><p style="margin:0;color:#64748b;font-weight:800;line-height:1.6;">Bewege die Karte oder zoome heraus, um neue Business QR-X in einem anderen Bereich zu entdecken.</p>';
+        empty.innerHTML = '<div style="font-size:42px;margin-bottom:10px;">🗺️</div><h3 style="margin:0 0 8px;color:#0d1726;font-size:24px;">' + ${JSON.stringify(ui.noNewArea)} + '</h3><p style="margin:0;color:#64748b;font-weight:800;line-height:1.6;">' + ${JSON.stringify(ui.noNewAreaText)} + '</p>';
         grid.parentNode.insertBefore(empty, grid);
       }
       empty.style.display = "";
@@ -3247,7 +3294,7 @@ nav,
           badge.setAttribute("style", "margin-bottom:12px;display:inline-flex;align-items:center;gap:8px;min-height:34px;padding:0 12px;border-radius:999px;background:#fff7ed;color:#9a4f00;font-size:12px;font-weight:900;border:1px solid #fed7aa;");
           card.prepend(badge);
         }
-        badge.textContent = isActive ? "📍 Ausgewählter QR-X" : "👑 Platz 1 im aktuellen Kartenausschnitt";
+        badge.textContent = isActive ? ${JSON.stringify(ui.selectedQrx)} : ${JSON.stringify(ui.topRank)};
       } else if(badge) {
         badge.remove();
       }
@@ -3265,7 +3312,7 @@ nav,
     if(showMoreVisibleBtn){
       if(visibleCards.length > visibleLimit){
         showMoreVisibleBtn.style.display = "";
-        showMoreVisibleBtn.textContent = "Mehr anzeigen (" + (visibleCards.length - visibleLimit) + "+)";
+        showMoreVisibleBtn.textContent = ${JSON.stringify(ui.more)} + " (" + (visibleCards.length - visibleLimit) + "+)";
       } else {
         showMoreVisibleBtn.style.display = "none";
       }
@@ -3427,7 +3474,7 @@ nav,
       if(cards.length <= visibleLimit){
         showMoreVisibleBtn.style.display = "none";
       } else {
-        showMoreVisibleBtn.textContent = "Mehr anzeigen (" + (cards.length - visibleLimit) + "+)";
+        showMoreVisibleBtn.textContent = ${JSON.stringify(ui.more)} + " (" + (cards.length - visibleLimit) + "+)";
       }
     });
   }
@@ -3446,7 +3493,7 @@ nav,
       if(cards.length <= newLimit){
         showMoreNewBtn.style.display = "none";
       } else {
-        showMoreNewBtn.textContent = "Mehr anzeigen (" + (cards.length - newLimit) + "+)";
+        showMoreNewBtn.textContent = ${JSON.stringify(ui.more)} + " (" + (cards.length - newLimit) + "+)";
       }
     });
   }
@@ -3465,7 +3512,7 @@ nav,
 
       nearbyBtn.disabled = true;
       var oldText = nearbyBtn.textContent;
-      nearbyBtn.textContent = "Standort ...";
+      nearbyBtn.textContent = ${JSON.stringify(ui.locationShort)};
 
       navigator.geolocation.getCurrentPosition(function(position){
         var lat = position.coords.latitude;
@@ -3477,8 +3524,8 @@ nav,
         window.location.href = url.toString();
       }, function(){
         nearbyBtn.disabled = false;
-        nearbyBtn.textContent = oldText || "In meiner Nähe";
-        alert("Standort konnte nicht abgerufen werden. Bitte Standortfreigabe im Browser erlauben.");
+        nearbyBtn.textContent = oldText || ${JSON.stringify(ui.nearMe)};
+        alert(${JSON.stringify(ui.geoPermission)});
       }, {
         enableHighAccuracy: true,
         timeout: 9000,
@@ -3498,13 +3545,13 @@ nav,
         event.stopPropagation();
 
         if(!navigator.geolocation){
-          alert("Standort wird von diesem Browser nicht unterstützt.");
+          alert(${JSON.stringify(ui.browserNoGeo)});
           return;
         }
 
-        var oldText = nearby.textContent || "In meiner Nähe";
+        var oldText = nearby.textContent || ${JSON.stringify(ui.nearMe)};
         nearby.disabled = true;
-        nearby.textContent = "Standort wird geladen ...";
+        nearby.textContent = ${JSON.stringify(ui.locationLoading)};
 
         navigator.geolocation.getCurrentPosition(function(pos){
           var url = new URL(window.location.href);
@@ -3523,7 +3570,7 @@ nav,
         }, function(error){
           nearby.disabled = false;
           nearby.textContent = oldText;
-          alert("Standort konnte nicht abgerufen werden. Bitte erlaube den Standortzugriff im Browser.");
+          alert(${JSON.stringify(ui.geoAllow)});
           console.warn("mioseg nearby geolocation error", error);
         }, {
           enableHighAccuracy: true,
@@ -3595,13 +3642,13 @@ nav,
       event.stopPropagation();
 
       if(!navigator.geolocation){
-        alert("Standort wird von diesem Browser nicht unterstützt.");
+        alert(${JSON.stringify(ui.browserNoGeo)});
         return;
       }
 
-      var oldText = btn.textContent || "In meiner Nähe";
+      var oldText = btn.textContent || ${JSON.stringify(ui.nearMe)};
       btn.disabled = true;
-      btn.textContent = "Standort ...";
+      btn.textContent = ${JSON.stringify(ui.locationShort)};
 
       navigator.geolocation.getCurrentPosition(function(pos){
         var url = new URL(window.location.href);
@@ -3619,7 +3666,7 @@ nav,
       }, function(error){
         btn.disabled = false;
         btn.textContent = oldText;
-        alert("Standort konnte nicht abgerufen werden. Bitte Standortfreigabe im Browser erlauben.");
+        alert(${JSON.stringify(ui.geoPermission)});
         console.warn("mioseg nearby final error", error);
       }, {
         enableHighAccuracy: true,

@@ -4,6 +4,20 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 
+type FollowLanguage = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+const FOLLOW_TEXT = {
+  de:{saveError:"Speichern nicht möglich.",statusLoading:"Status wird geladen",unfollow:"QR-X nicht mehr folgen",follow:"QR-X folgen",loginFollow:"Zum Folgen anmelden",loading:"Lädt …",saving:"Speichert …",followed:"✓ Gefolgt",followButton:"+ Folgen",loginButton:"Anmelden & folgen"},
+  en:{saveError:"Could not save.",statusLoading:"Loading status",unfollow:"Unfollow QR-X",follow:"Follow QR-X",loginFollow:"Sign in to follow",loading:"Loading …",saving:"Saving …",followed:"✓ Following",followButton:"+ Follow",loginButton:"Sign in & follow"},
+  tr:{saveError:"Kaydedilemedi.",statusLoading:"Durum yükleniyor",unfollow:"QR-X takibini bırak",follow:"QR-X'i takip et",loginFollow:"Takip etmek için giriş yap",loading:"Yükleniyor …",saving:"Kaydediliyor …",followed:"✓ Takip ediliyor",followButton:"+ Takip et",loginButton:"Giriş yap ve takip et"},
+  pl:{saveError:"Nie można zapisać.",statusLoading:"Ładowanie statusu",unfollow:"Przestań obserwować QR-X",follow:"Obserwuj QR-X",loginFollow:"Zaloguj się, aby obserwować",loading:"Ładowanie …",saving:"Zapisywanie …",followed:"✓ Obserwujesz",followButton:"+ Obserwuj",loginButton:"Zaloguj się i obserwuj"},
+  ar:{saveError:"تعذر الحفظ.",statusLoading:"جارٍ تحميل الحالة",unfollow:"إلغاء متابعة QR-X",follow:"متابعة QR-X",loginFollow:"سجّل الدخول للمتابعة",loading:"جارٍ التحميل …",saving:"جارٍ الحفظ …",followed:"✓ تتم المتابعة",followButton:"+ متابعة",loginButton:"تسجيل الدخول والمتابعة"},
+  fr:{saveError:"Impossible d’enregistrer.",statusLoading:"Chargement du statut",unfollow:"Ne plus suivre le QR-X",follow:"Suivre le QR-X",loginFollow:"Connectez-vous pour suivre",loading:"Chargement …",saving:"Enregistrement …",followed:"✓ Suivi",followButton:"+ Suivre",loginButton:"Se connecter et suivre"},
+  es:{saveError:"No se pudo guardar.",statusLoading:"Cargando estado",unfollow:"Dejar de seguir QR-X",follow:"Seguir QR-X",loginFollow:"Inicia sesión para seguir",loading:"Cargando …",saving:"Guardando …",followed:"✓ Siguiendo",followButton:"+ Seguir",loginButton:"Iniciar sesión y seguir"},
+  it:{saveError:"Impossibile salvare.",statusLoading:"Caricamento stato",unfollow:"Smetti di seguire QR-X",follow:"Segui QR-X",loginFollow:"Accedi per seguire",loading:"Caricamento …",saving:"Salvataggio …",followed:"✓ Seguito",followButton:"+ Segui",loginButton:"Accedi e segui"},
+} as const;
+function normalizeFollowLanguage(value:string):FollowLanguage{const base=value.trim().toLowerCase().split(/[-_]/)[0];return (["de","en","tr","pl","ar","fr","es","it"] as const).includes(base as FollowLanguage)?base as FollowLanguage:"de";}
+
+
 type FollowSnapshot = {
   loaded: boolean;
   authenticated: boolean;
@@ -94,6 +108,7 @@ export default function ExploreFollowClient({
   locale: string;
   compact?: boolean;
 }) {
+  const ui = FOLLOW_TEXT[normalizeFollowLanguage(locale)];
   const [state, setState] = useState(snapshot);
   const [saving, setSaving] = useState(false);
   const [errorText, setErrorText] = useState("");
@@ -155,7 +170,7 @@ export default function ExploreFollowClient({
       } | null;
 
       if (!response.ok) {
-        throw new Error(payload?.error || "Speichern nicht möglich.");
+        throw new Error(ui.saveError);
       }
 
       const confirmed = new Set(snapshot.savedIds);
@@ -175,9 +190,7 @@ export default function ExploreFollowClient({
       });
 
       setErrorText(
-        errorValue instanceof Error
-          ? errorValue.message
-          : "Speichern nicht möglich.",
+        ui.saveError,
       );
     } finally {
       setSaving(false);
@@ -197,12 +210,12 @@ export default function ExploreFollowClient({
         aria-pressed={followed}
         title={
           !state.loaded
-            ? "Status wird geladen"
+            ? ui.statusLoading
             : state.authenticated
               ? followed
-                ? "QR-X nicht mehr folgen"
-                : "QR-X folgen"
-              : "Zum Folgen anmelden"
+                ? ui.unfollow
+                : ui.follow
+              : ui.loginFollow
         }
         style={{
           minHeight: compact ? 42 : 46,
@@ -226,14 +239,14 @@ export default function ExploreFollowClient({
         }}
       >
         {!state.loaded
-          ? "Lädt …"
+          ? ui.loading
           : saving
-            ? "Speichert …"
+            ? ui.saving
             : followed
-              ? "✓ Gefolgt"
+              ? ui.followed
               : state.authenticated
-                ? "+ Folgen"
-                : "Anmelden & folgen"}
+                ? ui.followButton
+                : ui.loginButton}
       </button>
 
       {errorText ? (
