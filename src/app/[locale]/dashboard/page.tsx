@@ -10,6 +10,7 @@ import DashboardActivityClient from "./DashboardActivityClient";
 const DASHBOARD_COPY = {
   de: {
     title: "Willkommen bei deinem Mioseg qr",
+    kicker: "Dashboard",
     subtitle: "Verwalte deine QR-X, gespeicherten Inhalte, Credits und später auch deine Rechnungen bequem im Browser.",
     credits: "Credits",
     createdQrx: "Erstellte QR-X",
@@ -39,6 +40,7 @@ const DASHBOARD_COPY = {
   },
   en: {
     title: "Welcome to your Mioseg qr",
+    kicker: "Dashboard",
     subtitle: "Manage your QR-X, saved content, credits and later your invoices conveniently in the browser.",
     credits: "Credits",
     createdQrx: "Created QR-X",
@@ -68,6 +70,7 @@ const DASHBOARD_COPY = {
   },
   tr: {
     title: "Mioseg qr hesabına hoş geldin",
+    kicker: "Kontrol paneli",
     subtitle: "QR-X'lerini, kaydettiğin içerikleri, Credits bakiyeni ve ileride faturalarını tarayıcıdan kolayca yönet.",
     credits: "Credits",
     createdQrx: "Oluşturulan QR-X",
@@ -97,6 +100,7 @@ const DASHBOARD_COPY = {
   },
   pl: {
     title: "Witaj w swoim Mioseg qr",
+    kicker: "Panel",
     subtitle: "Wygodnie zarządzaj QR-X, zapisanymi treściami, Credits oraz później fakturami w przeglądarce.",
     credits: "Credits",
     createdQrx: "Utworzone QR-X",
@@ -126,6 +130,7 @@ const DASHBOARD_COPY = {
   },
   ar: {
     title: "مرحبًا بك في Mioseg qr",
+    kicker: "لوحة التحكم",
     subtitle: "أدر QR-X والمحتوى المحفوظ وCredits وفواتيرك لاحقًا بسهولة من المتصفح.",
     credits: "Credits",
     createdQrx: "QR-X التي أنشأتها",
@@ -155,6 +160,7 @@ const DASHBOARD_COPY = {
   },
   fr: {
     title: "Bienvenue dans votre Mioseg qr",
+    kicker: "Tableau de bord",
     subtitle: "Gérez facilement vos QR-X, contenus enregistrés, Credits et plus tard vos factures depuis le navigateur.",
     credits: "Credits",
     createdQrx: "QR-X créés",
@@ -184,6 +190,7 @@ const DASHBOARD_COPY = {
   },
   es: {
     title: "Bienvenido a tu Mioseg qr",
+    kicker: "Panel",
     subtitle: "Gestiona cómodamente tus QR-X, contenido guardado, Credits y más adelante tus facturas desde el navegador.",
     credits: "Credits",
     createdQrx: "QR-X creados",
@@ -213,6 +220,7 @@ const DASHBOARD_COPY = {
   },
   it: {
     title: "Benvenuto nel tuo Mioseg qr",
+    kicker: "Dashboard",
     subtitle: "Gestisci comodamente QR-X, contenuti salvati, Credits e in seguito le fatture dal browser.",
     credits: "Credits",
     createdQrx: "QR-X creati",
@@ -345,7 +353,7 @@ export default async function DashboardPage({ params }: Props) {
       <div className="mioseg-dashboard-content">
       <section className={styles.hero}>
         <div>
-          <span className={styles.kicker}>Dashboard</span>
+          <span className={styles.kicker}>{copy.kicker}</span>
           <h1>{copy.title}</h1>
           <p>{copy.subtitle}</p>
         </div>

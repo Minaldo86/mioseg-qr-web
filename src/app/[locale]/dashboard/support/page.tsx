@@ -36,14 +36,49 @@ type ProblemType =
   | "qrx_report"
   | "other";
 
-const PROBLEM_TYPES: Array<{ value: ProblemType; label: string }> = [
-  { value: "credits_wrong", label: "Credits oder Zahlung" },
-  { value: "verification_waiting", label: "Verifizierung" },
-  { value: "upload_problem", label: "Upload oder Dateien" },
-  { value: "transfer_problem", label: "QR-X-Transfer" },
-  { value: "qrx_report", label: "QR-X oder Inhalt melden" },
-  { value: "other", label: "Sonstiges" },
+const PROBLEM_TYPES: ProblemType[] = [
+  "credits_wrong",
+  "verification_waiting",
+  "upload_problem",
+  "transfer_problem",
+  "qrx_report",
+  "other",
 ];
+
+const SUPPORT_LOCALES = ["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const;
+type SupportLocale = (typeof SUPPORT_LOCALES)[number];
+
+function normalizeSupportLocale(value: string): SupportLocale {
+  const raw = String(value || "").trim().toLowerCase().split(/[-_]/)[0];
+  return SUPPORT_LOCALES.includes(raw as SupportLocale) ? (raw as SupportLocale) : "de";
+}
+
+const SUPPORT_COPY = {
+  de: {
+    navAria:"Support Navigation", myQrx:"Meine QR-X", account:"Konto", title:"Support & Hilfe", subtitle:"Melde Probleme, stelle Fragen und prüfe den Status deiner bisherigen Support-Anfragen.", back:"Zurück zum Dashboard", closeForm:"Formular schließen", newRequest:"+ Neue Anfrage", overview:"Support Übersicht", open:"Offen", inReview:"In Bearbeitung", resolved:"Gelöst", email:"E-Mail", followUps:"Rückfragen", newSupport:"Neue Support-Anfrage", formHint:"Beschreibe dein Anliegen möglichst genau. Falls nötig melden wir uns per E-Mail bei dir.", newLabel:"Neu", category:"Kategorie", subject:"Betreff", subjectPlaceholder:"Kurze Beschreibung des Problems", description:"Beschreibung", descriptionPlaceholder:"Was ist passiert? Was hast du bereits versucht?", affectedQrx:"Betroffener QR-X (optional)", noSpecificQrx:"Kein bestimmter QR-X", notice:"Rückfragen und weitere Informationen erhältst du an die E-Mail-Adresse deines Mioseg-qr-Kontos.", sending:"Wird gesendet …", send:"Anfrage absenden", myRequests:"Meine Anfragen", requestsHint:"Hier siehst du Ticketnummer, Kategorie und Bearbeitungsstatus.", loading:"Lädt", tickets:"Tickets", loadingRequests:"Support-Anfragen werden geladen …", noRequests:"Noch keine Support-Anfragen", noRequestsHint:"Sobald du eine Anfrage sendest, erscheint sie hier und wird gleichzeitig im Adminbereich angezeigt.", supportTicket:"Support-Ticket", completion:"Abschluss:", waitingCustomer:"Warten auf deine Rückmeldung", other:"Sonstiges", untitledQrx:"Unbenannter QR-X", loginRequired:"Bitte melde dich zuerst an.", loadFailed:"Support-Anfragen konnten nicht geladen werden.", centerFailed:"Support-Center konnte nicht geladen werden.", subjectRequired:"Bitte gib einen aussagekräftigen Betreff ein.", descriptionRequired:"Bitte beschreibe dein Anliegen mit mindestens 10 Zeichen.", sendFailed:"Die Anfrage konnte nicht gesendet werden.", sent:"Deine Support-Anfrage wurde übermittelt. Bei Rückfragen kontaktieren wir dich per E-Mail.", creditsWrong:"Credits oder Zahlung", verificationWaiting:"Verifizierung", uploadProblem:"Upload oder Dateien", transferProblem:"QR-X-Transfer", qrxReport:"QR-X oder Inhalt melden"
+  },
+  en: {
+    navAria:"Support navigation", myQrx:"My QR-X", account:"Account", title:"Support & Help", subtitle:"Report problems, ask questions and check the status of your previous support requests.", back:"Back to dashboard", closeForm:"Close form", newRequest:"+ New request", overview:"Support overview", open:"Open", inReview:"In review", resolved:"Resolved", email:"Email", followUps:"Follow-ups", newSupport:"New support request", formHint:"Describe your issue as precisely as possible. If necessary, we will contact you by email.", newLabel:"New", category:"Category", subject:"Subject", subjectPlaceholder:"Short description of the problem", description:"Description", descriptionPlaceholder:"What happened? What have you already tried?", affectedQrx:"Affected QR-X (optional)", noSpecificQrx:"No specific QR-X", notice:"Follow-up questions and further information will be sent to the email address of your Mioseg qr account.", sending:"Sending …", send:"Send request", myRequests:"My requests", requestsHint:"Here you can see the ticket number, category and processing status.", loading:"Loading", tickets:"tickets", loadingRequests:"Loading support requests …", noRequests:"No support requests yet", noRequestsHint:"As soon as you send a request, it will appear here and also in the admin area.", supportTicket:"Support ticket", completion:"Resolution:", waitingCustomer:"Waiting for your reply", other:"Other", untitledQrx:"Untitled QR-X", loginRequired:"Please sign in first.", loadFailed:"Support requests could not be loaded.", centerFailed:"Support center could not be loaded.", subjectRequired:"Please enter a meaningful subject.", descriptionRequired:"Please describe your issue using at least 10 characters.", sendFailed:"The request could not be sent.", sent:"Your support request has been submitted. We will contact you by email if we have questions.", creditsWrong:"Credits or payment", verificationWaiting:"Verification", uploadProblem:"Upload or files", transferProblem:"QR-X transfer", qrxReport:"Report QR-X or content"
+  },
+  tr: {
+    navAria:"Destek navigasyonu", myQrx:"QR-X'lerim", account:"Hesap", title:"Destek ve Yardım", subtitle:"Sorunları bildirin, sorular sorun ve önceki destek taleplerinizin durumunu kontrol edin.", back:"Kontrol paneline dön", closeForm:"Formu kapat", newRequest:"+ Yeni talep", overview:"Destek özeti", open:"Açık", inReview:"İnceleniyor", resolved:"Çözüldü", email:"E-posta", followUps:"Geri dönüşler", newSupport:"Yeni destek talebi", formHint:"Talebinizi mümkün olduğunca ayrıntılı açıklayın. Gerekirse sizinle e-posta yoluyla iletişime geçeriz.", newLabel:"Yeni", category:"Kategori", subject:"Konu", subjectPlaceholder:"Sorunun kısa açıklaması", description:"Açıklama", descriptionPlaceholder:"Ne oldu? Şimdiye kadar neleri denediniz?", affectedQrx:"İlgili QR-X (isteğe bağlı)", noSpecificQrx:"Belirli bir QR-X yok", notice:"Sorular ve ek bilgiler Mioseg qr hesabınızdaki e-posta adresine gönderilir.", sending:"Gönderiliyor …", send:"Talebi gönder", myRequests:"Taleplerim", requestsHint:"Burada talep numarasını, kategoriyi ve işlem durumunu görebilirsiniz.", loading:"Yükleniyor", tickets:"talep", loadingRequests:"Destek talepleri yükleniyor …", noRequests:"Henüz destek talebi yok", noRequestsHint:"Bir talep gönderdiğinizde burada ve aynı zamanda yönetici alanında görünür.", supportTicket:"Destek talebi", completion:"Çözüm:", waitingCustomer:"Yanıtınız bekleniyor", other:"Diğer", untitledQrx:"Adsız QR-X", loginRequired:"Lütfen önce giriş yapın.", loadFailed:"Destek talepleri yüklenemedi.", centerFailed:"Destek merkezi yüklenemedi.", subjectRequired:"Lütfen açıklayıcı bir konu girin.", descriptionRequired:"Lütfen talebinizi en az 10 karakterle açıklayın.", sendFailed:"Talep gönderilemedi.", sent:"Destek talebiniz iletildi. Sorularımız olursa sizinle e-posta yoluyla iletişime geçeceğiz.", creditsWrong:"Credits veya ödeme", verificationWaiting:"Doğrulama", uploadProblem:"Yükleme veya dosyalar", transferProblem:"QR-X transferi", qrxReport:"QR-X veya içeriği bildir"
+  },
+  pl: {
+    navAria:"Nawigacja pomocy", myQrx:"Moje QR-X", account:"Konto", title:"Pomoc i wsparcie", subtitle:"Zgłaszaj problemy, zadawaj pytania i sprawdzaj status wcześniejszych zgłoszeń.", back:"Wróć do panelu", closeForm:"Zamknij formularz", newRequest:"+ Nowe zgłoszenie", overview:"Przegląd wsparcia", open:"Otwarte", inReview:"W trakcie", resolved:"Rozwiązane", email:"E-mail", followUps:"Pytania zwrotne", newSupport:"Nowe zgłoszenie", formHint:"Opisz problem możliwie dokładnie. W razie potrzeby skontaktujemy się z Tobą e-mailem.", newLabel:"Nowe", category:"Kategoria", subject:"Temat", subjectPlaceholder:"Krótki opis problemu", description:"Opis", descriptionPlaceholder:"Co się stało? Czego już próbowałeś?", affectedQrx:"Dotyczący QR-X (opcjonalnie)", noSpecificQrx:"Brak konkretnego QR-X", notice:"Pytania i dalsze informacje otrzymasz na adres e-mail konta Mioseg qr.", sending:"Wysyłanie …", send:"Wyślij zgłoszenie", myRequests:"Moje zgłoszenia", requestsHint:"Tutaj zobaczysz numer zgłoszenia, kategorię i status.", loading:"Ładowanie", tickets:"zgłoszeń", loadingRequests:"Ładowanie zgłoszeń …", noRequests:"Brak zgłoszeń", noRequestsHint:"Po wysłaniu zgłoszenia pojawi się ono tutaj oraz w panelu administracyjnym.", supportTicket:"Zgłoszenie", completion:"Rozwiązanie:", waitingCustomer:"Oczekuje na Twoją odpowiedź", other:"Inne", untitledQrx:"QR-X bez nazwy", loginRequired:"Najpierw się zaloguj.", loadFailed:"Nie udało się załadować zgłoszeń.", centerFailed:"Nie udało się załadować centrum pomocy.", subjectRequired:"Wpisz konkretny temat.", descriptionRequired:"Opisz problem używając co najmniej 10 znaków.", sendFailed:"Nie udało się wysłać zgłoszenia.", sent:"Twoje zgłoszenie zostało przesłane. W razie pytań skontaktujemy się e-mailem.", creditsWrong:"Credits lub płatność", verificationWaiting:"Weryfikacja", uploadProblem:"Przesyłanie lub pliki", transferProblem:"Transfer QR-X", qrxReport:"Zgłoś QR-X lub treść"
+  },
+  ar: {
+    navAria:"تنقل الدعم", myQrx:"QR-X الخاصة بي", account:"الحساب", title:"الدعم والمساعدة", subtitle:"أبلغ عن المشكلات واطرح الأسئلة وتحقق من حالة طلبات الدعم السابقة.", back:"العودة إلى لوحة التحكم", closeForm:"إغلاق النموذج", newRequest:"+ طلب جديد", overview:"نظرة عامة على الدعم", open:"مفتوح", inReview:"قيد المراجعة", resolved:"تم الحل", email:"البريد الإلكتروني", followUps:"استفسارات", newSupport:"طلب دعم جديد", formHint:"صف مشكلتك بأكبر قدر ممكن من الدقة. سنتواصل معك عبر البريد الإلكتروني عند الحاجة.", newLabel:"جديد", category:"الفئة", subject:"الموضوع", subjectPlaceholder:"وصف مختصر للمشكلة", description:"الوصف", descriptionPlaceholder:"ماذا حدث؟ ماذا جربت حتى الآن؟", affectedQrx:"QR-X المتأثر (اختياري)", noSpecificQrx:"لا يوجد QR-X محدد", notice:"ستتلقى الاستفسارات والمعلومات الإضافية على عنوان البريد الإلكتروني لحساب Mioseg qr.", sending:"جارٍ الإرسال …", send:"إرسال الطلب", myRequests:"طلباتي", requestsHint:"هنا ترى رقم الطلب والفئة وحالة المعالجة.", loading:"جارٍ التحميل", tickets:"طلبات", loadingRequests:"جارٍ تحميل طلبات الدعم …", noRequests:"لا توجد طلبات دعم بعد", noRequestsHint:"بمجرد إرسال طلب سيظهر هنا وفي منطقة الإدارة أيضًا.", supportTicket:"طلب دعم", completion:"الحل:", waitingCustomer:"بانتظار ردك", other:"أخرى", untitledQrx:"QR-X بدون اسم", loginRequired:"يرجى تسجيل الدخول أولاً.", loadFailed:"تعذر تحميل طلبات الدعم.", centerFailed:"تعذر تحميل مركز الدعم.", subjectRequired:"يرجى إدخال موضوع واضح.", descriptionRequired:"يرجى وصف طلبك بما لا يقل عن 10 أحرف.", sendFailed:"تعذر إرسال الطلب.", sent:"تم إرسال طلب الدعم. سنتواصل معك عبر البريد الإلكتروني إذا كانت لدينا أسئلة.", creditsWrong:"Credits أو الدفع", verificationWaiting:"التحقق", uploadProblem:"الرفع أو الملفات", transferProblem:"نقل QR-X", qrxReport:"الإبلاغ عن QR-X أو محتوى"
+  },
+  fr: {
+    navAria:"Navigation assistance", myQrx:"Mes QR-X", account:"Compte", title:"Assistance et aide", subtitle:"Signalez des problèmes, posez des questions et consultez l’état de vos demandes précédentes.", back:"Retour au tableau de bord", closeForm:"Fermer le formulaire", newRequest:"+ Nouvelle demande", overview:"Aperçu de l’assistance", open:"Ouvert", inReview:"En cours", resolved:"Résolu", email:"E-mail", followUps:"Questions", newSupport:"Nouvelle demande d’assistance", formHint:"Décrivez votre problème aussi précisément que possible. Si nécessaire, nous vous contacterons par e-mail.", newLabel:"Nouveau", category:"Catégorie", subject:"Objet", subjectPlaceholder:"Brève description du problème", description:"Description", descriptionPlaceholder:"Que s’est-il passé ? Qu’avez-vous déjà essayé ?", affectedQrx:"QR-X concerné (facultatif)", noSpecificQrx:"Aucun QR-X particulier", notice:"Les questions et informations complémentaires seront envoyées à l’adresse e-mail de votre compte Mioseg qr.", sending:"Envoi …", send:"Envoyer la demande", myRequests:"Mes demandes", requestsHint:"Vous voyez ici le numéro, la catégorie et le statut de traitement.", loading:"Chargement", tickets:"demandes", loadingRequests:"Chargement des demandes …", noRequests:"Aucune demande pour le moment", noRequestsHint:"Dès que vous envoyez une demande, elle apparaît ici ainsi que dans l’espace d’administration.", supportTicket:"Demande d’assistance", completion:"Résolution :", waitingCustomer:"En attente de votre réponse", other:"Autre", untitledQrx:"QR-X sans nom", loginRequired:"Veuillez d’abord vous connecter.", loadFailed:"Impossible de charger les demandes d’assistance.", centerFailed:"Impossible de charger le centre d’assistance.", subjectRequired:"Veuillez saisir un objet explicite.", descriptionRequired:"Veuillez décrire votre demande avec au moins 10 caractères.", sendFailed:"La demande n’a pas pu être envoyée.", sent:"Votre demande d’assistance a été envoyée. Nous vous contacterons par e-mail si nécessaire.", creditsWrong:"Credits ou paiement", verificationWaiting:"Vérification", uploadProblem:"Téléversement ou fichiers", transferProblem:"Transfert QR-X", qrxReport:"Signaler un QR-X ou un contenu"
+  },
+  es: {
+    navAria:"Navegación de soporte", myQrx:"Mis QR-X", account:"Cuenta", title:"Soporte y ayuda", subtitle:"Informa de problemas, haz preguntas y consulta el estado de tus solicitudes anteriores.", back:"Volver al panel", closeForm:"Cerrar formulario", newRequest:"+ Nueva solicitud", overview:"Resumen de soporte", open:"Abierto", inReview:"En revisión", resolved:"Resuelto", email:"Correo electrónico", followUps:"Consultas", newSupport:"Nueva solicitud de soporte", formHint:"Describe tu problema con la mayor precisión posible. Si es necesario, nos pondremos en contacto contigo por correo electrónico.", newLabel:"Nuevo", category:"Categoría", subject:"Asunto", subjectPlaceholder:"Breve descripción del problema", description:"Descripción", descriptionPlaceholder:"¿Qué ha ocurrido? ¿Qué has probado ya?", affectedQrx:"QR-X afectado (opcional)", noSpecificQrx:"Ningún QR-X específico", notice:"Las consultas y la información adicional se enviarán al correo electrónico de tu cuenta Mioseg qr.", sending:"Enviando …", send:"Enviar solicitud", myRequests:"Mis solicitudes", requestsHint:"Aquí puedes ver el número, la categoría y el estado de tramitación.", loading:"Cargando", tickets:"solicitudes", loadingRequests:"Cargando solicitudes de soporte …", noRequests:"Aún no hay solicitudes", noRequestsHint:"Cuando envíes una solicitud, aparecerá aquí y también en el área de administración.", supportTicket:"Solicitud de soporte", completion:"Resolución:", waitingCustomer:"Esperando tu respuesta", other:"Otro", untitledQrx:"QR-X sin nombre", loginRequired:"Inicia sesión primero.", loadFailed:"No se pudieron cargar las solicitudes de soporte.", centerFailed:"No se pudo cargar el centro de soporte.", subjectRequired:"Introduce un asunto descriptivo.", descriptionRequired:"Describe tu solicitud con al menos 10 caracteres.", sendFailed:"No se pudo enviar la solicitud.", sent:"Tu solicitud de soporte ha sido enviada. Si tenemos preguntas, nos pondremos en contacto contigo por correo electrónico.", creditsWrong:"Credits o pago", verificationWaiting:"Verificación", uploadProblem:"Carga o archivos", transferProblem:"Transferencia de QR-X", qrxReport:"Informar de QR-X o contenido"
+  },
+  it: {
+    navAria:"Navigazione supporto", myQrx:"I miei QR-X", account:"Account", title:"Supporto e aiuto", subtitle:"Segnala problemi, fai domande e controlla lo stato delle richieste precedenti.", back:"Torna alla dashboard", closeForm:"Chiudi modulo", newRequest:"+ Nuova richiesta", overview:"Panoramica supporto", open:"Aperto", inReview:"In lavorazione", resolved:"Risolto", email:"E-mail", followUps:"Domande", newSupport:"Nuova richiesta di supporto", formHint:"Descrivi il problema nel modo più preciso possibile. Se necessario, ti contatteremo via e-mail.", newLabel:"Nuovo", category:"Categoria", subject:"Oggetto", subjectPlaceholder:"Breve descrizione del problema", description:"Descrizione", descriptionPlaceholder:"Cosa è successo? Cosa hai già provato?", affectedQrx:"QR-X interessato (opzionale)", noSpecificQrx:"Nessun QR-X specifico", notice:"Domande e ulteriori informazioni saranno inviate all’indirizzo e-mail del tuo account Mioseg qr.", sending:"Invio …", send:"Invia richiesta", myRequests:"Le mie richieste", requestsHint:"Qui puoi vedere numero, categoria e stato di elaborazione.", loading:"Caricamento", tickets:"richieste", loadingRequests:"Caricamento richieste di supporto …", noRequests:"Nessuna richiesta di supporto", noRequestsHint:"Quando invii una richiesta, apparirà qui e anche nell’area amministrativa.", supportTicket:"Richiesta di supporto", completion:"Risoluzione:", waitingCustomer:"In attesa della tua risposta", other:"Altro", untitledQrx:"QR-X senza nome", loginRequired:"Accedi prima.", loadFailed:"Impossibile caricare le richieste di supporto.", centerFailed:"Impossibile caricare il centro di supporto.", subjectRequired:"Inserisci un oggetto significativo.", descriptionRequired:"Descrivi la richiesta con almeno 10 caratteri.", sendFailed:"Impossibile inviare la richiesta.", sent:"La tua richiesta di supporto è stata inviata. Ti contatteremo via e-mail in caso di domande.", creditsWrong:"Credits o pagamento", verificationWaiting:"Verifica", uploadProblem:"Caricamento o file", transferProblem:"Trasferimento QR-X", qrxReport:"Segnala QR-X o contenuto"
+  },
+} as const;
 
 function getParam(value: string | string[] | undefined, fallback: string) {
   if (typeof value === "string" && value.trim()) return value;
@@ -53,13 +88,17 @@ function getParam(value: string | string[] | undefined, fallback: string) {
   return fallback;
 }
 
-function formatDateTime(value: string | null | undefined) {
+function formatDateTime(value: string | null | undefined, locale: SupportLocale) {
   if (!value) return "–";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "–";
 
-  return new Intl.DateTimeFormat("de-DE", {
+  const localeMap: Record<SupportLocale, string> = {
+    de: "de-DE", en: "en-US", tr: "tr-TR", pl: "pl-PL",
+    ar: "ar-SA", fr: "fr-FR", es: "es-ES", it: "it-IT",
+  };
+  return new Intl.DateTimeFormat(localeMap[locale], {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -68,50 +107,27 @@ function formatDateTime(value: string | null | undefined) {
   }).format(date);
 }
 
-function getStatusMeta(status: string | null | undefined) {
-  if (status === "in_review") {
-    return {
-      label: "In Bearbeitung",
-      color: "#fde68a",
-      background: "rgba(245,158,11,0.13)",
-      border: "1px solid rgba(253,230,138,0.18)",
-    };
-  }
+function getStatusMeta(status: string | null | undefined, ui: (typeof SUPPORT_COPY)[SupportLocale]) {
+  if (status === "in_review") return { label: ui.inReview, color: "#fde68a", background: "rgba(245,158,11,0.13)", border: "1px solid rgba(253,230,138,0.18)" };
+  if (status === "waiting_customer") return { label: ui.waitingCustomer, color: "#fde68a", background: "rgba(245,158,11,0.13)", border: "1px solid rgba(253,230,138,0.18)" };
+  if (status === "resolved") return { label: ui.resolved, color: "#bbf7d0", background: "rgba(34,197,94,0.13)", border: "1px solid rgba(134,239,172,0.2)" };
+  return { label: ui.open, color: "#bfdbfe", background: "rgba(59,130,246,0.13)", border: "1px solid rgba(147,197,253,0.18)" };
+}
 
-  if (status === "waiting_customer") {
-    return {
-      label: "Warten auf deine Rückmeldung",
-      color: "#fde68a",
-      background: "rgba(245,158,11,0.13)",
-      border: "1px solid rgba(253,230,138,0.18)",
-    };
-  }
-
-  if (status === "resolved") {
-    return {
-      label: "Gelöst",
-      color: "#bbf7d0",
-      background: "rgba(34,197,94,0.13)",
-      border: "1px solid rgba(134,239,172,0.2)",
-    };
-  }
-
-  return {
-    label: "Offen",
-    color: "#bfdbfe",
-    background: "rgba(59,130,246,0.13)",
-    border: "1px solid rgba(147,197,253,0.18)",
+function getProblemLabel(value: string | null | undefined, ui: (typeof SUPPORT_COPY)[SupportLocale]) {
+  const labels: Record<ProblemType, string> = {
+    credits_wrong: ui.creditsWrong,
+    verification_waiting: ui.verificationWaiting,
+    upload_problem: ui.uploadProblem,
+    transfer_problem: ui.transferProblem,
+    qrx_report: ui.qrxReport,
+    other: ui.other,
   };
+  return labels[(value as ProblemType) || "other"] || ui.other;
 }
 
-function getProblemLabel(value: string | null | undefined) {
-  return (
-    PROBLEM_TYPES.find((item) => item.value === value)?.label || "Sonstiges"
-  );
-}
-
-function getQrxTitle(item: OwnQrx) {
-  return item.company_name?.trim() || item.title?.trim() || "Unbenannter QR-X";
+function getQrxTitle(item: OwnQrx, ui: (typeof SUPPORT_COPY)[SupportLocale]) {
+  return item.company_name?.trim() || item.title?.trim() || ui.untitledQrx;
 }
 
 export default function SupportPage() {
@@ -120,6 +136,8 @@ export default function SupportPage() {
     params?.locale as string | string[] | undefined,
     "de",
   );
+  const supportLocale = normalizeSupportLocale(locale);
+  const ui = SUPPORT_COPY[supportLocale];
 
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [ownQrx, setOwnQrx] = useState<OwnQrx[]>([]);
@@ -160,7 +178,7 @@ export default function SupportPage() {
 
     if (error) throw error;
     if (!session?.access_token) {
-      throw new Error("Bitte melde dich zuerst an.");
+      throw new Error(ui.loginRequired);
     }
 
     return session.access_token;
@@ -195,7 +213,7 @@ export default function SupportPage() {
         } | null;
 
         throw new Error(
-          payload?.error || "Support-Anfragen konnten nicht geladen werden.",
+          payload?.error || ui.loadFailed,
         );
       }
 
@@ -216,7 +234,7 @@ export default function SupportPage() {
       setErrorText(
         error instanceof Error
           ? error.message
-          : "Support-Center konnte nicht geladen werden.",
+          : ui.centerFailed,
       );
     } finally {
       setLoading(false);
@@ -232,14 +250,12 @@ export default function SupportPage() {
     setMessage(null);
 
     if (title.trim().length < 4) {
-      setErrorText("Bitte gib einen aussagekräftigen Betreff ein.");
+      setErrorText(ui.subjectRequired);
       return;
     }
 
     if (description.trim().length < 10) {
-      setErrorText(
-        "Bitte beschreibe dein Anliegen mit mindestens 10 Zeichen.",
-      );
+      setErrorText(ui.descriptionRequired);
       return;
     }
 
@@ -269,7 +285,7 @@ export default function SupportPage() {
 
       if (!response.ok) {
         throw new Error(
-          payload?.error || "Die Anfrage konnte nicht gesendet werden.",
+          payload?.error || ui.sendFailed,
         );
       }
 
@@ -282,14 +298,12 @@ export default function SupportPage() {
       setDescription("");
       setQrxId("");
       setFormOpen(false);
-      setMessage(
-        "Deine Support-Anfrage wurde übermittelt. Bei Rückfragen kontaktieren wir dich per E-Mail.",
-      );
+      setMessage(ui.sent);
     } catch (error) {
       setErrorText(
         error instanceof Error
           ? error.message
-          : "Die Anfrage konnte nicht gesendet werden.",
+          : ui.sendFailed,
       );
     } finally {
       setCreating(false);
@@ -303,10 +317,10 @@ export default function SupportPage() {
           <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
         </Link>
 
-        <nav className={styles.nav} aria-label="Support Navigation">
+        <nav className={styles.nav} aria-label={ui.navAria}>
           <Link href={`/${locale}/dashboard`}>Dashboard</Link>
-          <Link href={`/${locale}/dashboard/qrx`}>Meine QR-X</Link>
-          <Link href={`/${locale}/dashboard/account`}>Konto</Link>
+          <Link href={`/${locale}/dashboard/qrx`}>{ui.myQrx}</Link>
+          <Link href={`/${locale}/dashboard/account`}>{ui.account}</Link>
         </nav>
       </header>
 
@@ -314,11 +328,8 @@ export default function SupportPage() {
         <section className={styles.hero}>
           <div>
             <span className={styles.kicker}>Support</span>
-            <h1>Support & Hilfe</h1>
-            <p>
-              Melde Probleme, stelle Fragen und prüfe den Status deiner
-              bisherigen Support-Anfragen.
-            </p>
+            <h1>{ui.title}</h1>
+            <p>{ui.subtitle}</p>
           </div>
 
           <div className={styles.heroActions}>
@@ -326,7 +337,7 @@ export default function SupportPage() {
               href={`/${locale}/dashboard`}
               className={styles.secondaryButton}
             >
-              Zurück zum Dashboard
+              {ui.back}
             </Link>
 
             <button
@@ -339,19 +350,19 @@ export default function SupportPage() {
               className={styles.primaryButton}
               style={{ border: 0, cursor: "pointer" }}
             >
-              {formOpen ? "Formular schließen" : "+ Neue Anfrage"}
+              {formOpen ? ui.closeForm : ui.newRequest}
             </button>
           </div>
         </section>
 
-        <section className={styles.statsGrid} aria-label="Support Übersicht">
+        <section className={styles.statsGrid} aria-label={ui.overview}>
           <article className={styles.statCard}>
             <div className={styles.statIcon}>📨</div>
             <div>
               <div className={styles.statValue}>
                 {loading ? "…" : counts.open}
               </div>
-              <div className={styles.statLabel}>Offen</div>
+              <div className={styles.statLabel}>{ui.open}</div>
             </div>
           </article>
 
@@ -361,7 +372,7 @@ export default function SupportPage() {
               <div className={styles.statValue}>
                 {loading ? "…" : counts.inReview}
               </div>
-              <div className={styles.statLabel}>In Bearbeitung</div>
+              <div className={styles.statLabel}>{ui.inReview}</div>
             </div>
           </article>
 
@@ -371,15 +382,15 @@ export default function SupportPage() {
               <div className={styles.statValue}>
                 {loading ? "…" : counts.resolved}
               </div>
-              <div className={styles.statLabel}>Gelöst</div>
+              <div className={styles.statLabel}>{ui.resolved}</div>
             </div>
           </article>
 
           <article className={styles.statCard}>
             <div className={styles.statIcon}>✉️</div>
             <div>
-              <div className={styles.statValue}>E-Mail</div>
-              <div className={styles.statLabel}>Rückfragen</div>
+              <div className={styles.statValue}>{ui.email}</div>
+              <div className={styles.statLabel}>{ui.followUps}</div>
             </div>
           </article>
         </section>
@@ -391,13 +402,10 @@ export default function SupportPage() {
           <section style={panelStyle}>
             <div className={styles.cardHeader}>
               <div>
-                <h2>Neue Support-Anfrage</h2>
-                <p>
-                  Beschreibe dein Anliegen möglichst genau. Falls nötig melden
-                  wir uns per E-Mail bei dir.
-                </p>
+                <h2>{ui.newSupport}</h2>
+                <p>{ui.formHint}</p>
               </div>
-              <span>Neu</span>
+              <span>{ui.newLabel}</span>
             </div>
 
             <form
@@ -405,7 +413,7 @@ export default function SupportPage() {
               style={{ display: "grid", gap: 13 }}
             >
               <label style={labelStyle}>
-                Kategorie
+                {ui.category}
                 <select
                   value={problemType}
                   onChange={(event) =>
@@ -414,34 +422,30 @@ export default function SupportPage() {
                   style={selectStyle}
                 >
                   {PROBLEM_TYPES.map((item) => (
-                    <option
-                      key={item.value}
-                      value={item.value}
-                      style={optionStyle}
-                    >
-                      {item.label}
+                    <option key={item} value={item} style={optionStyle}>
+                      {getProblemLabel(item, ui)}
                     </option>
                   ))}
                 </select>
               </label>
 
               <label style={labelStyle}>
-                Betreff
+                {ui.subject}
                 <input
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Kurze Beschreibung des Problems"
+                  placeholder={ui.subjectPlaceholder}
                   maxLength={140}
                   style={inputStyle}
                 />
               </label>
 
               <label style={labelStyle}>
-                Beschreibung
+                {ui.description}
                 <textarea
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
-                  placeholder="Was ist passiert? Was hast du bereits versucht?"
+                  placeholder={ui.descriptionPlaceholder}
                   rows={7}
                   maxLength={5000}
                   style={textareaStyle}
@@ -449,28 +453,23 @@ export default function SupportPage() {
               </label>
 
               <label style={labelStyle}>
-                Betroffener QR-X (optional)
+                {ui.affectedQrx}
                 <select
                   value={qrxId}
                   onChange={(event) => setQrxId(event.target.value)}
                   style={selectStyle}
                 >
-                  <option value="" style={optionStyle}>
-                    Kein bestimmter QR-X
-                  </option>
+                  <option value="" style={optionStyle}>{ui.noSpecificQrx}</option>
 
                   {ownQrx.map((item) => (
                     <option key={item.id} value={item.id} style={optionStyle}>
-                      {getQrxTitle(item)}
+                      {getQrxTitle(item, ui)}
                     </option>
                   ))}
                 </select>
               </label>
 
-              <div style={noticeStyle}>
-                Rückfragen und weitere Informationen erhältst du an die
-                E-Mail-Adresse deines Mioseg-qr-Kontos.
-              </div>
+              <div style={noticeStyle}>{ui.notice}</div>
 
               <button
                 type="submit"
@@ -482,7 +481,7 @@ export default function SupportPage() {
                   opacity: creating ? 0.65 : 1,
                 }}
               >
-                {creating ? "Wird gesendet …" : "Anfrage absenden"}
+                {creating ? ui.sending : ui.send}
               </button>
             </form>
           </section>
@@ -491,40 +490,35 @@ export default function SupportPage() {
         <section style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2>Meine Anfragen</h2>
-              <p>
-                Hier siehst du Ticketnummer, Kategorie und Bearbeitungsstatus.
-              </p>
+              <h2>{ui.myRequests}</h2>
+              <p>{ui.requestsHint}</p>
             </div>
-            <span>{loading ? "Lädt" : `${tickets.length} Tickets`}</span>
+            <span>{loading ? ui.loading : `${tickets.length} ${ui.tickets}`}</span>
           </div>
 
           {loading ? (
-            <div style={loadingStyle}>Support-Anfragen werden geladen …</div>
+            <div style={loadingStyle}>{ui.loadingRequests}</div>
           ) : null}
 
           {!loading && tickets.length === 0 ? (
             <div style={emptyStyle}>
               <div style={emptyIconStyle}>🛟</div>
-              <strong>Noch keine Support-Anfragen</strong>
-              <span>
-                Sobald du eine Anfrage sendest, erscheint sie hier und wird
-                gleichzeitig im Adminbereich angezeigt.
-              </span>
+              <strong>{ui.noRequests}</strong>
+              <span>{ui.noRequestsHint}</span>
             </div>
           ) : null}
 
           {!loading && tickets.length > 0 ? (
             <div style={{ display: "grid", gap: 10 }}>
               {tickets.map((ticket) => {
-                const status = getStatusMeta(ticket.status);
+                const status = getStatusMeta(ticket.status, ui);
 
                 return (
                   <article key={ticket.id} style={ticketStyle}>
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div style={ticketTopRowStyle}>
                         <span style={ticketNumberStyle}>
-                          {ticket.ticket_number || "Support-Ticket"}
+                          {ticket.ticket_number || ui.supportTicket}
                         </span>
 
                         <span
@@ -542,9 +536,9 @@ export default function SupportPage() {
                       <h3 style={ticketTitleStyle}>{ticket.title}</h3>
 
                       <div style={ticketMetaStyle}>
-                        <span>{getProblemLabel(ticket.problem_type)}</span>
+                        <span>{getProblemLabel(ticket.problem_type, ui)}</span>
                         <span>·</span>
-                        <span>{formatDateTime(ticket.created_at)}</span>
+                        <span>{formatDateTime(ticket.created_at, supportLocale)}</span>
                       </div>
 
                       {ticket.description ? (
@@ -556,7 +550,7 @@ export default function SupportPage() {
                       {ticket.status === "resolved" &&
                       ticket.resolution_note ? (
                         <div style={resolutionStyle}>
-                          <strong>Abschluss:</strong> {ticket.resolution_note}
+                          <strong>{ui.completion}</strong> {ticket.resolution_note}
                         </div>
                       ) : null}
                     </div>
