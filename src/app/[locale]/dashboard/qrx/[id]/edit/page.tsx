@@ -1719,6 +1719,10 @@ const QR_VERIFY_STATUS_TEXT = {
 const QR_EDIT_EXTRA_TEXT = {
   de: {
     loadFailed: "QR-X konnte nicht geladen werden.",
+    justNow: "Gerade eben",
+    notFound: "QR-X wurde nicht gefunden.",
+    forbidden: "Du darfst diesen QR-X nicht bearbeiten.",
+    saveFailed: "QR-X konnte nicht gespeichert werden.",
     noNews: "Noch keine News vorhanden.",
     keepPassword: "Lasse die Felder leer, wenn du das bestehende Passwort behalten möchtest.",
     charged: "Abgezogen",
@@ -1732,6 +1736,10 @@ const QR_EDIT_EXTRA_TEXT = {
   },
   en: {
     loadFailed: "QR-X could not be loaded.",
+    justNow: "Just now",
+    notFound: "QR-X was not found.",
+    forbidden: "You are not allowed to edit this QR-X.",
+    saveFailed: "QR-X could not be saved.",
     noNews: "No news yet.",
     keepPassword: "Leave the fields empty to keep the existing password.",
     charged: "Charged",
@@ -1745,6 +1753,10 @@ const QR_EDIT_EXTRA_TEXT = {
   },
   tr: {
     loadFailed: "QR-X yüklenemedi.",
+    justNow: "Az önce",
+    notFound: "QR-X bulunamadı.",
+    forbidden: "Bu QR-X'i düzenleme iznin yok.",
+    saveFailed: "QR-X kaydedilemedi.",
     noNews: "Henüz haber yok.",
     keepPassword: "Mevcut şifreyi korumak için alanları boş bırak.",
     charged: "Düşüldü",
@@ -1758,6 +1770,10 @@ const QR_EDIT_EXTRA_TEXT = {
   },
   pl: {
     loadFailed: "Nie udało się wczytać QR-X.",
+    justNow: "Przed chwilą",
+    notFound: "Nie znaleziono QR-X.",
+    forbidden: "Nie możesz edytować tego QR-X.",
+    saveFailed: "Nie udało się zapisać QR-X.",
     noNews: "Brak aktualności.",
     keepPassword: "Pozostaw pola puste, aby zachować obecne hasło.",
     charged: "Pobrano",
@@ -1771,6 +1787,10 @@ const QR_EDIT_EXTRA_TEXT = {
   },
   ar: {
     loadFailed: "تعذر تحميل QR-X.",
+    justNow: "الآن",
+    notFound: "لم يتم العثور على QR-X.",
+    forbidden: "لا يُسمح لك بتعديل هذا QR-X.",
+    saveFailed: "تعذر حفظ QR-X.",
     noNews: "لا توجد أخبار بعد.",
     keepPassword: "اترك الحقول فارغة للاحتفاظ بكلمة المرور الحالية.",
     charged: "تم الخصم",
@@ -1784,6 +1804,10 @@ const QR_EDIT_EXTRA_TEXT = {
   },
   fr: {
     loadFailed: "Le QR-X n’a pas pu être chargé.",
+    justNow: "À l’instant",
+    notFound: "Le QR-X est introuvable.",
+    forbidden: "Vous n’êtes pas autorisé à modifier ce QR-X.",
+    saveFailed: "Le QR-X n’a pas pu être enregistré.",
     noNews: "Aucune actualité.",
     keepPassword: "Laissez les champs vides pour conserver le mot de passe actuel.",
     charged: "Débité",
@@ -1797,6 +1821,10 @@ const QR_EDIT_EXTRA_TEXT = {
   },
   es: {
     loadFailed: "No se pudo cargar el QR-X.",
+    justNow: "Ahora mismo",
+    notFound: "No se encontró el QR-X.",
+    forbidden: "No tienes permiso para editar este QR-X.",
+    saveFailed: "No se pudo guardar el QR-X.",
     noNews: "Todavía no hay noticias.",
     keepPassword: "Deja los campos vacíos para conservar la contraseña actual.",
     charged: "Descontado",
@@ -1810,6 +1838,10 @@ const QR_EDIT_EXTRA_TEXT = {
   },
   it: {
     loadFailed: "Impossibile caricare il QR-X.",
+    justNow: "Proprio ora",
+    notFound: "QR-X non trovato.",
+    forbidden: "Non sei autorizzato a modificare questo QR-X.",
+    saveFailed: "Impossibile salvare il QR-X.",
     noNews: "Ancora nessuna news.",
     keepPassword: "Lascia i campi vuoti per mantenere la password esistente.",
     charged: "Addebitato",
@@ -2007,10 +2039,10 @@ function normalizeNewsItems(value: NewsItem[] | null | undefined) {
     });
 }
 
-function formatNewsDate(value: string) {
+function formatNewsDate(value: string, locale: QrxWebLocale, justNow: string) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Gerade eben";
-  return new Intl.DateTimeFormat("de-DE", {
+  if (Number.isNaN(date.getTime())) return justNow;
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -2763,8 +2795,8 @@ export default function EditQrxPage() {
         .returns<QrxEntry>();
 
       if (error) throw error;
-      if (!data) throw new Error("QR-X wurde nicht gefunden.");
-      if (data.owner_user_id !== user.id) throw new Error("Du darfst diesen QR-X nicht bearbeiten.");
+      if (!data) throw new Error(extraUi.notFound);
+      if (data.owner_user_id !== user.id) throw new Error(extraUi.forbidden);
 
       const safeType = getSafeQrxType(data.type);
       const isProtected = data.password_protected === true;
@@ -2952,7 +2984,7 @@ export default function EditQrxPage() {
       setSuccessText(hasPendingMedia ? ui.savedMedia : ui.saved);
       router.refresh();
     } catch (error) {
-      setErrorText(error instanceof Error ? error.message : "QR-X konnte nicht gespeichert werden.");
+      setErrorText(error instanceof Error ? error.message : extraUi.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -3377,7 +3409,7 @@ export default function EditQrxPage() {
                       <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
                         <strong style={{ color: "#ffffff", lineHeight: 1.45, whiteSpace: "pre-wrap" }}>{item.text}</strong>
                         <span style={{ color: "#94a3b8", fontSize: 12, fontWeight: 800 }}>
-                          {formatNewsDate(item.createdAt)}
+                          {formatNewsDate(item.createdAt, qrxLocale, extraUi.justNow)}
                         </span>
                       </div>
                       <button type="button" onClick={() => handleRemoveNewsItem(index)} style={miniDangerButtonStyle}>

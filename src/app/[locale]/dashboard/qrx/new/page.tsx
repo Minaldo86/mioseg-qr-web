@@ -4000,7 +4000,7 @@ export default function NewQrxPage() {
                       <div style={{ display: "grid", gap: 6 }}>
                         <div style={newsPreviewTextStyle}>{item.text}</div>
                         <div style={newsPreviewDateStyle}>
-                          {new Date(item.createdAt).toLocaleString("de-DE")}
+                          {new Date(item.createdAt).toLocaleString(locale)}
                         </div>
                       </div>
 
@@ -4236,7 +4236,6 @@ export default function NewQrxPage() {
               </h3>
               <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
                 {ui.galleryHint}
-                der QR-X Galerie angezeigt werden.
               </p>
             </div>
 
