@@ -189,10 +189,10 @@ const PUBLIC_TEXT = {
     },
     "news": {
       "title": "News & Updates",
-      "hint": "QR-X on mioseg qr",
-      "count": "{{count}} items",
-      "empty": "No transfer history yet.",
-      "emptyHint": "When this QR-X is transferred, the history will appear here."
+      "hint": "Current information and changes for this QR-X.",
+      "count": "{{count}} updates",
+      "empty": "No updates yet.",
+      "emptyHint": "When the creator adds new information, it will appear here."
     },
     "mediaLabels": {
       "title": "Media",
@@ -271,7 +271,7 @@ const PUBLIC_TEXT = {
       "verified": "Doğrulandı"
     },
     "actions": {
-      "aria": "QR-X Aktionen",
+      "aria": "QR-X işlemleri",
       "own": "Kendi QR-X'in",
       "followed": "Takip ediliyor",
       "follow": "Takip et",
@@ -289,10 +289,10 @@ const PUBLIC_TEXT = {
     },
     "news": {
       "title": "News & Updates",
-      "hint": "mioseg qr üzerinde QR-X",
-      "count": "{{count}} öğe",
-      "empty": "Henüz aktarım geçmişi yok.",
-      "emptyHint": "Bu QR-X aktarıldığında geçmiş burada görünür."
+      "hint": "Bu QR-X için güncel bilgiler ve değişiklikler.",
+      "count": "{{count}} güncelleme",
+      "empty": "Henüz güncelleme yok.",
+      "emptyHint": "Oluşturan kişi yeni bilgiler eklediğinde burada görünür."
     },
     "mediaLabels": {
       "title": "Medya",
@@ -371,7 +371,7 @@ const PUBLIC_TEXT = {
       "verified": "Zweryfikowano"
     },
     "actions": {
-      "aria": "QR-X Aktionen",
+      "aria": "Akcje QR-X",
       "own": "Twój QR-X",
       "followed": "Obserwowany",
       "follow": "Obserwuj",
@@ -389,10 +389,10 @@ const PUBLIC_TEXT = {
     },
     "news": {
       "title": "News & Updates",
-      "hint": "QR-X w mioseg qr",
-      "count": "{{count}} elementów",
-      "empty": "Brak historii transferów.",
-      "emptyHint": "Po przeniesieniu tego QR-X historia pojawi się tutaj."
+      "hint": "Aktualne informacje i zmiany dotyczące tego QR-X.",
+      "count": "{{count}} aktualizacji",
+      "empty": "Brak aktualizacji.",
+      "emptyHint": "Gdy twórca doda nowe informacje, pojawią się tutaj."
     },
     "mediaLabels": {
       "title": "Media",
@@ -471,7 +471,7 @@ const PUBLIC_TEXT = {
       "verified": "موثّق"
     },
     "actions": {
-      "aria": "QR-X Aktionen",
+      "aria": "إجراءات QR-X",
       "own": "QR-X الخاص بك",
       "followed": "تتم المتابعة",
       "follow": "متابعة",
@@ -489,10 +489,10 @@ const PUBLIC_TEXT = {
     },
     "news": {
       "title": "News & Updates",
-      "hint": "QR-X على mioseg qr",
-      "count": "{{count}} عناصر",
-      "empty": "لا يوجد سجل نقل بعد.",
-      "emptyHint": "عند نقل QR-X هذا سيظهر السجل هنا."
+      "hint": "أحدث المعلومات والتغييرات الخاصة بهذا QR-X.",
+      "count": "{{count}} تحديثات",
+      "empty": "لا توجد تحديثات بعد.",
+      "emptyHint": "عندما يضيف المنشئ معلومات جديدة، ستظهر هنا."
     },
     "mediaLabels": {
       "title": "الوسائط",
@@ -571,7 +571,7 @@ const PUBLIC_TEXT = {
       "verified": "Vérifié"
     },
     "actions": {
-      "aria": "QR-X Aktionen",
+      "aria": "Actions QR-X",
       "own": "Votre QR-X",
       "followed": "Suivi",
       "follow": "Suivre",
@@ -589,10 +589,10 @@ const PUBLIC_TEXT = {
     },
     "news": {
       "title": "News & Updates",
-      "hint": "QR-X sur mioseg qr",
-      "count": "{{count}} éléments",
-      "empty": "Aucun historique de transfert.",
-      "emptyHint": "Lorsque ce QR-X sera transféré, l’historique apparaîtra ici."
+      "hint": "Informations actuelles et modifications de ce QR-X.",
+      "count": "{{count}} mises à jour",
+      "empty": "Aucune mise à jour pour le moment.",
+      "emptyHint": "Lorsque le créateur ajoutera de nouvelles informations, elles apparaîtront ici."
     },
     "mediaLabels": {
       "title": "Médias",
@@ -671,7 +671,7 @@ const PUBLIC_TEXT = {
       "verified": "Verificado"
     },
     "actions": {
-      "aria": "QR-X Aktionen",
+      "aria": "Acciones de QR-X",
       "own": "Tu QR-X",
       "followed": "Siguiendo",
       "follow": "Seguir",
@@ -689,10 +689,10 @@ const PUBLIC_TEXT = {
     },
     "news": {
       "title": "News & Updates",
-      "hint": "QR-X en mioseg qr",
-      "count": "{{count}} elementos",
-      "empty": "Todavía no hay historial de transferencias.",
-      "emptyHint": "Cuando se transfiera este QR-X, el historial aparecerá aquí."
+      "hint": "Información actual y cambios de este QR-X.",
+      "count": "{{count}} actualizaciones",
+      "empty": "Todavía no hay actualizaciones.",
+      "emptyHint": "Cuando el creador añada nueva información, aparecerá aquí."
     },
     "mediaLabels": {
       "title": "Medios",
@@ -771,7 +771,7 @@ const PUBLIC_TEXT = {
       "verified": "Verificato"
     },
     "actions": {
-      "aria": "QR-X Aktionen",
+      "aria": "Azioni QR-X",
       "own": "Il tuo QR-X",
       "followed": "Seguito",
       "follow": "Segui",
@@ -789,10 +789,10 @@ const PUBLIC_TEXT = {
     },
     "news": {
       "title": "News & Updates",
-      "hint": "QR-X su mioseg qr",
-      "count": "{{count}} elementi",
-      "empty": "Nessuna cronologia dei trasferimenti.",
-      "emptyHint": "Quando questo QR-X verrà trasferito, la cronologia apparirà qui."
+      "hint": "Informazioni aggiornate e modifiche di questo QR-X.",
+      "count": "{{count}} aggiornamenti",
+      "empty": "Non ci sono ancora aggiornamenti.",
+      "emptyHint": "Quando il creatore aggiungerà nuove informazioni, appariranno qui."
     },
     "mediaLabels": {
       "title": "Media",
@@ -1674,7 +1674,7 @@ export default function PublicQrxDetailPage() {
                 >
                   <div style={transferTopLineStyle}>
                     <strong>{item.status ?? "Transfer"}</strong>
-                    <span>{formatDate(item.created_at)}</span>
+                    <span>{formatDate(item.created_at, locale)}</span>
                   </div>
                   {item.recipient_email ? (
                     <span>{ui.recipient}: {item.recipient_email}</span>

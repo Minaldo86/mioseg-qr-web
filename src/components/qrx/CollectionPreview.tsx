@@ -54,7 +54,7 @@ export default function CollectionPreview({
   routeMode = "localized",
   collectionTitle = null,
   collectionDescription = null,
-  labels = { untitled:"Unbenannter QR-X", business:"Business QR-X", normal:"Normaler QR-X", collection:"Sammlung", one:"Eintrag", many:"Einträge", verified:"Verifiziert", part:"{labels.part}", open:"{labels.open}" },
+  labels = { untitled:"Unbenannter QR-X", business:"Business QR-X", normal:"Normaler QR-X", collection:"Sammlung", one:"Eintrag", many:"Einträge", verified:"Verifiziert", part:"Sammlung", open:"Öffnen →" },
 }: CollectionPreviewProps) {
   if (items.length === 0) return null;
 
@@ -109,8 +109,8 @@ export default function CollectionPreview({
                 <div style={topBadgeRowStyle}>
                   <span style={typeBadgeStyle(item.type === "business")}>
                     {item.type === "business"
-                      ? "Business QR-X"
-                      : "Normaler QR-X"}
+                      ? labels.business
+                      : labels.normal}
                   </span>
 
                   {item.verified ? (
