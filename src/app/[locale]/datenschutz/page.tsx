@@ -1,6 +1,6 @@
-import LegalPage from "../../../../components/LegalPage";
-import { getPrivacyDocument } from "../../../../legal/privacy";
-import { getLegalLocale } from "../../../../legal/get-legal-locale";
+import LegalPage from "../../../components/LegalPage";
+import { getPrivacyDocument } from "../../../legal/privacy";
+import { getLegalLocale } from "../../../legal/get-legal-locale";
 
 type Props = {
   params: Promise<{ locale: string }>;
