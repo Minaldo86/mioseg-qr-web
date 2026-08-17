@@ -8,17 +8,22 @@ type NewsItem = { id: string; text: string; createdAt: string };
 type Props = {
   items: NewsItem[];
   formatDate: (value: string) => string;
+  labels?: { title: string; hint: string; count: string; empty: string; emptyHint: string };
 };
 
-export default function QrxNewsSection({ items, formatDate }: Props) {
+export default function QrxNewsSection({ items, formatDate, labels = {
+  title: "News & Updates", hint: "Aktuelle Informationen und Änderungen dieses QR-X.",
+  count: "{{count}} Updates", empty: "Noch keine Updates vorhanden.",
+  emptyHint: "Wenn der Ersteller neue Informationen hinzufügt, erscheinen sie hier.",
+} }: Props) {
   return (
     <section style={panelStyle}>
       <div className={styles.cardHeader}>
         <div>
-          <h2>News & Updates</h2>
-          <p>Aktuelle Informationen und Änderungen dieses QR-X.</p>
+          <h2>{labels.title}</h2>
+          <p>{labels.hint}</p>
         </div>
-        <span>{items.length} Updates</span>
+        <span>{labels.count.replace("{{count}}", String(items.length))}</span>
       </div>
 
       {items.length > 0 ? (
@@ -32,8 +37,8 @@ export default function QrxNewsSection({ items, formatDate }: Props) {
         </div>
       ) : (
         <div style={emptyStateStyle}>
-          <strong>Noch keine Updates vorhanden.</strong>
-          <span>Wenn der Ersteller neue Informationen hinzufügt, erscheinen sie hier.</span>
+          <strong>{labels.empty}</strong>
+          <span>{labels.emptyHint}</span>
         </div>
       )}
     </section>

@@ -15,6 +15,811 @@ import { getBestMediaUrl, getMediaById } from "@/lib/media";
 import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard/dashboard.module.css";
 
+type PublicLocale = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+const PUBLIC_TEXT = {
+  "de": {
+    "home": "Startseite",
+    "explore": "Explore",
+    "loading": "QR-X wird geladen …",
+    "back": "← Zurück zur Sammlung „{{title}}“",
+    "location": "Standort",
+    "category": "Kategorie",
+    "created": "Erstellt",
+    "phone": "Telefon",
+    "website": "Webseite öffnen",
+    "email": "E-Mail schreiben",
+    "navigation": "Navigation öffnen",
+    "followers": "Follower",
+    "media": "Medien",
+    "updates": "Updates",
+    "user": "Nutzer",
+    "users": "Nutzern",
+    "transferHint": "Verlauf der QR-X-Übertragungen für diesen QR-X.",
+    "reload": "Neu laden",
+    "reloading": "Lädt …",
+    "recipient": "Empfänger",
+    "from": "Von",
+    "to": "An",
+    "accepted": "Angenommen",
+    "expires": "Ablauf",
+    "noTransfer": "Noch kein Transfer-Verlauf vorhanden.",
+    "noTransferHint": "Wenn dieser QR-X übertragen wird, erscheint der Verlauf hier.",
+    "login": "Bitte melde dich an, um diesem QR-X zu folgen.",
+    "saveError": "Folgen konnte nicht geändert werden.",
+    "missing": "QR-X ID fehlt.",
+    "notFound": "Dieser QR-X wurde nicht gefunden.",
+    "unavailable": "Dieser QR-X ist aktuell nicht verfügbar.",
+    "loadError": "QR-X konnte nicht geladen werden.",
+    "copy": "QR-X Link kopieren",
+    "defaultDesc": "QR-X auf mioseg qr",
+    "statsAria": "QR-X Kennzahlen",
+    "categories": {
+      "praxis_gesundheit": "Praxis & Gesundheit",
+      "gastronomie": "Gastronomie",
+      "unternehmen": "Unternehmen",
+      "dienstleistung": "Dienstleistung",
+      "handwerk": "Handwerk",
+      "event": "Event",
+      "verein": "Verein",
+      "wohltaetigkeit": "Wohltätigkeit",
+      "sehenswuerdigkeit": "Sehenswürdigkeit",
+      "sonstiges": "Sonstiges"
+    },
+    "hero": {
+      "business": "Business QR-X",
+      "normal": "Normaler QR-X",
+      "verified": "Verifiziert"
+    },
+    "actions": {
+      "aria": "QR-X Aktionen",
+      "own": "Eigener QR-X",
+      "followed": "Gefolgt",
+      "follow": "Folgen",
+      "ownHint": "QR-X auf mioseg qr",
+      "savedHint": "QR-X auf mioseg qr",
+      "followHint": "QR-X auf mioseg qr",
+      "loginHint": "Bitte melde dich an, um diesem QR-X zu folgen.",
+      "wait": "Lädt …",
+      "savedBy": "{{count}}",
+      "image": "QR-X",
+      "imageHint": "QR-X auf mioseg qr",
+      "qrAlt": "QR-X {{title}}",
+      "download": "Herunterladen",
+      "copy": "QR-X Link kopieren"
+    },
+    "news": {
+      "title": "News & Updates",
+      "hint": "Aktuelle Informationen und Änderungen dieses QR-X.",
+      "count": "{{count}} Updates",
+      "empty": "Noch keine Updates vorhanden.",
+      "emptyHint": "Wenn der Ersteller neue Informationen hinzufügt, erscheinen sie hier."
+    },
+    "mediaLabels": {
+      "title": "Medien",
+      "hint": "QR-X auf mioseg qr",
+      "count": "{{count}} Medien",
+      "images": "Bilder",
+      "imageAlt": "QR-X",
+      "files": "Dateien",
+      "openFile": "Öffnen",
+      "open": "Öffnen",
+      "download": "Herunterladen"
+    },
+    "preview": {
+      "untitled": "QR-X",
+      "business": "Business QR-X",
+      "normal": "Normaler QR-X",
+      "collection": "Sammlung",
+      "one": "Eintrag",
+      "many": "Einträge",
+      "verified": "Verifiziert",
+      "part": "Sammlung",
+      "open": "Öffnen →"
+    }
+  },
+  "en": {
+    "home": "Home",
+    "explore": "Explore",
+    "loading": "Loading QR-X …",
+    "back": "← Back to collection “{{title}}”",
+    "location": "Location",
+    "category": "Category",
+    "created": "Created",
+    "phone": "Phone",
+    "website": "Open website",
+    "email": "Send email",
+    "navigation": "Open navigation",
+    "followers": "Followers",
+    "media": "Media",
+    "updates": "Updates",
+    "user": "user",
+    "users": "users",
+    "transferHint": "History of QR-X transfers for this QR-X.",
+    "reload": "Reload",
+    "reloading": "Loading …",
+    "recipient": "Recipient",
+    "from": "From",
+    "to": "To",
+    "accepted": "Accepted",
+    "expires": "Expires",
+    "noTransfer": "No transfer history yet.",
+    "noTransferHint": "When this QR-X is transferred, the history will appear here.",
+    "login": "Please sign in to follow this QR-X.",
+    "saveError": "Follow status could not be changed.",
+    "missing": "QR-X ID is missing.",
+    "notFound": "This QR-X was not found.",
+    "unavailable": "This QR-X is currently unavailable.",
+    "loadError": "QR-X could not be loaded.",
+    "copy": "Copy QR-X link",
+    "defaultDesc": "QR-X on mioseg qr",
+    "statsAria": "QR-X statistics",
+    "categories": {
+      "praxis_gesundheit": "Practice & Health",
+      "gastronomie": "Gastronomy",
+      "unternehmen": "Company",
+      "dienstleistung": "Service",
+      "handwerk": "Craft & Trade",
+      "event": "Event",
+      "verein": "Association",
+      "wohltaetigkeit": "Charity",
+      "sehenswuerdigkeit": "Attraction",
+      "sonstiges": "Other"
+    },
+    "hero": {
+      "business": "Business QR-X",
+      "normal": "Normal QR-X",
+      "verified": "Verified"
+    },
+    "actions": {
+      "aria": "QR-X actions",
+      "own": "Your QR-X",
+      "followed": "Following",
+      "follow": "Follow",
+      "ownHint": "QR-X on mioseg qr",
+      "savedHint": "QR-X on mioseg qr",
+      "followHint": "QR-X on mioseg qr",
+      "loginHint": "Please sign in to follow this QR-X.",
+      "wait": "Loading …",
+      "savedBy": "{{count}}",
+      "image": "QR-X",
+      "imageHint": "QR-X on mioseg qr",
+      "qrAlt": "QR-X {{title}}",
+      "download": "Download",
+      "copy": "Copy QR-X link"
+    },
+    "news": {
+      "title": "News & Updates",
+      "hint": "QR-X on mioseg qr",
+      "count": "{{count}} items",
+      "empty": "No transfer history yet.",
+      "emptyHint": "When this QR-X is transferred, the history will appear here."
+    },
+    "mediaLabels": {
+      "title": "Media",
+      "hint": "QR-X on mioseg qr",
+      "count": "{{count}} Media",
+      "images": "Images",
+      "imageAlt": "QR-X",
+      "files": "Files",
+      "openFile": "Open",
+      "open": "Open",
+      "download": "Download"
+    },
+    "preview": {
+      "untitled": "QR-X",
+      "business": "Business QR-X",
+      "normal": "Normal QR-X",
+      "collection": "Collection",
+      "one": "item",
+      "many": "items",
+      "verified": "Verified",
+      "part": "Collection",
+      "open": "Open →"
+    }
+  },
+  "tr": {
+    "home": "Ana sayfa",
+    "explore": "Keşfet",
+    "loading": "QR-X yükleniyor …",
+    "back": "← “{{title}}” koleksiyonuna dön",
+    "location": "Konum",
+    "category": "Kategori",
+    "created": "Oluşturuldu",
+    "phone": "Telefon",
+    "website": "Web sitesini aç",
+    "email": "E-posta gönder",
+    "navigation": "Navigasyonu aç",
+    "followers": "Takipçiler",
+    "media": "Medya",
+    "updates": "Güncellemeler",
+    "user": "kullanıcı",
+    "users": "kullanıcı",
+    "transferHint": "Bu QR-X için QR-X aktarım geçmişi.",
+    "reload": "Yeniden yükle",
+    "reloading": "Yükleniyor …",
+    "recipient": "Alıcı",
+    "from": "Kimden",
+    "to": "Kime",
+    "accepted": "Kabul edildi",
+    "expires": "Bitiş",
+    "noTransfer": "Henüz aktarım geçmişi yok.",
+    "noTransferHint": "Bu QR-X aktarıldığında geçmiş burada görünür.",
+    "login": "Bu QR-X'i takip etmek için giriş yap.",
+    "saveError": "Takip durumu değiştirilemedi.",
+    "missing": "QR-X kimliği eksik.",
+    "notFound": "Bu QR-X bulunamadı.",
+    "unavailable": "Bu QR-X şu anda kullanılamıyor.",
+    "loadError": "QR-X yüklenemedi.",
+    "copy": "QR-X bağlantısını kopyala",
+    "defaultDesc": "mioseg qr üzerinde QR-X",
+    "statsAria": "QR-X istatistikleri",
+    "categories": {
+      "praxis_gesundheit": "Sağlık & Muayenehane",
+      "gastronomie": "Gastronomi",
+      "unternehmen": "Şirket",
+      "dienstleistung": "Hizmet",
+      "handwerk": "Zanaat",
+      "event": "Etkinlik",
+      "verein": "Dernek",
+      "wohltaetigkeit": "Hayır kurumu",
+      "sehenswuerdigkeit": "Gezilecek yer",
+      "sonstiges": "Diğer"
+    },
+    "hero": {
+      "business": "Business QR-X",
+      "normal": "Normal QR-X",
+      "verified": "Doğrulandı"
+    },
+    "actions": {
+      "aria": "QR-X Aktionen",
+      "own": "Kendi QR-X'in",
+      "followed": "Takip ediliyor",
+      "follow": "Takip et",
+      "ownHint": "mioseg qr üzerinde QR-X",
+      "savedHint": "mioseg qr üzerinde QR-X",
+      "followHint": "mioseg qr üzerinde QR-X",
+      "loginHint": "Bu QR-X'i takip etmek için giriş yap.",
+      "wait": "Yükleniyor …",
+      "savedBy": "{{count}}",
+      "image": "QR-X",
+      "imageHint": "mioseg qr üzerinde QR-X",
+      "qrAlt": "QR-X {{title}}",
+      "download": "İndir",
+      "copy": "QR-X bağlantısını kopyala"
+    },
+    "news": {
+      "title": "News & Updates",
+      "hint": "mioseg qr üzerinde QR-X",
+      "count": "{{count}} öğe",
+      "empty": "Henüz aktarım geçmişi yok.",
+      "emptyHint": "Bu QR-X aktarıldığında geçmiş burada görünür."
+    },
+    "mediaLabels": {
+      "title": "Medya",
+      "hint": "mioseg qr üzerinde QR-X",
+      "count": "{{count}} Medya",
+      "images": "Görseller",
+      "imageAlt": "QR-X",
+      "files": "Dosyalar",
+      "openFile": "Aç",
+      "open": "Aç",
+      "download": "İndir"
+    },
+    "preview": {
+      "untitled": "QR-X",
+      "business": "Business QR-X",
+      "normal": "Normal QR-X",
+      "collection": "Koleksiyon",
+      "one": "öğe",
+      "many": "öğe",
+      "verified": "Doğrulandı",
+      "part": "Koleksiyon",
+      "open": "Aç →"
+    }
+  },
+  "pl": {
+    "home": "Strona główna",
+    "explore": "Odkrywaj",
+    "loading": "Ładowanie QR-X …",
+    "back": "← Wróć do kolekcji „{{title}}”",
+    "location": "Lokalizacja",
+    "category": "Kategoria",
+    "created": "Utworzono",
+    "phone": "Telefon",
+    "website": "Otwórz stronę",
+    "email": "Napisz e-mail",
+    "navigation": "Otwórz nawigację",
+    "followers": "Obserwujący",
+    "media": "Media",
+    "updates": "Aktualizacje",
+    "user": "użytkownik",
+    "users": "użytkowników",
+    "transferHint": "Historia transferów tego QR-X.",
+    "reload": "Odśwież",
+    "reloading": "Ładowanie …",
+    "recipient": "Odbiorca",
+    "from": "Od",
+    "to": "Do",
+    "accepted": "Zaakceptowano",
+    "expires": "Wygasa",
+    "noTransfer": "Brak historii transferów.",
+    "noTransferHint": "Po przeniesieniu tego QR-X historia pojawi się tutaj.",
+    "login": "Zaloguj się, aby obserwować ten QR-X.",
+    "saveError": "Nie udało się zmienić obserwowania.",
+    "missing": "Brak ID QR-X.",
+    "notFound": "Nie znaleziono tego QR-X.",
+    "unavailable": "Ten QR-X jest obecnie niedostępny.",
+    "loadError": "Nie udało się załadować QR-X.",
+    "copy": "Kopiuj link QR-X",
+    "defaultDesc": "QR-X w mioseg qr",
+    "statsAria": "Statystyki QR-X",
+    "categories": {
+      "praxis_gesundheit": "Praktyka i zdrowie",
+      "gastronomie": "Gastronomia",
+      "unternehmen": "Firma",
+      "dienstleistung": "Usługi",
+      "handwerk": "Rzemiosło",
+      "event": "Wydarzenie",
+      "verein": "Stowarzyszenie",
+      "wohltaetigkeit": "Dobroczynność",
+      "sehenswuerdigkeit": "Atrakcja",
+      "sonstiges": "Inne"
+    },
+    "hero": {
+      "business": "Business QR-X",
+      "normal": "Normalny QR-X",
+      "verified": "Zweryfikowano"
+    },
+    "actions": {
+      "aria": "QR-X Aktionen",
+      "own": "Twój QR-X",
+      "followed": "Obserwowany",
+      "follow": "Obserwuj",
+      "ownHint": "QR-X w mioseg qr",
+      "savedHint": "QR-X w mioseg qr",
+      "followHint": "QR-X w mioseg qr",
+      "loginHint": "Zaloguj się, aby obserwować ten QR-X.",
+      "wait": "Ładowanie …",
+      "savedBy": "{{count}}",
+      "image": "QR-X",
+      "imageHint": "QR-X w mioseg qr",
+      "qrAlt": "QR-X {{title}}",
+      "download": "Pobierz",
+      "copy": "Kopiuj link QR-X"
+    },
+    "news": {
+      "title": "News & Updates",
+      "hint": "QR-X w mioseg qr",
+      "count": "{{count}} elementów",
+      "empty": "Brak historii transferów.",
+      "emptyHint": "Po przeniesieniu tego QR-X historia pojawi się tutaj."
+    },
+    "mediaLabels": {
+      "title": "Media",
+      "hint": "QR-X w mioseg qr",
+      "count": "{{count}} Media",
+      "images": "Obrazy",
+      "imageAlt": "QR-X",
+      "files": "Pliki",
+      "openFile": "Otwórz",
+      "open": "Otwórz",
+      "download": "Pobierz"
+    },
+    "preview": {
+      "untitled": "QR-X",
+      "business": "Business QR-X",
+      "normal": "Normalny QR-X",
+      "collection": "Kolekcja",
+      "one": "element",
+      "many": "elementów",
+      "verified": "Zweryfikowano",
+      "part": "Kolekcja",
+      "open": "Otwórz →"
+    }
+  },
+  "ar": {
+    "home": "الرئيسية",
+    "explore": "استكشاف",
+    "loading": "جارٍ تحميل QR-X …",
+    "back": "العودة إلى المجموعة «{{title}}» →",
+    "location": "الموقع",
+    "category": "الفئة",
+    "created": "تاريخ الإنشاء",
+    "phone": "الهاتف",
+    "website": "فتح الموقع",
+    "email": "إرسال بريد إلكتروني",
+    "navigation": "فتح الملاحة",
+    "followers": "المتابعون",
+    "media": "الوسائط",
+    "updates": "التحديثات",
+    "user": "مستخدم",
+    "users": "مستخدمين",
+    "transferHint": "سجل عمليات نقل QR-X لهذا العنصر.",
+    "reload": "إعادة التحميل",
+    "reloading": "جارٍ التحميل …",
+    "recipient": "المستلم",
+    "from": "من",
+    "to": "إلى",
+    "accepted": "تم القبول",
+    "expires": "انتهاء الصلاحية",
+    "noTransfer": "لا يوجد سجل نقل بعد.",
+    "noTransferHint": "عند نقل QR-X هذا سيظهر السجل هنا.",
+    "login": "سجّل الدخول لمتابعة QR-X هذا.",
+    "saveError": "تعذر تغيير حالة المتابعة.",
+    "missing": "معرّف QR-X مفقود.",
+    "notFound": "لم يتم العثور على QR-X هذا.",
+    "unavailable": "QR-X هذا غير متاح حاليًا.",
+    "loadError": "تعذر تحميل QR-X.",
+    "copy": "نسخ رابط QR-X",
+    "defaultDesc": "QR-X على mioseg qr",
+    "statsAria": "إحصاءات QR-X",
+    "categories": {
+      "praxis_gesundheit": "الصحة والعيادات",
+      "gastronomie": "المطاعم",
+      "unternehmen": "شركة",
+      "dienstleistung": "خدمات",
+      "handwerk": "حِرف",
+      "event": "فعالية",
+      "verein": "جمعية",
+      "wohltaetigkeit": "خيري",
+      "sehenswuerdigkeit": "معلم سياحي",
+      "sonstiges": "أخرى"
+    },
+    "hero": {
+      "business": "QR-X للأعمال",
+      "normal": "QR-X عادي",
+      "verified": "موثّق"
+    },
+    "actions": {
+      "aria": "QR-X Aktionen",
+      "own": "QR-X الخاص بك",
+      "followed": "تتم المتابعة",
+      "follow": "متابعة",
+      "ownHint": "QR-X على mioseg qr",
+      "savedHint": "QR-X على mioseg qr",
+      "followHint": "QR-X على mioseg qr",
+      "loginHint": "سجّل الدخول لمتابعة QR-X هذا.",
+      "wait": "جارٍ التحميل …",
+      "savedBy": "{{count}}",
+      "image": "QR-X",
+      "imageHint": "QR-X على mioseg qr",
+      "qrAlt": "QR-X {{title}}",
+      "download": "تنزيل",
+      "copy": "نسخ رابط QR-X"
+    },
+    "news": {
+      "title": "News & Updates",
+      "hint": "QR-X على mioseg qr",
+      "count": "{{count}} عناصر",
+      "empty": "لا يوجد سجل نقل بعد.",
+      "emptyHint": "عند نقل QR-X هذا سيظهر السجل هنا."
+    },
+    "mediaLabels": {
+      "title": "الوسائط",
+      "hint": "QR-X على mioseg qr",
+      "count": "{{count}} الوسائط",
+      "images": "الصور",
+      "imageAlt": "QR-X",
+      "files": "الملفات",
+      "openFile": "فتح",
+      "open": "فتح",
+      "download": "تنزيل"
+    },
+    "preview": {
+      "untitled": "QR-X",
+      "business": "QR-X للأعمال",
+      "normal": "QR-X عادي",
+      "collection": "مجموعة",
+      "one": "عنصر",
+      "many": "عناصر",
+      "verified": "موثّق",
+      "part": "مجموعة",
+      "open": "فتح →"
+    }
+  },
+  "fr": {
+    "home": "Accueil",
+    "explore": "Explorer",
+    "loading": "Chargement du QR-X …",
+    "back": "← Retour à la collection « {{title}} »",
+    "location": "Lieu",
+    "category": "Catégorie",
+    "created": "Créé",
+    "phone": "Téléphone",
+    "website": "Ouvrir le site",
+    "email": "Envoyer un e-mail",
+    "navigation": "Ouvrir la navigation",
+    "followers": "Abonnés",
+    "media": "Médias",
+    "updates": "Mises à jour",
+    "user": "utilisateur",
+    "users": "utilisateurs",
+    "transferHint": "Historique des transferts de ce QR-X.",
+    "reload": "Actualiser",
+    "reloading": "Chargement …",
+    "recipient": "Destinataire",
+    "from": "De",
+    "to": "À",
+    "accepted": "Accepté",
+    "expires": "Expiration",
+    "noTransfer": "Aucun historique de transfert.",
+    "noTransferHint": "Lorsque ce QR-X sera transféré, l’historique apparaîtra ici.",
+    "login": "Connectez-vous pour suivre ce QR-X.",
+    "saveError": "Le suivi n’a pas pu être modifié.",
+    "missing": "L’identifiant QR-X est manquant.",
+    "notFound": "Ce QR-X est introuvable.",
+    "unavailable": "Ce QR-X est actuellement indisponible.",
+    "loadError": "Impossible de charger le QR-X.",
+    "copy": "Copier le lien QR-X",
+    "defaultDesc": "QR-X sur mioseg qr",
+    "statsAria": "Statistiques QR-X",
+    "categories": {
+      "praxis_gesundheit": "Cabinet & santé",
+      "gastronomie": "Gastronomie",
+      "unternehmen": "Entreprise",
+      "dienstleistung": "Service",
+      "handwerk": "Artisanat",
+      "event": "Événement",
+      "verein": "Association",
+      "wohltaetigkeit": "Caritatif",
+      "sehenswuerdigkeit": "Site touristique",
+      "sonstiges": "Autre"
+    },
+    "hero": {
+      "business": "QR-X Business",
+      "normal": "QR-X normal",
+      "verified": "Vérifié"
+    },
+    "actions": {
+      "aria": "QR-X Aktionen",
+      "own": "Votre QR-X",
+      "followed": "Suivi",
+      "follow": "Suivre",
+      "ownHint": "QR-X sur mioseg qr",
+      "savedHint": "QR-X sur mioseg qr",
+      "followHint": "QR-X sur mioseg qr",
+      "loginHint": "Connectez-vous pour suivre ce QR-X.",
+      "wait": "Chargement …",
+      "savedBy": "{{count}}",
+      "image": "QR-X",
+      "imageHint": "QR-X sur mioseg qr",
+      "qrAlt": "QR-X {{title}}",
+      "download": "Télécharger",
+      "copy": "Copier le lien QR-X"
+    },
+    "news": {
+      "title": "News & Updates",
+      "hint": "QR-X sur mioseg qr",
+      "count": "{{count}} éléments",
+      "empty": "Aucun historique de transfert.",
+      "emptyHint": "Lorsque ce QR-X sera transféré, l’historique apparaîtra ici."
+    },
+    "mediaLabels": {
+      "title": "Médias",
+      "hint": "QR-X sur mioseg qr",
+      "count": "{{count}} Médias",
+      "images": "Images",
+      "imageAlt": "QR-X",
+      "files": "Fichiers",
+      "openFile": "Ouvrir",
+      "open": "Ouvrir",
+      "download": "Télécharger"
+    },
+    "preview": {
+      "untitled": "QR-X",
+      "business": "QR-X Business",
+      "normal": "QR-X normal",
+      "collection": "Collection",
+      "one": "élément",
+      "many": "éléments",
+      "verified": "Vérifié",
+      "part": "Collection",
+      "open": "Ouvrir →"
+    }
+  },
+  "es": {
+    "home": "Inicio",
+    "explore": "Explorar",
+    "loading": "Cargando QR-X …",
+    "back": "← Volver a la colección «{{title}}»",
+    "location": "Ubicación",
+    "category": "Categoría",
+    "created": "Creado",
+    "phone": "Teléfono",
+    "website": "Abrir sitio web",
+    "email": "Enviar e-mail",
+    "navigation": "Abrir navegación",
+    "followers": "Seguidores",
+    "media": "Medios",
+    "updates": "Actualizaciones",
+    "user": "usuario",
+    "users": "usuarios",
+    "transferHint": "Historial de transferencias de este QR-X.",
+    "reload": "Recargar",
+    "reloading": "Cargando …",
+    "recipient": "Destinatario",
+    "from": "De",
+    "to": "A",
+    "accepted": "Aceptado",
+    "expires": "Caduca",
+    "noTransfer": "Todavía no hay historial de transferencias.",
+    "noTransferHint": "Cuando se transfiera este QR-X, el historial aparecerá aquí.",
+    "login": "Inicia sesión para seguir este QR-X.",
+    "saveError": "No se pudo cambiar el seguimiento.",
+    "missing": "Falta el ID de QR-X.",
+    "notFound": "No se encontró este QR-X.",
+    "unavailable": "Este QR-X no está disponible actualmente.",
+    "loadError": "No se pudo cargar el QR-X.",
+    "copy": "Copiar enlace QR-X",
+    "defaultDesc": "QR-X en mioseg qr",
+    "statsAria": "Estadísticas QR-X",
+    "categories": {
+      "praxis_gesundheit": "Consulta y salud",
+      "gastronomie": "Gastronomía",
+      "unternehmen": "Empresa",
+      "dienstleistung": "Servicio",
+      "handwerk": "Oficios",
+      "event": "Evento",
+      "verein": "Asociación",
+      "wohltaetigkeit": "Beneficencia",
+      "sehenswuerdigkeit": "Atracción",
+      "sonstiges": "Otros"
+    },
+    "hero": {
+      "business": "QR-X Business",
+      "normal": "QR-X normal",
+      "verified": "Verificado"
+    },
+    "actions": {
+      "aria": "QR-X Aktionen",
+      "own": "Tu QR-X",
+      "followed": "Siguiendo",
+      "follow": "Seguir",
+      "ownHint": "QR-X en mioseg qr",
+      "savedHint": "QR-X en mioseg qr",
+      "followHint": "QR-X en mioseg qr",
+      "loginHint": "Inicia sesión para seguir este QR-X.",
+      "wait": "Cargando …",
+      "savedBy": "{{count}}",
+      "image": "QR-X",
+      "imageHint": "QR-X en mioseg qr",
+      "qrAlt": "QR-X {{title}}",
+      "download": "Descargar",
+      "copy": "Copiar enlace QR-X"
+    },
+    "news": {
+      "title": "News & Updates",
+      "hint": "QR-X en mioseg qr",
+      "count": "{{count}} elementos",
+      "empty": "Todavía no hay historial de transferencias.",
+      "emptyHint": "Cuando se transfiera este QR-X, el historial aparecerá aquí."
+    },
+    "mediaLabels": {
+      "title": "Medios",
+      "hint": "QR-X en mioseg qr",
+      "count": "{{count}} Medios",
+      "images": "Imágenes",
+      "imageAlt": "QR-X",
+      "files": "Archivos",
+      "openFile": "Abrir",
+      "open": "Abrir",
+      "download": "Descargar"
+    },
+    "preview": {
+      "untitled": "QR-X",
+      "business": "QR-X Business",
+      "normal": "QR-X normal",
+      "collection": "Colección",
+      "one": "elemento",
+      "many": "elementos",
+      "verified": "Verificado",
+      "part": "Colección",
+      "open": "Abrir →"
+    }
+  },
+  "it": {
+    "home": "Home",
+    "explore": "Esplora",
+    "loading": "Caricamento QR-X …",
+    "back": "← Torna alla raccolta «{{title}}»",
+    "location": "Posizione",
+    "category": "Categoria",
+    "created": "Creato",
+    "phone": "Telefono",
+    "website": "Apri sito web",
+    "email": "Invia e-mail",
+    "navigation": "Apri navigazione",
+    "followers": "Follower",
+    "media": "Media",
+    "updates": "Aggiornamenti",
+    "user": "utente",
+    "users": "utenti",
+    "transferHint": "Cronologia dei trasferimenti di questo QR-X.",
+    "reload": "Ricarica",
+    "reloading": "Caricamento …",
+    "recipient": "Destinatario",
+    "from": "Da",
+    "to": "A",
+    "accepted": "Accettato",
+    "expires": "Scadenza",
+    "noTransfer": "Nessuna cronologia dei trasferimenti.",
+    "noTransferHint": "Quando questo QR-X verrà trasferito, la cronologia apparirà qui.",
+    "login": "Accedi per seguire questo QR-X.",
+    "saveError": "Impossibile modificare lo stato di seguito.",
+    "missing": "ID QR-X mancante.",
+    "notFound": "Questo QR-X non è stato trovato.",
+    "unavailable": "Questo QR-X non è attualmente disponibile.",
+    "loadError": "Impossibile caricare il QR-X.",
+    "copy": "Copia link QR-X",
+    "defaultDesc": "QR-X su mioseg qr",
+    "statsAria": "Statistiche QR-X",
+    "categories": {
+      "praxis_gesundheit": "Studio e salute",
+      "gastronomie": "Gastronomia",
+      "unternehmen": "Azienda",
+      "dienstleistung": "Servizio",
+      "handwerk": "Artigianato",
+      "event": "Evento",
+      "verein": "Associazione",
+      "wohltaetigkeit": "Beneficenza",
+      "sehenswuerdigkeit": "Attrazione",
+      "sonstiges": "Altro"
+    },
+    "hero": {
+      "business": "QR-X Business",
+      "normal": "QR-X normale",
+      "verified": "Verificato"
+    },
+    "actions": {
+      "aria": "QR-X Aktionen",
+      "own": "Il tuo QR-X",
+      "followed": "Seguito",
+      "follow": "Segui",
+      "ownHint": "QR-X su mioseg qr",
+      "savedHint": "QR-X su mioseg qr",
+      "followHint": "QR-X su mioseg qr",
+      "loginHint": "Accedi per seguire questo QR-X.",
+      "wait": "Caricamento …",
+      "savedBy": "{{count}}",
+      "image": "QR-X",
+      "imageHint": "QR-X su mioseg qr",
+      "qrAlt": "QR-X {{title}}",
+      "download": "Scarica",
+      "copy": "Copia link QR-X"
+    },
+    "news": {
+      "title": "News & Updates",
+      "hint": "QR-X su mioseg qr",
+      "count": "{{count}} elementi",
+      "empty": "Nessuna cronologia dei trasferimenti.",
+      "emptyHint": "Quando questo QR-X verrà trasferito, la cronologia apparirà qui."
+    },
+    "mediaLabels": {
+      "title": "Media",
+      "hint": "QR-X su mioseg qr",
+      "count": "{{count}} Media",
+      "images": "Immagini",
+      "imageAlt": "QR-X",
+      "files": "File",
+      "openFile": "Apri",
+      "open": "Apri",
+      "download": "Scarica"
+    },
+    "preview": {
+      "untitled": "QR-X",
+      "business": "QR-X Business",
+      "normal": "QR-X normale",
+      "collection": "Raccolta",
+      "one": "elemento",
+      "many": "elementi",
+      "verified": "Verificato",
+      "part": "Raccolta",
+      "open": "Apri →"
+    }
+  }
+} as const;
+function normalizePublicLocale(value:string):PublicLocale{return ["de","en","tr","pl","ar","fr","es","it"].includes(value)?value as PublicLocale:"de";}
+
 type BusinessCategory =
   | "praxis_gesundheit"
   | "gastronomie"
@@ -149,22 +954,22 @@ function normalizeNavigationUrl(value: string | null) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
 }
 
-function formatNumber(value: number | null | undefined) {
+function formatNumber(value: number | null | undefined, locale = "de") {
   const numberValue = Number(value ?? 0);
   if (!Number.isFinite(numberValue)) return "0";
 
-  return new Intl.NumberFormat("de-DE", {
+  return new Intl.NumberFormat(locale, {
     maximumFractionDigits: 0,
   }).format(Math.max(0, numberValue));
 }
 
-function formatDate(value: string | null | undefined) {
+function formatDate(value: string | null | undefined, locale = "de") {
   if (!value) return "–";
 
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "–";
 
-  return new Intl.DateTimeFormat("de-DE", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -253,6 +1058,7 @@ export default function PublicQrxDetailPage() {
     params?.locale as string | string[] | undefined,
     "de",
   );
+  const ui = PUBLIC_TEXT[normalizePublicLocale(locale)];
   const qrxId = getParam(params?.id as string | string[] | undefined, "");
   const parentQrxId = searchParams.get("parentQrxId");
   const parentQrxTitle = searchParams.get("parentQrxTitle");
@@ -281,7 +1087,7 @@ export default function PublicQrxDetailPage() {
     setErrorText(null);
 
     try {
-      if (!qrxId) throw new Error("QR-X ID fehlt.");
+      if (!qrxId) throw new Error(ui.missing);
 
       const { data: userData } = await supabase.auth.getUser();
       setCurrentUserId(userData.user?.id ?? null);
@@ -297,9 +1103,9 @@ export default function PublicQrxDetailPage() {
 
       if (error) throw error;
       if (!data || data.deleted_at)
-        throw new Error("Dieser QR-X wurde nicht gefunden.");
+        throw new Error(ui.notFound);
       if (data.suspended)
-        throw new Error("Dieser QR-X ist aktuell nicht verfügbar.");
+        throw new Error(ui.unavailable);
 
       setEntry(data);
 
@@ -400,7 +1206,7 @@ export default function PublicQrxDetailPage() {
       setErrorText(
         error instanceof Error
           ? error.message
-          : "QR-X konnte nicht geladen werden.",
+          : ui.loadError,
       );
     } finally {
       setLoading(false);
@@ -455,7 +1261,7 @@ export default function PublicQrxDetailPage() {
     if (!qrxId) return;
 
     if (!currentUserId) {
-      setErrorText("Bitte melde dich an, um diesem QR-X zu folgen.");
+      setErrorText(ui.login);
       return;
     }
 
@@ -492,7 +1298,7 @@ export default function PublicQrxDetailPage() {
       setErrorText(
         error instanceof Error
           ? error.message
-          : "Folgen konnte nicht geändert werden.",
+          : ui.saveError,
       );
     } finally {
       setSaveLoading(false);
@@ -543,7 +1349,7 @@ export default function PublicQrxDetailPage() {
     try {
       await navigator.clipboard.writeText(url);
     } catch {
-      window.prompt("QR-X Link kopieren", url);
+      window.prompt(ui.copy, url);
     }
   }
 
@@ -633,7 +1439,7 @@ export default function PublicQrxDetailPage() {
   const description =
     entry?.description?.trim() ||
     entry?.location_name?.trim() ||
-    "QR-X auf mioseg qr";
+    ui.defaultDesc;
   const forceOriginalQuality = Boolean(entry?.force_original_quality);
   const coverMedia = getMediaById(media, entry?.cover_media_id);
   const logoMedia = getMediaById(media, entry?.logo_media_id);
@@ -656,7 +1462,8 @@ export default function PublicQrxDetailPage() {
   const isBusiness = entry?.type === "business";
   const website = normalizeUrl(entry?.cta_website ?? null);
   const navigation = normalizeNavigationUrl(entry?.cta_navigation ?? null);
-  const categoryMeta = getBusinessCategoryMeta(entry?.category);
+  const rawCategoryMeta = getBusinessCategoryMeta(entry?.category);
+  const categoryMeta = rawCategoryMeta && entry?.category ? { ...rawCategoryMeta, label: ui.categories[entry.category as keyof typeof ui.categories] ?? rawCategoryMeta.label } : rawCategoryMeta;
   const newsItems = useMemo(
     () => normalizeNewsItems(entry?.news),
     [entry?.news],
@@ -726,18 +1533,18 @@ export default function PublicQrxDetailPage() {
 
   const stats = [
     {
-      label: "Follower",
-      value: formatNumber(saveCount ?? entry?.follower_count),
+      label: ui.followers,
+      value: formatNumber(saveCount ?? entry?.follower_count, locale),
       icon: "👥",
     },
     {
-      label: "Medien",
-      value: formatNumber(media.length),
+      label: ui.media,
+      value: formatNumber(media.length, locale),
       icon: "🖼️",
     },
     {
-      label: "Updates",
-      value: formatNumber(newsItems.length),
+      label: ui.updates,
+      value: formatNumber(newsItems.length, locale),
       icon: "📰",
     },
   ];
@@ -749,13 +1556,13 @@ export default function PublicQrxDetailPage() {
           <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
         </Link>
         <nav className={styles.nav} aria-label="QR-X Navigation">
-          <Link href={`/${locale}`}>Startseite</Link>
-          <Link href={`/${locale}/explore`}>Explore</Link>
+          <Link href={`/${locale}`}>{ui.home}</Link>
+          <Link href={`/${locale}/explore`}>{ui.explore}</Link>
         </nav>
       </header>
 
       <section style={panelStyle}>
-        {loading ? <div style={loadingStyle}>QR-X wird geladen …</div> : null}
+        {loading ? <div style={loadingStyle}>{ui.loading}</div> : null}
         {!loading && errorText ? (
           <div style={errorStyle}>{errorText}</div>
         ) : null}
@@ -767,7 +1574,7 @@ export default function PublicQrxDetailPage() {
                 href={`/${locale}/qrx/${parentQrxId}`}
                 style={collectionBackLinkStyle}
               >
-                ← Zurück zur Sammlung „{parentQrxTitle}“
+                {ui.back.replace("{{title}}", parentQrxTitle)}
               </Link>
             ) : null}
 
@@ -780,27 +1587,28 @@ export default function PublicQrxDetailPage() {
               isBusiness={isBusiness}
               categoryMeta={categoryMeta}
               verified={entry.verified === true}
+              labels={ui.hero}
             />
 
-            <QrxStatsSection stats={stats} />
+            <QrxStatsSection stats={stats} ariaLabel={ui.statsAria} />
 
             <div style={{ display: "grid", gap: 16, marginTop: 18 }}>
               {entry.location_name?.trim() ? (
-                <InfoRow title="📍 Standort" text={entry.location_name.trim()} />
+                <InfoRow title={`📍 ${ui.location}`} text={entry.location_name.trim()} />
               ) : null}
 
               {categoryMeta ? (
-                <InfoRow title="▦ Kategorie" text={`${categoryMeta.icon} ${categoryMeta.label}`} />
+                <InfoRow title={`▦ ${ui.category}`} text={`${categoryMeta.icon} ${categoryMeta.label}`} />
               ) : null}
 
-              {entry.created_at ? <InfoRow title="🕒 Erstellt" text={formatDate(entry.created_at)} /> : null}
+              {entry.created_at ? <InfoRow title={`🕒 ${ui.created}`} text={formatDate(entry.created_at, locale)} /> : null}
 
               {isBusiness ? (
                 <div style={ctaGridStyle}>
-                  {entry.cta_phone?.trim() ? <a href={`tel:${entry.cta_phone.trim()}`} className={styles.primaryButton}>Telefon</a> : null}
-                  {website ? <a href={website} target="_blank" rel="noreferrer" className={styles.secondaryButton}>Webseite öffnen</a> : null}
-                  {entry.cta_email?.trim() ? <a href={`mailto:${entry.cta_email.trim()}`} className={styles.secondaryButton}>E-Mail schreiben</a> : null}
-                  {navigation ? <a href={navigation} target="_blank" rel="noreferrer" className={styles.secondaryButton}>Navigation öffnen</a> : null}
+                  {entry.cta_phone?.trim() ? <a href={`tel:${entry.cta_phone.trim()}`} className={styles.primaryButton}>{ui.phone}</a> : null}
+                  {website ? <a href={website} target="_blank" rel="noreferrer" className={styles.secondaryButton}>{ui.website}</a> : null}
+                  {entry.cta_email?.trim() ? <a href={`mailto:${entry.cta_email.trim()}`} className={styles.secondaryButton}>{ui.email}</a> : null}
+                  {navigation ? <a href={navigation} target="_blank" rel="noreferrer" className={styles.secondaryButton}>{ui.navigation}</a> : null}
                 </div>
               ) : null}
             </div>
@@ -810,19 +1618,20 @@ export default function PublicQrxDetailPage() {
               hasSaved={hasSaved}
               currentUserId={currentUserId}
               saveLoading={saveLoading}
-              followerCount={`${formatNumber(saveCount ?? entry.follower_count)} Nutzer${Number(saveCount ?? entry.follower_count ?? 0) === 1 ? "" : "n"}`}
+              followerCount={`${formatNumber(saveCount ?? entry.follower_count, locale)} Nutzer${Number(saveCount ?? entry.follower_count ?? 0) === 1 ? "" : "n"}`}
               qrImageUrl={qrImageUrl}
               title={title}
               onToggleSave={handleToggleSave}
               onDownloadQr={handleDownloadQrImage}
               onCopyLink={handleCopyPublicLink}
+              labels={ui.actions}
             />
           </>
         ) : null}
       </section>
 
       {!loading && entry ? (
-        <QrxNewsSection items={newsItems} formatDate={formatDate} />
+        <QrxNewsSection items={newsItems} formatDate={(value) => formatDate(value, locale)} labels={ui.news} />
       ) : null}
 
       {!loading && entry && collectionItems.length > 0 ? (
@@ -832,6 +1641,7 @@ export default function PublicQrxDetailPage() {
             parentQrxTitle={title}
             items={collectionItems}
             locale={locale}
+            labels={ui.preview}
           />
         </section>
       ) : null}
@@ -841,7 +1651,7 @@ export default function PublicQrxDetailPage() {
           <div className={styles.cardHeader}>
             <div>
               <h2>Transfer</h2>
-              <p>Verlauf der QR-X-Übertragungen für diesen QR-X.</p>
+              <p>{ui.transferHint}</p>
             </div>
             <button
               type="button"
@@ -849,7 +1659,7 @@ export default function PublicQrxDetailPage() {
               className={styles.secondaryButton}
               style={{ border: 0 }}
             >
-              {historyLoading ? "Lädt …" : "Neu laden"}
+              {historyLoading ? ui.reloading : ui.reload}
             </button>
           </div>
 
@@ -867,24 +1677,24 @@ export default function PublicQrxDetailPage() {
                     <span>{formatDate(item.created_at)}</span>
                   </div>
                   {item.recipient_email ? (
-                    <span>Empfänger: {item.recipient_email}</span>
+                    <span>{ui.recipient}: {item.recipient_email}</span>
                   ) : null}
-                  {item.from_name ? <span>Von: {item.from_name}</span> : null}
-                  {item.to_name ? <span>An: {item.to_name}</span> : null}
+                  {item.from_name ? <span>{ui.from}: {item.from_name}</span> : null}
+                  {item.to_name ? <span>{ui.to}: {item.to_name}</span> : null}
                   {item.accepted_at ? (
-                    <span>Angenommen: {formatDate(item.accepted_at)}</span>
+                    <span>{ui.accepted}: {formatDate(item.accepted_at, locale)}</span>
                   ) : null}
                   {item.expires_at ? (
-                    <span>Ablauf: {formatDate(item.expires_at)}</span>
+                    <span>{ui.expires}: {formatDate(item.expires_at, locale)}</span>
                   ) : null}
                 </article>
               ))}
             </div>
           ) : (
             <div style={emptyStateStyle}>
-              <strong>Noch kein Transfer-Verlauf vorhanden.</strong>
+              <strong>{ui.noTransfer}</strong>
               <span>
-                Wenn dieser QR-X übertragen wird, erscheint der Verlauf hier.
+                {ui.noTransferHint}
               </span>
             </div>
           )}
@@ -904,6 +1714,7 @@ export default function PublicQrxDetailPage() {
             const item = media.find((mediaItem) => mediaItem.id === id);
             if (item) handleFileOpen(item);
           }}
+          labels={ui.mediaLabels}
           onFileDownload={(id) => {
             const item = media.find((mediaItem) => mediaItem.id === id);
             if (item) handleFileDownload(item);

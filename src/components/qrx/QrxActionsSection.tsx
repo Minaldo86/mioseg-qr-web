@@ -14,6 +14,11 @@ type Props = {
   onToggleSave: () => void;
   onDownloadQr: () => void;
   onCopyLink: () => void;
+  labels?: {
+    aria: string; own: string; followed: string; follow: string; ownHint: string;
+    savedHint: string; followHint: string; loginHint: string; wait: string;
+    savedBy: string; image: string; imageHint: string; qrAlt: string; download: string; copy: string;
+  };
 };
 
 export default function QrxActionsSection({
@@ -27,20 +32,37 @@ export default function QrxActionsSection({
   onToggleSave,
   onDownloadQr,
   onCopyLink,
+  labels = {
+    aria: "QR-X Aktionen",
+    own: "Eigener QR-X",
+    followed: "Gefolgt",
+    follow: "Folgen",
+    ownHint: "Du bist der Besitzer dieses QR-X. Er ist automatisch in deinen erstellten QR-X sichtbar.",
+    savedHint: "Dieser QR-X ist aktuell in deinen gespeicherten Einträgen.",
+    followHint: "Du kannst diesem QR-X folgen, um ihn in deiner App und im Web wiederzufinden.",
+    loginHint: "Melde dich an, um diesem QR-X zu folgen.",
+    wait: "Bitte warten …",
+    savedBy: "Gespeichert von {{count}}",
+    image: "QR-X Bild",
+    imageHint: "Lade den QR-Code als Bild herunter oder kopiere den öffentlichen Link.",
+    qrAlt: "QR-Code für {{title}}",
+    download: "QR-Code herunterladen",
+    copy: "Link kopieren",
+  },
 }: Props) {
   return (
-    <section style={actionsLayoutStyle} aria-label="QR-X Aktionen">
+    <section style={actionsLayoutStyle} aria-label={labels.aria}>
       <div style={followBoxStyle}>
         <div>
-          <h2 style={boxTitleStyle}>{isOwner ? "Eigener QR-X" : hasSaved ? "Gefolgt" : "Folgen"}</h2>
+          <h2 style={boxTitleStyle}>{isOwner ? labels.own : hasSaved ? labels.followed : labels.follow}</h2>
           <p style={boxHintStyle}>
             {isOwner
-              ? "Du bist der Besitzer dieses QR-X. Er ist automatisch in deinen erstellten QR-X sichtbar."
+              ? labels.ownHint
               : currentUserId
                 ? hasSaved
-                  ? "Dieser QR-X ist aktuell in deinen gespeicherten Einträgen."
-                  : "Du kannst diesem QR-X folgen, um ihn in deiner App und im Web wiederzufinden."
-                : "Melde dich an, um diesem QR-X zu folgen."}
+                  ? labels.savedHint
+                  : labels.followHint
+                : labels.loginHint}
           </p>
         </div>
 
@@ -51,26 +73,26 @@ export default function QrxActionsSection({
           className={styles.primaryButton}
           style={{ border: 0, cursor: isOwner || saveLoading || !currentUserId ? "not-allowed" : "pointer", opacity: isOwner || saveLoading || !currentUserId ? 0.82 : 1 }}
         >
-          {isOwner ? "👑 Eigener QR-X" : saveLoading ? "Bitte warten …" : hasSaved ? "✓ Gefolgt" : "+ Folgen"}
+          {isOwner ? `👑 ${labels.own}` : saveLoading ? labels.wait : hasSaved ? `✓ ${labels.followed}` : `+ ${labels.follow}`}
         </button>
 
-        <span style={saveCountStyle}>Gespeichert von {followerCount}</span>
+        <span style={saveCountStyle}>{labels.savedBy.replace("{{count}}", followerCount)}</span>
       </div>
 
       <div style={qrDownloadBoxStyle}>
         <div>
-          <h2 style={boxTitleStyle}>QR-X Bild</h2>
-          <p style={boxHintStyle}>Lade den QR-Code als Bild herunter oder kopiere den öffentlichen Link.</p>
+          <h2 style={boxTitleStyle}>{labels.image}</h2>
+          <p style={boxHintStyle}>{labels.imageHint}</p>
         </div>
 
-        {qrImageUrl ? <img src={qrImageUrl} alt={`QR-Code für ${title}`} style={qrImageStyle} /> : null}
+        {qrImageUrl ? <img src={qrImageUrl} alt={labels.qrAlt.replace("{{title}}", title)} style={qrImageStyle} /> : null}
 
         <div style={qrButtonRowStyle}>
           <button type="button" onClick={onDownloadQr} className={styles.primaryButton} style={{ border: 0 }}>
-            QR-Code herunterladen
+            {labels.download}
           </button>
           <button type="button" onClick={onCopyLink} className={styles.secondaryButton} style={{ border: 0 }}>
-            Link kopieren
+            {labels.copy}
           </button>
         </div>
       </div>

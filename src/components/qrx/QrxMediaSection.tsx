@@ -19,6 +19,7 @@ type Props = {
   onImageOpen: (id: string) => void;
   onFileOpen: (id: string) => void;
   onFileDownload: (id: string) => void;
+  labels?: { title:string; hint:string; count:string; images:string; imageAlt:string; files:string; openFile:string; open:string; download:string };
 };
 
 export default function QrxMediaSection({
@@ -28,6 +29,7 @@ export default function QrxMediaSection({
   onImageOpen,
   onFileOpen,
   onFileDownload,
+  labels = { title:"Medien", hint:"Bilder und Dateien dieses QR-X.", count:"{{count}} Medien", images:"Bilder", imageAlt:"QR-X Bild", files:"Dateien", openFile:"Datei öffnen", open:"Öffnen", download:"Herunterladen" },
 }: Props) {
   if (imageItems.length === 0 && fileItems.length === 0) return null;
 
@@ -35,15 +37,15 @@ export default function QrxMediaSection({
     <section style={panelStyle}>
       <div className={styles.cardHeader}>
         <div>
-          <h2>Medien</h2>
-          <p>Bilder und Dateien dieses QR-X.</p>
+          <h2>{labels.title}</h2>
+          <p>{labels.hint}</p>
         </div>
-        <span>{totalCount} Medien</span>
+        <span>{labels.count.replace("{{count}}", String(totalCount))}</span>
       </div>
 
       {imageItems.length > 0 ? (
         <>
-          <h3 style={sectionSubTitleStyle}>Bilder</h3>
+          <h3 style={sectionSubTitleStyle}>{labels.images}</h3>
           <div style={galleryGridStyle}>
             {imageItems.map((item) => (
               <a
@@ -54,7 +56,7 @@ export default function QrxMediaSection({
                 style={galleryItemStyle}
                 onClick={() => onImageOpen(item.id)}
               >
-                <img src={item.displayUrl} alt={item.filename ?? "QR-X Bild"} style={galleryImageStyle} />
+                <img src={item.displayUrl} alt={item.filename ?? labels.imageAlt} style={galleryImageStyle} />
               </a>
             ))}
           </div>
@@ -63,17 +65,17 @@ export default function QrxMediaSection({
 
       {fileItems.length > 0 ? (
         <div style={{ marginTop: imageItems.length > 0 ? 18 : 0 }}>
-          <h3 style={sectionSubTitleStyle}>Dateien</h3>
+          <h3 style={sectionSubTitleStyle}>{labels.files}</h3>
           <div style={fileListStyle}>
             {fileItems.map((item) => (
               <div key={item.id} style={fileItemStyle}>
-                <span>📄 {item.filename ?? "Datei öffnen"}</span>
+                <span>📄 {item.filename ?? labels.openFile}</span>
                 <span style={fileActionRowStyle}>
                   <a href={item.url} target="_blank" rel="noreferrer" style={fileActionLinkStyle} onClick={() => onFileOpen(item.id)}>
-                    Öffnen
+                    {labels.open}
                   </a>
                   <a href={item.url} download={item.filename ?? undefined} style={fileActionLinkStyle} onClick={() => onFileDownload(item.id)}>
-                    Herunterladen
+                    {labels.download}
                   </a>
                 </span>
               </div>

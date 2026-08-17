@@ -4,9 +4,9 @@ import type { CSSProperties } from "react";
 
 type Stat = { label: string; value: string; icon: string };
 
-export default function QrxStatsSection({ stats }: { stats: Stat[] }) {
+export default function QrxStatsSection({ stats, ariaLabel = "QR-X Kennzahlen" }: { stats: Stat[]; ariaLabel?: string }) {
   return (
-    <section style={statsGridStyle} aria-label="QR-X Kennzahlen">
+    <section style={statsGridStyle} aria-label={ariaLabel}>
       {stats.map((item) => (
         <article key={item.label} style={statCardStyle}>
           <span style={statIconStyle}>{item.icon}</span>

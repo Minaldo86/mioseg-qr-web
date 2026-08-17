@@ -13,6 +13,7 @@ type Props = {
   isBusiness: boolean;
   categoryMeta: CategoryMeta;
   verified: boolean;
+  labels?: { business: string; normal: string; verified: string };
 };
 
 export default function QrxHeroSection({
@@ -24,6 +25,7 @@ export default function QrxHeroSection({
   isBusiness,
   categoryMeta,
   verified,
+  labels = { business: "Business QR-X", normal: "Normaler QR-X", verified: "Verifiziert" },
 }: Props) {
   return (
     <div style={coverStyle}>
@@ -37,7 +39,7 @@ export default function QrxHeroSection({
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={badgeRowStyle}>
             <span style={badgeStyle(isBusiness)}>
-              {isBusiness ? "🏢 Business QR-X" : "⌗ Normaler QR-X"}
+              {isBusiness ? `🏢 ${labels.business}` : `⌗ ${labels.normal}`}
             </span>
 
             {categoryMeta ? (
@@ -46,7 +48,7 @@ export default function QrxHeroSection({
               </span>
             ) : null}
 
-            {verified ? <span style={verifiedBadgeStyle}>✓ Verifiziert</span> : null}
+            {verified ? <span style={verifiedBadgeStyle}>✓ {labels.verified}</span> : null}
           </div>
 
           <h1 style={heroTitleStyle}>{title}</h1>

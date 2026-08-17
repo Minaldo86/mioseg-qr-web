@@ -25,22 +25,23 @@ type CollectionPreviewProps = {
   routeMode?: "localized" | "root";
   collectionTitle?: string | null;
   collectionDescription?: string | null;
+  labels?: { untitled:string; business:string; normal:string; collection:string; one:string; many:string; verified:string; part:string; open:string };
 };
 
-function getDisplayTitle(item: QrxCollectionPreviewItem) {
+function getDisplayTitle(item: QrxCollectionPreviewItem, untitled: string) {
   return (
     item.custom_title?.trim() ||
     item.company_name?.trim() ||
     item.title?.trim() ||
-    "Unbenannter QR-X"
+    untitled
   );
 }
 
-function getDisplayText(item: QrxCollectionPreviewItem) {
+function getDisplayText(item: QrxCollectionPreviewItem, business: string, normal: string) {
   return (
     item.description?.trim() ||
     item.location_name?.trim() ||
-    (item.type === "business" ? "Business QR-X" : "Normaler QR-X")
+    (item.type === "business" ? business : normal)
   );
 }
 
@@ -53,10 +54,11 @@ export default function CollectionPreview({
   routeMode = "localized",
   collectionTitle = null,
   collectionDescription = null,
+  labels = { untitled:"Unbenannter QR-X", business:"Business QR-X", normal:"Normaler QR-X", collection:"Sammlung", one:"Eintrag", many:"Einträge", verified:"Verifiziert", part:"{labels.part}", open:"{labels.open}" },
 }: CollectionPreviewProps) {
   if (items.length === 0) return null;
 
-  const visibleTitle = collectionTitle?.trim() || "Sammlung";
+  const visibleTitle = collectionTitle?.trim() || labels.collection;
   const visibleDescription = collectionDescription?.trim() || null;
 
   return (
@@ -70,13 +72,13 @@ export default function CollectionPreview({
         </div>
 
         <span style={countBadgeStyle}>
-          {items.length} {items.length === 1 ? "Eintrag" : "Einträge"}
+          {items.length} {items.length === 1 ? labels.one : labels.many}
         </span>
       </div>
 
       <div style={compact ? compactGridStyle : gridStyle}>
         {items.map((item) => {
-          const title = getDisplayTitle(item);
+          const title = getDisplayTitle(item, labels.untitled);
           const image =
             item.cover_image_url?.trim() ||
             item.logo_url?.trim() ||
@@ -112,7 +114,7 @@ export default function CollectionPreview({
                   </span>
 
                   {item.verified ? (
-                    <span style={verifiedBadgeStyle}>✓ Verifiziert</span>
+                    <span style={verifiedBadgeStyle}>✓ {labels.verified}</span>
                   ) : null}
                 </div>
               </div>
@@ -121,7 +123,7 @@ export default function CollectionPreview({
                 <h3 style={itemTitleStyle}>{title}</h3>
 
                 <p style={itemTextStyle}>
-                  {getDisplayText(item)}
+                  {getDisplayText(item, labels.business, labels.normal)}
                 </p>
 
                 {item.location_name?.trim() ? (
@@ -131,8 +133,8 @@ export default function CollectionPreview({
                 ) : null}
 
                 <div style={footerStyle}>
-                  <span style={sourceStyle}>Teil der Sammlung</span>
-                  <span style={openStyle}>Öffnen →</span>
+                  <span style={sourceStyle}>{labels.part}</span>
+                  <span style={openStyle}>{labels.open}</span>
                 </div>
               </div>
             </Link>
