@@ -28,6 +28,17 @@ const localeShortLabels: Record<Locale, string> = {
   it: "IT",
 };
 
+const switcherText: Record<Locale, { select: string; menu: string; language: string }> = {
+  de: { select: "Sprache auswählen", menu: "Sprachauswahl", language: "Sprache" },
+  en: { select: "Select language", menu: "Language selection", language: "Language" },
+  tr: { select: "Dil seç", menu: "Dil seçimi", language: "Dil" },
+  pl: { select: "Wybierz język", menu: "Wybór języka", language: "Język" },
+  ar: { select: "اختر اللغة", menu: "اختيار اللغة", language: "اللغة" },
+  fr: { select: "Choisir la langue", menu: "Sélection de la langue", language: "Langue" },
+  es: { select: "Seleccionar idioma", menu: "Selección de idioma", language: "Idioma" },
+  it: { select: "Seleziona lingua", menu: "Selezione della lingua", language: "Lingua" },
+};
+
 function replaceLocaleInPath(pathname: string, nextLocale: Locale): string {
   if (!pathname || pathname === "/") {
     return `/${nextLocale}`;
@@ -56,6 +67,7 @@ export default function LanguageSwitcher({
   className = "",
 }: LanguageSwitcherProps) {
   const pathname = usePathname() || `/${defaultLocale}`;
+  const ui = switcherText[currentLocale];
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -93,7 +105,7 @@ export default function LanguageSwitcher({
         className={styles.trigger}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Sprache auswählen"
+        aria-label={ui.select}
         onClick={() => setOpen((prev) => !prev)}
       >
         <span className={styles.triggerIcon} aria-hidden="true">
@@ -114,8 +126,8 @@ export default function LanguageSwitcher({
       </button>
 
       {open ? (
-        <div className={styles.menu} role="menu" aria-label="Sprachauswahl">
-          <div className={styles.menuHeader}>Sprache</div>
+        <div className={styles.menu} role="menu" aria-label={ui.menu}>
+          <div className={styles.menuHeader}>{ui.language}</div>
 
           <div className={styles.menuList}>
             {locales.map((locale) => {
