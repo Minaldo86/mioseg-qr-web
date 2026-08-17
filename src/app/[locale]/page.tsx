@@ -6,6 +6,83 @@ import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { defaultLocale, isValidLocale } from "../../i18n/config";
 import { getDictionary } from "../../i18n/get-dictionary";
 
+
+const PUBLIC_LOCALES = ["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const;
+type PublicLocale = (typeof PUBLIC_LOCALES)[number];
+
+const HOME_HERO_COPY: Record<PublicLocale, {
+  headline1: string;
+  headline2: string;
+  headline3: string;
+  text: string;
+  ctaExplore: string;
+  navFeatures: string;
+  navExplore: string;
+  navUseCases: string;
+  navPrices: string;
+  miniScan: string;
+  miniScanText: string;
+  miniSave: string;
+  miniSaveText: string;
+  miniExplore: string;
+  miniExploreText: string;
+}> = {
+  de: { headline1:"Scannen.", headline2:"Speichern.", headline3:"Wiederfinden.", text:"Mioseg qr macht QR-Codes intelligent. Speichere Orte, entdecke neue Möglichkeiten und bleibe immer up to date.", ctaExplore:"Explore entdecken", navFeatures:"Funktionen", navExplore:"Explore", navUseCases:"Use Cases", navPrices:"Preise", miniScan:"Scannen", miniScanText:"QR-Codes öffnen", miniSave:"Speichern", miniSaveText:"Nie wieder verlieren", miniExplore:"Entdecken", miniExploreText:"Orte, Menschen, Möglichkeiten" },
+  en: { headline1:"Scan.", headline2:"Save.", headline3:"Find again.", text:"Mioseg qr makes QR codes intelligent. Save places, discover new possibilities and stay up to date.", ctaExplore:"Discover Explore", navFeatures:"Features", navExplore:"Explore", navUseCases:"Use Cases", navPrices:"Prices", miniScan:"Scan", miniScanText:"Open QR codes", miniSave:"Save", miniSaveText:"Never lose them again", miniExplore:"Discover", miniExploreText:"Places, people, possibilities" },
+  tr: { headline1:"Tara.", headline2:"Kaydet.", headline3:"Yeniden bul.", text:"Mioseg qr, QR kodlarını akıllı hale getirir. Yerleri kaydet, yeni olanakları keşfet ve her zaman güncel kal.", ctaExplore:"Explore'u keşfet", navFeatures:"Özellikler", navExplore:"Explore", navUseCases:"Kullanım alanları", navPrices:"Fiyatlar", miniScan:"Tara", miniScanText:"QR kodlarını aç", miniSave:"Kaydet", miniSaveText:"Bir daha kaybetme", miniExplore:"Keşfet", miniExploreText:"Yerler, insanlar, olanaklar" },
+  pl: { headline1:"Skanuj.", headline2:"Zapisuj.", headline3:"Odnajduj.", text:"Mioseg qr sprawia, że kody QR stają się inteligentne. Zapisuj miejsca, odkrywaj nowe możliwości i bądź zawsze na bieżąco.", ctaExplore:"Odkryj Explore", navFeatures:"Funkcje", navExplore:"Explore", navUseCases:"Zastosowania", navPrices:"Ceny", miniScan:"Skanuj", miniScanText:"Otwieraj kody QR", miniSave:"Zapisuj", miniSaveText:"Nigdy więcej nie zgub", miniExplore:"Odkrywaj", miniExploreText:"Miejsca, ludzie, możliwości" },
+  ar: { headline1:"امسح.", headline2:"احفظ.", headline3:"اعثر عليه مجددًا.", text:"يجعل mioseg qr رموز QR أكثر ذكاءً. احفظ الأماكن، واكتشف إمكانيات جديدة، وابقَ على اطلاع دائم.", ctaExplore:"اكتشف Explore", navFeatures:"الميزات", navExplore:"Explore", navUseCases:"حالات الاستخدام", navPrices:"الأسعار", miniScan:"مسح", miniScanText:"فتح رموز QR", miniSave:"حفظ", miniSaveText:"لن تفقدها مجددًا", miniExplore:"اكتشاف", miniExploreText:"أماكن، أشخاص، إمكانيات" },
+  fr: { headline1:"Scannez.", headline2:"Enregistrez.", headline3:"Retrouvez.", text:"Mioseg qr rend les QR codes intelligents. Enregistrez des lieux, découvrez de nouvelles possibilités et restez toujours à jour.", ctaExplore:"Découvrir Explore", navFeatures:"Fonctions", navExplore:"Explore", navUseCases:"Cas d’usage", navPrices:"Tarifs", miniScan:"Scanner", miniScanText:"Ouvrir des QR codes", miniSave:"Enregistrer", miniSaveText:"Ne plus jamais les perdre", miniExplore:"Découvrir", miniExploreText:"Lieux, personnes, possibilités" },
+  es: { headline1:"Escanea.", headline2:"Guarda.", headline3:"Encuentra.", text:"Mioseg qr hace que los códigos QR sean inteligentes. Guarda lugares, descubre nuevas posibilidades y mantente siempre al día.", ctaExplore:"Descubrir Explore", navFeatures:"Funciones", navExplore:"Explore", navUseCases:"Casos de uso", navPrices:"Precios", miniScan:"Escanear", miniScanText:"Abrir códigos QR", miniSave:"Guardar", miniSaveText:"No volver a perderlos", miniExplore:"Descubrir", miniExploreText:"Lugares, personas, posibilidades" },
+  it: { headline1:"Scansiona.", headline2:"Salva.", headline3:"Ritrova.", text:"Mioseg qr rende intelligenti i codici QR. Salva luoghi, scopri nuove possibilità e rimani sempre aggiornato.", ctaExplore:"Scopri Explore", navFeatures:"Funzioni", navExplore:"Explore", navUseCases:"Casi d’uso", navPrices:"Prezzi", miniScan:"Scansiona", miniScanText:"Apri codici QR", miniSave:"Salva", miniSaveText:"Non perderli mai più", miniExplore:"Scopri", miniExploreText:"Luoghi, persone, possibilità" },
+};
+
+const HOME_PUBLIC_UI: Record<PublicLocale, {
+  heroImageAlt: string;
+  useCasesEyebrow: string;
+  useCasesTitle: string;
+  exploreTitle: string;
+  exploreText: string;
+  nearby: string;
+  discoverPlaces: string;
+  localOffers: string;
+  supportCommunity: string;
+  viewExplore: string;
+  restaurant: string;
+  passwordTitle: string;
+  passwordText: string;
+  currentTitle: string;
+  currentText: string;
+  organizeTitle: string;
+  organizeText: string;
+  nearbyText: string;
+}> = {
+  de: { heroImageAlt:"Person scannt einen Mioseg QR-Code", useCasesEyebrow:"Für jede Situation gemacht", useCasesTitle:"QR-X verbindet echte Orte mit digitalen Inhalten.", exploreTitle:"Entdecke, was um dich herum passiert.", exploreText:"Oder mache dein Unternehmen, Event oder Projekt sichtbar. Explore zeigt QR-X auf einer Karte und verbindet Menschen mit Orten, Angeboten und Möglichkeiten.", nearby:"In deiner Nähe", discoverPlaces:"Orte entdecken", localOffers:"Lokale Angebote", supportCommunity:"Gemeinde stärken", viewExplore:"Explore ansehen", restaurant:"Gastronomie", passwordTitle:"Passwortschutz", passwordText:"Schütze private QR-X mit einem Passwort.", currentTitle:"Immer aktuell", currentText:"Änderungen bleiben sofort sichtbar.", organizeTitle:"Speichern & organisieren", organizeText:"Ordner, Karte und Verlauf bleiben übersichtlich.", nearbyText:"Entdecke Möglichkeiten in deiner Nähe." },
+  en: { heroImageAlt:"Person scanning a Mioseg QR code", useCasesEyebrow:"Made for every situation", useCasesTitle:"QR-X connects real places with digital content.", exploreTitle:"Discover what is happening around you.", exploreText:"Or make your business, event or project visible. Explore shows QR-X on a map and connects people with places, offers and possibilities.", nearby:"Nearby", discoverPlaces:"Discover places", localOffers:"Local offers", supportCommunity:"Support your community", viewExplore:"View Explore", restaurant:"Restaurant", passwordTitle:"Password protection", passwordText:"Protect private QR-X with a password.", currentTitle:"Always up to date", currentText:"Changes stay instantly visible.", organizeTitle:"Save & organize", organizeText:"Folders, map and history stay organized.", nearbyText:"Discover opportunities nearby." },
+  tr: { heroImageAlt:"Mioseg QR kodunu tarayan kişi", useCasesEyebrow:"Her durum için tasarlandı", useCasesTitle:"QR-X gerçek yerleri dijital içeriklerle buluşturur.", exploreTitle:"Çevrende neler olduğunu keşfet.", exploreText:"İşletmeni, etkinliğini veya projenizi görünür hale getir. Explore, QR-X'leri haritada gösterir ve insanları yerler, teklifler ve olanaklarla buluşturur.", nearby:"Yakınında", discoverPlaces:"Yerleri keşfet", localOffers:"Yerel teklifler", supportCommunity:"Topluluğunu destekle", viewExplore:"Explore'u görüntüle", restaurant:"Gastronomi", passwordTitle:"Şifre koruması", passwordText:"Özel QR-X'lerini bir şifreyle koru.", currentTitle:"Her zaman güncel", currentText:"Değişiklikler anında görünür.", organizeTitle:"Kaydet ve düzenle", organizeText:"Klasörler, harita ve geçmiş düzenli kalır.", nearbyText:"Yakınındaki olanakları keşfet." },
+  pl: { heroImageAlt:"Osoba skanująca kod Mioseg QR", useCasesEyebrow:"Do każdej sytuacji", useCasesTitle:"QR-X łączy prawdziwe miejsca z treściami cyfrowymi.", exploreTitle:"Odkryj, co dzieje się wokół Ciebie.", exploreText:"Możesz też zwiększyć widoczność swojej firmy, wydarzenia lub projektu. Explore pokazuje QR-X na mapie i łączy ludzi z miejscami, ofertami i możliwościami.", nearby:"W pobliżu", discoverPlaces:"Odkrywaj miejsca", localOffers:"Lokalne oferty", supportCommunity:"Wspieraj społeczność", viewExplore:"Zobacz Explore", restaurant:"Gastronomia", passwordTitle:"Ochrona hasłem", passwordText:"Chroń prywatne QR-X za pomocą hasła.", currentTitle:"Zawsze aktualne", currentText:"Zmiany są od razu widoczne.", organizeTitle:"Zapisuj i organizuj", organizeText:"Foldery, mapa i historia pozostają uporządkowane.", nearbyText:"Odkrywaj możliwości w swojej okolicy." },
+  ar: { heroImageAlt:"شخص يمسح رمز Mioseg QR", useCasesEyebrow:"مصمم لكل موقف", useCasesTitle:"يربط QR-X الأماكن الحقيقية بالمحتوى الرقمي.", exploreTitle:"اكتشف ما يحدث من حولك.", exploreText:"أو اجعل شركتك أو فعاليتك أو مشروعك ظاهرًا. يعرض Explore رموز QR-X على الخريطة ويربط الأشخاص بالأماكن والعروض والإمكانيات.", nearby:"بالقرب منك", discoverPlaces:"اكتشف الأماكن", localOffers:"عروض محلية", supportCommunity:"ادعم مجتمعك", viewExplore:"عرض Explore", restaurant:"مطاعم", passwordTitle:"حماية بكلمة مرور", passwordText:"احمِ QR-X الخاصة بك بكلمة مرور.", currentTitle:"محدّث دائمًا", currentText:"تظهر التغييرات فورًا.", organizeTitle:"حفظ وتنظيم", organizeText:"تبقى المجلدات والخريطة والسجل منظمين.", nearbyText:"اكتشف الإمكانيات القريبة منك." },
+  fr: { heroImageAlt:"Personne scannant un code Mioseg QR", useCasesEyebrow:"Conçu pour chaque situation", useCasesTitle:"QR-X relie les lieux réels aux contenus numériques.", exploreTitle:"Découvrez ce qui se passe autour de vous.", exploreText:"Ou rendez votre entreprise, événement ou projet visible. Explore affiche les QR-X sur une carte et relie les personnes aux lieux, offres et possibilités.", nearby:"À proximité", discoverPlaces:"Découvrir des lieux", localOffers:"Offres locales", supportCommunity:"Soutenir la communauté", viewExplore:"Voir Explore", restaurant:"Gastronomie", passwordTitle:"Protection par mot de passe", passwordText:"Protégez les QR-X privés avec un mot de passe.", currentTitle:"Toujours à jour", currentText:"Les modifications sont visibles immédiatement.", organizeTitle:"Enregistrer et organiser", organizeText:"Dossiers, carte et historique restent bien organisés.", nearbyText:"Découvrez des possibilités près de chez vous." },
+  es: { heroImageAlt:"Persona escaneando un código Mioseg QR", useCasesEyebrow:"Hecho para cada situación", useCasesTitle:"QR-X conecta lugares reales con contenido digital.", exploreTitle:"Descubre lo que ocurre a tu alrededor.", exploreText:"O haz visible tu empresa, evento o proyecto. Explore muestra QR-X en un mapa y conecta a las personas con lugares, ofertas y posibilidades.", nearby:"Cerca de ti", discoverPlaces:"Descubrir lugares", localOffers:"Ofertas locales", supportCommunity:"Apoya a tu comunidad", viewExplore:"Ver Explore", restaurant:"Gastronomía", passwordTitle:"Protección con contraseña", passwordText:"Protege los QR-X privados con una contraseña.", currentTitle:"Siempre actualizado", currentText:"Los cambios se muestran inmediatamente.", organizeTitle:"Guardar y organizar", organizeText:"Carpetas, mapa e historial se mantienen organizados.", nearbyText:"Descubre posibilidades cerca de ti." },
+  it: { heroImageAlt:"Persona che scansiona un codice Mioseg QR", useCasesEyebrow:"Pensato per ogni situazione", useCasesTitle:"QR-X collega luoghi reali a contenuti digitali.", exploreTitle:"Scopri cosa succede intorno a te.", exploreText:"Oppure rendi visibile la tua azienda, evento o progetto. Explore mostra i QR-X su una mappa e collega le persone a luoghi, offerte e possibilità.", nearby:"Nelle vicinanze", discoverPlaces:"Scopri luoghi", localOffers:"Offerte locali", supportCommunity:"Sostieni la comunità", viewExplore:"Visualizza Explore", restaurant:"Gastronomia", passwordTitle:"Protezione con password", passwordText:"Proteggi i QR-X privati con una password.", currentTitle:"Sempre aggiornato", currentText:"Le modifiche sono subito visibili.", organizeTitle:"Salva e organizza", organizeText:"Cartelle, mappa e cronologia restano ordinate.", nearbyText:"Scopri opportunità vicino a te." },
+};
+
+const PROFESSIONAL_USE_CASE_TEXT: Record<PublicLocale, Array<{icon:string;title:string;text:string;image:string}>> = {
+  de: [],
+  en: [],
+  tr: [],
+  pl: [],
+  ar: [],
+  fr: [],
+  es: [],
+  it: [],
+};
+
+function publicLocale(value: string): PublicLocale {
+  return PUBLIC_LOCALES.includes(value as PublicLocale) ? (value as PublicLocale) : "en";
+}
+
+
 type Props = {
   params: Promise<{
     locale: string;
@@ -32,145 +109,92 @@ export default async function Home({ params }: Props) {
     tourism: "/landing/usecase-tourism.png",
   };
 
-  const heroCopy =
-    locale === "de"
-      ? {
-          headline1: "Scannen.",
-          headline2: "Speichern.",
-          headline3: "Wiederfinden.",
-          text: "Mioseg qr macht QR-Codes intelligent. Speichere Orte, entdecke neue Möglichkeiten und bleibe immer up to date.",
-          ctaExplore: "Explore entdecken",
-          navFeatures: "Funktionen",
-          navExplore: "Explore",
-          navUseCases: "Use Cases",
-          navPrices: "Preise",
-          miniScan: "Scannen",
-          miniScanText: "QR-Codes öffnen",
-          miniSave: "Speichern",
-          miniSaveText: "Nie wieder verlieren",
-          miniExplore: "Entdecken",
-          miniExploreText: "Orte, Menschen, Möglichkeiten",
-        }
-      : {
-          headline1: "Scan.",
-          headline2: "Save.",
-          headline3: "Find again.",
-          text: "Mioseg qr makes QR codes intelligent. Save places, discover new possibilities and stay up to date.",
-          ctaExplore: "Discover Explore",
-          navFeatures: "Features",
-          navExplore: "Explore",
-          navUseCases: "Use Cases",
-          navPrices: "Prices",
-          miniScan: "Scan",
-          miniScanText: "Open QR codes",
-          miniSave: "Save",
-          miniSaveText: "Never lose them again",
-          miniExplore: "Discover",
-          miniExploreText: "Places, people, possibilities",
-        };
+  const publicLanguage = publicLocale(locale);
+  const heroCopy = HOME_HERO_COPY[publicLanguage];
+  const publicUi = HOME_PUBLIC_UI[publicLanguage];
 
-  const professionalUseCases =
-    locale === "de"
-      ? [
-          {
-            icon: "🏠",
-            title: "Immobilien",
-            text: "Exposés, Dokumente und Kontakte digital teilen.",
-            image: landingImages.realEstate,
-          },
-          {
-            icon: "🍽️",
-            title: "Gastronomie",
-            text: "Speisekarten, Aktionen und Reservierungslinks.",
-            image: landingImages.restaurant,
-          },
-          {
-            icon: "💼",
-            title: "Unternehmen",
-            text: "Produkte, Angebote und Infos für deine Kunden.",
-            image: landingImages.business,
-          },
-          {
-            icon: "🎟️",
-            title: "Events",
-            text: "Tickets, Infos und Updates – alles an einem Ort.",
-            image: landingImages.event,
-          },
-          {
-            icon: "🎓",
-            title: "Schule & Campus",
-            text: "Pläne, Räume, AGs und Infos schnell digital finden.",
-            image: landingImages.school,
-          },
-          {
-            icon: "🏋️",
-            title: "Fitness & Vereine",
-            text: "Kurse, Trainingszeiten und Community-Infos teilen.",
-            image: landingImages.fitness,
-          },
-          {
-            icon: "🎬",
-            title: "Creator & Shops",
-            text: "Profile, Produkte, Videos und Aktionen sichtbar machen.",
-            image: landingImages.creator,
-          },
-          {
-            icon: "📸",
-            title: "Tourismus",
-            text: "Sehenswürdigkeiten, Routen und lokale Tipps entdecken.",
-            image: landingImages.tourism,
-          },
-        ]
-      : [
-          {
-            icon: "🏠",
-            title: "Real estate",
-            text: "Share exposés, documents and contacts digitally.",
-            image: landingImages.realEstate,
-          },
-          {
-            icon: "🍽️",
-            title: "Restaurants",
-            text: "Menus, offers and booking links.",
-            image: landingImages.restaurant,
-          },
-          {
-            icon: "💼",
-            title: "Business",
-            text: "Products, offers and information for your customers.",
-            image: landingImages.business,
-          },
-          {
-            icon: "🎟️",
-            title: "Events",
-            text: "Tickets, information and updates — all in one place.",
-            image: landingImages.event,
-          },
-          {
-            icon: "🎓",
-            title: "School & campus",
-            text: "Plans, rooms, clubs and info quickly available digitally.",
-            image: landingImages.school,
-          },
-          {
-            icon: "🏋️",
-            title: "Fitness & clubs",
-            text: "Share classes, training times and community updates.",
-            image: landingImages.fitness,
-          },
-          {
-            icon: "🎬",
-            title: "Creators & shops",
-            text: "Make profiles, products, videos and campaigns visible.",
-            image: landingImages.creator,
-          },
-          {
-            icon: "📸",
-            title: "Tourism",
-            text: "Discover sights, routes and local tips.",
-            image: landingImages.tourism,
-          },
-        ];
+  const professionalUseCases = {
+    de: [
+      ["🏠","Immobilien","Exposés, Dokumente und Kontakte digital teilen.",landingImages.realEstate],
+      ["🍽️","Gastronomie","Speisekarten, Aktionen und Reservierungslinks.",landingImages.restaurant],
+      ["💼","Unternehmen","Produkte, Angebote und Infos für deine Kunden.",landingImages.business],
+      ["🎟️","Events","Tickets, Infos und Updates – alles an einem Ort.",landingImages.event],
+      ["🎓","Schule & Campus","Pläne, Räume, AGs und Infos schnell digital finden.",landingImages.school],
+      ["🏋️","Fitness & Vereine","Kurse, Trainingszeiten und Community-Infos teilen.",landingImages.fitness],
+      ["🎬","Creator & Shops","Profile, Produkte, Videos und Aktionen sichtbar machen.",landingImages.creator],
+      ["📸","Tourismus","Sehenswürdigkeiten, Routen und lokale Tipps entdecken.",landingImages.tourism],
+    ],
+    en: [
+      ["🏠","Real estate","Share exposés, documents and contacts digitally.",landingImages.realEstate],
+      ["🍽️","Restaurants","Menus, offers and booking links.",landingImages.restaurant],
+      ["💼","Business","Products, offers and information for your customers.",landingImages.business],
+      ["🎟️","Events","Tickets, information and updates — all in one place.",landingImages.event],
+      ["🎓","School & campus","Plans, rooms, clubs and info quickly available digitally.",landingImages.school],
+      ["🏋️","Fitness & clubs","Share classes, training times and community updates.",landingImages.fitness],
+      ["🎬","Creators & shops","Make profiles, products, videos and campaigns visible.",landingImages.creator],
+      ["📸","Tourism","Discover sights, routes and local tips.",landingImages.tourism],
+    ],
+    tr: [
+      ["🏠","Gayrimenkul","İlanları, belgeleri ve iletişim bilgilerini dijital olarak paylaş.",landingImages.realEstate],
+      ["🍽️","Gastronomi","Menüler, kampanyalar ve rezervasyon bağlantıları.",landingImages.restaurant],
+      ["💼","İşletmeler","Ürünleri, teklifleri ve müşteri bilgilerini paylaş.",landingImages.business],
+      ["🎟️","Etkinlikler","Biletler, bilgiler ve güncellemeler tek yerde.",landingImages.event],
+      ["🎓","Okul & kampüs","Planları, odaları, kulüpleri ve bilgileri hızlıca dijital bul.",landingImages.school],
+      ["🏋️","Fitness & kulüpler","Dersleri, antrenman saatlerini ve topluluk bilgilerini paylaş.",landingImages.fitness],
+      ["🎬","İçerik üreticileri & mağazalar","Profilleri, ürünleri, videoları ve kampanyaları görünür yap.",landingImages.creator],
+      ["📸","Turizm","Gezilecek yerleri, rotaları ve yerel ipuçlarını keşfet.",landingImages.tourism],
+    ],
+    pl: [
+      ["🏠","Nieruchomości","Udostępniaj cyfrowo oferty, dokumenty i kontakty.",landingImages.realEstate],
+      ["🍽️","Gastronomia","Menu, promocje i linki do rezerwacji.",landingImages.restaurant],
+      ["💼","Firmy","Produkty, oferty i informacje dla klientów.",landingImages.business],
+      ["🎟️","Wydarzenia","Bilety, informacje i aktualizacje — wszystko w jednym miejscu.",landingImages.event],
+      ["🎓","Szkoła i kampus","Plany, sale, zajęcia i informacje szybko dostępne cyfrowo.",landingImages.school],
+      ["🏋️","Fitness i kluby","Udostępniaj zajęcia, godziny treningów i informacje społeczności.",landingImages.fitness],
+      ["🎬","Twórcy i sklepy","Pokazuj profile, produkty, filmy i akcje.",landingImages.creator],
+      ["📸","Turystyka","Odkrywaj atrakcje, trasy i lokalne wskazówki.",landingImages.tourism],
+    ],
+    ar: [
+      ["🏠","العقارات","شارك العروض والمستندات وبيانات الاتصال رقميًا.",landingImages.realEstate],
+      ["🍽️","المطاعم","القوائم والعروض وروابط الحجز.",landingImages.restaurant],
+      ["💼","الأعمال","المنتجات والعروض والمعلومات لعملائك.",landingImages.business],
+      ["🎟️","الفعاليات","التذاكر والمعلومات والتحديثات — في مكان واحد.",landingImages.event],
+      ["🎓","المدرسة والحرم الجامعي","الخطط والغرف والأنشطة والمعلومات متاحة رقميًا بسرعة.",landingImages.school],
+      ["🏋️","اللياقة والأندية","شارك الدورات وأوقات التدريب ومعلومات المجتمع.",landingImages.fitness],
+      ["🎬","صناع المحتوى والمتاجر","اعرض الملفات والمنتجات والفيديوهات والحملات.",landingImages.creator],
+      ["📸","السياحة","اكتشف المعالم والمسارات والنصائح المحلية.",landingImages.tourism],
+    ],
+    fr: [
+      ["🏠","Immobilier","Partagez numériquement exposés, documents et contacts.",landingImages.realEstate],
+      ["🍽️","Gastronomie","Menus, offres et liens de réservation.",landingImages.restaurant],
+      ["💼","Entreprises","Produits, offres et informations pour vos clients.",landingImages.business],
+      ["🎟️","Événements","Billets, informations et mises à jour — au même endroit.",landingImages.event],
+      ["🎓","École & campus","Plans, salles, activités et informations rapidement accessibles.",landingImages.school],
+      ["🏋️","Fitness & associations","Partagez cours, horaires et informations de communauté.",landingImages.fitness],
+      ["🎬","Créateurs & boutiques","Rendez visibles profils, produits, vidéos et campagnes.",landingImages.creator],
+      ["📸","Tourisme","Découvrez sites, itinéraires et conseils locaux.",landingImages.tourism],
+    ],
+    es: [
+      ["🏠","Inmobiliaria","Comparte exposés, documentos y contactos de forma digital.",landingImages.realEstate],
+      ["🍽️","Gastronomía","Menús, ofertas y enlaces de reserva.",landingImages.restaurant],
+      ["💼","Empresas","Productos, ofertas e información para tus clientes.",landingImages.business],
+      ["🎟️","Eventos","Entradas, información y actualizaciones — todo en un mismo lugar.",landingImages.event],
+      ["🎓","Escuela y campus","Planos, salas, actividades e información disponibles rápidamente.",landingImages.school],
+      ["🏋️","Fitness y clubes","Comparte clases, horarios de entrenamiento e información de la comunidad.",landingImages.fitness],
+      ["🎬","Creadores y tiendas","Haz visibles perfiles, productos, vídeos y campañas.",landingImages.creator],
+      ["📸","Turismo","Descubre lugares de interés, rutas y consejos locales.",landingImages.tourism],
+    ],
+    it: [
+      ["🏠","Immobiliare","Condividi digitalmente exposé, documenti e contatti.",landingImages.realEstate],
+      ["🍽️","Gastronomia","Menu, offerte e link di prenotazione.",landingImages.restaurant],
+      ["💼","Aziende","Prodotti, offerte e informazioni per i tuoi clienti.",landingImages.business],
+      ["🎟️","Eventi","Biglietti, informazioni e aggiornamenti — tutto in un unico posto.",landingImages.event],
+      ["🎓","Scuola e campus","Mappe, stanze, attività e informazioni disponibili rapidamente.",landingImages.school],
+      ["🏋️","Fitness e associazioni","Condividi corsi, orari di allenamento e informazioni della community.",landingImages.fitness],
+      ["🎬","Creator e negozi","Rendi visibili profili, prodotti, video e campagne.",landingImages.creator],
+      ["📸","Turismo","Scopri attrazioni, itinerari e consigli locali.",landingImages.tourism],
+    ],
+  }[publicLanguage].map(([icon,title,text,image]) => ({ icon, title, text, image })) as Array<{icon:string;title:string;text:string;image:string}>;
 
   const heroStory =
     locale === "de"
@@ -399,7 +423,7 @@ export default async function Home({ params }: Props) {
 
           <div className="miosegProNavActions">
             <LanguageSwitcher currentLocale={locale} />
-            <Link href="/get-app" className="miosegProDownload">
+            <Link href={`/${locale}/get-app`} className="miosegProDownload">
               ↓ {t.home.hero.ctaPrimary}
             </Link>
           </div>
@@ -416,7 +440,7 @@ export default async function Home({ params }: Props) {
             <p>{heroCopy.text}</p>
 
             <div className="miosegProHeroActions">
-              <Link href="/get-app" className="miosegProPrimary">
+              <Link href={`/${locale}/get-app`} className="miosegProPrimary">
                 ↓ {t.home.hero.ctaPrimary}
               </Link>
               <Link href={`/${locale}/explore`} className="miosegProSecondary">
@@ -430,9 +454,7 @@ export default async function Home({ params }: Props) {
               <Image
                 src={landingImages.heroScan}
                 alt={
-                  locale === "de"
-                    ? "Person scannt einen Mioseg QR-Code"
-                    : "Person scanning a Mioseg QR code"
+                  publicUi.heroImageAlt
                 }
                 width={1100}
                 height={900}
@@ -464,11 +486,9 @@ export default async function Home({ params }: Props) {
 
       <section id="usecases" className="miosegProUseCaseSection">
         <div className="miosegProSectionHeader">
-          <span>⌖ {locale === "de" ? "Für jede Situation gemacht" : "Made for every situation"}</span>
+          <span>⌖ {publicUi.useCasesEyebrow}</span>
           <h2>
-            {locale === "de"
-              ? "QR-X verbindet echte Orte mit digitalen Inhalten."
-              : "QR-X connects real places with digital content."}
+            {publicUi.useCasesTitle}
           </h2>
         </div>
 
@@ -492,28 +512,24 @@ export default async function Home({ params }: Props) {
         <div className="miosegProExploreText">
           <span>Explore</span>
           <h2>
-            {locale === "de"
-              ? "Entdecke, was um dich herum passiert."
-              : "Discover what is happening around you."}
+            {publicUi.exploreTitle}
           </h2>
           <p>
-            {locale === "de"
-              ? "Oder mache dein Unternehmen, Event oder Projekt sichtbar. Explore zeigt QR-X auf einer Karte und verbindet Menschen mit Orten, Angeboten und Möglichkeiten."
-              : "Or make your business, event or project visible. Explore shows QR-X on a map and connects people with places, offers and possibilities."}
+            {publicUi.exploreText}
           </p>
 
           <div className="miosegProExploreChips">
-            <span>📍 {locale === "de" ? "In deiner Nähe" : "Nearby"}</span>
-            <span>🔎 {locale === "de" ? "Orte entdecken" : "Discover places"}</span>
-            <span>🏷️ {locale === "de" ? "Lokale Angebote" : "Local offers"}</span>
-            <span>🤝 {locale === "de" ? "Gemeinde stärken" : "Support your community"}</span>
+            <span>📍 {publicUi.nearby}</span>
+            <span>🔎 {publicUi.discoverPlaces}</span>
+            <span>🏷️ {publicUi.localOffers}</span>
+            <span>🤝 {publicUi.supportCommunity}</span>
           </div>
 
           <div className="miosegProHeroActions">
             <Link href={`/${locale}/explore`} className="miosegProPrimary">
-              🗺️ {locale === "de" ? "Explore ansehen" : "View Explore"}
+              🗺️ {publicUi.viewExplore}
             </Link>
-            <Link href="/get-app" className="miosegProSecondary">
+            <Link href={`/${locale}/get-app`} className="miosegProSecondary">
               {t.home.hero.ctaPrimary}
             </Link>
           </div>
@@ -529,9 +545,9 @@ export default async function Home({ params }: Props) {
           <div className="miosegProMapCard">
             <div className="miosegProMapCardImage" />
             <div>
-              <span>{locale === "de" ? "In der Nähe" : "Nearby"}</span>
-              <strong>{locale === "de" ? "Café Bella Vista" : "Café Bella Vista"}</strong>
-              <p>{locale === "de" ? "Gastronomie · 250 m" : "Restaurant · 250 m"}</p>
+              <span>{publicUi.nearby}</span>
+              <strong>Café Bella Vista</strong>
+              <p>{publicUi.restaurant} · 250 m</p>
             </div>
           </div>
         </div>
@@ -540,23 +556,23 @@ export default async function Home({ params }: Props) {
       <section className="miosegProBenefitBar">
         <div>
           <span>🔐</span>
-          <strong>{locale === "de" ? "Passwortschutz" : "Password protection"}</strong>
-          <p>{locale === "de" ? "Schütze private QR-X mit einem Passwort." : "Protect private QR-X with a password."}</p>
+          <strong>{publicUi.passwordTitle}</strong>
+          <p>{publicUi.passwordText}</p>
         </div>
         <div>
           <span>🔄</span>
-          <strong>{locale === "de" ? "Immer aktuell" : "Always up to date"}</strong>
-          <p>{locale === "de" ? "Änderungen bleiben sofort sichtbar." : "Changes stay instantly visible."}</p>
+          <strong>{publicUi.currentTitle}</strong>
+          <p>{publicUi.currentText}</p>
         </div>
         <div>
           <span>🔖</span>
-          <strong>{locale === "de" ? "Speichern & organisieren" : "Save & organize"}</strong>
-          <p>{locale === "de" ? "Ordner, Karte und Verlauf bleiben übersichtlich." : "Folders, map and history stay organized."}</p>
+          <strong>{publicUi.organizeTitle}</strong>
+          <p>{publicUi.organizeText}</p>
         </div>
         <div>
           <span>📍</span>
           <strong>Explore</strong>
-          <p>{locale === "de" ? "Entdecke Möglichkeiten in deiner Nähe." : "Discover opportunities nearby."}</p>
+          <p>{publicUi.nearbyText}</p>
         </div>
       </section>
       <section className={styles.downloadSection}>
@@ -580,7 +596,7 @@ export default async function Home({ params }: Props) {
             </div>
 
             <div className={styles.downloadButtons}>
-              <Link href="/get-app" className={styles.downloadPrimaryButton}>
+              <Link href={`/${locale}/get-app`} className={styles.downloadPrimaryButton}>
                 {t.home.download.ctaPrimary}
               </Link>
               <Link href="/datenschutz" className={styles.downloadSecondaryButton}>
