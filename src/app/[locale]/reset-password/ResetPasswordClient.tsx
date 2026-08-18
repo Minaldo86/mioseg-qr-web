@@ -225,15 +225,6 @@ export default function ResetPasswordClient({ locale }: Props) {
 
   return (
     <main className={styles.page}>
-      <header className={styles.topbar}>
-        <Link href={`/${locale}`} className={styles.brand}>
-          <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
-        </Link>
-
-        <Link href={`/${locale}`} className={styles.navLink}>
-          {copy.navHome}
-        </Link>
-      </header>
 
       <section className={styles.authShell}>
         <article className={styles.introCard}>

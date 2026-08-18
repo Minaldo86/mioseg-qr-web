@@ -188,6 +188,10 @@ export default function SiteHeader() {
   const locale = pathLocale ?? queryLocale ?? "de";
   const ui = HEADER_TEXT[locale];
 
+  // A password-recovery link creates a temporary Supabase session.
+  // Do not present that recovery session as a normal signed-in state in the global header.
+  const isPasswordRecoveryPage = /\/reset-password(?:\/|$)/.test(pathname);
+
   useEffect(() => {
     if (pathLocale) {
       setQueryLocale(null);
@@ -204,6 +208,14 @@ export default function SiteHeader() {
     let cancelled = false;
 
     const loadUser = async () => {
+      if (isPasswordRecoveryPage) {
+        if (!cancelled) {
+          setHeaderUser(null);
+          setMenuOpen(false);
+        }
+        return;
+      }
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -261,7 +273,7 @@ export default function SiteHeader() {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isPasswordRecoveryPage]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -457,6 +469,32 @@ export default function SiteHeader() {
                 <span aria-hidden="true" className={styles.languageChevron}>▼</span>
               </label>
             </>
+          ) : isPasswordRecoveryPage ? (
+            <div className={styles.guestActions}>
+              <Link href={`/${locale}/login`} className={styles.loginLink}>
+                {ui.login}
+              </Link>
+
+              <label className={styles.languageControl}>
+                <span aria-hidden="true" className={styles.languageIcon}>🌐</span>
+                <select
+                  aria-label="Language"
+                  value={locale}
+                  disabled={savingLanguage}
+                  onChange={(event) => {
+                    const nextLocale = normalizeLocale(event.target.value);
+                    if (nextLocale) void handleLanguageChange(nextLocale);
+                  }}
+                >
+                  {HEADER_LANGUAGES.map((item) => (
+                    <option key={item.code} value={item.code}>
+                      {item.short} · {item.label}
+                    </option>
+                  ))}
+                </select>
+                <span aria-hidden="true" className={styles.languageChevron}>▼</span>
+              </label>
+            </div>
           ) : (
             <div className={styles.guestActions}>
               <Link href={`/${locale}/get-app`} className={styles.cta}>
