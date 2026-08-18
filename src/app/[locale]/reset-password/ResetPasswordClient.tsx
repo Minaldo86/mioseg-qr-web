@@ -67,6 +67,8 @@ export default function ResetPasswordClient({ locale }: Props) {
 
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorText, setErrorText] = useState<string | null>(null);
 
@@ -102,9 +104,7 @@ export default function ResetPasswordClient({ locale }: Props) {
         event === "SIGNED_IN" ||
         event === "INITIAL_SESSION"
       ) {
-        if (session) {
-          finishReady();
-        }
+        if (session) finishReady();
       }
     });
 
@@ -146,7 +146,6 @@ export default function ResetPasswordClient({ locale }: Props) {
             return;
           }
 
-          // Remove tokens from the visible URL after the session has been restored.
           window.history.replaceState(
             {},
             document.title,
@@ -157,7 +156,6 @@ export default function ResetPasswordClient({ locale }: Props) {
           return;
         }
 
-        // Fallback: Supabase may already have consumed the URL and stored the session.
         const { data, error } = await supabase.auth.getSession();
 
         if (error || !data.session) {
@@ -288,28 +286,82 @@ export default function ResetPasswordClient({ locale }: Props) {
             <form className={styles.form} onSubmit={handleSubmit}>
               <div className={styles.field}>
                 <label htmlFor="new-password">{copy.password}</label>
-                <input
-                  id="new-password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    id="new-password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                    style={{ width: "100%", paddingRight: 52 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((value) => !value)}
+                    aria-label={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    title={showPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    style={{
+                      position: "absolute",
+                      right: 8,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 36,
+                      height: 36,
+                      border: "none",
+                      borderRadius: 10,
+                      background: "transparent",
+                      color: "#94a3b8",
+                      cursor: "pointer",
+                      display: "grid",
+                      placeItems: "center",
+                      fontSize: 18,
+                    }}
+                  >
+                    {showPassword ? "🙈" : "👁"}
+                  </button>
+                </div>
               </div>
 
               <div className={styles.field}>
                 <label htmlFor="repeat-password">
                   {copy.repeatPassword}
                 </label>
-                <input
-                  id="repeat-password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={repeatPassword}
-                  onChange={(event) => setRepeatPassword(event.target.value)}
-                  required
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    id="repeat-password"
+                    type={showRepeatPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    value={repeatPassword}
+                    onChange={(event) => setRepeatPassword(event.target.value)}
+                    required
+                    style={{ width: "100%", paddingRight: 52 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRepeatPassword((value) => !value)}
+                    aria-label={showRepeatPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    title={showRepeatPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    style={{
+                      position: "absolute",
+                      right: 8,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 36,
+                      height: 36,
+                      border: "none",
+                      borderRadius: 10,
+                      background: "transparent",
+                      color: "#94a3b8",
+                      cursor: "pointer",
+                      display: "grid",
+                      placeItems: "center",
+                      fontSize: 18,
+                    }}
+                  >
+                    {showRepeatPassword ? "🙈" : "👁"}
+                  </button>
+                </div>
               </div>
 
               <div
