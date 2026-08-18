@@ -335,7 +335,19 @@ export default async function QrxPage({
 
   const qrxId = normalizeQrxId(id);
   const h = await headers();
-  const publicLocale = resolveLegacyQrxLocale(h.get("accept-language"));
+
+  const requestedLang = getFirst(sp.lang);
+  const referrer = h.get("referer");
+  const referrerLocaleMatch = referrer?.match(/\/(de|en|tr|pl|ar|fr|es|it)(?:\/|$)/i);
+  const referrerLocale = referrerLocaleMatch?.[1]?.toLowerCase();
+
+  const publicLocale =
+    requestedLang && LEGACY_QRX_LOCALES.includes(requestedLang.toLowerCase() as LegacyQrxLocale)
+      ? (requestedLang.toLowerCase() as LegacyQrxLocale)
+      : referrerLocale && LEGACY_QRX_LOCALES.includes(referrerLocale as LegacyQrxLocale)
+        ? (referrerLocale as LegacyQrxLocale)
+        : resolveLegacyQrxLocale(h.get("accept-language"));
+
   const ui = LEGACY_QRX_TEXT[publicLocale];
   const supabase = await createSupabaseServerClient();;
 
@@ -497,7 +509,7 @@ export default async function QrxPage({
         .upsert({ qrx_id: qrxId, user_id: actionUserId }, { onConflict: "qrx_id,user_id" });
     }
 
-    revalidatePath(`/qrx/${qrxId}`);
+    revalidatePath(`/qrx/${qrxId}?lang=${publicLocale}`);
   }
 
   async function requestModerationReviewAction() {
@@ -509,7 +521,7 @@ export default async function QrxPage({
     const actionUser = actionUserData.user;
 
     if (actionUserError || !actionUser?.id) {
-      redirect(`/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`);
+      redirect(`/login?next=${encodeURIComponent(`/qrx/${qrxId}?lang=${publicLocale}`)}`);
     }
 
     const { data: ownedQrx } = await actionSupabase
@@ -520,7 +532,7 @@ export default async function QrxPage({
       .maybeSingle();
 
     if (!ownedQrx || ownedQrx.suspended !== true) {
-      redirect(`/qrx/${qrxId}`);
+      redirect(`/qrx/${qrxId}?lang=${publicLocale}`);
     }
 
     const { data: existing } = await actionSupabase
@@ -533,7 +545,7 @@ export default async function QrxPage({
       .limit(1);
 
     if (Array.isArray(existing) && existing.length > 0) {
-      redirect(`/qrx/${qrxId}?review=existing`);
+      redirect(`/qrx/${qrxId}?lang=${publicLocale}&review=existing`);
     }
 
     const description = [
@@ -561,11 +573,11 @@ export default async function QrxPage({
 
     if (ticketError) {
       console.error("Moderation review ticket creation failed:", ticketError);
-      redirect(`/qrx/${qrxId}?review=error`);
+      redirect(`/qrx/${qrxId}?lang=${publicLocale}&review=error`);
     }
 
-    revalidatePath(`/qrx/${qrxId}`);
-    redirect(`/qrx/${qrxId}?review=requested`);
+    revalidatePath(`/qrx/${qrxId}?lang=${publicLocale}`);
+    redirect(`/qrx/${qrxId}?lang=${publicLocale}&review=requested`);
   }
 
   const ua = h.get("user-agent");
@@ -788,7 +800,7 @@ export default async function QrxPage({
 
   const wantSave = getFirst(sp.save) === "1";
   const deepLink = wantSave ? `miosegqr://qrx/${qrxId}?save=1` : `miosegqr://qrx/${qrxId}`;
-  const fallbackUrl = `/${publicLocale}/get-app?from=${encodeURIComponent(`/qrx/${qrxId}${wantSave ? "?save=1" : ""}`)}`;
+  const fallbackUrl = `/${publicLocale}/get-app?from=${encodeURIComponent(`/qrx/${qrxId}?lang=${publicLocale}${wantSave ? "&save=1" : ""}`)}`;
   const websiteUrl = normalizeWebsite(entry.cta_website);
   const navigationUrl = normalizeNavigation(entry.cta_navigation);
   const phoneUrl = entry.cta_phone?.trim() ? `tel:${entry.cta_phone.trim()}` : null;
@@ -802,7 +814,7 @@ export default async function QrxPage({
   });
   const totalMediaCount = (media ?? []).length;
   const followerCount = saveCountRaw ?? entry.follower_count ?? 0;
-  const publicQrxUrl = `https://www.mioseg-qr.com/qrx/${qrxId}`;
+  const publicQrxUrl = `https://www.mioseg-qr.com/qrx/${qrxId}?lang=${publicLocale}`;
 
   const collectionBackSectionStyle: CSSProperties = {
   width: "min(960px, calc(100% - 32px))",
