@@ -1,31 +1,297 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import { supabase } from "@/lib/supabase";
 import styles from "./site-header.module.css";
 
 const SUPPORTED = ["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const;
 type HeaderLocale = (typeof SUPPORTED)[number];
 
-const HEADER_TEXT: Record<HeaderLocale, { home: string; getApp: string }> = {
-  de: { home: "mioseg qr Startseite", getApp: "App herunterladen" },
-  en: { home: "mioseg qr home", getApp: "Get App" },
-  tr: { home: "mioseg qr ana sayfa", getApp: "Uygulamayı indir" },
-  pl: { home: "Strona główna mioseg qr", getApp: "Pobierz aplikację" },
-  ar: { home: "الصفحة الرئيسية لـ mioseg qr", getApp: "تنزيل التطبيق" },
-  fr: { home: "Accueil mioseg qr", getApp: "Télécharger l’application" },
-  es: { home: "Inicio de mioseg qr", getApp: "Descargar la aplicación" },
-  it: { home: "Home di mioseg qr", getApp: "Scarica l’app" },
+type HeaderCopy = {
+  home: string;
+  getApp: string;
+  login: string;
+  dashboard: string;
+  explore: string;
+  account: string;
+  signOut: string;
+  signingOut: string;
+  accountMenu: string;
 };
+
+const HEADER_TEXT: Record<HeaderLocale, HeaderCopy> = {
+  de: {
+    home: "mioseg qr Startseite",
+    getApp: "App herunterladen",
+    login: "Anmelden",
+    dashboard: "Dashboard",
+    explore: "Explore",
+    account: "Konto",
+    signOut: "Abmelden",
+    signingOut: "Wird abgemeldet …",
+    accountMenu: "Kontomenü",
+  },
+  en: {
+    home: "mioseg qr home",
+    getApp: "Get App",
+    login: "Sign in",
+    dashboard: "Dashboard",
+    explore: "Explore",
+    account: "Account",
+    signOut: "Sign out",
+    signingOut: "Signing out …",
+    accountMenu: "Account menu",
+  },
+  tr: {
+    home: "mioseg qr ana sayfa",
+    getApp: "Uygulamayı indir",
+    login: "Giriş yap",
+    dashboard: "Kontrol paneli",
+    explore: "Keşfet",
+    account: "Hesap",
+    signOut: "Çıkış yap",
+    signingOut: "Çıkış yapılıyor …",
+    accountMenu: "Hesap menüsü",
+  },
+  pl: {
+    home: "Strona główna mioseg qr",
+    getApp: "Pobierz aplikację",
+    login: "Zaloguj się",
+    dashboard: "Panel",
+    explore: "Odkrywaj",
+    account: "Konto",
+    signOut: "Wyloguj się",
+    signingOut: "Wylogowywanie …",
+    accountMenu: "Menu konta",
+  },
+  ar: {
+    home: "الصفحة الرئيسية لـ mioseg qr",
+    getApp: "تنزيل التطبيق",
+    login: "تسجيل الدخول",
+    dashboard: "لوحة التحكم",
+    explore: "استكشاف",
+    account: "الحساب",
+    signOut: "تسجيل الخروج",
+    signingOut: "جارٍ تسجيل الخروج …",
+    accountMenu: "قائمة الحساب",
+  },
+  fr: {
+    home: "Accueil mioseg qr",
+    getApp: "Télécharger l’application",
+    login: "Se connecter",
+    dashboard: "Tableau de bord",
+    explore: "Explorer",
+    account: "Compte",
+    signOut: "Se déconnecter",
+    signingOut: "Déconnexion …",
+    accountMenu: "Menu du compte",
+  },
+  es: {
+    home: "Inicio de mioseg qr",
+    getApp: "Descargar la aplicación",
+    login: "Iniciar sesión",
+    dashboard: "Panel",
+    explore: "Explorar",
+    account: "Cuenta",
+    signOut: "Cerrar sesión",
+    signingOut: "Cerrando sesión …",
+    accountMenu: "Menú de cuenta",
+  },
+  it: {
+    home: "Home di mioseg qr",
+    getApp: "Scarica l’app",
+    login: "Accedi",
+    dashboard: "Dashboard",
+    explore: "Esplora",
+    account: "Account",
+    signOut: "Esci",
+    signingOut: "Disconnessione …",
+    accountMenu: "Menu account",
+  },
+};
+
+type HeaderUser = {
+  id: string;
+  email: string;
+  displayName: string;
+  initials: string;
+};
+
+function normalizeLocale(value: string | null | undefined): HeaderLocale | null {
+  const normalized = String(value ?? "").trim().toLowerCase().split(/[-_]/)[0];
+  return SUPPORTED.includes(normalized as HeaderLocale)
+    ? (normalized as HeaderLocale)
+    : null;
+}
+
+function buildInitials(name: string, email: string) {
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  }
+
+  if (parts.length === 1 && parts[0].length >= 2) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+
+  const emailName = email.split("@")[0] || "";
+  const emailParts = emailName.split(/[._-]+/).filter(Boolean);
+
+  if (emailParts.length >= 2) {
+    return `${emailParts[0][0]}${emailParts[emailParts.length - 1][0]}`.toUpperCase();
+  }
+
+  return (emailName.slice(0, 2) || "U").toUpperCase();
+}
 
 export default function SiteHeader() {
   const pathname = usePathname() || "/";
-  const firstSegment = pathname.split("/").filter(Boolean)[0] || "";
-  const locale: HeaderLocale = SUPPORTED.includes(firstSegment as HeaderLocale)
-    ? (firstSegment as HeaderLocale)
-    : "de";
+  const router = useRouter();
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
+  const [queryLocale, setQueryLocale] = useState<HeaderLocale | null>(null);
+  const [headerUser, setHeaderUser] = useState<HeaderUser | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const firstSegment = pathname.split("/").filter(Boolean)[0] || "";
+  const pathLocale = normalizeLocale(firstSegment);
+  const locale = pathLocale ?? queryLocale ?? "de";
   const ui = HEADER_TEXT[locale];
+
+  useEffect(() => {
+    if (pathLocale) {
+      setQueryLocale(null);
+      return;
+    }
+
+    if (typeof window === "undefined") return;
+
+    const lang = normalizeLocale(new URLSearchParams(window.location.search).get("lang"));
+    setQueryLocale(lang);
+  }, [pathname, pathLocale]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const user = session?.user ?? null;
+
+      if (!user) {
+        if (!cancelled) setHeaderUser(null);
+        return;
+      }
+
+      const email = user.email ?? "";
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name,last_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      const firstName = String(profile?.first_name ?? "").trim();
+      const lastName = String(profile?.last_name ?? "").trim();
+      const profileName = [firstName, lastName].filter(Boolean).join(" ").trim();
+
+      const metadataName = String(
+        user.user_metadata?.full_name ??
+          user.user_metadata?.name ??
+          "",
+      ).trim();
+
+      const displayName =
+        profileName ||
+        metadataName ||
+        email.split("@")[0] ||
+        "mioseg qr";
+
+      if (!cancelled) {
+        setHeaderUser({
+          id: user.id,
+          email,
+          displayName,
+          initials: buildInitials(displayName, email),
+        });
+      }
+    };
+
+    void loadUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void loadUser();
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (target && !menuRef.current?.contains(target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [menuOpen]);
+
+  const accountHref = `/${locale}/dashboard/account`;
+  const dashboardHref = `/${locale}/dashboard`;
+  const exploreHref = `/${locale}/explore`;
+
+  const currentLabel = useMemo(() => {
+    if (!headerUser) return "";
+    return `${headerUser.displayName}${headerUser.email ? ` – ${headerUser.email}` : ""}`;
+  }, [headerUser]);
+
+  const handleSignOut = async () => {
+    if (signingOut) return;
+
+    try {
+      setSigningOut(true);
+      setMenuOpen(false);
+      await supabase.auth.signOut();
+      setHeaderUser(null);
+      router.push(`/${locale}`);
+      router.refresh();
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <header className={styles.wrapper}>
@@ -38,9 +304,84 @@ export default function SiteHeader() {
           />
         </Link>
 
-        <Link href={`/${locale}/get-app`} className={styles.cta}>
-          {ui.getApp}
-        </Link>
+        <div className={styles.rightSide}>
+          {headerUser ? (
+            <>
+              <nav className={styles.userNav} aria-label={ui.accountMenu}>
+                <Link href={dashboardHref} className={`${styles.navLink} ${styles.dashboardLink}`}>
+                  {ui.dashboard}
+                </Link>
+                <Link href={exploreHref} className={styles.navLink}>
+                  {ui.explore}
+                </Link>
+              </nav>
+
+              <div className={styles.accountMenuWrap} ref={menuRef}>
+                <button
+                  type="button"
+                  className={styles.avatarButton}
+                  aria-label={currentLabel}
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  onClick={() => setMenuOpen((open) => !open)}
+                >
+                  {headerUser.initials}
+                </button>
+
+                {menuOpen ? (
+                  <div className={styles.accountMenu} role="menu">
+                    <div className={styles.accountIdentity}>
+                      <strong className={styles.accountName}>
+                        {headerUser.displayName}
+                      </strong>
+                      {headerUser.email ? (
+                        <span className={styles.accountEmail}>{headerUser.email}</span>
+                      ) : null}
+                    </div>
+
+                    <div className={styles.menuDivider} />
+
+                    <Link
+                      href={accountHref}
+                      className={styles.menuLink}
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {ui.account}
+                    </Link>
+                    <Link
+                      href={dashboardHref}
+                      className={styles.menuLink}
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {ui.dashboard}
+                    </Link>
+
+                    <button
+                      type="button"
+                      className={styles.signOutButton}
+                      role="menuitem"
+                      disabled={signingOut}
+                      onClick={handleSignOut}
+                    >
+                      {signingOut ? ui.signingOut : ui.signOut}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <div className={styles.guestActions}>
+              <Link href={`/${locale}/get-app`} className={styles.cta}>
+                {ui.getApp}
+              </Link>
+              <Link href={`/${locale}/login`} className={styles.loginLink}>
+                {ui.login}
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
