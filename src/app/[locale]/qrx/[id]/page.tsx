@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import CollectionPreview, { type QrxCollectionPreviewItem } from "@/components/qrx/CollectionPreview";
 import QrxActionsSection from "@/components/qrx/QrxActionsSection";
@@ -1071,7 +1071,7 @@ function shouldTrackMediaEvent(
   return true;
 }
 
-export default function PublicQrxDetailPage() {
+function PublicQrxDetailPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const locale = getParam(
@@ -2164,3 +2164,11 @@ const transferTopLineStyle: CSSProperties = {
   flexWrap: "wrap",
   color: "#ffffff",
 };
+
+export default function PublicQrxDetailPage() {
+  return (
+    <Suspense fallback={null}>
+      <PublicQrxDetailPageContent />
+    </Suspense>
+  );
+}

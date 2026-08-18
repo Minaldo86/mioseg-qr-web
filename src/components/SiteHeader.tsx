@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import styles from "./site-header.module.css";
 
 const SUPPORTED = ["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const;
@@ -20,15 +20,10 @@ const HEADER_TEXT: Record<HeaderLocale, { home: string; getApp: string }> = {
 
 export default function SiteHeader() {
   const pathname = usePathname() || "/";
-  const searchParams = useSearchParams();
   const firstSegment = pathname.split("/").filter(Boolean)[0] || "";
-  const langParam = (searchParams.get("lang") || "").trim().toLowerCase();
-
   const locale: HeaderLocale = SUPPORTED.includes(firstSegment as HeaderLocale)
     ? (firstSegment as HeaderLocale)
-    : SUPPORTED.includes(langParam as HeaderLocale)
-      ? (langParam as HeaderLocale)
-      : "de";
+    : "de";
 
   const ui = HEADER_TEXT[locale];
 

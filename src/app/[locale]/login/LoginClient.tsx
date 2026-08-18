@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, Suspense, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 import styles from "../auth/auth.module.css";
@@ -112,7 +112,7 @@ function getAuthErrorMessage(message: string, locale: string) {
   return copy.loginFailed;
 }
 
-export default function LoginClient({ locale }: Props) {
+function LoginClientContent({ locale }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -308,5 +308,13 @@ export default function LoginClient({ locale }: Props) {
         </article>
       </section>
     </main>
+  );
+}
+
+export default function LoginClient({ locale }: Props) {
+  return (
+    <Suspense fallback={null}>
+      <LoginClientContent locale={locale} />
+    </Suspense>
   );
 }
