@@ -3543,7 +3543,7 @@ export default function NewQrxPage() {
         </nav>
       </header>
 
-      <section className={styles.hero}>
+      <section className={styles.hero} style={{ maxWidth: 880, width: "100%", margin: "0 auto" }}>
         <div>
           <span className={styles.kicker}>{ui.createKicker}</span>
           <h1>{ui.newTitle}</h1>
