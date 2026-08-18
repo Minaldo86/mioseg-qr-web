@@ -4,11 +4,34 @@ import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 
+type SupportedLocale = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+
 type QrxCodeCanvasProps = {
   value: string;
   qrxId: string;
   variant: "normal" | "business";
   logoSrc?: string;
+  locale?: SupportedLocale;
+};
+
+const QR_CODE_UI: Record<SupportedLocale, {
+  title: string;
+  description: string;
+  loading: string;
+  saveImage: string;
+  copied: string;
+  copyLink: string;
+  copyPrompt: string;
+  alt: string;
+}> = {
+  de: { title: "QR-X Code", description: "{ui.description}", loading: "QR-X Code wird erstellt …", saveImage: "{ui.saveImage}", copied: "✓ Link kopiert", copyLink: "Link kopieren", copyPrompt: "QR-X Link kopieren", alt: "QR-X Code" },
+  en: { title: "QR-X code", description: "This QR code is generated directly on the web and contains the mioseg qr logo in the center.", loading: "Creating QR-X code …", saveImage: "⇩ Save QR code as image", copied: "✓ Link copied", copyLink: "Copy link", copyPrompt: "Copy QR-X link", alt: "QR-X code" },
+  tr: { title: "QR-X kodu", description: "Bu QR kodu doğrudan web üzerinde oluşturulur ve ortasında mioseg qr logosu bulunur.", loading: "QR-X kodu oluşturuluyor …", saveImage: "⇩ QR kodunu görsel olarak kaydet", copied: "✓ Bağlantı kopyalandı", copyLink: "Bağlantıyı kopyala", copyPrompt: "QR-X bağlantısını kopyala", alt: "QR-X kodu" },
+  pl: { title: "Kod QR-X", description: "Ten kod QR jest generowany bezpośrednio w przeglądarce i zawiera logo mioseg qr pośrodku.", loading: "Tworzenie kodu QR-X …", saveImage: "⇩ Zapisz kod QR jako obraz", copied: "✓ Link skopiowany", copyLink: "Kopiuj link", copyPrompt: "Kopiuj link QR-X", alt: "Kod QR-X" },
+  ar: { title: "رمز QR-X", description: "يتم إنشاء رمز QR هذا مباشرة على الويب ويتضمن شعار mioseg qr في المنتصف.", loading: "جارٍ إنشاء رمز QR-X …", saveImage: "⇩ حفظ رمز QR كصورة", copied: "✓ تم نسخ الرابط", copyLink: "نسخ الرابط", copyPrompt: "نسخ رابط QR-X", alt: "رمز QR-X" },
+  fr: { title: "Code QR-X", description: "Ce code QR est généré directement sur le Web et contient le logo mioseg qr au centre.", loading: "Création du code QR-X …", saveImage: "⇩ Enregistrer le code QR comme image", copied: "✓ Lien copié", copyLink: "Copier le lien", copyPrompt: "Copier le lien QR-X", alt: "Code QR-X" },
+  es: { title: "Código QR-X", description: "Este código QR se genera directamente en la web e incluye el logotipo de mioseg qr en el centro.", loading: "Creando código QR-X …", saveImage: "⇩ Guardar código QR como imagen", copied: "✓ Enlace copiado", copyLink: "Copiar enlace", copyPrompt: "Copiar enlace QR-X", alt: "Código QR-X" },
+  it: { title: "Codice QR-X", description: "Questo codice QR viene generato direttamente sul Web e contiene il logo mioseg qr al centro.", loading: "Creazione del codice QR-X …", saveImage: "⇩ Salva il codice QR come immagine", copied: "✓ Link copiato", copyLink: "Copia link", copyPrompt: "Copia link QR-X", alt: "Codice QR-X" },
 };
 
 function drawRoundedRect(
@@ -45,9 +68,11 @@ export default function QrxCodeCanvas({
   qrxId,
   variant,
   logoSrc = "/logo-white.png",
+  locale = "de",
 }: QrxCodeCanvasProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const ui = QR_CODE_UI[locale] ?? QR_CODE_UI.de;
   const label = variant === "business" ? "BUSINESS" : "QR-X";
 
   const filename = useMemo(() => `mioseg-qrx-${qrxId}.png`, [qrxId]);
@@ -132,23 +157,23 @@ export default function QrxCodeCanvas({
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
-      window.prompt("QR-X Link kopieren", value);
+      window.prompt(ui.copyPrompt, value);
     }
   }
 
   return (
     <>
-      <h2 style={centerTitleStyle}>QR-X Code</h2>
+      <h2 style={centerTitleStyle}>{ui.title}</h2>
       <p style={mutedCenterTextStyle}>
-        Dieser QR-Code wird direkt im Web erzeugt und enthält das mioseg qr Logo in der Mitte.
+        {ui.description}
       </p>
 
       <div style={qrImageWrapStyle}>
         {qrDataUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={qrDataUrl} alt="QR-X Code" style={qrImageStyle} />
+          <img src={qrDataUrl} alt={ui.alt} style={qrImageStyle} />
         ) : (
-          <div style={qrLoadingStyle}>QR-X Code wird erstellt …</div>
+          <div style={qrLoadingStyle}>{ui.loading}</div>
         )}
       </div>
 
@@ -165,11 +190,11 @@ export default function QrxCodeCanvas({
             pointerEvents: qrDataUrl ? "auto" : "none",
           }}
         >
-          ⇩ QR-Code als Bild speichern
+          {ui.saveImage}
         </a>
 
         <button type="button" onClick={handleCopyLink} style={wideSecondaryButtonStyle}>
-          {copied ? "✓ Link kopiert" : "Link kopieren"}
+          {copied ? ui.copied : ui.copyLink}
         </button>
       </div>
     </>

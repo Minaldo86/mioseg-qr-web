@@ -1463,7 +1463,8 @@ const sectionCardStyle: CSSProperties = {
           <QrxCodeCanvas
             value={publicQrxUrl}
             qrxId={qrxId}
-            variant={isBusiness ? "business" : "normal"}
+                        locale={publicLocale}
+variant={isBusiness ? "business" : "normal"}
             logoSrc="/logo-white.png"
           />
         </section>
