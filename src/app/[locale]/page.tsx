@@ -78,6 +78,245 @@ const PROFESSIONAL_USE_CASE_TEXT: Record<PublicLocale, Array<{icon:string;title:
   it: [],
 };
 
+
+const HOME_RELEASE_COPY: Record<PublicLocale, {
+  videoEyebrow: string;
+  videoTitle: string;
+  videoText: string;
+  videoHint: string;
+  qrxEyebrow: string;
+  qrxTitle: string;
+  qrxText: string;
+  qrxMedia: string;
+  qrxUpdates: string;
+  qrxLocation: string;
+  qrxActions: string;
+  pricingEyebrow: string;
+  pricingTitle: string;
+  pricingText: string;
+  pricingPoint1: string;
+  pricingPoint2: string;
+  pricingPoint3: string;
+  pricingCta: string;
+  finalTitle: string;
+  finalText: string;
+  finalExplore: string;
+  finalApp: string;
+  footerPrivacy: string;
+  footerTerms: string;
+}> = {
+  de: {
+    videoEyebrow: "Mioseg qr erleben",
+    videoTitle: "Mioseg qr in 60 Sekunden.",
+    videoText: "Sieh, wie aus einem einfachen QR-Code ein dynamischer QR-X wird – vom Scannen und Speichern bis zu Updates, Karte und direktem Kontakt.",
+    videoHint: "Das finale Promo-Video wird hier direkt eingebunden.",
+    qrxEyebrow: "Was ist ein QR-X?",
+    qrxTitle: "Mehr als ein QR-Code.",
+    qrxText: "Ein QR-X verbindet einen QR-Code mit Inhalten, die du später aktualisieren kannst. Nutzer öffnen denselben Code und sehen weiterhin die aktuellen Informationen.",
+    qrxMedia: "Bilder & Dateien",
+    qrxUpdates: "News & Updates",
+    qrxLocation: "Standort & Karte",
+    qrxActions: "Kontakt & Aktionen",
+    pricingEyebrow: "Einfaches Modell",
+    pricingTitle: "Credits statt Abo-Pflicht.",
+    pricingText: "Mioseg qr setzt auf Credits für kostenpflichtige Funktionen. So entstehen nicht automatisch jeden Monat neue Gebühren.",
+    pricingPoint1: "Kein verpflichtendes Monatsabo",
+    pricingPoint2: "Credits nur bei Bedarf einsetzen",
+    pricingPoint3: "App und Web mit demselben Konto",
+    pricingCta: "Konto starten",
+    finalTitle: "Bereit für deinen ersten QR-X?",
+    finalText: "Entdecke Mioseg qr im Browser oder nutze die App, sobald sie in den Stores verfügbar ist.",
+    finalExplore: "Explore öffnen",
+    finalApp: "App ansehen",
+    footerPrivacy: "Datenschutz",
+    footerTerms: "Nutzungsbedingungen",
+  },
+  en: {
+    videoEyebrow: "Experience Mioseg qr",
+    videoTitle: "Mioseg qr in 60 seconds.",
+    videoText: "See how a simple QR code becomes a dynamic QR-X — from scanning and saving to updates, map context and direct actions.",
+    videoHint: "The final promotional video will be embedded here.",
+    qrxEyebrow: "What is a QR-X?",
+    qrxTitle: "More than a QR code.",
+    qrxText: "A QR-X connects a QR code with content you can update later. People open the same code and continue to see the latest information.",
+    qrxMedia: "Images & files",
+    qrxUpdates: "News & updates",
+    qrxLocation: "Location & map",
+    qrxActions: "Contact & actions",
+    pricingEyebrow: "Simple model",
+    pricingTitle: "Credits instead of a required subscription.",
+    pricingText: "Mioseg qr uses Credits for paid features, so new monthly charges are not created automatically.",
+    pricingPoint1: "No mandatory monthly subscription",
+    pricingPoint2: "Use Credits only when needed",
+    pricingPoint3: "One account for app and web",
+    pricingCta: "Start account",
+    finalTitle: "Ready for your first QR-X?",
+    finalText: "Explore Mioseg qr in the browser or use the app once it is available in the stores.",
+    finalExplore: "Open Explore",
+    finalApp: "View app",
+    footerPrivacy: "Privacy",
+    footerTerms: "Terms of Use",
+  },
+  tr: {
+    videoEyebrow: "Mioseg qr'ı keşfet",
+    videoTitle: "60 saniyede Mioseg qr.",
+    videoText: "Basit bir QR kodunun; tarama, kaydetme, güncellemeler, harita ve doğrudan işlemlerle nasıl dinamik bir QR-X'e dönüştüğünü gör.",
+    videoHint: "Nihai tanıtım videosu burada doğrudan gösterilecek.",
+    qrxEyebrow: "QR-X nedir?",
+    qrxTitle: "Bir QR kodundan daha fazlası.",
+    qrxText: "QR-X, bir QR kodunu daha sonra güncelleyebileceğin içeriklerle birleştirir. Kullanıcılar aynı kodu açar ve güncel bilgileri görmeye devam eder.",
+    qrxMedia: "Görseller ve dosyalar",
+    qrxUpdates: "Haberler ve güncellemeler",
+    qrxLocation: "Konum ve harita",
+    qrxActions: "İletişim ve işlemler",
+    pricingEyebrow: "Basit model",
+    pricingTitle: "Zorunlu abonelik yerine Credits.",
+    pricingText: "Mioseg qr ücretli özellikler için Credits kullanır. Böylece her ay otomatik olarak yeni ücret oluşmaz.",
+    pricingPoint1: "Zorunlu aylık abonelik yok",
+    pricingPoint2: "Credits'i yalnızca gerektiğinde kullan",
+    pricingPoint3: "Uygulama ve web için tek hesap",
+    pricingCta: "Hesap oluştur",
+    finalTitle: "İlk QR-X'in için hazır mısın?",
+    finalText: "Mioseg qr'ı tarayıcıda keşfet veya mağazalarda yayınlandığında uygulamayı kullan.",
+    finalExplore: "Explore'u aç",
+    finalApp: "Uygulamayı gör",
+    footerPrivacy: "Gizlilik",
+    footerTerms: "Kullanım Koşulları",
+  },
+  pl: {
+    videoEyebrow: "Poznaj Mioseg qr",
+    videoTitle: "Mioseg qr w 60 sekund.",
+    videoText: "Zobacz, jak zwykły kod QR staje się dynamicznym QR-X — od skanowania i zapisywania po aktualizacje, mapę i bezpośrednie działania.",
+    videoHint: "Finalny film promocyjny zostanie osadzony bezpośrednio tutaj.",
+    qrxEyebrow: "Czym jest QR-X?",
+    qrxTitle: "Więcej niż kod QR.",
+    qrxText: "QR-X łączy kod QR z treściami, które możesz później aktualizować. Użytkownicy otwierają ten sam kod i nadal widzą aktualne informacje.",
+    qrxMedia: "Obrazy i pliki",
+    qrxUpdates: "Aktualności",
+    qrxLocation: "Lokalizacja i mapa",
+    qrxActions: "Kontakt i działania",
+    pricingEyebrow: "Prosty model",
+    pricingTitle: "Credits zamiast obowiązkowego abonamentu.",
+    pricingText: "Mioseg qr korzysta z Credits dla płatnych funkcji, dzięki czemu opłaty nie naliczają się automatycznie co miesiąc.",
+    pricingPoint1: "Brak obowiązkowego abonamentu miesięcznego",
+    pricingPoint2: "Używaj Credits tylko wtedy, gdy ich potrzebujesz",
+    pricingPoint3: "Jedno konto dla aplikacji i wersji webowej",
+    pricingCta: "Załóż konto",
+    finalTitle: "Gotowy na swój pierwszy QR-X?",
+    finalText: "Poznaj Mioseg qr w przeglądarce lub skorzystaj z aplikacji, gdy pojawi się w sklepach.",
+    finalExplore: "Otwórz Explore",
+    finalApp: "Zobacz aplikację",
+    footerPrivacy: "Prywatność",
+    footerTerms: "Warunki korzystania",
+  },
+  ar: {
+    videoEyebrow: "اكتشف Mioseg qr",
+    videoTitle: "Mioseg qr في 60 ثانية.",
+    videoText: "شاهد كيف يتحول رمز QR بسيط إلى QR-X ديناميكي، من المسح والحفظ إلى التحديثات والخريطة والإجراءات المباشرة.",
+    videoHint: "سيتم تضمين الفيديو الترويجي النهائي هنا مباشرة.",
+    qrxEyebrow: "ما هو QR-X؟",
+    qrxTitle: "أكثر من مجرد رمز QR.",
+    qrxText: "يربط QR-X رمز QR بمحتوى يمكنك تحديثه لاحقًا. يفتح المستخدمون الرمز نفسه ويستمرون في رؤية أحدث المعلومات.",
+    qrxMedia: "الصور والملفات",
+    qrxUpdates: "الأخبار والتحديثات",
+    qrxLocation: "الموقع والخريطة",
+    qrxActions: "الاتصال والإجراءات",
+    pricingEyebrow: "نموذج بسيط",
+    pricingTitle: "Credits بدل الاشتراك الإلزامي.",
+    pricingText: "يستخدم Mioseg qr نظام Credits للوظائف المدفوعة، لذلك لا تُنشأ رسوم شهرية جديدة تلقائيًا.",
+    pricingPoint1: "لا يوجد اشتراك شهري إلزامي",
+    pricingPoint2: "استخدم Credits عند الحاجة فقط",
+    pricingPoint3: "حساب واحد للتطبيق والويب",
+    pricingCta: "ابدأ حسابك",
+    finalTitle: "هل أنت جاهز لأول QR-X؟",
+    finalText: "اكتشف Mioseg qr في المتصفح أو استخدم التطبيق عند توفره في المتاجر.",
+    finalExplore: "فتح Explore",
+    finalApp: "عرض التطبيق",
+    footerPrivacy: "الخصوصية",
+    footerTerms: "شروط الاستخدام",
+  },
+  fr: {
+    videoEyebrow: "Découvrir Mioseg qr",
+    videoTitle: "Mioseg qr en 60 secondes.",
+    videoText: "Découvrez comment un simple QR code devient un QR-X dynamique, du scan et de l’enregistrement aux mises à jour, à la carte et aux actions directes.",
+    videoHint: "La vidéo promotionnelle finale sera intégrée directement ici.",
+    qrxEyebrow: "Qu’est-ce qu’un QR-X ?",
+    qrxTitle: "Bien plus qu’un QR code.",
+    qrxText: "Un QR-X relie un QR code à des contenus que vous pouvez mettre à jour plus tard. Les utilisateurs ouvrent le même code et voient toujours les informations actuelles.",
+    qrxMedia: "Images & fichiers",
+    qrxUpdates: "Actualités",
+    qrxLocation: "Lieu & carte",
+    qrxActions: "Contact & actions",
+    pricingEyebrow: "Modèle simple",
+    pricingTitle: "Des Credits plutôt qu’un abonnement obligatoire.",
+    pricingText: "Mioseg qr utilise des Credits pour les fonctions payantes, afin d’éviter des frais mensuels automatiques.",
+    pricingPoint1: "Aucun abonnement mensuel obligatoire",
+    pricingPoint2: "Utilisez des Credits uniquement si nécessaire",
+    pricingPoint3: "Un seul compte pour l’app et le web",
+    pricingCta: "Créer un compte",
+    finalTitle: "Prêt pour votre premier QR-X ?",
+    finalText: "Découvrez Mioseg qr dans le navigateur ou utilisez l’application dès sa disponibilité dans les stores.",
+    finalExplore: "Ouvrir Explore",
+    finalApp: "Voir l’application",
+    footerPrivacy: "Confidentialité",
+    footerTerms: "Conditions d’utilisation",
+  },
+  es: {
+    videoEyebrow: "Descubre Mioseg qr",
+    videoTitle: "Mioseg qr en 60 segundos.",
+    videoText: "Descubre cómo un simple código QR se convierte en un QR-X dinámico: desde escanear y guardar hasta actualizaciones, mapa y acciones directas.",
+    videoHint: "El vídeo promocional final se integrará directamente aquí.",
+    qrxEyebrow: "¿Qué es un QR-X?",
+    qrxTitle: "Mucho más que un código QR.",
+    qrxText: "Un QR-X conecta un código QR con contenido que puedes actualizar más adelante. Los usuarios abren el mismo código y siguen viendo la información actual.",
+    qrxMedia: "Imágenes y archivos",
+    qrxUpdates: "Noticias y actualizaciones",
+    qrxLocation: "Ubicación y mapa",
+    qrxActions: "Contacto y acciones",
+    pricingEyebrow: "Modelo sencillo",
+    pricingTitle: "Credits en lugar de una suscripción obligatoria.",
+    pricingText: "Mioseg qr utiliza Credits para las funciones de pago, evitando que se generen automáticamente nuevos cargos mensuales.",
+    pricingPoint1: "Sin suscripción mensual obligatoria",
+    pricingPoint2: "Usa Credits solo cuando los necesites",
+    pricingPoint3: "Una cuenta para app y web",
+    pricingCta: "Crear cuenta",
+    finalTitle: "¿Listo para tu primer QR-X?",
+    finalText: "Descubre Mioseg qr en el navegador o utiliza la app cuando esté disponible en las tiendas.",
+    finalExplore: "Abrir Explore",
+    finalApp: "Ver app",
+    footerPrivacy: "Privacidad",
+    footerTerms: "Términos de uso",
+  },
+  it: {
+    videoEyebrow: "Scopri Mioseg qr",
+    videoTitle: "Mioseg qr in 60 secondi.",
+    videoText: "Scopri come un semplice codice QR diventa un QR-X dinamico: dalla scansione e dal salvataggio agli aggiornamenti, alla mappa e alle azioni dirette.",
+    videoHint: "Il video promozionale finale verrà integrato direttamente qui.",
+    qrxEyebrow: "Cos’è un QR-X?",
+    qrxTitle: "Molto più di un codice QR.",
+    qrxText: "Un QR-X collega un codice QR a contenuti che puoi aggiornare in seguito. Gli utenti aprono lo stesso codice e continuano a vedere le informazioni aggiornate.",
+    qrxMedia: "Immagini e file",
+    qrxUpdates: "Notizie e aggiornamenti",
+    qrxLocation: "Posizione e mappa",
+    qrxActions: "Contatti e azioni",
+    pricingEyebrow: "Modello semplice",
+    pricingTitle: "Credits invece di un abbonamento obbligatorio.",
+    pricingText: "Mioseg qr utilizza Credits per le funzioni a pagamento, evitando nuovi addebiti mensili automatici.",
+    pricingPoint1: "Nessun abbonamento mensile obbligatorio",
+    pricingPoint2: "Usa Credits solo quando servono",
+    pricingPoint3: "Un account per app e web",
+    pricingCta: "Crea account",
+    finalTitle: "Pronto per il tuo primo QR-X?",
+    finalText: "Scopri Mioseg qr nel browser o usa l’app quando sarà disponibile negli store.",
+    finalExplore: "Apri Explore",
+    finalApp: "Vedi app",
+    footerPrivacy: "Privacy",
+    footerTerms: "Termini di utilizzo",
+  },
+};
+
+const PROMO_VIDEO_SRC = "/landing/mioseg-qr-promo.mp4";
+
 function publicLocale(value: string): PublicLocale {
   return PUBLIC_LOCALES.includes(value as PublicLocale) ? (value as PublicLocale) : "en";
 }
@@ -112,6 +351,7 @@ export default async function Home({ params }: Props) {
   const publicLanguage = publicLocale(locale);
   const heroCopy = HOME_HERO_COPY[publicLanguage];
   const publicUi = HOME_PUBLIC_UI[publicLanguage];
+  const releaseCopy = HOME_RELEASE_COPY[publicLanguage];
 
   const professionalUseCases = {
     de: [
@@ -196,214 +436,7 @@ export default async function Home({ params }: Props) {
     ],
   }[publicLanguage].map(([icon,title,text,image]) => ({ icon, title, text, image })) as Array<{icon:string;title:string;text:string;image:string}>;
 
-  const heroStory =
-    locale === "de"
-      ? {
-          badge: "Neue Hero Experience",
-          scanLabel: "QR-Code erkannt",
-          scanTitle: "Wohnung QR-X",
-          scanText: "Exposé, Bilder, Dateien und Kontakt direkt öffnen.",
-          folderLabel: "Gespeichert",
-          folderTitle: "Ordner: Wohnungen",
-          mapLabel: "Standort gemerkt",
-          mapTitle: "Scan auf der Karte",
-          detailLabel: "QR-X Detailansicht",
-          detailTitle: "Alle Infos an einem Ort",
-          detail1: "Bilder & Grundriss",
-          detail2: "PDF-Dateien",
-          detail3: "Ansprechpartner",
-          flow1: "Scannen",
-          flow2: "Speichern",
-          flow3: "Wiederfinden",
-        }
-      : {
-          badge: "New hero experience",
-          scanLabel: "QR code detected",
-          scanTitle: "Apartment QR-X",
-          scanText: "Open exposé, images, files and contact instantly.",
-          folderLabel: "Saved",
-          folderTitle: "Folder: Apartments",
-          mapLabel: "Location saved",
-          mapTitle: "Scan on the map",
-          detailLabel: "QR-X detail view",
-          detailTitle: "Everything in one place",
-          detail1: "Images & floor plan",
-          detail2: "PDF files",
-          detail3: "Contact person",
-          flow1: "Scan",
-          flow2: "Save",
-          flow3: "Find again",
-        };
 
-  const realLifeUseCases =
-    locale === "de"
-      ? [
-          {
-            icon: "🏠",
-            label: "Immobilien",
-            title: "Wohnung oder Haus digital zeigen",
-            text: "Ein QR-X an der Wohnung öffnet Exposé, Bilder, Grundriss, Energieausweis, Ansprechpartner und Standort – alles sofort abrufbar.",
-            chips: ["Exposé", "PDF-Dateien", "Kontakt"],
-          },
-          {
-            icon: "🍽️",
-            label: "Gastronomie",
-            title: "Speisekarte, Reservierung und Updates",
-            text: "Restaurants können Speisekarten, Aktionen, Öffnungszeiten und Reservierungslinks über einen dynamischen QR-X aktuell halten.",
-            chips: ["Speisekarte", "Reservierungslink", "Öffnungszeiten"],
-          },
-          {
-            icon: "🚗",
-            label: "Fahrzeuge",
-            title: "Fahrzeugdaten direkt am Auto",
-            text: "Autoverkäufer zeigen Ausstattung, Bilder, Videos, Preisänderungen und Kontakt direkt über einen QR-X am Fahrzeug.",
-            chips: ["Bilder", "Ausstattung", "Preisupdate"],
-          },
-          {
-            icon: "🎉",
-            label: "Events",
-            title: "Infos, Lageplan und Änderungen",
-            text: "Veranstalter teilen Programm, Tickets, Lageplan und kurzfristige Änderungen – Nutzer speichern den QR-X und bleiben informiert.",
-            chips: ["Tickets", "Programm", "Updates"],
-          },
-          {
-            icon: "🏢",
-            label: "Unternehmen",
-            title: "Digitale Visitenkarte mit Mehrwert",
-            text: "Unternehmen verbinden Kontakt, Leistungen, Website, Anfahrt und aktuelle Angebote in einem einzigen QR-X.",
-            chips: ["Kontakt", "Leistungen", "Anfahrt"],
-          },
-          {
-            icon: "📍",
-            label: "Alltag",
-            title: "Scannen, speichern, wiederfinden",
-            text: "Nutzer verlieren interessante QR-Codes nicht mehr. Sie speichern sie in Ordnern und sehen später auf der Karte, wo sie gescannt wurden.",
-            chips: ["Ordner", "Karte", "Verlauf"],
-          },
-          {
-            icon: "🔐",
-            label: "Privat teilen",
-            title: "QR-X optional mit Passwort schützen",
-            text: "Sensible Inhalte wie Exposés, interne Dateien oder private Eventinfos können nur für Personen sichtbar sein, die das Passwort kennen.",
-            chips: ["Passwort", "Privat", "Kontrollierter Zugriff"],
-          },
-        ]
-      : [
-          {
-            icon: "🏠",
-            label: "Real estate",
-            title: "Show apartments and houses digitally",
-            text: "A QR-X at the property opens exposé, images, floor plan, energy certificate, contact and location instantly.",
-            chips: ["Exposé", "PDF files", "Contact"],
-          },
-          {
-            icon: "🍽️",
-            label: "Restaurants",
-            title: "Menu, booking and updates",
-            text: "Restaurants can keep menus, offers, opening hours and booking links up to date through one dynamic QR-X.",
-            chips: ["Menu", "Booking link", "Hours"],
-          },
-          {
-            icon: "🚗",
-            label: "Vehicles",
-            title: "Vehicle details directly at the car",
-            text: "Car sellers show specs, images, videos, price updates and contact directly through a QR-X on the vehicle.",
-            chips: ["Images", "Specs", "Price update"],
-          },
-          {
-            icon: "🎉",
-            label: "Events",
-            title: "Info, map and changes",
-            text: "Organizers share program, tickets, venue map and last-minute updates. Users save the QR-X and stay informed.",
-            chips: ["Tickets", "Program", "Updates"],
-          },
-          {
-            icon: "🏢",
-            label: "Business",
-            title: "A digital business card with value",
-            text: "Businesses connect contact, services, website, directions and current offers in one single QR-X.",
-            chips: ["Contact", "Services", "Directions"],
-          },
-          {
-            icon: "📍",
-            label: "Everyday use",
-            title: "Scan, save, find again",
-            text: "Users no longer lose interesting QR codes. They save them in folders and later see where they scanned them on the map.",
-            chips: ["Folders", "Map", "History"],
-          },
-          {
-            icon: "🔐",
-            label: "Private sharing",
-            title: "Protect QR-X with an optional password",
-            text: "Sensitive content such as exposés, internal files or private event information can be visible only to people who know the password.",
-            chips: ["Password", "Private", "Controlled access"],
-          },
-        ];
-
-  const conversionReasons =
-    locale === "de"
-      ? [
-          {
-            icon: "📁",
-            title: "QR-Codes gehen nicht mehr verloren",
-            text: "Scans werden gespeichert, sortiert und später wiedergefunden.",
-          },
-          {
-            icon: "📍",
-            title: "Jeder Scan bekommt Kontext",
-            text: "Du siehst auf der Karte, wo ein QR-Code gescannt wurde.",
-          },
-          {
-            icon: "🔔",
-            title: "QR-X kann sich aktualisieren",
-            text: "Gespeicherte QR-X können neue Informationen und Änderungen anzeigen.",
-          },
-          {
-            icon: "🔐",
-            title: "Optional privat teilen",
-            text: "Sensible QR-X können später mit Passwortschutz abgesichert werden.",
-          },
-        ]
-      : [
-          {
-            icon: "📁",
-            title: "QR codes no longer get lost",
-            text: "Scans are saved, sorted and easy to find again later.",
-          },
-          {
-            icon: "📍",
-            title: "Every scan gets context",
-            text: "You can see on the map where a QR code was scanned.",
-          },
-          {
-            icon: "🔔",
-            title: "QR-X can update over time",
-            text: "Saved QR-X can show new information and changes.",
-          },
-          {
-            icon: "🔐",
-            title: "Optionally private sharing",
-            text: "Sensitive QR-X can later be protected with a password.",
-          },
-        ];
-
-  const trustPoints =
-    locale === "de"
-      ? ["Keine Abo-Pflicht", "Credits statt monatlicher Kosten", "Für Alltag und Business", "Dynamische QR-X mit Updates"]
-      : ["No subscription required", "Credits instead of monthly fees", "For everyday and business use", "Dynamic QR-X with updates"];
-
-  const explorePreviewItems =
-    locale === "de"
-      ? [
-          { icon: "🍽️", title: "Café am Markt", category: "Gastronomie", meta: "248 Aufrufe · 36 Follower", badge: "Beliebt" },
-          { icon: "🏠", title: "Wohnung Stadtpark", category: "Immobilien", meta: "Exposé · Dateien · Kontakt", badge: "QR-X" },
-          { icon: "🩺", title: "Praxis Gesund", category: "Praxis & Gesundheit", meta: "Verifiziert · Route · Kontakt", badge: "Verifiziert" },
-        ]
-      : [
-          { icon: "🍽️", title: "Market Café", category: "Restaurant", meta: "248 views · 36 followers", badge: "Popular" },
-          { icon: "🏠", title: "Park Apartment", category: "Real estate", meta: "Exposé · Files · Contact", badge: "QR-X" },
-          { icon: "🩺", title: "Health Practice", category: "Health", meta: "Verified · Route · Contact", badge: "Verified" },
-        ];
 
 
   return (
@@ -480,6 +513,64 @@ export default async function Home({ params }: Props) {
                 <p>{heroCopy.miniExploreText}</p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="miosegVideoSection" aria-labelledby="mioseg-video-title">
+        <div className="miosegReleaseSectionHeader">
+          <span>{releaseCopy.videoEyebrow}</span>
+          <h2 id="mioseg-video-title">{releaseCopy.videoTitle}</h2>
+          <p>{releaseCopy.videoText}</p>
+        </div>
+
+        <div className="miosegVideoFrame">
+          <video
+            controls
+            preload="metadata"
+            poster={landingImages.heroScan}
+            playsInline
+            aria-label={releaseCopy.videoTitle}
+          >
+            <source src={PROMO_VIDEO_SRC} type="video/mp4" />
+          </video>
+
+          <div className="miosegVideoHint">
+            <span>▶</span>
+            <p>{releaseCopy.videoHint}</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="miosegQrxExplainer">
+        <div className="miosegQrxCopy">
+          <span>{releaseCopy.qrxEyebrow}</span>
+          <h2>{releaseCopy.qrxTitle}</h2>
+          <p>{releaseCopy.qrxText}</p>
+
+          <div className="miosegQrxFeatureChips">
+            <span>▧ {releaseCopy.qrxMedia}</span>
+            <span>↻ {releaseCopy.qrxUpdates}</span>
+            <span>⌖ {releaseCopy.qrxLocation}</span>
+            <span>↗ {releaseCopy.qrxActions}</span>
+          </div>
+        </div>
+
+        <div className="miosegQrxVisual" aria-hidden="true">
+          <div className="miosegQrxCodeTile">
+            <div className="miosegQrxFakeCode">
+              {Array.from({ length: 25 }).map((_, index) => (
+                <i key={index} />
+              ))}
+            </div>
+            <strong>QR-X</strong>
+          </div>
+
+          <div className="miosegQrxVisualCards">
+            <div><span>▧</span><strong>{releaseCopy.qrxMedia}</strong></div>
+            <div><span>↻</span><strong>{releaseCopy.qrxUpdates}</strong></div>
+            <div><span>⌖</span><strong>{releaseCopy.qrxLocation}</strong></div>
+            <div><span>↗</span><strong>{releaseCopy.qrxActions}</strong></div>
           </div>
         </div>
       </section>
@@ -575,6 +666,43 @@ export default async function Home({ params }: Props) {
           <p>{publicUi.nearbyText}</p>
         </div>
       </section>
+      <section id="pricing" className="miosegPricingSection">
+        <div className="miosegPricingCard">
+          <div className="miosegPricingCopy">
+            <span>{releaseCopy.pricingEyebrow}</span>
+            <h2>{releaseCopy.pricingTitle}</h2>
+            <p>{releaseCopy.pricingText}</p>
+          </div>
+
+          <div className="miosegPricingPoints">
+            <div><span>✓</span>{releaseCopy.pricingPoint1}</div>
+            <div><span>✓</span>{releaseCopy.pricingPoint2}</div>
+            <div><span>✓</span>{releaseCopy.pricingPoint3}</div>
+          </div>
+
+          <Link href={`/${locale}/register`} className="miosegPricingCta">
+            {releaseCopy.pricingCta}
+          </Link>
+        </div>
+      </section>
+
+      <section className="miosegFinalCtaRelease">
+        <div>
+          <span>Mioseg qr</span>
+          <h2>{releaseCopy.finalTitle}</h2>
+          <p>{releaseCopy.finalText}</p>
+        </div>
+
+        <div className="miosegFinalCtaActions">
+          <Link href={`/${locale}/explore`} className="miosegProSecondary">
+            {releaseCopy.finalExplore}
+          </Link>
+          <Link href={`/${locale}/get-app`} className="miosegProPrimary">
+            {releaseCopy.finalApp}
+          </Link>
+        </div>
+      </section>
+
       <section className={styles.downloadSection}>
         <div className={styles.downloadCard}>
           <div className={styles.downloadTop}>
@@ -629,451 +757,19 @@ export default async function Home({ params }: Props) {
         </div>
       </section>
 
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-.miosegHeroScene {
-  position: relative;
-  display: grid;
-  gap: 14px;
-  padding: 4px;
-  overflow: hidden;
-}
-
-.miosegHeroBadge {
-  width: fit-content;
-  border-radius: 999px;
-  padding: 8px 12px;
-  color: #dbeafe;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.miosegScanBeam {
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  top: 92px;
-  height: 3px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(77, 132, 201, 0), rgba(117, 210, 255, 0.95), rgba(77, 132, 201, 0));
-  box-shadow: 0 0 24px rgba(117, 210, 255, 0.85);
-  animation: miosegScanMove 3.4s ease-in-out infinite;
-  z-index: 3;
-}
-
-.miosegQrCard,
-.miosegDetailCard,
-.miosegFolderCard,
-.miosegMapCard {
-  position: relative;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.105), rgba(255, 255, 255, 0.045));
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(18px);
-}
-
-.miosegQrCard {
-  display: grid;
-  grid-template-columns: 92px 1fr;
-  gap: 14px;
-  align-items: center;
-  padding: 14px;
-  animation: miosegFloat 5.2s ease-in-out infinite;
-}
-
-.miosegQrVisual {
-  width: 88px;
-  height: 88px;
-  border-radius: 24px;
-  padding: 12px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 7px;
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1px rgba(13, 23, 38, 0.08), 0 18px 34px rgba(0, 0, 0, 0.20);
-}
-
-.miosegQrVisual span {
-  border-radius: 6px;
-  background: #0d1726;
-}
-
-.miosegQrVisual span:nth-child(2),
-.miosegQrVisual span:nth-child(4),
-.miosegQrVisual span:nth-child(8) {
-  background: #4d84c9;
-}
-
-.miosegQrCard h3,
-.miosegDetailCard h3 {
-  margin: 4px 0 6px;
-  color: #ffffff;
-  font-size: 20px;
-  line-height: 1.15;
-  letter-spacing: -0.35px;
-}
-
-.miosegQrCard p {
-  margin: 0;
-  color: #b9c8da;
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-.miosegMiniLabel {
-  color: #8fc7ff;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.miosegDetailCard {
-  padding: 16px;
-  animation: miosegFloatAlt 5.8s ease-in-out infinite;
-}
-
-.miosegDetailRows {
-  display: grid;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.miosegDetailRows span {
-  display: flex;
-  align-items: center;
-  min-height: 36px;
-  padding: 0 12px;
-  border-radius: 14px;
-  color: #edf6ff;
-  background: rgba(13, 23, 38, 0.42);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.miosegFlowRow {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 9px;
-}
-
-.miosegFlowRow span {
-  min-height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  color: #07101f;
-  background: linear-gradient(180deg, #ffffff, #dbeafe);
-  font-size: 12px;
-  font-weight: 950;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
-}
-
-.miosegHeroMiniGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.miosegFolderCard,
-.miosegMapCard {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px;
-  min-height: 74px;
-}
-
-.miosegMiniIcon {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.12);
-  font-size: 20px;
-}
-
-.miosegFolderCard strong,
-.miosegMapCard strong {
-  display: block;
-  margin-top: 3px;
-  color: #ffffff;
-  font-size: 13px;
-  line-height: 1.25;
-}
-
-@keyframes miosegScanMove {
-  0%, 100% {
-    transform: translateY(-24px);
-    opacity: 0.28;
-  }
-  45%, 55% {
-    opacity: 1;
-  }
-  50% {
-    transform: translateY(145px);
-  }
-}
-
-@keyframes miosegFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes miosegFloatAlt {
-  0%, 100% {
-    transform: translateY(0) translateX(0);
-  }
-  50% {
-    transform: translateY(7px) translateX(3px);
-  }
-}
-
-
-.miosegUseCaseGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  max-width: 1180px;
-  margin: 0 auto;
-}
-
-.miosegUseCaseCard {
-  position: relative;
-  overflow: hidden;
-  border-radius: 28px;
-  padding: 22px;
-  background: linear-gradient(180deg, #ffffff 0%, #f6f9fd 100%);
-  border: 1px solid rgba(218, 228, 240, 0.95);
-  box-shadow: 0 22px 54px rgba(14, 23, 38, 0.08);
-  animation: miosegUseCaseIn 680ms ease both;
-}
-
-.miosegUseCaseCard::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  background: radial-gradient(circle at 18% 0%, rgba(77, 132, 201, 0.18), transparent 34%);
-  opacity: 0;
-  transition: opacity 220ms ease;
-  pointer-events: none;
-}
-
-.miosegUseCaseCard:hover::before {
-  opacity: 1;
-}
-
-.miosegUseCaseCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 28px 68px rgba(14, 23, 38, 0.12);
-}
-
-.miosegUseCaseTop {
-  position: relative;
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  margin-bottom: 14px;
-}
-
-.miosegUseCaseIcon {
-  width: 52px;
-  height: 52px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  border-radius: 18px;
-  background: linear-gradient(180deg, #0d1726 0%, #17304d 100%);
-  box-shadow: 0 14px 30px rgba(13, 23, 38, 0.18);
-  font-size: 25px;
-}
-
-.miosegUseCaseLabel {
-  color: #4d84c9;
-  font-size: 12px;
-  font-weight: 950;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-bottom: 5px;
-}
-
-.miosegUseCaseCard h3 {
-  margin: 0;
-  color: #0d1726;
-  font-size: 21px;
-  line-height: 1.16;
-  letter-spacing: -0.35px;
-}
-
-.miosegUseCaseCard p {
-  position: relative;
-  margin: 0;
-  color: #5d6b7d;
-  font-size: 15px;
-  line-height: 1.72;
-}
-
-.miosegUseCaseChips {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
-}
-
-.miosegUseCaseChips span {
-  min-height: 32px;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 11px;
-  border-radius: 999px;
-  color: #17304d;
-  background: #eef4fb;
-  border: 1px solid #dbe7f4;
-  font-size: 12px;
-  font-weight: 900;
-}
 
 
 
-  .miosegExploreMapMock {
-    border-radius: 30px;
-    padding: 14px;
-  }
-
-  .miosegMapCanvas {
-    height: 300px;
-  }
-}
-
-
-
-  .miosegConversionCard {
-    border-radius: 30px;
-    padding: 22px;
-  }
-
-  .miosegConversionReason {
-    grid-template-columns: 1fr;
-  }
-
-  .miosegConversionReason div {
-    grid-row: auto;
-    margin-bottom: 10px;
-  }
-
-  .miosegFinalCta {
-    border-radius: 26px;
-    padding: 22px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .miosegScanBeam,
-  .miosegQrCard,
-  .miosegDetailCard,
-  .miosegUseCaseCard,
-  .miosegMotionConnector,
-  .miosegMotionBoard::before,
-  .miosegFloatingQr,
-  .miosegPulseRing,
-  .miosegPanelDetail,
-  .miosegPanelFolder,
-  .miosegPanelMap,
-  .miosegPanelLock {
-    animation: none !important;
-  }
-}
-
-@media (max-width: 980px) {
-  .miosegMotionTrack {
-    grid-template-columns: 1fr;
-  }
-
-  .miosegMotionConnector {
-    width: 3px;
-    height: 34px;
-    margin: 0 auto;
-  }
-
-  .miosegAnimatedProduct {
-    min-height: 620px;
-  }
-
-  .miosegFloatingQr {
-    top: 45%;
-  }
-
-  .miosegPanelDetail,
-  .miosegPanelFolder,
-  .miosegPanelMap,
-  .miosegPanelLock {
-    left: 18px;
-    right: 18px;
-    min-width: auto;
-  }
-
-  .miosegPanelDetail { top: 24px; }
-  .miosegPanelFolder { top: 138px; }
-  .miosegPanelMap { bottom: 138px; }
-  .miosegPanelLock { bottom: 24px; }
-}
-
-@media (max-width: 640px) {
-  .miosegMotionBoard {
-    padding: 18px;
-    border-radius: 28px;
-  }
-
-  .miosegAnimatedProduct {
-    min-height: 650px;
-  }
-}
-
-@media (max-width: 980px) {
-  .miosegUseCaseGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  
-
-  .miosegUseCaseStory {
-    padding: 18px;
-    border-radius: 28px;
-  }
-}
-
-@media (max-width: 760px) {
-  .miosegQrCard {
-    grid-template-columns: 78px 1fr;
-  }
-
-  .miosegQrVisual {
-    width: 74px;
-    height: 74px;
-    border-radius: 20px;
-  }
-
-  .miosegHeroMiniGrid {
-    grid-template-columns: 1fr;
-  }
-}
-          `.trim(),
-        }}
-      />
-
+      <footer className="miosegHomeFooter">
+        <div>
+          <strong>Mioseg qr</strong>
+          <span>© 2026 Mioseg qr</span>
+        </div>
+        <nav aria-label="Legal">
+          <Link href={`/${locale}/datenschutz`}>{releaseCopy.footerPrivacy}</Link>
+          <Link href={`/${locale}/nutzungsbedingungen`}>{releaseCopy.footerTerms}</Link>
+        </nav>
+      </footer>
 
       <style
         dangerouslySetInnerHTML={{
@@ -1603,6 +1299,501 @@ export default async function Home({ params }: Props) {
 
   .miosegProHeroImage {
     min-height: 460px;
+  }
+}
+
+
+.miosegVideoSection,
+.miosegQrxExplainer,
+.miosegPricingSection,
+.miosegFinalCtaRelease {
+  width: min(1180px, calc(100% - 48px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.miosegVideoSection {
+  padding: 88px 0 84px;
+}
+
+.miosegReleaseSectionHeader {
+  max-width: 760px;
+  margin: 0 auto 32px;
+  text-align: center;
+}
+
+.miosegReleaseSectionHeader > span,
+.miosegQrxCopy > span,
+.miosegPricingCopy > span,
+.miosegFinalCtaRelease > div:first-child > span {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #4d84c9;
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.miosegReleaseSectionHeader h2,
+.miosegQrxCopy h2,
+.miosegPricingCopy h2,
+.miosegFinalCtaRelease h2 {
+  margin: 0;
+  color: #0d1726;
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  font-weight: 950;
+}
+
+.miosegReleaseSectionHeader p,
+.miosegQrxCopy p,
+.miosegPricingCopy p,
+.miosegFinalCtaRelease p {
+  margin: 18px 0 0;
+  color: #65758a;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.miosegVideoFrame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: 34px;
+  background: #07101f;
+  border: 1px solid rgba(13, 23, 38, 0.10);
+  box-shadow: 0 32px 90px rgba(13, 23, 38, 0.15);
+}
+
+.miosegVideoFrame video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  background: #07101f;
+}
+
+.miosegVideoHint {
+  position: absolute;
+  left: 22px;
+  bottom: 22px;
+  max-width: min(440px, calc(100% - 44px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border-radius: 16px;
+  color: #fff;
+  background: rgba(7, 16, 31, 0.70);
+  border: 1px solid rgba(255,255,255,0.14);
+  backdrop-filter: blur(14px);
+  pointer-events: none;
+}
+
+.miosegVideoHint span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,.13);
+  flex: 0 0 auto;
+}
+
+.miosegVideoHint p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.miosegQrxExplainer {
+  margin-bottom: 84px;
+  padding: 56px;
+  display: grid;
+  grid-template-columns: minmax(0, .92fr) minmax(380px, 1.08fr);
+  gap: 56px;
+  align-items: center;
+  border-radius: 38px;
+  background:
+    radial-gradient(circle at 78% 24%, rgba(59,130,246,.20), transparent 30%),
+    linear-gradient(135deg, #07101f 0%, #0d1726 55%, #15385c 100%);
+  box-shadow: 0 28px 86px rgba(7,16,31,.22);
+}
+
+.miosegQrxCopy h2,
+.miosegQrxCopy p {
+  color: #fff;
+}
+
+.miosegQrxCopy p {
+  color: rgba(255,255,255,.76);
+}
+
+.miosegQrxCopy > span {
+  color: #8fc7ff;
+}
+
+.miosegQrxFeatureChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 25px;
+}
+
+.miosegQrxFeatureChips span {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: #eaf4ff;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.10);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.miosegQrxVisual {
+  min-height: 360px;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.miosegQrxCodeTile {
+  padding: 18px;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: 0 24px 64px rgba(0,0,0,.24);
+}
+
+.miosegQrxCodeTile > strong {
+  display: block;
+  margin-top: 12px;
+  color: #0d1726;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.miosegQrxFakeCode {
+  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 8px;
+  border-radius: 18px;
+  background: #f8fafc;
+}
+
+.miosegQrxFakeCode i {
+  display: block;
+  border-radius: 4px;
+  background: #0d1726;
+}
+
+.miosegQrxFakeCode i:nth-child(2n),
+.miosegQrxFakeCode i:nth-child(7),
+.miosegQrxFakeCode i:nth-child(13),
+.miosegQrxFakeCode i:nth-child(21) {
+  opacity: .18;
+}
+
+.miosegQrxVisualCards {
+  display: grid;
+  gap: 11px;
+}
+
+.miosegQrxVisualCards > div {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  border-radius: 18px;
+  color: #fff;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 16px 34px rgba(0,0,0,.12);
+}
+
+.miosegQrxVisualCards span {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: rgba(255,255,255,.10);
+  font-size: 18px;
+}
+
+.miosegQrxVisualCards strong {
+  font-size: 14px;
+}
+
+.miosegPricingSection {
+  padding: 82px 0 32px;
+}
+
+.miosegPricingCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr) auto;
+  gap: 34px;
+  align-items: center;
+  padding: 38px;
+  border-radius: 34px;
+  background: #f7faff;
+  border: 1px solid #dce7f5;
+  box-shadow: 0 22px 62px rgba(13,23,38,.08);
+}
+
+.miosegPricingCopy h2 {
+  font-size: clamp(30px, 4vw, 46px);
+}
+
+.miosegPricingPoints {
+  display: grid;
+  gap: 11px;
+}
+
+.miosegPricingPoints > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #32445a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.miosegPricingPoints span {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #0d6efd;
+  background: #e8f2ff;
+  flex: 0 0 auto;
+}
+
+.miosegPricingCta {
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 20px;
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #0d6efd 0%, #7c3aed 100%);
+  text-decoration: none;
+  font-weight: 950;
+  box-shadow: 0 18px 40px rgba(37,99,235,.20);
+}
+
+.miosegFinalCtaRelease {
+  margin-top: 54px;
+  margin-bottom: 54px;
+  padding: 48px 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 34px;
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 90% 10%, rgba(124,58,237,.26), transparent 28%),
+    linear-gradient(135deg, #07101f, #0d1726 55%, #14385f);
+  box-shadow: 0 28px 82px rgba(7,16,31,.20);
+}
+
+.miosegFinalCtaRelease h2,
+.miosegFinalCtaRelease p {
+  color: #fff;
+}
+
+.miosegFinalCtaRelease p {
+  color: rgba(255,255,255,.74);
+  max-width: 700px;
+}
+
+.miosegFinalCtaRelease > div:first-child > span {
+  color: #8fc7ff;
+}
+
+.miosegFinalCtaActions {
+  display: flex;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.miosegHomeFooter {
+  width: min(1180px, calc(100% - 48px));
+  margin: 18px auto 0;
+  min-height: 84px;
+  padding: 20px 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-top: 1px solid rgba(13,23,38,.10);
+}
+
+.miosegHomeFooter > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #65758a;
+  font-size: 13px;
+}
+
+.miosegHomeFooter strong {
+  color: #0d1726;
+}
+
+.miosegHomeFooter nav {
+  display: flex;
+  gap: 18px;
+}
+
+.miosegHomeFooter a {
+  color: #53667d;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.miosegHomeFooter a:hover {
+  color: #0d6efd;
+}
+
+@media (max-width: 980px) {
+  .miosegQrxExplainer {
+    grid-template-columns: 1fr;
+    padding: 40px;
+  }
+
+  .miosegQrxVisual {
+    min-height: 0;
+  }
+
+  .miosegPricingCard {
+    grid-template-columns: 1fr;
+  }
+
+  .miosegPricingCta {
+    width: fit-content;
+  }
+
+  .miosegFinalCtaRelease {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 680px) {
+  .miosegVideoSection,
+  .miosegQrxExplainer,
+  .miosegPricingSection,
+  .miosegFinalCtaRelease,
+  .miosegHomeFooter {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .miosegVideoSection {
+    padding: 58px 0 56px;
+  }
+
+  .miosegReleaseSectionHeader {
+    margin-bottom: 22px;
+  }
+
+  .miosegReleaseSectionHeader h2,
+  .miosegQrxCopy h2,
+  .miosegFinalCtaRelease h2 {
+    font-size: 36px;
+  }
+
+  .miosegVideoFrame {
+    border-radius: 24px;
+  }
+
+  .miosegVideoHint {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+
+  .miosegQrxExplainer {
+    margin-bottom: 56px;
+    padding: 26px 20px;
+    gap: 32px;
+    border-radius: 28px;
+  }
+
+  .miosegQrxVisual {
+    grid-template-columns: 120px 1fr;
+    gap: 12px;
+  }
+
+  .miosegQrxCodeTile {
+    padding: 12px;
+    border-radius: 22px;
+  }
+
+  .miosegQrxFakeCode {
+    gap: 4px;
+    padding: 5px;
+  }
+
+  .miosegQrxVisualCards > div {
+    min-height: 54px;
+    padding: 0 11px;
+  }
+
+  .miosegQrxVisualCards span {
+    width: 32px;
+    height: 32px;
+  }
+
+  .miosegPricingSection {
+    padding: 54px 0 18px;
+  }
+
+  .miosegPricingCard {
+    padding: 24px 20px;
+    border-radius: 26px;
+    gap: 24px;
+  }
+
+  .miosegFinalCtaRelease {
+    margin-top: 36px;
+    margin-bottom: 36px;
+    padding: 30px 22px;
+    border-radius: 28px;
+  }
+
+  .miosegFinalCtaActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .miosegFinalCtaActions a {
+    width: 100%;
+  }
+
+  .miosegHomeFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .miosegHomeFooter > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
   }
 }
 
