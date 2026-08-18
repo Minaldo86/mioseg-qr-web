@@ -41,17 +41,18 @@ type RegisterCopy = {
   age: string; privacyPrefix: string; privacy: string; termsMissing: string; ageMissing: string; success: string;
   feature1Title: string; feature1Text: string; feature2Title: string; feature2Text: string; feature3Title: string; feature3Text: string;
   alreadyRegistered: string; weakPassword: string; registrationFailed: string;
+  showPassword: string; hidePassword: string;
 };
 
 const REGISTER_COPY: Record<AccountLanguage, RegisterCopy> = {
-  de: { kicker:"Mioseg qr Konto", title:"Erstelle dein Konto und starte deinen ersten QR-X.", subtitle:"Dein Account gilt automatisch für Web und App. Alles bleibt über Supabase synchron.", formTitle:"Registrieren", formSubtitle:"Erstelle dein Konto für mioseg qr.", email:"E-Mail", password:"Passwort", passwordRepeat:"Passwort wiederholen", submit:"Konto erstellen", loading:"Konto wird erstellt ...", hasAccount:"Du hast bereits ein Konto?", login:"Einloggen", passwordMismatch:"Die Passwörter stimmen nicht überein.", passwordShort:"Das Passwort sollte mindestens 6 Zeichen haben.", termsPrefix:"Ich akzeptiere die", terms:"Nutzungsbedingungen", termsSuffix:` (Version ${CURRENT_TERMS_VERSION}).`, age:"Ich bestätige, dass ich mindestens 16 Jahre alt bin.", privacyPrefix:"Informationen zur Verarbeitung deiner Daten findest du in der", privacy:"Datenschutzerklärung", termsMissing:"Bitte akzeptiere die Nutzungsbedingungen, bevor du dein Konto erstellst.", ageMissing:"Bitte bestätige, dass du mindestens 16 Jahre alt bist.", success:"Konto wurde erstellt. Bitte bestätige bei Bedarf deine E-Mail-Adresse und melde dich danach an.", feature1Title:"QR-X im Browser", feature1Text:"Erstelle und verwalte QR-X bequem am Desktop.", feature2Title:"App-kompatibel", feature2Text:"Melde dich mit demselben Konto auch in der App an.", feature3Title:"Credits bereit", feature3Text:"Credit-Stand und Käufe werden zentral gespeichert.", alreadyRegistered:"Für diese E-Mail existiert bereits ein Konto.", weakPassword:"Bitte wähle ein stärkeres Passwort.", registrationFailed:"Registrierung fehlgeschlagen. Bitte versuche es erneut." },
-  en: { kicker:"Mioseg qr account", title:"Create your account and start your first QR-X.", subtitle:"Your account works for web and app. Everything stays synced through Supabase.", formTitle:"Register", formSubtitle:"Create your mioseg qr account.", email:"Email", password:"Password", passwordRepeat:"Repeat password", submit:"Create account", loading:"Creating account ...", hasAccount:"Already have an account?", login:"Login", passwordMismatch:"The passwords do not match.", passwordShort:"The password should have at least 6 characters.", termsPrefix:"I accept the", terms:"Terms of Use", termsSuffix:` (version ${CURRENT_TERMS_VERSION}).`, age:"I confirm that I am at least 16 years old.", privacyPrefix:"Information about how we process your data is available in the", privacy:"Privacy Policy", termsMissing:"Please accept the Terms of Use before creating your account.", ageMissing:"Please confirm that you are at least 16 years old.", success:"Account created. Please confirm your email address if required, then sign in.", feature1Title:"QR-X in browser", feature1Text:"Create and manage QR-X comfortably on desktop.", feature2Title:"App compatible", feature2Text:"Sign in to the app with the same account.", feature3Title:"Credits ready", feature3Text:"Credit balance and purchases are stored centrally.", alreadyRegistered:"An account already exists for this email.", weakPassword:"Please choose a stronger password.", registrationFailed:"Registration failed. Please try again." },
-  tr: { kicker:"Mioseg qr hesabı", title:"Hesabınızı oluşturun ve ilk QR-X'inizi başlatın.", subtitle:"Hesabınız web ve uygulamada geçerlidir. Her şey Supabase üzerinden senkronize kalır.", formTitle:"Kayıt ol", formSubtitle:"Mioseg qr hesabınızı oluşturun.", email:"E-posta", password:"Şifre", passwordRepeat:"Şifreyi tekrar girin", submit:"Hesap oluştur", loading:"Hesap oluşturuluyor ...", hasAccount:"Zaten hesabınız var mı?", login:"Giriş yap", passwordMismatch:"Şifreler eşleşmiyor.", passwordShort:"Şifre en az 6 karakter olmalıdır.", termsPrefix:"Şunları kabul ediyorum:", terms:"Kullanım Koşulları", termsSuffix:` (sürüm ${CURRENT_TERMS_VERSION}).`, age:"En az 16 yaşında olduğumu onaylıyorum.", privacyPrefix:"Verilerinizin işlenmesine ilişkin bilgileri şurada bulabilirsiniz:", privacy:"Gizlilik Politikası", termsMissing:"Hesabınızı oluşturmadan önce Kullanım Koşullarını kabul edin.", ageMissing:"Lütfen en az 16 yaşında olduğunuzu onaylayın.", success:"Hesap oluşturuldu. Gerekirse e-posta adresinizi doğrulayın ve ardından giriş yapın.", feature1Title:"Tarayıcıda QR-X", feature1Text:"QR-X'lerinizi masaüstünde kolayca oluşturun ve yönetin.", feature2Title:"Uygulama uyumlu", feature2Text:"Aynı hesapla uygulamada da giriş yapın.", feature3Title:"Krediler hazır", feature3Text:"Kredi bakiyesi ve satın alımlar merkezi olarak saklanır.", alreadyRegistered:"Bu e-posta için zaten bir hesap mevcut.", weakPassword:"Lütfen daha güçlü bir şifre seçin.", registrationFailed:"Kayıt başarısız. Lütfen tekrar deneyin." },
-  pl: { kicker:"Konto Mioseg qr", title:"Utwórz konto i rozpocznij swój pierwszy QR-X.", subtitle:"Twoje konto działa w wersji webowej i aplikacji. Wszystko pozostaje zsynchronizowane przez Supabase.", formTitle:"Rejestracja", formSubtitle:"Utwórz konto mioseg qr.", email:"E-mail", password:"Hasło", passwordRepeat:"Powtórz hasło", submit:"Utwórz konto", loading:"Tworzenie konta ...", hasAccount:"Masz już konto?", login:"Zaloguj się", passwordMismatch:"Hasła nie są zgodne.", passwordShort:"Hasło powinno mieć co najmniej 6 znaków.", termsPrefix:"Akceptuję", terms:"Warunki korzystania", termsSuffix:` (wersja ${CURRENT_TERMS_VERSION}).`, age:"Potwierdzam, że mam co najmniej 16 lat.", privacyPrefix:"Informacje o przetwarzaniu danych znajdziesz w", privacy:"Polityce prywatności", termsMissing:"Przed utworzeniem konta zaakceptuj Warunki korzystania.", ageMissing:"Potwierdź, że masz co najmniej 16 lat.", success:"Konto zostało utworzone. W razie potrzeby potwierdź adres e-mail, a następnie się zaloguj.", feature1Title:"QR-X w przeglądarce", feature1Text:"Twórz i zarządzaj QR-X wygodnie na komputerze.", feature2Title:"Zgodne z aplikacją", feature2Text:"Zaloguj się w aplikacji przy użyciu tego samego konta.", feature3Title:"Kredyty gotowe", feature3Text:"Saldo kredytów i zakupy są przechowywane centralnie.", alreadyRegistered:"Dla tego adresu e-mail istnieje już konto.", weakPassword:"Wybierz silniejsze hasło.", registrationFailed:"Rejestracja nie powiodła się. Spróbuj ponownie." },
-  ar: { kicker:"حساب Mioseg qr", title:"أنشئ حسابك وابدأ أول QR-X لك.", subtitle:"يعمل حسابك على الويب وفي التطبيق. يبقى كل شيء متزامنًا عبر Supabase.", formTitle:"إنشاء حساب", formSubtitle:"أنشئ حساب mioseg qr الخاص بك.", email:"البريد الإلكتروني", password:"كلمة المرور", passwordRepeat:"تأكيد كلمة المرور", submit:"إنشاء حساب", loading:"جارٍ إنشاء الحساب ...", hasAccount:"لديك حساب بالفعل؟", login:"تسجيل الدخول", passwordMismatch:"كلمتا المرور غير متطابقتين.", passwordShort:"يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.", termsPrefix:"أوافق على", terms:"شروط الاستخدام", termsSuffix:` (الإصدار ${CURRENT_TERMS_VERSION}).`, age:"أؤكد أن عمري 16 عامًا على الأقل.", privacyPrefix:"يمكنك العثور على معلومات حول معالجة بياناتك في", privacy:"سياسة الخصوصية", termsMissing:"يرجى قبول شروط الاستخدام قبل إنشاء حسابك.", ageMissing:"يرجى تأكيد أن عمرك 16 عامًا على الأقل.", success:"تم إنشاء الحساب. يرجى تأكيد بريدك الإلكتروني عند الحاجة ثم تسجيل الدخول.", feature1Title:"QR-X في المتصفح", feature1Text:"أنشئ وأدر QR-X بسهولة من سطح المكتب.", feature2Title:"متوافق مع التطبيق", feature2Text:"سجّل الدخول إلى التطبيق باستخدام الحساب نفسه.", feature3Title:"الأرصدة جاهزة", feature3Text:"يتم حفظ رصيد الأرصدة والمشتريات مركزيًا.", alreadyRegistered:"يوجد حساب بالفعل لهذا البريد الإلكتروني.", weakPassword:"يرجى اختيار كلمة مرور أقوى.", registrationFailed:"فشل التسجيل. يرجى المحاولة مرة أخرى." },
-  fr: { kicker:"Compte Mioseg qr", title:"Créez votre compte et lancez votre premier QR-X.", subtitle:"Votre compte fonctionne sur le web et dans l’application. Tout reste synchronisé via Supabase.", formTitle:"Créer un compte", formSubtitle:"Créez votre compte mioseg qr.", email:"E-mail", password:"Mot de passe", passwordRepeat:"Répéter le mot de passe", submit:"Créer un compte", loading:"Création du compte ...", hasAccount:"Vous avez déjà un compte ?", login:"Se connecter", passwordMismatch:"Les mots de passe ne correspondent pas.", passwordShort:"Le mot de passe doit comporter au moins 6 caractères.", termsPrefix:"J’accepte les", terms:"Conditions d’utilisation", termsSuffix:` (version ${CURRENT_TERMS_VERSION}).`, age:"Je confirme avoir au moins 16 ans.", privacyPrefix:"Les informations sur le traitement de vos données sont disponibles dans la", privacy:"Politique de confidentialité", termsMissing:"Veuillez accepter les Conditions d’utilisation avant de créer votre compte.", ageMissing:"Veuillez confirmer que vous avez au moins 16 ans.", success:"Compte créé. Confirmez votre adresse e-mail si nécessaire, puis connectez-vous.", feature1Title:"QR-X dans le navigateur", feature1Text:"Créez et gérez facilement vos QR-X sur ordinateur.", feature2Title:"Compatible avec l’application", feature2Text:"Connectez-vous à l’application avec le même compte.", feature3Title:"Crédits disponibles", feature3Text:"Le solde de crédits et les achats sont enregistrés de manière centralisée.", alreadyRegistered:"Un compte existe déjà pour cet e-mail.", weakPassword:"Veuillez choisir un mot de passe plus robuste.", registrationFailed:"L’inscription a échoué. Veuillez réessayer." },
-  es: { kicker:"Cuenta Mioseg qr", title:"Crea tu cuenta y empieza tu primer QR-X.", subtitle:"Tu cuenta funciona en la web y en la aplicación. Todo permanece sincronizado mediante Supabase.", formTitle:"Registrarse", formSubtitle:"Crea tu cuenta de mioseg qr.", email:"Correo electrónico", password:"Contraseña", passwordRepeat:"Repetir contraseña", submit:"Crear cuenta", loading:"Creando cuenta ...", hasAccount:"¿Ya tienes una cuenta?", login:"Iniciar sesión", passwordMismatch:"Las contraseñas no coinciden.", passwordShort:"La contraseña debe tener al menos 6 caracteres.", termsPrefix:"Acepto los", terms:"Términos de uso", termsSuffix:` (versión ${CURRENT_TERMS_VERSION}).`, age:"Confirmo que tengo al menos 16 años.", privacyPrefix:"La información sobre el tratamiento de tus datos está disponible en la", privacy:"Política de privacidad", termsMissing:"Acepta los Términos de uso antes de crear tu cuenta.", ageMissing:"Confirma que tienes al menos 16 años.", success:"Cuenta creada. Confirma tu correo electrónico si es necesario y luego inicia sesión.", feature1Title:"QR-X en el navegador", feature1Text:"Crea y gestiona QR-X cómodamente desde el ordenador.", feature2Title:"Compatible con la aplicación", feature2Text:"Inicia sesión en la aplicación con la misma cuenta.", feature3Title:"Créditos listos", feature3Text:"El saldo de créditos y las compras se almacenan de forma centralizada.", alreadyRegistered:"Ya existe una cuenta para este correo electrónico.", weakPassword:"Elige una contraseña más segura.", registrationFailed:"No se pudo completar el registro. Inténtalo de nuevo." },
-  it: { kicker:"Account Mioseg qr", title:"Crea il tuo account e avvia il tuo primo QR-X.", subtitle:"Il tuo account funziona sul web e nell’app. Tutto rimane sincronizzato tramite Supabase.", formTitle:"Registrati", formSubtitle:"Crea il tuo account mioseg qr.", email:"E-mail", password:"Password", passwordRepeat:"Ripeti password", submit:"Crea account", loading:"Creazione account ...", hasAccount:"Hai già un account?", login:"Accedi", passwordMismatch:"Le password non coincidono.", passwordShort:"La password deve contenere almeno 6 caratteri.", termsPrefix:"Accetto i", terms:"Termini di utilizzo", termsSuffix:` (versione ${CURRENT_TERMS_VERSION}).`, age:"Confermo di avere almeno 16 anni.", privacyPrefix:"Le informazioni sul trattamento dei tuoi dati sono disponibili nella", privacy:"Informativa sulla privacy", termsMissing:"Accetta i Termini di utilizzo prima di creare il tuo account.", ageMissing:"Conferma di avere almeno 16 anni.", success:"Account creato. Conferma il tuo indirizzo e-mail se necessario, quindi accedi.", feature1Title:"QR-X nel browser", feature1Text:"Crea e gestisci comodamente i QR-X dal desktop.", feature2Title:"Compatibile con l’app", feature2Text:"Accedi all’app con lo stesso account.", feature3Title:"Crediti pronti", feature3Text:"Saldo crediti e acquisti vengono salvati centralmente.", alreadyRegistered:"Esiste già un account per questa e-mail.", weakPassword:"Scegli una password più sicura.", registrationFailed:"Registrazione non riuscita. Riprova." },
+  de: { kicker:"Mioseg qr Konto", title:"Erstelle dein Konto und starte deinen ersten QR-X.", subtitle:"Dein Account gilt automatisch für Web und App. Alles bleibt über Supabase synchron.", formTitle:"Registrieren", formSubtitle:"Erstelle dein Konto für mioseg qr.", email:"E-Mail", password:"Passwort", passwordRepeat:"Passwort wiederholen", submit:"Konto erstellen", loading:"Konto wird erstellt ...", hasAccount:"Du hast bereits ein Konto?", login:"Einloggen", passwordMismatch:"Die Passwörter stimmen nicht überein.", passwordShort:"Das Passwort sollte mindestens 6 Zeichen haben.", termsPrefix:"Ich akzeptiere die", terms:"Nutzungsbedingungen", termsSuffix:` (Version ${CURRENT_TERMS_VERSION}).`, age:"Ich bestätige, dass ich mindestens 16 Jahre alt bin.", privacyPrefix:"Informationen zur Verarbeitung deiner Daten findest du in der", privacy:"Datenschutzerklärung", termsMissing:"Bitte akzeptiere die Nutzungsbedingungen, bevor du dein Konto erstellst.", ageMissing:"Bitte bestätige, dass du mindestens 16 Jahre alt bist.", success:"Konto wurde erstellt. Bitte bestätige bei Bedarf deine E-Mail-Adresse und melde dich danach an.", feature1Title:"QR-X im Browser", feature1Text:"Erstelle und verwalte QR-X bequem am Desktop.", feature2Title:"App-kompatibel", feature2Text:"Melde dich mit demselben Konto auch in der App an.", feature3Title:"Credits bereit", feature3Text:"Credit-Stand und Käufe werden zentral gespeichert.", alreadyRegistered:"Für diese E-Mail existiert bereits ein Konto.", weakPassword:"Bitte wähle ein stärkeres Passwort.", registrationFailed:"Registrierung fehlgeschlagen. Bitte versuche es erneut.", showPassword:"Passwort anzeigen", hidePassword:"Passwort verbergen" },
+  en: { kicker:"Mioseg qr account", title:"Create your account and start your first QR-X.", subtitle:"Your account works for web and app. Everything stays synced through Supabase.", formTitle:"Register", formSubtitle:"Create your mioseg qr account.", email:"Email", password:"Password", passwordRepeat:"Repeat password", submit:"Create account", loading:"Creating account ...", hasAccount:"Already have an account?", login:"Login", passwordMismatch:"The passwords do not match.", passwordShort:"The password should have at least 6 characters.", termsPrefix:"I accept the", terms:"Terms of Use", termsSuffix:` (version ${CURRENT_TERMS_VERSION}).`, age:"I confirm that I am at least 16 years old.", privacyPrefix:"Information about how we process your data is available in the", privacy:"Privacy Policy", termsMissing:"Please accept the Terms of Use before creating your account.", ageMissing:"Please confirm that you are at least 16 years old.", success:"Account created. Please confirm your email address if required, then sign in.", feature1Title:"QR-X in browser", feature1Text:"Create and manage QR-X comfortably on desktop.", feature2Title:"App compatible", feature2Text:"Sign in to the app with the same account.", feature3Title:"Credits ready", feature3Text:"Credit balance and purchases are stored centrally.", alreadyRegistered:"An account already exists for this email.", weakPassword:"Please choose a stronger password.", registrationFailed:"Registration failed. Please try again.", showPassword:"Show password", hidePassword:"Hide password" },
+  tr: { kicker:"Mioseg qr hesabı", title:"Hesabınızı oluşturun ve ilk QR-X'inizi başlatın.", subtitle:"Hesabınız web ve uygulamada geçerlidir. Her şey Supabase üzerinden senkronize kalır.", formTitle:"Kayıt ol", formSubtitle:"Mioseg qr hesabınızı oluşturun.", email:"E-posta", password:"Şifre", passwordRepeat:"Şifreyi tekrar girin", submit:"Hesap oluştur", loading:"Hesap oluşturuluyor ...", hasAccount:"Zaten hesabınız var mı?", login:"Giriş yap", passwordMismatch:"Şifreler eşleşmiyor.", passwordShort:"Şifre en az 6 karakter olmalıdır.", termsPrefix:"Şunları kabul ediyorum:", terms:"Kullanım Koşulları", termsSuffix:` (sürüm ${CURRENT_TERMS_VERSION}).`, age:"En az 16 yaşında olduğumu onaylıyorum.", privacyPrefix:"Verilerinizin işlenmesine ilişkin bilgileri şurada bulabilirsiniz:", privacy:"Gizlilik Politikası", termsMissing:"Hesabınızı oluşturmadan önce Kullanım Koşullarını kabul edin.", ageMissing:"Lütfen en az 16 yaşında olduğunuzu onaylayın.", success:"Hesap oluşturuldu. Gerekirse e-posta adresinizi doğrulayın ve ardından giriş yapın.", feature1Title:"Tarayıcıda QR-X", feature1Text:"QR-X'lerinizi masaüstünde kolayca oluşturun ve yönetin.", feature2Title:"Uygulama uyumlu", feature2Text:"Aynı hesapla uygulamada da giriş yapın.", feature3Title:"Krediler hazır", feature3Text:"Kredi bakiyesi ve satın alımlar merkezi olarak saklanır.", alreadyRegistered:"Bu e-posta için zaten bir hesap mevcut.", weakPassword:"Lütfen daha güçlü bir şifre seçin.", registrationFailed:"Kayıt başarısız. Lütfen tekrar deneyin.", showPassword:"Şifreyi göster", hidePassword:"Şifreyi gizle" },
+  pl: { kicker:"Konto Mioseg qr", title:"Utwórz konto i rozpocznij swój pierwszy QR-X.", subtitle:"Twoje konto działa w wersji webowej i aplikacji. Wszystko pozostaje zsynchronizowane przez Supabase.", formTitle:"Rejestracja", formSubtitle:"Utwórz konto mioseg qr.", email:"E-mail", password:"Hasło", passwordRepeat:"Powtórz hasło", submit:"Utwórz konto", loading:"Tworzenie konta ...", hasAccount:"Masz już konto?", login:"Zaloguj się", passwordMismatch:"Hasła nie są zgodne.", passwordShort:"Hasło powinno mieć co najmniej 6 znaków.", termsPrefix:"Akceptuję", terms:"Warunki korzystania", termsSuffix:` (wersja ${CURRENT_TERMS_VERSION}).`, age:"Potwierdzam, że mam co najmniej 16 lat.", privacyPrefix:"Informacje o przetwarzaniu danych znajdziesz w", privacy:"Polityce prywatności", termsMissing:"Przed utworzeniem konta zaakceptuj Warunki korzystania.", ageMissing:"Potwierdź, że masz co najmniej 16 lat.", success:"Konto zostało utworzone. W razie potrzeby potwierdź adres e-mail, a następnie się zaloguj.", feature1Title:"QR-X w przeglądarce", feature1Text:"Twórz i zarządzaj QR-X wygodnie na komputerze.", feature2Title:"Zgodne z aplikacją", feature2Text:"Zaloguj się w aplikacji przy użyciu tego samego konta.", feature3Title:"Kredyty gotowe", feature3Text:"Saldo kredytów i zakupy są przechowywane centralnie.", alreadyRegistered:"Dla tego adresu e-mail istnieje już konto.", weakPassword:"Wybierz silniejsze hasło.", registrationFailed:"Rejestracja nie powiodła się. Spróbuj ponownie.", showPassword:"Pokaż hasło", hidePassword:"Ukryj hasło" },
+  ar: { kicker:"حساب Mioseg qr", title:"أنشئ حسابك وابدأ أول QR-X لك.", subtitle:"يعمل حسابك على الويب وفي التطبيق. يبقى كل شيء متزامنًا عبر Supabase.", formTitle:"إنشاء حساب", formSubtitle:"أنشئ حساب mioseg qr الخاص بك.", email:"البريد الإلكتروني", password:"كلمة المرور", passwordRepeat:"تأكيد كلمة المرور", submit:"إنشاء حساب", loading:"جارٍ إنشاء الحساب ...", hasAccount:"لديك حساب بالفعل؟", login:"تسجيل الدخول", passwordMismatch:"كلمتا المرور غير متطابقتين.", passwordShort:"يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.", termsPrefix:"أوافق على", terms:"شروط الاستخدام", termsSuffix:` (الإصدار ${CURRENT_TERMS_VERSION}).`, age:"أؤكد أن عمري 16 عامًا على الأقل.", privacyPrefix:"يمكنك العثور على معلومات حول معالجة بياناتك في", privacy:"سياسة الخصوصية", termsMissing:"يرجى قبول شروط الاستخدام قبل إنشاء حسابك.", ageMissing:"يرجى تأكيد أن عمرك 16 عامًا على الأقل.", success:"تم إنشاء الحساب. يرجى تأكيد بريدك الإلكتروني عند الحاجة ثم تسجيل الدخول.", feature1Title:"QR-X في المتصفح", feature1Text:"أنشئ وأدر QR-X بسهولة من سطح المكتب.", feature2Title:"متوافق مع التطبيق", feature2Text:"سجّل الدخول إلى التطبيق باستخدام الحساب نفسه.", feature3Title:"الأرصدة جاهزة", feature3Text:"يتم حفظ رصيد الأرصدة والمشتريات مركزيًا.", alreadyRegistered:"يوجد حساب بالفعل لهذا البريد الإلكتروني.", weakPassword:"يرجى اختيار كلمة مرور أقوى.", registrationFailed:"فشل التسجيل. يرجى المحاولة مرة أخرى.", showPassword:"إظهار كلمة المرور", hidePassword:"إخفاء كلمة المرور" },
+  fr: { kicker:"Compte Mioseg qr", title:"Créez votre compte et lancez votre premier QR-X.", subtitle:"Votre compte fonctionne sur le web et dans l’application. Tout reste synchronisé via Supabase.", formTitle:"Créer un compte", formSubtitle:"Créez votre compte mioseg qr.", email:"E-mail", password:"Mot de passe", passwordRepeat:"Répéter le mot de passe", submit:"Créer un compte", loading:"Création du compte ...", hasAccount:"Vous avez déjà un compte ?", login:"Se connecter", passwordMismatch:"Les mots de passe ne correspondent pas.", passwordShort:"Le mot de passe doit comporter au moins 6 caractères.", termsPrefix:"J’accepte les", terms:"Conditions d’utilisation", termsSuffix:` (version ${CURRENT_TERMS_VERSION}).`, age:"Je confirme avoir au moins 16 ans.", privacyPrefix:"Les informations sur le traitement de vos données sont disponibles dans la", privacy:"Politique de confidentialité", termsMissing:"Veuillez accepter les Conditions d’utilisation avant de créer votre compte.", ageMissing:"Veuillez confirmer que vous avez au moins 16 ans.", success:"Compte créé. Confirmez votre adresse e-mail si nécessaire, puis connectez-vous.", feature1Title:"QR-X dans le navigateur", feature1Text:"Créez et gérez facilement vos QR-X sur ordinateur.", feature2Title:"Compatible avec l’application", feature2Text:"Connectez-vous à l’application avec le même compte.", feature3Title:"Crédits disponibles", feature3Text:"Le solde de crédits et les achats sont enregistrés de manière centralisée.", alreadyRegistered:"Un compte existe déjà pour cet e-mail.", weakPassword:"Veuillez choisir un mot de passe plus robuste.", registrationFailed:"L’inscription a échoué. Veuillez réessayer.", showPassword:"Afficher le mot de passe", hidePassword:"Masquer le mot de passe" },
+  es: { kicker:"Cuenta Mioseg qr", title:"Crea tu cuenta y empieza tu primer QR-X.", subtitle:"Tu cuenta funciona en la web y en la aplicación. Todo permanece sincronizado mediante Supabase.", formTitle:"Registrarse", formSubtitle:"Crea tu cuenta de mioseg qr.", email:"Correo electrónico", password:"Contraseña", passwordRepeat:"Repetir contraseña", submit:"Crear cuenta", loading:"Creando cuenta ...", hasAccount:"¿Ya tienes una cuenta?", login:"Iniciar sesión", passwordMismatch:"Las contraseñas no coinciden.", passwordShort:"La contraseña debe tener al menos 6 caracteres.", termsPrefix:"Acepto los", terms:"Términos de uso", termsSuffix:` (versión ${CURRENT_TERMS_VERSION}).`, age:"Confirmo que tengo al menos 16 años.", privacyPrefix:"La información sobre el tratamiento de tus datos está disponible en la", privacy:"Política de privacidad", termsMissing:"Acepta los Términos de uso antes de crear tu cuenta.", ageMissing:"Confirma que tienes al menos 16 años.", success:"Cuenta creada. Confirma tu correo electrónico si es necesario y luego inicia sesión.", feature1Title:"QR-X en el navegador", feature1Text:"Crea y gestiona QR-X cómodamente desde el ordenador.", feature2Title:"Compatible con la aplicación", feature2Text:"Inicia sesión en la aplicación con la misma cuenta.", feature3Title:"Créditos listos", feature3Text:"El saldo de créditos y las compras se almacenan de forma centralizada.", alreadyRegistered:"Ya existe una cuenta para este correo electrónico.", weakPassword:"Elige una contraseña más segura.", registrationFailed:"No se pudo completar el registro. Inténtalo de nuevo.", showPassword:"Mostrar contraseña", hidePassword:"Ocultar contraseña" },
+  it: { kicker:"Account Mioseg qr", title:"Crea il tuo account e avvia il tuo primo QR-X.", subtitle:"Il tuo account funziona sul web e nell’app. Tutto rimane sincronizzato tramite Supabase.", formTitle:"Registrati", formSubtitle:"Crea il tuo account mioseg qr.", email:"E-mail", password:"Password", passwordRepeat:"Ripeti password", submit:"Crea account", loading:"Creazione account ...", hasAccount:"Hai già un account?", login:"Accedi", passwordMismatch:"Le password non coincidono.", passwordShort:"La password deve contenere almeno 6 caratteri.", termsPrefix:"Accetto i", terms:"Termini di utilizzo", termsSuffix:` (versione ${CURRENT_TERMS_VERSION}).`, age:"Confermo di avere almeno 16 anni.", privacyPrefix:"Le informazioni sul trattamento dei tuoi dati sono disponibili nella", privacy:"Informativa sulla privacy", termsMissing:"Accetta i Termini di utilizzo prima di creare il tuo account.", ageMissing:"Conferma di avere almeno 16 anni.", success:"Account creato. Conferma il tuo indirizzo e-mail se necessario, quindi accedi.", feature1Title:"QR-X nel browser", feature1Text:"Crea e gestisci comodamente i QR-X dal desktop.", feature2Title:"Compatibile con l’app", feature2Text:"Accedi all’app con lo stesso account.", feature3Title:"Crediti pronti", feature3Text:"Saldo crediti e acquisti vengono salvati centralmente.", alreadyRegistered:"Esiste già un account per questa e-mail.", weakPassword:"Scegli una password più sicura.", registrationFailed:"Registrazione non riuscita. Riprova.", showPassword:"Mostra password", hidePassword:"Nascondi password" },
 };
 
 function getRegisterErrorMessage(message: string, locale: string) {
@@ -62,12 +63,35 @@ function getRegisterErrorMessage(message: string, locale: string) {
   return copy.registrationFailed;
 }
 
+
+function EyeIcon({ crossed = false }: { crossed?: boolean }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="2.7" />
+      {crossed ? <path d="M4 4l16 16" /> : null}
+    </svg>
+  );
+}
+
 export default function RegisterClient({ locale }: Props) {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordRepeat, setPasswordRepeat] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordRepeat, setShowPasswordRepeat] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [working, setWorking] = useState(false);
@@ -209,26 +233,78 @@ export default function RegisterClient({ locale }: Props) {
 
             <div className={styles.field}>
               <label htmlFor="password">{copy.password}</label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-              />
+              <div style={{ position: "relative" }}>
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                  style={{ width: "100%", paddingRight: 52 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  aria-label={showPassword ? copy.hidePassword : copy.showPassword}
+                  title={showPassword ? copy.hidePassword : copy.showPassword}
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 38,
+                    height: 38,
+                    display: "grid",
+                    placeItems: "center",
+                    border: "none",
+                    borderRadius: 10,
+                    background: "transparent",
+                    color: "#93a4b8",
+                    cursor: "pointer",
+                  }}
+                >
+                  <EyeIcon crossed={showPassword} />
+                </button>
+              </div>
             </div>
 
             <div className={styles.field}>
               <label htmlFor="passwordRepeat">{copy.passwordRepeat}</label>
-              <input
-                id="passwordRepeat"
-                type="password"
-                autoComplete="new-password"
-                value={passwordRepeat}
-                onChange={(event) => setPasswordRepeat(event.target.value)}
-                required
-              />
+              <div style={{ position: "relative" }}>
+                <input
+                  id="passwordRepeat"
+                  type={showPasswordRepeat ? "text" : "password"}
+                  autoComplete="new-password"
+                  value={passwordRepeat}
+                  onChange={(event) => setPasswordRepeat(event.target.value)}
+                  required
+                  style={{ width: "100%", paddingRight: 52 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordRepeat((value) => !value)}
+                  aria-label={showPasswordRepeat ? copy.hidePassword : copy.showPassword}
+                  title={showPasswordRepeat ? copy.hidePassword : copy.showPassword}
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 38,
+                    height: 38,
+                    display: "grid",
+                    placeItems: "center",
+                    border: "none",
+                    borderRadius: 10,
+                    background: "transparent",
+                    color: "#93a4b8",
+                    cursor: "pointer",
+                  }}
+                >
+                  <EyeIcon crossed={showPasswordRepeat} />
+                </button>
+              </div>
             </div>
 
             <label

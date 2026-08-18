@@ -242,7 +242,10 @@ export default function LoginClient({ locale }: Props) {
     setResetWorking(true);
 
     try {
-      const redirectTo = `https://mioseg-qr.com/${normalizeAccountLanguage(locale)}/reset-password`;
+      const redirectTo =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/${normalizeAccountLanguage(locale)}/reset-password`
+          : `https://www.mioseg-qr.com/${normalizeAccountLanguage(locale)}/reset-password`;
 
       const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo,
@@ -262,15 +265,6 @@ export default function LoginClient({ locale }: Props) {
 
   return (
     <main className={styles.page}>
-      <header className={styles.topbar}>
-        <Link href={`/${locale}`} className={styles.brand}>
-          <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
-        </Link>
-
-        <Link href={`/${locale}`} className={styles.navLink}>
-          {copy.navHome}
-        </Link>
-      </header>
 
       <section className={styles.authShell}>
         <article className={styles.introCard}>
