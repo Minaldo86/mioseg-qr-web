@@ -20,6 +20,10 @@ function normalizeQrxLocale(value: string): QrxWebLocale {
 
 const QRLIST_TEXT = {
   de: {
+    navLabel: "QR-X Navigation",
+    dashboard: "Dashboard",
+    explore: "Explore",
+    shareText: "QR-X: {{title}}",
     untitled: "Unbenannter QR-X",
     qrxFallback: "QR-X auf mioseg qr",
     loginRequired: "Bitte melde dich zuerst an, um deine QR-X zu sehen.",
@@ -86,6 +90,10 @@ const QRLIST_TEXT = {
     catOther: "Sonstiges",
   },
   en: {
+    navLabel: "QR-X navigation",
+    dashboard: "Dashboard",
+    explore: "Explore",
+    shareText: "QR-X: {{title}}",
     untitled: "Untitled QR-X",
     qrxFallback: "QR-X on mioseg qr",
     loginRequired: "Please sign in first to view your QR-X.",
@@ -152,6 +160,10 @@ const QRLIST_TEXT = {
     catOther: "Other",
   },
   tr: {
+    navLabel: "QR-X navigasyonu",
+    dashboard: "Kontrol paneli",
+    explore: "Explore",
+    shareText: "QR-X: {{title}}",
     untitled: "Adsız QR-X",
     qrxFallback: "mioseg qr üzerinde QR-X",
     loginRequired: "QR-X'lerini görmek için önce giriş yap.",
@@ -218,6 +230,10 @@ const QRLIST_TEXT = {
     catOther: "Diğer",
   },
   pl: {
+    navLabel: "Nawigacja QR-X",
+    dashboard: "Panel",
+    explore: "Explore",
+    shareText: "QR-X: {{title}}",
     untitled: "QR-X bez nazwy",
     qrxFallback: "QR-X w mioseg qr",
     loginRequired: "Najpierw się zaloguj, aby zobaczyć swoje QR-X.",
@@ -284,6 +300,10 @@ const QRLIST_TEXT = {
     catOther: "Inne",
   },
   ar: {
+    navLabel: "تنقل QR-X",
+    dashboard: "لوحة التحكم",
+    explore: "Explore",
+    shareText: "QR-X: {{title}}",
     untitled: "QR-X بلا عنوان",
     qrxFallback: "QR-X على mioseg qr",
     loginRequired: "يرجى تسجيل الدخول أولًا لعرض QR-X الخاصة بك.",
@@ -350,6 +370,10 @@ const QRLIST_TEXT = {
     catOther: "أخرى",
   },
   fr: {
+    navLabel: "Navigation QR-X",
+    dashboard: "Tableau de bord",
+    explore: "Explore",
+    shareText: "QR-X : {{title}}",
     untitled: "QR-X sans titre",
     qrxFallback: "QR-X sur mioseg qr",
     loginRequired: "Connectez-vous pour voir vos QR-X.",
@@ -416,6 +440,10 @@ const QRLIST_TEXT = {
     catOther: "Autre",
   },
   es: {
+    navLabel: "Navegación QR-X",
+    dashboard: "Panel",
+    explore: "Explore",
+    shareText: "QR-X: {{title}}",
     untitled: "QR-X sin título",
     qrxFallback: "QR-X en mioseg qr",
     loginRequired: "Inicia sesión para ver tus QR-X.",
@@ -482,6 +510,10 @@ const QRLIST_TEXT = {
     catOther: "Otros",
   },
   it: {
+    navLabel: "Navigazione QR-X",
+    dashboard: "Dashboard",
+    explore: "Explore",
+    shareText: "QR-X: {{title}}",
     untitled: "QR-X senza titolo",
     qrxFallback: "QR-X su mioseg qr",
     loginRequired: "Accedi per vedere i tuoi QR-X.",
@@ -834,7 +866,7 @@ export default function DashboardQrxPage() {
       if (navigator.share) {
         await navigator.share({
           title,
-          text: `QR-X: ${title}`,
+          text: ui.shareText.replace("{{title}}", title),
           url,
         });
         return;
@@ -1010,9 +1042,9 @@ export default function DashboardQrxPage() {
           <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
         </Link>
 
-        <nav className={styles.nav} aria-label="QR-X Navigation">
-          <Link href={`/${locale}/dashboard`}>Dashboard</Link>
-          <Link href={`/${locale}/explore`}>Explore</Link>
+        <nav className={styles.nav} aria-label={ui.navLabel}>
+          <Link href={`/${locale}/dashboard`}>{ui.dashboard}</Link>
+          <Link href={`/${locale}/explore`}>{ui.explore}</Link>
         </nav>
       </header>
 

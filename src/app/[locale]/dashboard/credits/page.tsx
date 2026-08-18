@@ -44,6 +44,8 @@ type CreditCopy = {
   qrxCreation: string;
   freeStorage: string;
   packages: string;
+  payPerUse: string;
+  launchLabel: string;
   packagesTitle: string;
   packagesText: string;
   invoiceIncluded: string;
@@ -99,7 +101,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     navLabel:"Credits Navigation", dashboard:"Dashboard", myQrx:"Meine QR-X", invoices:"Rechnungen",
     heroTitle:"Credits verwalten", heroText:"Behalte dein Guthaben im Blick und kaufe neue Credits direkt über Stripe. Credits werden für die Erstellung von QR-X und für zusätzlichen Speicher genutzt. Die Werte werden zentral im Adminbereich verwaltet.",
     openInvoices:"Rechnungen öffnen", backDashboard:"Zurück zum Dashboard", statsLabel:"Credit Kennzahlen",
-    currentCredits:"Aktuelle Credits", qrxCreation:"QR-X Erstellung", freeStorage:"Freier Speicher", packages:"Pakete",
+    currentCredits:"Aktuelle Credits", qrxCreation:"QR-X Erstellung", freeStorage:"Freier Speicher", packages:"Pakete", payPerUse:"Nutzungsabhängig", launchLabel:"Einführung",
     packagesTitle:"Credit-Pakete", packagesText:"Wähle ein Paket und starte den sicheren Checkout über Stripe. Die Preise werden live aus der Admin-Konfiguration geladen.",
     invoiceIncluded:"inkl. Rechnung für deine Unterlagen.", buyCredits:"Credits kaufen", goStripe:"Weiter zu Stripe...",
     historyTitle:"Kaufhistorie", historyText:"Deine letzten Rechnungen und Gutschriften zu Credit-Käufen.", loading:"Lädt",
@@ -121,7 +123,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     navLabel:"Credits navigation", dashboard:"Dashboard", myQrx:"My QR-X", invoices:"Invoices",
     heroTitle:"Manage credits", heroText:"Keep track of your balance and buy new credits directly via Stripe. Credits are used to create QR-X and for additional storage. The values are managed centrally in the admin area.",
     openInvoices:"Open invoices", backDashboard:"Back to dashboard", statsLabel:"Credit statistics",
-    currentCredits:"Current credits", qrxCreation:"QR-X creation", freeStorage:"Free storage", packages:"Packages",
+    currentCredits:"Current credits", qrxCreation:"QR-X creation", freeStorage:"Free storage", packages:"Packages", payPerUse:"Pay per use", launchLabel:"Launch",
     packagesTitle:"Credit packages", packagesText:"Choose a package and start secure checkout via Stripe. Prices are loaded live from the admin configuration.",
     invoiceIncluded:"including an invoice for your records.", buyCredits:"Buy credits", goStripe:"Continue to Stripe...",
     historyTitle:"Purchase history", historyText:"Your latest invoices and credit notes for credit purchases.", loading:"Loading",
@@ -143,7 +145,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     navLabel:"Credits navigasyonu", dashboard:"Kontrol paneli", myQrx:"QR-X'lerim", invoices:"Faturalar",
     heroTitle:"Credits yönetimi", heroText:"Bakiyeni takip et ve Stripe üzerinden doğrudan yeni Credits satın al. Credits, QR-X oluşturmak ve ek depolama için kullanılır. Değerler yönetici alanından merkezi olarak yönetilir.",
     openInvoices:"Faturaları aç", backDashboard:"Kontrol paneline dön", statsLabel:"Credit istatistikleri",
-    currentCredits:"Mevcut Credits", qrxCreation:"QR-X oluşturma", freeStorage:"Ücretsiz depolama", packages:"Paketler",
+    currentCredits:"Mevcut Credits", qrxCreation:"QR-X oluşturma", freeStorage:"Ücretsiz depolama", packages:"Paketler", payPerUse:"Kullandıkça öde", launchLabel:"Lansman",
     packagesTitle:"Credit paketleri", packagesText:"Bir paket seç ve Stripe üzerinden güvenli ödeme sürecini başlat. Fiyatlar yönetici yapılandırmasından canlı olarak yüklenir.",
     invoiceIncluded:"kayıtların için fatura dahil.", buyCredits:"Credits satın al", goStripe:"Stripe'a devam et...",
     historyTitle:"Satın alma geçmişi", historyText:"Credit satın alımlarına ait son faturaların ve alacak notların.", loading:"Yükleniyor",
@@ -165,7 +167,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     navLabel:"Nawigacja Credits", dashboard:"Panel", myQrx:"Moje QR-X", invoices:"Faktury",
     heroTitle:"Zarządzaj Credits", heroText:"Kontroluj saldo i kupuj nowe Credits bezpośrednio przez Stripe. Credits służą do tworzenia QR-X i dodatkowej przestrzeni. Wartości są zarządzane centralnie w panelu administratora.",
     openInvoices:"Otwórz faktury", backDashboard:"Wróć do panelu", statsLabel:"Statystyki Credits",
-    currentCredits:"Aktualne Credits", qrxCreation:"Tworzenie QR-X", freeStorage:"Bezpłatna przestrzeń", packages:"Pakiety",
+    currentCredits:"Aktualne Credits", qrxCreation:"Tworzenie QR-X", freeStorage:"Bezpłatna przestrzeń", packages:"Pakiety", payPerUse:"Płatność za użycie", launchLabel:"Start",
     packagesTitle:"Pakiety Credits", packagesText:"Wybierz pakiet i rozpocznij bezpieczną płatność przez Stripe. Ceny są pobierane na żywo z konfiguracji administratora.",
     invoiceIncluded:"z fakturą do Twojej dokumentacji.", buyCredits:"Kup Credits", goStripe:"Przejdź do Stripe...",
     historyTitle:"Historia zakupów", historyText:"Twoje ostatnie faktury i noty uznaniowe za zakupy Credits.", loading:"Ładowanie",
@@ -187,7 +189,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     navLabel:"تنقل Credits", dashboard:"لوحة التحكم", myQrx:"QR-X الخاصة بي", invoices:"الفواتير",
     heroTitle:"إدارة Credits", heroText:"تابع رصيدك واشترِ Credits جديدة مباشرة عبر Stripe. تُستخدم Credits لإنشاء QR-X وللتخزين الإضافي. تتم إدارة القيم مركزيًا من لوحة الإدارة.",
     openInvoices:"فتح الفواتير", backDashboard:"العودة إلى لوحة التحكم", statsLabel:"إحصاءات Credits",
-    currentCredits:"Credits الحالية", qrxCreation:"إنشاء QR-X", freeStorage:"التخزين المجاني", packages:"الحزم",
+    currentCredits:"Credits الحالية", qrxCreation:"إنشاء QR-X", freeStorage:"التخزين المجاني", packages:"الحزم", payPerUse:"الدفع حسب الاستخدام", launchLabel:"إطلاق",
     packagesTitle:"حزم Credits", packagesText:"اختر حزمة وابدأ الدفع الآمن عبر Stripe. يتم تحميل الأسعار مباشرة من إعدادات الإدارة.",
     invoiceIncluded:"مع فاتورة لسجلاتك.", buyCredits:"شراء Credits", goStripe:"المتابعة إلى Stripe...",
     historyTitle:"سجل المشتريات", historyText:"أحدث الفواتير وإشعارات الدائن لعمليات شراء Credits.", loading:"جارٍ التحميل",
@@ -209,7 +211,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     navLabel:"Navigation des Credits", dashboard:"Tableau de bord", myQrx:"Mes QR-X", invoices:"Factures",
     heroTitle:"Gérer les Credits", heroText:"Gardez un œil sur votre solde et achetez de nouveaux Credits directement via Stripe. Les Credits servent à créer des QR-X et à obtenir du stockage supplémentaire. Les valeurs sont gérées de manière centralisée dans l’administration.",
     openInvoices:"Ouvrir les factures", backDashboard:"Retour au tableau de bord", statsLabel:"Statistiques des Credits",
-    currentCredits:"Credits actuels", qrxCreation:"Création de QR-X", freeStorage:"Stockage gratuit", packages:"Packs",
+    currentCredits:"Credits actuels", qrxCreation:"Création de QR-X", freeStorage:"Stockage gratuit", packages:"Packs", payPerUse:"Paiement à l’usage", launchLabel:"Lancement",
     packagesTitle:"Packs de Credits", packagesText:"Choisissez un pack et lancez le paiement sécurisé via Stripe. Les prix sont chargés en direct depuis la configuration d’administration.",
     invoiceIncluded:"avec une facture pour vos archives.", buyCredits:"Acheter des Credits", goStripe:"Continuer vers Stripe...",
     historyTitle:"Historique des achats", historyText:"Vos dernières factures et notes de crédit pour vos achats de Credits.", loading:"Chargement",
@@ -231,7 +233,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     navLabel:"Navegación de Credits", dashboard:"Panel", myQrx:"Mis QR-X", invoices:"Facturas",
     heroTitle:"Gestionar Credits", heroText:"Controla tu saldo y compra nuevos Credits directamente mediante Stripe. Los Credits se utilizan para crear QR-X y para almacenamiento adicional. Los valores se gestionan de forma centralizada en el área de administración.",
     openInvoices:"Abrir facturas", backDashboard:"Volver al panel", statsLabel:"Estadísticas de Credits",
-    currentCredits:"Credits actuales", qrxCreation:"Creación de QR-X", freeStorage:"Almacenamiento gratuito", packages:"Paquetes",
+    currentCredits:"Credits actuales", qrxCreation:"Creación de QR-X", freeStorage:"Almacenamiento gratuito", packages:"Paquetes", payPerUse:"Pago por uso", launchLabel:"Lanzamiento",
     packagesTitle:"Paquetes de Credits", packagesText:"Elige un paquete e inicia el pago seguro mediante Stripe. Los precios se cargan en directo desde la configuración de administración.",
     invoiceIncluded:"incluye factura para tus archivos.", buyCredits:"Comprar Credits", goStripe:"Continuar a Stripe...",
     historyTitle:"Historial de compras", historyText:"Tus últimas facturas y notas de crédito de compras de Credits.", loading:"Cargando",
@@ -253,7 +255,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     navLabel:"Navigazione Credits", dashboard:"Dashboard", myQrx:"I miei QR-X", invoices:"Fatture",
     heroTitle:"Gestisci Credits", heroText:"Tieni sotto controllo il saldo e acquista nuovi Credits direttamente tramite Stripe. I Credits vengono utilizzati per creare QR-X e per spazio di archiviazione aggiuntivo. I valori sono gestiti centralmente nell’area amministrativa.",
     openInvoices:"Apri fatture", backDashboard:"Torna alla dashboard", statsLabel:"Statistiche Credits",
-    currentCredits:"Credits attuali", qrxCreation:"Creazione QR-X", freeStorage:"Spazio gratuito", packages:"Pacchetti",
+    currentCredits:"Credits attuali", qrxCreation:"Creazione QR-X", freeStorage:"Spazio gratuito", packages:"Pacchetti", payPerUse:"Pagamento a consumo", launchLabel:"Lancio",
     packagesTitle:"Pacchetti Credits", packagesText:"Scegli un pacchetto e avvia il checkout sicuro tramite Stripe. I prezzi vengono caricati in tempo reale dalla configurazione amministrativa.",
     invoiceIncluded:"fattura inclusa per i tuoi documenti.", buyCredits:"Acquista Credits", goStripe:"Continua su Stripe...",
     historyTitle:"Cronologia acquisti", historyText:"Le tue ultime fatture e note di credito per gli acquisti di Credits.", loading:"Caricamento",
@@ -440,7 +442,7 @@ function getPackRegularCents(pack: PricingPack) {
 function getPackBadge(pack: PricingPack, ui: CreditCopy) {
   const badge = pack.badge?.trim();
   if (badge) return badge;
-  if (pack.id === "p10") return "Launch";
+  if (pack.id === "p10") return ui.launchLabel;
   if (pack.id === "p25") return ui.popular;
   if (pack.id === "p50") return "Pro";
   if (pack.id === "p100") return "Best Value";
@@ -756,7 +758,7 @@ export default function CreditsPage() {
               <h2>{ui.packagesTitle}</h2>
               <p>{ui.packagesText}</p>
             </div>
-            <span>Pay-per-Use</span>
+            <span>{ui.payPerUse}</span>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
@@ -786,9 +788,9 @@ export default function CreditsPage() {
                       fontWeight: 950,
                     }}
                   >
-                    Launch
+                    {ui.launchLabel}
                   </span>
-                  {getPackBadge(pack, ui) !== "Launch" ? (
+                  {getPackBadge(pack, ui) !== ui.launchLabel ? (
                     <span
                       style={{
                         display: "inline-flex",
@@ -904,7 +906,7 @@ export default function CreditsPage() {
                       {invoice.original_invoice_number ? (
                         <>
                           <br />
-                          Bezug: {invoice.original_invoice_number}
+                          {ui.reference}: {invoice.original_invoice_number}
                         </>
                       ) : null}
                     </div>
@@ -933,7 +935,7 @@ export default function CreditsPage() {
                 className={styles.secondaryButton}
                 style={{ textAlign: "center", justifyContent: "center" }}
               >
-                Alle Rechnungen anzeigen
+                {ui.showAllInvoices}
               </Link>
             </div>
           ) : null}

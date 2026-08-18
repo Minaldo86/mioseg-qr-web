@@ -21,6 +21,7 @@ function normalizeQrxLocale(value: string): QrxWebLocale {
 
 const QR_FORM_TEXT = {
   de: {
+    dashboard: "Dashboard",
     myQrx: "Meine QR-X",
     createKicker: "QR-X erstellen",
     newTitle: "Neuen QR-X erstellen",
@@ -208,6 +209,7 @@ const QR_FORM_TEXT = {
     createFailed: "QR-X konnte nicht erstellt werden.",
   },
   en: {
+    dashboard: "Dashboard",
     myQrx: "My QR-X",
     createKicker: "Create QR-X",
     newTitle: "Create a new QR-X",
@@ -395,6 +397,7 @@ const QR_FORM_TEXT = {
     createFailed: "QR-X could not be created.",
   },
   tr: {
+    dashboard: "Kontrol paneli",
     myQrx: "QR-X'lerim",
     createKicker: "QR-X oluştur",
     newTitle: "Yeni QR-X oluştur",
@@ -582,6 +585,7 @@ const QR_FORM_TEXT = {
     createFailed: "QR-X oluşturulamadı.",
   },
   pl: {
+    dashboard: "Panel",
     myQrx: "Moje QR-X",
     createKicker: "Utwórz QR-X",
     newTitle: "Utwórz nowy QR-X",
@@ -769,6 +773,7 @@ const QR_FORM_TEXT = {
     createFailed: "Nie udało się utworzyć QR-X.",
   },
   ar: {
+    dashboard: "لوحة التحكم",
     myQrx: "QR-X الخاصة بي",
     createKicker: "إنشاء QR-X",
     newTitle: "إنشاء QR-X جديد",
@@ -956,6 +961,7 @@ const QR_FORM_TEXT = {
     createFailed: "تعذر إنشاء QR-X.",
   },
   fr: {
+    dashboard: "Tableau de bord",
     myQrx: "Mes QR-X",
     createKicker: "Créer un QR-X",
     newTitle: "Créer un nouveau QR-X",
@@ -1143,6 +1149,7 @@ const QR_FORM_TEXT = {
     createFailed: "Le QR-X n’a pas pu être créé.",
   },
   es: {
+    dashboard: "Panel",
     myQrx: "Mis QR-X",
     createKicker: "Crear QR-X",
     newTitle: "Crear nuevo QR-X",
@@ -1330,6 +1337,7 @@ const QR_FORM_TEXT = {
     createFailed: "No se pudo crear el QR-X.",
   },
   it: {
+    dashboard: "Dashboard",
     myQrx: "I miei QR-X",
     createKicker: "Crea QR-X",
     newTitle: "Crea un nuovo QR-X",
@@ -3530,7 +3538,7 @@ export default function NewQrxPage() {
         </Link>
 
         <nav className={styles.nav} aria-label={ui.createKicker}>
-          <Link href={`/${locale}/dashboard`}>Dashboard</Link>
+          <Link href={`/${locale}/dashboard`}>{ui.dashboard}</Link>
           <Link href={`/${locale}/dashboard/qrx`}>{ui.myQrx}</Link>
         </nav>
       </header>

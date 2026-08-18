@@ -1505,13 +1505,13 @@ export default function AccountPage() {
 
     if (!deleteChecked || deleteConfirm !== securityUi.deletePhrase) {
       setDeleteMessage(
-        "Bitte bestätige die Löschung mit Checkbox und dem Text KONTO LÖSCHEN.",
+        securityUi.deleteConfirmError,
       );
       return;
     }
 
     const reallyDelete = window.confirm(
-      "Möchtest du dein Konto wirklich dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      securityUi.deleteConfirmDialog,
     );
 
     if (!reallyDelete) return;
@@ -1527,7 +1527,7 @@ export default function AccountPage() {
       if (sessionError) throw sessionError;
       if (!session?.access_token) {
         throw new Error(
-          "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+          securityUi.sessionExpired,
         );
       }
 
@@ -1552,7 +1552,7 @@ export default function AccountPage() {
           response.details ||
             response.error ||
             response.step ||
-            "Konto konnte nicht gelöscht werden.",
+            securityUi.deleteFailed,
         );
       }
 
@@ -1562,7 +1562,7 @@ export default function AccountPage() {
       const message =
         error instanceof Error
           ? error.message
-          : "Konto konnte nicht gelöscht werden.";
+          : securityUi.deleteFailed;
       setDeleteMessage(message);
       setDeletingAccount(false);
     }
@@ -1582,7 +1582,7 @@ export default function AccountPage() {
 
       if (sessionError) throw sessionError;
       if (!session?.access_token) {
-        throw new Error("Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.");
+        throw new Error(securityUi.sessionExpired);
       }
 
       const response = await fetch("/api/account/invoices/download", {
@@ -1635,12 +1635,12 @@ export default function AccountPage() {
     setPasswordMessage("");
 
     if (!email) {
-      setPasswordMessage("Für dieses Konto ist keine E-Mail-Adresse verfügbar.");
+      setPasswordMessage(securityUi.noEmail);
       return;
     }
 
     if (!currentPassword) {
-      setPasswordMessage("Bitte gib dein aktuelles Passwort ein.");
+      setPasswordMessage(securityUi.enterCurrentPassword);
       return;
     }
 
@@ -1651,13 +1651,13 @@ export default function AccountPage() {
     }
 
     if (newPassword !== repeatPassword) {
-      setPasswordMessage("Die neuen Passwörter stimmen nicht überein.");
+      setPasswordMessage(securityUi.passwordMismatch);
       return;
     }
 
     if (currentPassword === newPassword) {
       setPasswordMessage(
-        "Das neue Passwort muss sich vom aktuellen Passwort unterscheiden.",
+        securityUi.passwordDifferent,
       );
       return;
     }
@@ -1671,7 +1671,7 @@ export default function AccountPage() {
       });
 
       if (reauthError) {
-        throw new Error("Das aktuelle Passwort ist nicht korrekt.");
+        throw new Error(securityUi.currentPasswordWrong);
       }
 
       const { error: updateError } = await supabase.auth.updateUser({
@@ -1680,7 +1680,7 @@ export default function AccountPage() {
 
       if (updateError) throw updateError;
 
-      setPasswordMessage("Passwort erfolgreich geändert.");
+      setPasswordMessage(securityUi.passwordChanged);
 
       window.setTimeout(() => {
         setPasswordModalOpen(false);
@@ -1693,7 +1693,7 @@ export default function AccountPage() {
       setPasswordMessage(
         error instanceof Error
           ? error.message
-          : "Das Passwort konnte nicht geändert werden.",
+          : securityUi.passwordChangeFailed,
       );
     } finally {
       setChangingPassword(false);

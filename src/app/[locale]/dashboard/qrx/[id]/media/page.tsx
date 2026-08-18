@@ -108,6 +108,7 @@ function normalizeQrxLocale(value: string): QrxWebLocale {
 
 const QR_MEDIA_TEXT = {
   de: {
+    dashboard: "Dashboard",
     noActivity: "Noch keine Aktivität",
     mediaTitle: "QR-X Medien",
     missingId: "QR-X ID fehlt.",
@@ -163,6 +164,7 @@ const QR_MEDIA_TEXT = {
     remove: "Entfernen",
   },
   en: {
+    dashboard: "Dashboard",
     noActivity: "No activity yet",
     mediaTitle: "QR-X media",
     missingId: "QR-X ID is missing.",
@@ -218,6 +220,7 @@ const QR_MEDIA_TEXT = {
     remove: "Remove",
   },
   tr: {
+    dashboard: "Kontrol paneli",
     noActivity: "Henüz etkinlik yok",
     mediaTitle: "QR-X medyası",
     missingId: "QR-X kimliği eksik.",
@@ -273,6 +276,7 @@ const QR_MEDIA_TEXT = {
     remove: "Kaldır",
   },
   pl: {
+    dashboard: "Panel",
     noActivity: "Brak aktywności",
     mediaTitle: "Media QR-X",
     missingId: "Brak ID QR-X.",
@@ -328,6 +332,7 @@ const QR_MEDIA_TEXT = {
     remove: "Usuń",
   },
   ar: {
+    dashboard: "لوحة التحكم",
     noActivity: "لا يوجد نشاط بعد",
     mediaTitle: "وسائط QR-X",
     missingId: "معرّف QR-X مفقود.",
@@ -383,6 +388,7 @@ const QR_MEDIA_TEXT = {
     remove: "إزالة",
   },
   fr: {
+    dashboard: "Tableau de bord",
     noActivity: "Aucune activité",
     mediaTitle: "Médias QR-X",
     missingId: "ID QR-X manquant.",
@@ -438,6 +444,7 @@ const QR_MEDIA_TEXT = {
     remove: "Retirer",
   },
   es: {
+    dashboard: "Panel",
     noActivity: "Sin actividad todavía",
     mediaTitle: "Medios de QR-X",
     missingId: "Falta el ID de QR-X.",
@@ -493,6 +500,7 @@ const QR_MEDIA_TEXT = {
     remove: "Quitar",
   },
   it: {
+    dashboard: "Dashboard",
     noActivity: "Nessuna attività",
     mediaTitle: "Media QR-X",
     missingId: "ID QR-X mancante.",
@@ -777,7 +785,7 @@ export default function QrxMediaPage() {
         </Link>
 
         <nav className={styles.nav} aria-label={ui.mediaTitle}>
-          <Link href={`/${locale}/dashboard`}>Dashboard</Link>
+          <Link href={`/${locale}/dashboard`}>{ui.dashboard}</Link>
           <Link href={`/${locale}/dashboard/qrx`}>{ui.myQrx}</Link>
         </nav>
       </header>
@@ -826,10 +834,10 @@ export default function QrxMediaPage() {
         ) : null}
 
         {!loading && entry ? (
-          <section style={panelStyle} aria-label="Media Analytics">
+          <section style={panelStyle} aria-label={ui.mediaAnalytics}>
             <div className={styles.cardHeader}>
               <div>
-                <h2>Media Analytics</h2>
+                <h2>{ui.mediaAnalytics}</h2>
                 <p>
                   {ui.analyticsText}
                 </p>
