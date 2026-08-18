@@ -32,6 +32,7 @@ type ScanCopy = {
   links: string;
   withoutLocation: string;
   navLabel: string;
+  dashboard: string;
   myQrx: string;
   explore: string;
   myScans: string;
@@ -70,6 +71,7 @@ const SCAN_TEXT: Record<ScanLanguage, ScanCopy> = {
     links: "Links",
     withoutLocation: "Ohne Standort",
     navLabel: "Scans Navigation",
+    dashboard: "Dashboard",
     myQrx: "Meine QR-X",
     explore: "Explore",
     myScans: "Meine Scans",
@@ -106,6 +108,7 @@ const SCAN_TEXT: Record<ScanLanguage, ScanCopy> = {
     links: "Links",
     withoutLocation: "Without location",
     navLabel: "Scans navigation",
+    dashboard: "Dashboard",
     myQrx: "My QR-X",
     explore: "Explore",
     myScans: "My scans",
@@ -142,6 +145,7 @@ const SCAN_TEXT: Record<ScanLanguage, ScanCopy> = {
     links: "Bağlantılar",
     withoutLocation: "Konumsuz",
     navLabel: "Tarama navigasyonu",
+    dashboard: "Kontrol paneli",
     myQrx: "QR-X'lerim",
     explore: "Keşfet",
     myScans: "Taramalarım",
@@ -178,6 +182,7 @@ const SCAN_TEXT: Record<ScanLanguage, ScanCopy> = {
     links: "Linki",
     withoutLocation: "Bez lokalizacji",
     navLabel: "Nawigacja skanów",
+    dashboard: "Panel",
     myQrx: "Moje QR-X",
     explore: "Odkrywaj",
     myScans: "Moje skany",
@@ -214,6 +219,7 @@ const SCAN_TEXT: Record<ScanLanguage, ScanCopy> = {
     links: "الروابط",
     withoutLocation: "بدون موقع",
     navLabel: "تنقل عمليات المسح",
+    dashboard: "لوحة التحكم",
     myQrx: "QR-X الخاصة بي",
     explore: "استكشاف",
     myScans: "عمليات المسح الخاصة بي",
@@ -250,6 +256,7 @@ const SCAN_TEXT: Record<ScanLanguage, ScanCopy> = {
     links: "Liens",
     withoutLocation: "Sans localisation",
     navLabel: "Navigation des scans",
+    dashboard: "Tableau de bord",
     myQrx: "Mes QR-X",
     explore: "Explorer",
     myScans: "Mes scans",
@@ -286,6 +293,7 @@ const SCAN_TEXT: Record<ScanLanguage, ScanCopy> = {
     links: "Enlaces",
     withoutLocation: "Sin ubicación",
     navLabel: "Navegación de escaneos",
+    dashboard: "Panel",
     myQrx: "Mis QR-X",
     explore: "Explorar",
     myScans: "Mis escaneos",
@@ -322,6 +330,7 @@ const SCAN_TEXT: Record<ScanLanguage, ScanCopy> = {
     links: "Link",
     withoutLocation: "Senza posizione",
     navLabel: "Navigazione scansioni",
+    dashboard: "Dashboard",
     myQrx: "I miei QR-X",
     explore: "Esplora",
     myScans: "Le mie scansioni",
@@ -554,7 +563,7 @@ export default function DashboardScansPage() {
         </Link>
 
         <nav className={styles.nav} aria-label={ui.navLabel}>
-          <Link href={`/${locale}/dashboard`}>Dashboard</Link>
+          <Link href={`/${locale}/dashboard`}>{ui.dashboard}</Link>
           <Link href={`/${locale}/dashboard/qrx`}>{ui.myQrx}</Link>
           <Link href={`/${locale}/explore`}>{ui.explore}</Link>
         </nav>
