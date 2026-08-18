@@ -18,6 +18,8 @@ import styles from "../../dashboard/dashboard.module.css";
 type PublicLocale = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
 const PUBLIC_TEXT = {
   "de": {
+    "navAria": "QR-X Navigation",
+    "transfer": "Transfer",
     "home": "Startseite",
     "explore": "Explore",
     "loading": "QR-X wird geladen …",
@@ -118,6 +120,8 @@ const PUBLIC_TEXT = {
     }
   },
   "en": {
+    "navAria": "QR-X navigation",
+    "transfer": "Transfer",
     "home": "Home",
     "explore": "Explore",
     "loading": "Loading QR-X …",
@@ -218,6 +222,8 @@ const PUBLIC_TEXT = {
     }
   },
   "tr": {
+    "navAria": "QR-X navigasyonu",
+    "transfer": "Aktarım",
     "home": "Ana sayfa",
     "explore": "Keşfet",
     "loading": "QR-X yükleniyor …",
@@ -318,6 +324,8 @@ const PUBLIC_TEXT = {
     }
   },
   "pl": {
+    "navAria": "Nawigacja QR-X",
+    "transfer": "Transfer",
     "home": "Strona główna",
     "explore": "Odkrywaj",
     "loading": "Ładowanie QR-X …",
@@ -418,6 +426,8 @@ const PUBLIC_TEXT = {
     }
   },
   "ar": {
+    "navAria": "تنقل QR-X",
+    "transfer": "النقل",
     "home": "الرئيسية",
     "explore": "استكشاف",
     "loading": "جارٍ تحميل QR-X …",
@@ -518,6 +528,8 @@ const PUBLIC_TEXT = {
     }
   },
   "fr": {
+    "navAria": "Navigation QR-X",
+    "transfer": "Transfert",
     "home": "Accueil",
     "explore": "Explorer",
     "loading": "Chargement du QR-X …",
@@ -618,6 +630,8 @@ const PUBLIC_TEXT = {
     }
   },
   "es": {
+    "navAria": "Navegación QR-X",
+    "transfer": "Transferencia",
     "home": "Inicio",
     "explore": "Explorar",
     "loading": "Cargando QR-X …",
@@ -718,6 +732,8 @@ const PUBLIC_TEXT = {
     }
   },
   "it": {
+    "navAria": "Navigazione QR-X",
+    "transfer": "Trasferimento",
     "home": "Home",
     "explore": "Esplora",
     "loading": "Caricamento QR-X …",
@@ -854,9 +870,13 @@ const BUSINESS_CATEGORY_OPTIONS: Array<{
   { value: "sonstiges", label: "Sonstiges", icon: "▦" },
 ];
 
-function getBusinessCategoryMeta(value: string | null | undefined) {
+function getBusinessCategoryMeta(
+  value: string | null | undefined,
+  labels: Record<BusinessCategory, string>,
+) {
   if (!value) return null;
-  return BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value) ?? null;
+  const item = BUSINESS_CATEGORY_OPTIONS.find((option) => option.value === value);
+  return item ? { ...item, label: labels[item.value] } : null;
 }
 
 type QrxEntry = {
@@ -1462,7 +1482,7 @@ export default function PublicQrxDetailPage() {
   const isBusiness = entry?.type === "business";
   const website = normalizeUrl(entry?.cta_website ?? null);
   const navigation = normalizeNavigationUrl(entry?.cta_navigation ?? null);
-  const rawCategoryMeta = getBusinessCategoryMeta(entry?.category);
+  const rawCategoryMeta = getBusinessCategoryMeta(entry?.category, ui.categories);
   const categoryMeta = rawCategoryMeta && entry?.category ? { ...rawCategoryMeta, label: ui.categories[entry.category as keyof typeof ui.categories] ?? rawCategoryMeta.label } : rawCategoryMeta;
   const newsItems = useMemo(
     () => normalizeNewsItems(entry?.news),
@@ -1555,7 +1575,7 @@ export default function PublicQrxDetailPage() {
         <Link href={`/${locale}`} className={styles.brand}>
           <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
         </Link>
-        <nav className={styles.nav} aria-label="QR-X Navigation">
+        <nav className={styles.nav} aria-label={ui.navAria}>
           <Link href={`/${locale}`}>{ui.home}</Link>
           <Link href={`/${locale}/explore`}>{ui.explore}</Link>
         </nav>
@@ -1618,7 +1638,9 @@ export default function PublicQrxDetailPage() {
               hasSaved={hasSaved}
               currentUserId={currentUserId}
               saveLoading={saveLoading}
-              followerCount={`${formatNumber(saveCount ?? entry.follower_count, locale)} Nutzer${Number(saveCount ?? entry.follower_count ?? 0) === 1 ? "" : "n"}`}
+              followerCount={`${formatNumber(saveCount ?? entry.follower_count, locale)} ${
+                Number(saveCount ?? entry.follower_count ?? 0) === 1 ? ui.user : ui.users
+              }`}
               qrImageUrl={qrImageUrl}
               title={title}
               onToggleSave={handleToggleSave}
@@ -1650,7 +1672,7 @@ export default function PublicQrxDetailPage() {
         <section style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
-              <h2>Transfer</h2>
+              <h2>{ui.transfer}</h2>
               <p>{ui.transferHint}</p>
             </div>
             <button
@@ -1673,7 +1695,7 @@ export default function PublicQrxDetailPage() {
                   style={transferCardStyle}
                 >
                   <div style={transferTopLineStyle}>
-                    <strong>{item.status ?? "Transfer"}</strong>
+                    <strong>{item.status ?? ui.transfer}</strong>
                     <span>{formatDate(item.created_at, locale)}</span>
                   </div>
                   {item.recipient_email ? (
