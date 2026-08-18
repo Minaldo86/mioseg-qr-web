@@ -1634,8 +1634,17 @@ export default function AccountPage() {
 
     setPasswordMessage("");
 
-    if (!email) {
-      setPasswordMessage(securityUi.noEmail);
+    const {
+      data: { user: authUser },
+      error: authUserError,
+    } = await supabase.auth.getUser();
+
+    const authEmail = authUser?.email?.trim() || email.trim();
+
+    if (authUserError || !authUser || !authEmail) {
+      setPasswordMessage(
+        authUserError ? securityUi.sessionExpired : securityUi.noEmail,
+      );
       return;
     }
 
@@ -1666,7 +1675,7 @@ export default function AccountPage() {
 
     try {
       const { error: reauthError } = await supabase.auth.signInWithPassword({
-        email,
+        email: authEmail,
         password: currentPassword,
       });
 
