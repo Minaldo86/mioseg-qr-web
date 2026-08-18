@@ -3,6 +3,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabasePublic } from "@/lib/supabase-public";
+import { getDictionary } from "@/i18n/get-dictionary";
+import { locales, type Locale } from "@/i18n/config";
+
+
+function detectBrowserLocale(): Locale {
+  if (typeof navigator === "undefined") return "de";
+
+  const candidates = [
+    ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+    navigator.language,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = String(candidate || "").trim().toLowerCase().split(/[-_]/)[0];
+    if (locales.includes(normalized as Locale)) return normalized as Locale;
+  }
+
+  return "de";
+}
 
 function isAndroid() {
   if (typeof navigator === "undefined") return false;
@@ -48,6 +67,12 @@ type UiState =
 
 export default function TransferTokenPage() {
   const params = useParams();
+  const [locale, setLocale] = useState<Locale>("de");
+  const copy = getDictionary(locale).transfer;
+
+  useEffect(() => {
+    setLocale(detectBrowserLocale());
+  }, []);
 
   const token = useMemo(() => {
     const raw = (params as Record<string, string | string[] | undefined>)?.token;
@@ -77,8 +102,8 @@ export default function TransferTokenPage() {
     if (isIOS()) {
       return "https://apps.apple.com/";
     }
-    return "https://mioseg-qr.com/get-app";
-  }, []);
+    return `https://mioseg-qr.com/${locale}/get-app`;
+  }, [locale]);
 
   const stopTimer = () => {
     if (intervalRef.current != null) {
@@ -100,7 +125,7 @@ export default function TransferTokenPage() {
         stopTimer();
         setUi((prev) => {
           if (prev.kind === "pending") {
-            return { kind: "expired", message: "Dieser Transfer-Link ist abgelaufen.", info: prev.info };
+            return { kind: "expired", message: copy.expired, info: prev.info };
           }
           return prev;
         });
@@ -129,12 +154,12 @@ export default function TransferTokenPage() {
 
   const loadTransferInfo = async () => {
     if (!token) {
-      setUi({ kind: "invalid", message: "Ungültiger Transfer-Link (Token fehlt)." });
+      setUi({ kind: "invalid", message: copy.missingToken });
       return;
     }
 
     if (!supabasePublic) {
-      setUi({ kind: "invalid", message: "Supabase ist nicht konfiguriert." });
+      setUi({ kind: "invalid", message: copy.notConfigured });
       return;
     }
 
@@ -150,14 +175,14 @@ export default function TransferTokenPage() {
     });
 
     if (error) {
-      setUi({ kind: "invalid", message: `Transfer konnte nicht geprüft werden. (${error.message})` });
+      setUi({ kind: "invalid", message: `${copy.checkFailed} (${error.message})` });
       return;
     }
 
     const row = (Array.isArray(data) ? data[0] : data) as TransferInfo | null;
 
     if (!row) {
-      setUi({ kind: "invalid", message: "Dieser Transfer-Link ist ungültig oder existiert nicht mehr." });
+      setUi({ kind: "invalid", message: copy.invalid });
       return;
     }
 
@@ -180,17 +205,17 @@ export default function TransferTokenPage() {
     if (row.expires_at) startTimer(row.expires_at);
 
     if (status === "expired") {
-      setUi({ kind: "expired", message: "Dieser Transfer-Link ist abgelaufen.", info: row });
+      setUi({ kind: "expired", message: copy.expired, info: row });
       return;
     }
 
     if (status === "accepted") {
-      setUi({ kind: "accepted", message: "Dieser Transfer wurde bereits angenommen.", info: row });
+      setUi({ kind: "accepted", message: copy.accepted, info: row });
       return;
     }
 
     if (status === "canceled") {
-      setUi({ kind: "invalid", message: "Dieser Transfer wurde abgebrochen." });
+      setUi({ kind: "invalid", message: copy.canceled });
       return;
     }
 
@@ -200,7 +225,7 @@ export default function TransferTokenPage() {
   useEffect(() => {
     void loadTransferInfo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  }, [token, locale]);
 
   useEffect(() => {
     if (ui.kind !== "pending") return;
@@ -233,9 +258,9 @@ export default function TransferTokenPage() {
   const onCopy = async () => {
     try {
       await navigator.clipboard.writeText(universalLink);
-      alert("Link kopiert ✅");
+      alert(copy.copied);
     } catch {
-      alert("Kopieren nicht möglich – bitte manuell markieren.");
+      alert(copy.copyFailed);
     }
   };
 
@@ -265,15 +290,15 @@ export default function TransferTokenPage() {
           <div style={styles.logoText}>mioseg qr</div>
         </div>
 
-        <h1 style={styles.h1}>QR-X Übertragung</h1>
+        <h1 style={styles.h1}>{copy.title}</h1>
 
-        {ui.kind === "loading" && <p style={styles.p}>Transfer wird geprüft…</p>}
+        {ui.kind === "loading" && <p style={styles.p}>{copy.loading}</p>}
 
         {ui.kind === "invalid" && (
           <>
             <p style={styles.p}>{ui.message}</p>
-            <a style={styles.secondaryBtn} href="https://mioseg-qr.com">
-              Zur Startseite
+            <a style={styles.secondaryBtn} href={`https://mioseg-qr.com/${locale}`}>
+              {copy.home}
             </a>
           </>
         )}
@@ -282,7 +307,7 @@ export default function TransferTokenPage() {
           <>
             <div style={styles.badgeRow}>
               <span style={{ ...styles.badge, ...(ui.kind === "expired" ? styles.badgeRed : styles.badgeYellow) }}>
-                {ui.kind === "expired" ? "Abgelaufen" : "Bereits angenommen"}
+                {ui.kind === "expired" ? copy.expiredBadge : copy.acceptedBadge}
               </span>
             </div>
 
@@ -295,34 +320,34 @@ export default function TransferTokenPage() {
               </div>
 
               <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Empfänger</div>
+                <div style={styles.infoLabel}>{copy.recipient}</div>
                 <div style={styles.infoValue}>{recipientEmail ?? "—"}</div>
               </div>
 
               <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Gültig bis</div>
-                <div style={styles.infoValue}>{expiresAt ? new Date(expiresAt).toLocaleString() : "—"}</div>
+                <div style={styles.infoLabel}>{copy.validUntil}</div>
+                <div style={styles.infoValue}>{expiresAt ? new Date(expiresAt).toLocaleString(locale) : "—"}</div>
               </div>
             </div>
 
             <div style={styles.hr} />
 
-            <h2 style={styles.h2}>App nicht installiert?</h2>
-            <p style={styles.p}>Installiere mioseg qr und öffne danach den Link erneut.</p>
+            <h2 style={styles.h2}>{copy.notInstalled}</h2>
+            <p style={styles.p}>{copy.installText}</p>
 
             <a style={styles.secondaryBtn} href={storeLink} target="_blank" rel="noreferrer">
-              App herunterladen
+              {copy.download}
             </a>
 
             <button style={styles.ghostBtn} onClick={onCopy}>
-              Link kopieren
+              {copy.copy}
             </button>
           </>
         )}
 
         {ui.kind === "pending" && (
           <>
-            <p style={styles.p}>Wir öffnen jetzt die App, damit du die Übertragung annehmen kannst.</p>
+            <p style={styles.p}>{copy.opening}</p>
 
             <div style={styles.infoBox}>
               <div style={styles.infoRow}>
@@ -331,23 +356,23 @@ export default function TransferTokenPage() {
               </div>
 
               <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Empfänger</div>
+                <div style={styles.infoLabel}>{copy.recipient}</div>
                 <div style={styles.infoValue}>{recipientEmail ?? "—"}</div>
               </div>
 
               <div style={styles.infoRow}>
-                <div style={styles.infoLabel}>Läuft ab in</div>
+                <div style={styles.infoLabel}>{copy.expiresIn}</div>
                 <div style={styles.infoValue}>{expiresAt ? fmtRemaining(remainingSec) : "—"}</div>
               </div>
             </div>
 
             <button style={styles.primaryBtn} onClick={onOpenApp}>
-              In App öffnen
+              {copy.openApp}
             </button>
 
             <div style={styles.smallBox}>
-              <div style={styles.smallTitle}>Falls du nicht eingeloggt bist:</div>
-              <div style={styles.smallText}>Bitte in der App einloggen – danach kannst du den Transfer annehmen.</div>
+              <div style={styles.smallTitle}>{copy.notLoggedIn}</div>
+              <div style={styles.smallText}>{copy.loginHint}</div>
             </div>
 
             {(showFallback || !triedOpen) && (
@@ -355,19 +380,19 @@ export default function TransferTokenPage() {
                 <div style={{ height: 10 }} />
                 <div style={styles.hr} />
 
-                <h2 style={styles.h2}>App nicht installiert?</h2>
-                <p style={styles.p}>Installiere mioseg qr und öffne danach den Link erneut.</p>
+                <h2 style={styles.h2}>{copy.notInstalled}</h2>
+                <p style={styles.p}>{copy.installText}</p>
 
                 <a style={styles.secondaryBtn} href={storeLink} target="_blank" rel="noreferrer">
-                  App herunterladen
+                  {copy.download}
                 </a>
 
                 <button style={styles.ghostBtn} onClick={onCopy}>
-                  Link kopieren
+                  {copy.copy}
                 </button>
 
                 <div style={styles.mini}>
-                  Direktlink:{" "}
+                  {copy.directLink}{" "}
                   <a style={styles.link} href={universalLink}>
                     {universalLink}
                   </a>
@@ -377,7 +402,7 @@ export default function TransferTokenPage() {
 
             <div style={{ marginTop: 12 }}>
               <button style={styles.tinyBtn} onClick={() => void loadTransferInfo()}>
-                Transfer erneut prüfen
+                {copy.recheck}
               </button>
             </div>
           </>

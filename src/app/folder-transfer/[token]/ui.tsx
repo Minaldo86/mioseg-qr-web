@@ -1,8 +1,34 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getDictionary } from "@/i18n/get-dictionary";
+import { locales, type Locale } from "@/i18n/config";
+
+
+function detectBrowserLocale(): Locale {
+  if (typeof navigator === "undefined") return "de";
+
+  const candidates = [
+    ...(Array.isArray(navigator.languages) ? navigator.languages : []),
+    navigator.language,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = String(candidate || "").trim().toLowerCase().split(/[-_]/)[0];
+    if (locales.includes(normalized as Locale)) return normalized as Locale;
+  }
+
+  return "de";
+}
 
 export default function FolderTransferClient({ token }: { token: string }) {
+  const [locale, setLocale] = useState<Locale>("de");
+  const copy = getDictionary(locale).transfer;
+
+  useEffect(() => {
+    setLocale(detectBrowserLocale());
+  }, []);
+
   useEffect(() => {
     if (!token) return;
 
@@ -21,8 +47,8 @@ export default function FolderTransferClient({ token }: { token: string }) {
 
   return (
     <div style={{ padding: 24, fontFamily: "system-ui" }}>
-      <h1>Ordner-Übertragung</h1>
-      <p>Wir öffnen die App…</p>
+      <h1>{copy.folderTitle}</h1>
+      <p>{copy.folderOpening}</p>
 
       <a
         href={`miosegqr://folder-transfer/${encodeURIComponent(token)}`}
@@ -37,7 +63,7 @@ export default function FolderTransferClient({ token }: { token: string }) {
           textDecoration: "none",
         }}
       >
-        In App öffnen
+        {copy.openApp}
       </a>
     </div>
   );
