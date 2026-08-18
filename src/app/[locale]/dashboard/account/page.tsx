@@ -1368,6 +1368,9 @@ export default function AccountPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState("");
 
@@ -1626,6 +1629,9 @@ export default function AccountPage() {
     setCurrentPassword("");
     setNewPassword("");
     setRepeatPassword("");
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowRepeatPassword(false);
     setPasswordMessage("");
   }
 
@@ -2462,6 +2468,12 @@ export default function AccountPage() {
                 type="button"
                 onClick={() => {
                   setPasswordMessage("");
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setRepeatPassword("");
+                  setShowCurrentPassword(false);
+                  setShowNewPassword(false);
+                  setShowRepeatPassword(false);
                   setPasswordModalOpen(true);
                 }}
                 style={securityPrimaryButtonStyle}
@@ -2628,35 +2640,122 @@ export default function AccountPage() {
             <div style={{ display: "grid", gap: 13 }}>
               <label style={labelStyle}>
                 {securityUi.currentPassword}
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                  autoComplete="current-password"
-                  style={inputStyle}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(event) => setCurrentPassword(event.target.value)}
+                    autoComplete="current-password"
+                    style={{ ...inputStyle, width: "100%", paddingRight: 50 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword((visible) => !visible)}
+                    aria-label={showCurrentPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    title={showCurrentPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    style={{
+                      position: "absolute",
+                      right: 7,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 36,
+                      height: 36,
+                      display: "grid",
+                      placeItems: "center",
+                      border: "none",
+                      borderRadius: 10,
+                      background: "transparent",
+                      color: "#93a4b8",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                      <circle cx="12" cy="12" r="2.7" />
+                      {showCurrentPassword ? <path d="M4 4l16 16" /> : null}
+                    </svg>
+                  </button>
+                </div>
               </label>
 
               <label style={labelStyle}>
                 {securityUi.newPassword}
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
-                  autoComplete="new-password"
-                  style={inputStyle}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    autoComplete="new-password"
+                    style={{ ...inputStyle, width: "100%", paddingRight: 50 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((visible) => !visible)}
+                    aria-label={showNewPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    title={showNewPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    style={{
+                      position: "absolute",
+                      right: 7,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 36,
+                      height: 36,
+                      display: "grid",
+                      placeItems: "center",
+                      border: "none",
+                      borderRadius: 10,
+                      background: "transparent",
+                      color: "#93a4b8",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                      <circle cx="12" cy="12" r="2.7" />
+                      {showNewPassword ? <path d="M4 4l16 16" /> : null}
+                    </svg>
+                  </button>
+                </div>
               </label>
 
               <label style={labelStyle}>
                 {securityUi.repeatPassword}
-                <input
-                  type="password"
-                  value={repeatPassword}
-                  onChange={(event) => setRepeatPassword(event.target.value)}
-                  autoComplete="new-password"
-                  style={inputStyle}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showRepeatPassword ? "text" : "password"}
+                    value={repeatPassword}
+                    onChange={(event) => setRepeatPassword(event.target.value)}
+                    autoComplete="new-password"
+                    style={{ ...inputStyle, width: "100%", paddingRight: 50 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRepeatPassword((visible) => !visible)}
+                    aria-label={showRepeatPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    title={showRepeatPassword ? "Passwort verbergen" : "Passwort anzeigen"}
+                    style={{
+                      position: "absolute",
+                      right: 7,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 36,
+                      height: 36,
+                      display: "grid",
+                      placeItems: "center",
+                      border: "none",
+                      borderRadius: 10,
+                      background: "transparent",
+                      color: "#93a4b8",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+                      <circle cx="12" cy="12" r="2.7" />
+                      {showRepeatPassword ? <path d="M4 4l16 16" /> : null}
+                    </svg>
+                  </button>
+                </div>
               </label>
 
               <div style={passwordRulesStyle}>
