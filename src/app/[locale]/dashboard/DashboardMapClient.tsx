@@ -1671,7 +1671,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                     key={point.id}
                     onClick={() => focusPoint(point)}
                     style={{
-                      cursor: "pointer", borderRadius: 18, padding: 0, overflow: "hidden",
+                      cursor: "pointer", borderRadius: 18, padding: 12,
                       background: active
                         ? "linear-gradient(180deg,rgba(37,99,235,0.18),rgba(124,58,237,0.12))"
                         : "rgba(255,255,255,0.045)",
@@ -1684,18 +1684,10 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                       <img
                         src={point.coverUrl}
                         alt={point.title}
-                        style={{
-                          display: "block",
-                          width: "100%",
-                          aspectRatio: "16 / 7",
-                          objectFit: "cover",
-                          objectPosition: "center",
-                          borderBottom: "1px solid rgba(255,255,255,0.075)",
-                        }}
+                        style={{ width: "100%", height: 92, objectFit: "cover", borderRadius: 14, marginBottom: 10 }}
                       />
                     ) : null}
 
-                    <div style={{ padding: point.coverUrl ? "12px 12px 13px" : "14px 12px 13px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                       <span style={{ width: 10, height: 10, borderRadius: 999, background: getMarkerColor(point.kind) }} />
                       <span style={{ color: "#94a3b8", fontSize: 10, fontWeight: 900, textTransform: "uppercase" }}>
@@ -1757,7 +1749,6 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                           ? ui.linkCopied
                           : ui.share}
                       </button>
-                    </div>
                     </div>
                   </article>
                 );
