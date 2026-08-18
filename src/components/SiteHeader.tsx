@@ -10,6 +10,17 @@ import styles from "./site-header.module.css";
 const SUPPORTED = ["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const;
 type HeaderLocale = (typeof SUPPORTED)[number];
 
+const HEADER_LANGUAGES: Array<{ code: HeaderLocale; label: string; short: string }> = [
+  { code: "de", label: "Deutsch", short: "DE" },
+  { code: "en", label: "English", short: "EN" },
+  { code: "tr", label: "Türkçe", short: "TR" },
+  { code: "pl", label: "Polski", short: "PL" },
+  { code: "ar", label: "العربية", short: "AR" },
+  { code: "fr", label: "Français", short: "FR" },
+  { code: "es", label: "Español", short: "ES" },
+  { code: "it", label: "Italiano", short: "IT" },
+];
+
 type HeaderCopy = {
   home: string;
   getApp: string;
@@ -161,6 +172,7 @@ export default function SiteHeader() {
   const [headerUser, setHeaderUser] = useState<HeaderUser | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [savingLanguage, setSavingLanguage] = useState(false);
 
   const firstSegment = pathname.split("/").filter(Boolean)[0] || "";
   const pathLocale = normalizeLocale(firstSegment);
@@ -278,6 +290,42 @@ export default function SiteHeader() {
     return `${headerUser.displayName}${headerUser.email ? ` – ${headerUser.email}` : ""}`;
   }, [headerUser]);
 
+  const handleLanguageChange = async (nextLocale: HeaderLocale) => {
+    if (savingLanguage || nextLocale === locale) return;
+
+    setSavingLanguage(true);
+
+    try {
+      if (headerUser) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ language: nextLocale })
+          .eq("id", headerUser.id);
+
+        if (error) {
+          console.warn("Could not save header language:", error.message);
+        }
+      }
+
+      if (pathLocale) {
+        const parts = pathname.split("/");
+        if (parts.length > 1) {
+          parts[1] = nextLocale;
+        }
+        router.replace(parts.join("/") || `/${nextLocale}`);
+      } else if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        params.set("lang", nextLocale);
+        const query = params.toString();
+        router.replace(`${pathname}${query ? `?${query}` : ""}`);
+        setQueryLocale(nextLocale);
+      }
+      router.refresh();
+    } finally {
+      setSavingLanguage(false);
+    }
+  };
+
   const handleSignOut = async () => {
     if (signingOut) return;
 
@@ -370,6 +418,26 @@ export default function SiteHeader() {
                   </div>
                 ) : null}
               </div>
+
+              <label className={styles.languageControl}>
+                <span aria-hidden="true" className={styles.languageIcon}>🌐</span>
+                <select
+                  aria-label="Language"
+                  value={locale}
+                  disabled={savingLanguage}
+                  onChange={(event) => {
+                    const nextLocale = normalizeLocale(event.target.value);
+                    if (nextLocale) void handleLanguageChange(nextLocale);
+                  }}
+                >
+                  {HEADER_LANGUAGES.map((item) => (
+                    <option key={item.code} value={item.code}>
+                      {item.short} · {item.label}
+                    </option>
+                  ))}
+                </select>
+                <span aria-hidden="true" className={styles.languageChevron}>▼</span>
+              </label>
             </>
           ) : (
             <div className={styles.guestActions}>

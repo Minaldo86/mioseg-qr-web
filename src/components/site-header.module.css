@@ -209,6 +209,58 @@
   cursor: default;
 }
 
+
+.languageControl {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #d9e6f3;
+  flex: 0 0 auto;
+}
+
+.languageIcon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.languageControl select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #d9e6f3;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+  padding: 0 14px 0 0;
+}
+
+.languageControl select:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.languageControl option {
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.languageChevron {
+  position: absolute;
+  right: 9px;
+  pointer-events: none;
+  color: #94a3b8;
+  font-size: 9px;
+}
+
 @media (max-width: 768px) {
   .inner {
     padding: 12px 16px;
@@ -242,6 +294,31 @@
     width: 40px;
     height: 40px;
     font-size: 13px;
+  }
+
+  .languageControl {
+    min-height: 38px;
+    padding-left: 8px;
+    padding-right: 8px;
+    gap: 5px;
+  }
+
+  .languageControl select {
+    width: 42px;
+    padding-right: 10px;
+    font-size: 11px;
+  }
+
+  .languageControl option {
+    font-size: 12px;
+  }
+
+  .languageIcon {
+    display: none;
+  }
+
+  .languageChevron {
+    right: 6px;
   }
 
   .guestActions {
