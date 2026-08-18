@@ -78,33 +78,101 @@ export default function ResetPasswordClient({ locale }: Props) {
   useEffect(() => {
     let mounted = true;
 
+    const finishInvalid = (message?: string | null) => {
+      if (!mounted) return;
+      setErrorText(message || copy.invalidLink);
+      setRecoveryReady(false);
+      setCheckingSession(false);
+    };
+
+    const finishReady = () => {
+      if (!mounted) return;
+      setErrorText(null);
+      setRecoveryReady(true);
+      setCheckingSession(false);
+    };
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
 
-      if (event === "PASSWORD_RECOVERY") {
-        setRecoveryReady(Boolean(session));
-        setCheckingSession(false);
+      if (
+        event === "PASSWORD_RECOVERY" ||
+        event === "SIGNED_IN" ||
+        event === "INITIAL_SESSION"
+      ) {
+        if (session) {
+          finishReady();
+        }
       }
     });
 
-    void supabase.auth.getSession().then(({ data, error }) => {
-      if (!mounted) return;
+    const initializeRecovery = async () => {
+      try {
+        const hash = new URLSearchParams(
+          window.location.hash.startsWith("#")
+            ? window.location.hash.slice(1)
+            : window.location.hash,
+        );
 
-      if (error) {
-        setErrorText(copy.invalidLink);
-        setRecoveryReady(false);
-        setCheckingSession(false);
-        return;
+        const hashError =
+          hash.get("error_description") ||
+          hash.get("error") ||
+          null;
+
+        if (hashError) {
+          finishInvalid(decodeURIComponent(hashError.replace(/\+/g, " ")));
+          return;
+        }
+
+        const accessToken = hash.get("access_token");
+        const refreshToken = hash.get("refresh_token");
+        const recoveryType = hash.get("type");
+
+        if (accessToken && refreshToken) {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error || !data.session) {
+            finishInvalid();
+            return;
+          }
+
+          if (recoveryType && recoveryType !== "recovery") {
+            finishInvalid();
+            return;
+          }
+
+          // Remove tokens from the visible URL after the session has been restored.
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname + window.location.search,
+          );
+
+          finishReady();
+          return;
+        }
+
+        // Fallback: Supabase may already have consumed the URL and stored the session.
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error || !data.session) {
+          finishInvalid();
+          return;
+        }
+
+        finishReady();
+      } catch (error) {
+        console.error("Reset recovery initialization failed:", error);
+        finishInvalid();
       }
+    };
 
-      if (data.session) {
-        setRecoveryReady(true);
-      }
-
-      setCheckingSession(false);
-    });
+    void initializeRecovery();
 
     return () => {
       mounted = false;
@@ -213,13 +281,7 @@ export default function ResetPasswordClient({ locale }: Props) {
           ) : null}
 
           {!checkingSession && !recoveryReady ? (
-            <>
-              <div className={styles.error}>{errorText || copy.invalidLink}</div>
-
-              <p className={styles.switchText}>
-                <Link href={`/${locale}/login`}>{copy.backToLogin}</Link>
-              </p>
-            </>
+            <div className={styles.error}>{errorText || copy.invalidLink}</div>
           ) : null}
 
           {!checkingSession && recoveryReady ? (
