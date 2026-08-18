@@ -926,17 +926,6 @@ export default async function ExplorePage({
             "radial-gradient(circle at 82% 10%, rgba(77, 132, 201, 0.18) 0%, rgba(77, 132, 201, 0) 32%), radial-gradient(circle at 12% 42%, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 28%)",
         }}
       />
-      <header className="mioseg-explore-topbar">
-        <Link href={`/${locale}`} className="mioseg-explore-brand">
-          <img src="/logo-wwhite.png" alt="Mioseg qr" />
-        </Link>
-
-        <nav aria-label="Explore Navigation">
-          <Link href={`/${locale}`}>{ui.home}</Link>
-          <Link href={`/${locale}/dashboard`}>{ui.dashboard}</Link>
-          <Link href={`/${locale}/dashboard/account`}>{ui.account}</Link>
-        </nav>
-      </header>
 
       <section
         className={styles.heroSection}
@@ -1657,70 +1646,6 @@ export default async function ExplorePage({
 
 
 
-.mioseg-explore-topbar {
-  position: relative;
-  z-index: 5;
-  width: min(1240px, calc(100% - 32px));
-  min-height: 78px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.mioseg-explore-brand {
-  display: inline-flex;
-  align-items: center;
-}
-
-.mioseg-explore-brand img {
-  width: 112px;
-  height: auto;
-  display: block;
-}
-
-.mioseg-explore-topbar nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.mioseg-explore-topbar nav a {
-  min-height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 13px;
-  border-radius: 999px;
-  color: #dbe7f6;
-  text-decoration: none;
-  font-size: 12px;
-  font-weight: 900;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.06);
-  transition: background 160ms ease, border-color 160ms ease;
-}
-
-.mioseg-explore-topbar nav a:hover {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.22);
-}
-
-@media (max-width: 680px) {
-  .mioseg-explore-topbar {
-    min-height: 68px;
-  }
-
-  .mioseg-explore-topbar nav a:first-child {
-    display: none;
-  }
-
-  .mioseg-explore-brand img {
-    width: 96px;
-  }
-}
 
 .mioseg-explore-section-nav {
   position: sticky;

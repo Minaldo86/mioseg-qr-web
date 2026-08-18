@@ -256,76 +256,6 @@ type Props = {
   }>;
 };
 
-function DashboardToolLink({
-  href,
-  icon,
-  title,
-  text,
-}: {
-  href: string;
-  icon: string;
-  title: string;
-  text: string;
-}) {
-  return (
-    <Link
-      href={href}
-      style={{
-        minHeight: "86px",
-        borderRadius: "20px",
-        padding: "14px",
-        display: "flex",
-        alignItems: "center",
-        gap: "12px",
-        background: "rgba(255,255,255,0.045)",
-        border: "1px solid rgba(255,255,255,0.075)",
-        textDecoration: "none",
-        transition: "transform 160ms ease, border-color 160ms ease",
-      }}
-    >
-      <span
-        style={{
-          width: "44px",
-          height: "44px",
-          flex: "0 0 auto",
-          borderRadius: "15px",
-          display: "grid",
-          placeItems: "center",
-          background: "#eef4fb",
-          color: "#0f172a",
-          fontSize: "20px",
-        }}
-      >
-        {icon}
-      </span>
-
-      <span style={{ minWidth: 0 }}>
-        <strong
-          style={{
-            display: "block",
-            color: "#ffffff",
-            fontSize: "14px",
-            lineHeight: 1.25,
-          }}
-        >
-          {title}
-        </strong>
-        <span
-          style={{
-            display: "block",
-            marginTop: "4px",
-            color: "#94a3b8",
-            fontSize: "11px",
-            lineHeight: 1.35,
-          }}
-        >
-          {text}
-        </span>
-      </span>
-    </Link>
-  );
-}
-
 export default async function DashboardPage({ params }: Props) {
   const resolvedParams = await params;
   const locale = isValidLocale(resolvedParams.locale)
@@ -362,12 +292,6 @@ export default async function DashboardPage({ params }: Props) {
           <Link href={`/${locale}/dashboard/qrx/new`} className={styles.primaryButton}>
             + {copy.createButton}
           </Link>
-          <Link href={`/${locale}/dashboard/credits`} className={styles.secondaryButton}>
-            {copy.buyCreditsButton}
-          </Link>
-          <Link href={`/${locale}/dashboard/account`} className={styles.secondaryButton}>
-            👤 {copy.accountButton}
-          </Link>
         </div>
       </section>
 
@@ -380,48 +304,6 @@ export default async function DashboardPage({ params }: Props) {
         />
       </section>
 
-      <section
-        aria-label={copy.toolsAria}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-          gap: "12px",
-          margin: "0 0 16px",
-          width: "100%",
-        }}
-        className="mioseg-dashboard-tools"
-      >
-        <DashboardToolLink
-          href={`/${locale}/dashboard/qrx`}
-          icon="▣"
-          title={copy.qrxButton}
-          text={copy.toolQrx}
-        />
-        <DashboardToolLink
-          href={`/${locale}/dashboard/scans`}
-          icon="⌗"
-          title={copy.scansButton}
-          text={copy.toolScans}
-        />
-        <DashboardToolLink
-          href={`/${locale}/dashboard/credits`}
-          icon="💳"
-          title={copy.creditsButton}
-          text={copy.toolCredits}
-        />
-        <DashboardToolLink
-          href={`/${locale}/dashboard/account`}
-          icon="👤"
-          title={copy.accountButton}
-          text={copy.toolAccount}
-        />
-        <DashboardToolLink
-          href={`/${locale}/dashboard/support`}
-          icon="🛟"
-          title={copy.supportButton}
-          text={copy.toolSupport}
-        />
-      </section>
 
       <section
         style={{
