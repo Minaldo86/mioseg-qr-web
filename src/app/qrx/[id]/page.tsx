@@ -27,24 +27,27 @@ type BusinessCategory =
 
 const BUSINESS_CATEGORY_OPTIONS: Array<{
   value: BusinessCategory;
-  label: string;
   icon: string;
 }> = [
-  { value: "praxis_gesundheit", label: "Praxis & Gesundheit", icon: "⚕️" },
-  { value: "gastronomie", label: "Gastronomie", icon: "🍽️" },
-  { value: "unternehmen", label: "Unternehmen", icon: "🏢" },
-  { value: "dienstleistung", label: "Dienstleistung", icon: "🛠️" },
-  { value: "handwerk", label: "Handwerk", icon: "🔨" },
-  { value: "event", label: "Event", icon: "📅" },
-  { value: "verein", label: "Verein", icon: "👥" },
-  { value: "wohltaetigkeit", label: "Wohltätigkeit", icon: "♡" },
-  { value: "sehenswuerdigkeit", label: "Sehenswürdigkeit", icon: "📷" },
-  { value: "sonstiges", label: "Sonstiges", icon: "▦" },
+  { value: "praxis_gesundheit", icon: "⚕️" },
+  { value: "gastronomie", icon: "🍽️" },
+  { value: "unternehmen", icon: "🏢" },
+  { value: "dienstleistung", icon: "🛠️" },
+  { value: "handwerk", icon: "🔨" },
+  { value: "event", icon: "📅" },
+  { value: "verein", icon: "👥" },
+  { value: "wohltaetigkeit", icon: "♡" },
+  { value: "sehenswuerdigkeit", icon: "📷" },
+  { value: "sonstiges", icon: "▦" },
 ];
 
-function getBusinessCategoryMeta(value: string | null | undefined) {
+function getBusinessCategoryMeta(
+  value: string | null | undefined,
+  labels: Record<BusinessCategory, string>,
+) {
   if (!value) return null;
-  return BUSINESS_CATEGORY_OPTIONS.find((item) => item.value === value) ?? null;
+  const item = BUSINESS_CATEGORY_OPTIONS.find((option) => option.value === value);
+  return item ? { ...item, label: labels[item.value] } : null;
 }
 
 type QrxEntry = {
@@ -103,6 +106,128 @@ type TransferHistoryItem = {
   recipient_email?: string | null;
 };
 
+
+type LegacyQrxLocale = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
+
+const LEGACY_QRX_LOCALES: LegacyQrxLocale[] = ["de", "en", "tr", "pl", "ar", "fr", "es", "it"];
+
+function resolveLegacyQrxLocale(acceptLanguage: string | null): LegacyQrxLocale {
+  const candidates = String(acceptLanguage || "")
+    .split(",")
+    .map((part) => part.split(";")[0]?.trim().toLowerCase().split(/[-_]/)[0])
+    .filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (LEGACY_QRX_LOCALES.includes(candidate as LegacyQrxLocale)) {
+      return candidate as LegacyQrxLocale;
+    }
+  }
+
+  return "de";
+}
+
+const LEGACY_QRX_TEXT = {
+  de: {
+    notFound: "QR-X wurde nicht gefunden oder wurde gelöscht.", unavailableTitle: "QR-X nicht verfügbar", unavailable: "Dieser QR-X ist nicht mehr verfügbar.",
+    restrictedOwnerTitle: "QR-X eingeschränkt", restrictedOwnerText: "Dieser QR-X wurde aufgrund einer Moderationsentscheidung eingeschränkt und ist derzeit nicht öffentlich verfügbar.", restrictedPublicText: "Dieser QR-X ist derzeit nicht verfügbar.",
+    reason: "Grund", noReason: "Es wurde kein näherer Grund angegeben.", reviewHint: "Wenn du der Meinung bist, dass diese Entscheidung überprüft werden sollte, kannst du eine erneute Prüfung anfordern.",
+    reviewRequested: "Überprüfung angefordert. Deine Anfrage wurde an den Support übermittelt.", reviewExisting: "Für diese Entscheidung gibt es bereits eine offene Überprüfung.", reviewError: "Die Anfrage konnte nicht gespeichert werden. Bitte versuche es später erneut.", reviewButton: "Entscheidung überprüfen lassen", reviewDisclaimer: "Die Anfrage führt nicht automatisch zur Aufhebung der Sperrung.",
+    backCollection: "← Zurück zur Sammlung „{{title}}“", normalQrx: "Normaler QR-X", businessVerified: "Verifiziertes Unternehmen", businessQrx: "Business QR-X", verified: "Verifiziert", follower: "FOLLOWER", mediaStat: "MEDIEN", updatesStat: "UPDATES",
+    openApp: "App öffnen", website: "Website", call: "Anrufen", email: "E-Mail", navigation: "Navigation", appMissing: "App nicht installiert?", downloadHere: "Hier herunterladen",
+    title: "Titel", description: "Beschreibung", noDescription: "Keine Beschreibung vorhanden.", news: "News / Updates", noNews: "Noch keine News vorhanden.",
+    images: "Bilder", noImages: "Keine Bilder vorhanden.", imageOpenAria: "Bild {{name}} öffnen", tapImage: "Zum Öffnen Bild antippen",
+    files: "Dateien", fileOpenAria: "Datei {{name}} öffnen", fileDownloadAria: "Datei {{name}} herunterladen", open: "Öffnen", download: "Herunterladen",
+    location: "Ort", noLocation: "Kein Ort hinterlegt.", googleMaps: "In Google Maps öffnen", navigationOpen: "Navigation öffnen",
+    transfer: "Transfer", transferHint: "Verlauf und aktueller Transferstatus dieses QR-X.", noTransfer: "Noch kein Transfer vorhanden.", recipient: "Empfänger", from: "Von", to: "An", accepted: "Angenommen", expires: "Ablauf",
+    followed: "Gefolgt", ownerText: "Du bist der Besitzer dieses QR-X.", ownQrx: "Eigener QR-X", savedText: "Dieser QR-X ist aktuell in deinen gespeicherten Einträgen.", followHint: "Folge diesem QR-X, um ihn schneller wiederzufinden.", unfollow: "Folgen beenden", follow: "Folgen", loginFollow: "Melde dich an, um diesem QR-X zu folgen.", savedByOne: "Gespeichert von {{count}} Nutzer", savedByMany: "Gespeichert von {{count}} Nutzern",
+    collection: { untitled:"Unbenannter QR-X", business:"Business QR-X", normal:"Normaler QR-X", collection:"Sammlung", one:"Eintrag", many:"Einträge", verified:"Verifiziert", part:"Sammlung", open:"Öffnen →" },
+    categories: { praxis_gesundheit:"Praxis & Gesundheit", gastronomie:"Gastronomie", unternehmen:"Unternehmen", dienstleistung:"Dienstleistung", handwerk:"Handwerk", event:"Event", verein:"Verein", wohltaetigkeit:"Wohltätigkeit", sehenswuerdigkeit:"Sehenswürdigkeit", sonstiges:"Sonstiges" },
+  },
+  en: {
+    notFound: "QR-X was not found or has been deleted.", unavailableTitle: "QR-X unavailable", unavailable: "This QR-X is no longer available.",
+    restrictedOwnerTitle: "QR-X restricted", restrictedOwnerText: "This QR-X has been restricted due to a moderation decision and is currently not publicly available.", restrictedPublicText: "This QR-X is currently unavailable.",
+    reason: "Reason", noReason: "No further reason was provided.", reviewHint: "If you believe this decision should be reviewed, you can request another review.",
+    reviewRequested: "Review requested. Your request has been sent to support.", reviewExisting: "There is already an open review for this decision.", reviewError: "The request could not be saved. Please try again later.", reviewButton: "Request review of decision", reviewDisclaimer: "The request does not automatically lift the restriction.",
+    backCollection: "← Back to collection “{{title}}”", normalQrx: "Normal QR-X", businessVerified: "Verified business", businessQrx: "Business QR-X", verified: "Verified", follower: "FOLLOWERS", mediaStat: "MEDIA", updatesStat: "UPDATES",
+    openApp: "Open app", website: "Website", call: "Call", email: "Email", navigation: "Navigation", appMissing: "App not installed?", downloadHere: "Download here",
+    title: "Title", description: "Description", noDescription: "No description available.", news: "News / Updates", noNews: "No news yet.",
+    images: "Images", noImages: "No images available.", imageOpenAria: "Open image {{name}}", tapImage: "Tap image to open",
+    files: "Files", fileOpenAria: "Open file {{name}}", fileDownloadAria: "Download file {{name}}", open: "Open", download: "Download",
+    location: "Location", noLocation: "No location saved.", googleMaps: "Open in Google Maps", navigationOpen: "Open navigation",
+    transfer: "Transfer", transferHint: "History and current transfer status for this QR-X.", noTransfer: "No transfer yet.", recipient: "Recipient", from: "From", to: "To", accepted: "Accepted", expires: "Expires",
+    followed: "Following", ownerText: "You are the owner of this QR-X.", ownQrx: "My QR-X", savedText: "This QR-X is currently in your saved items.", followHint: "Follow this QR-X to find it again more quickly.", unfollow: "Unfollow", follow: "Follow", loginFollow: "Sign in to follow this QR-X.", savedByOne: "Saved by {{count}} user", savedByMany: "Saved by {{count}} users",
+    collection: { untitled:"Untitled QR-X", business:"Business QR-X", normal:"Normal QR-X", collection:"Collection", one:"item", many:"items", verified:"Verified", part:"Collection", open:"Open →" },
+    categories: { praxis_gesundheit:"Practice & Health", gastronomie:"Food & Hospitality", unternehmen:"Company", dienstleistung:"Service", handwerk:"Trade", event:"Event", verein:"Association", wohltaetigkeit:"Charity", sehenswuerdigkeit:"Attraction", sonstiges:"Other" },
+  },
+  tr: {
+    notFound:"QR-X bulunamadı veya silindi.", unavailableTitle:"QR-X kullanılamıyor", unavailable:"Bu QR-X artık kullanılamıyor.", restrictedOwnerTitle:"QR-X kısıtlandı", restrictedOwnerText:"Bu QR-X bir moderasyon kararı nedeniyle kısıtlandı ve şu anda herkese açık değil.", restrictedPublicText:"Bu QR-X şu anda kullanılamıyor.",
+    reason:"Neden", noReason:"Daha ayrıntılı bir neden belirtilmedi.", reviewHint:"Bu kararın yeniden incelenmesi gerektiğini düşünüyorsanız yeniden inceleme talep edebilirsiniz.", reviewRequested:"İnceleme talep edildi. Talebiniz desteğe iletildi.", reviewExisting:"Bu karar için zaten açık bir inceleme var.", reviewError:"Talep kaydedilemedi. Lütfen daha sonra tekrar deneyin.", reviewButton:"Kararın incelenmesini iste", reviewDisclaimer:"Bu talep kısıtlamayı otomatik olarak kaldırmaz.",
+    backCollection:"← “{{title}}” koleksiyonuna dön", normalQrx:"Normal QR-X", businessVerified: "Doğrulanmış işletme", businessQrx: "Business QR-X", verified:"Doğrulandı", follower:"TAKİPÇİ", mediaStat:"MEDYA", updatesStat:"GÜNCELLEMELER", openApp:"Uygulamayı aç", website:"Web sitesi", call:"Ara", email:"E-posta", navigation:"Navigasyon", appMissing:"Uygulama yüklü değil mi?", downloadHere:"Buradan indir",
+    title:"Başlık", description:"Açıklama", noDescription:"Açıklama yok.", news:"Haberler / Güncellemeler", noNews:"Henüz haber yok.", images:"Görseller", noImages:"Görsel yok.", imageOpenAria:"{{name}} görselini aç", tapImage:"Açmak için görsele dokun", files:"Dosyalar", fileOpenAria:"{{name}} dosyasını aç", fileDownloadAria:"{{name}} dosyasını indir", open:"Aç", download:"İndir",
+    location:"Konum", noLocation:"Konum kaydedilmemiş.", googleMaps:"Google Maps'te aç", navigationOpen:"Navigasyonu aç", transfer:"Transfer", transferHint:"Bu QR-X'in transfer geçmişi ve mevcut durumu.", noTransfer:"Henüz transfer yok.", recipient:"Alıcı", from:"Kimden", to:"Kime", accepted:"Kabul edildi", expires:"Bitiş",
+    followed:"Takip", ownerText:"Bu QR-X'in sahibisiniz.", ownQrx:"Kendi QR-X'im", savedText:"Bu QR-X şu anda kayıtlı öğelerinizde.", followHint:"Daha hızlı bulmak için bu QR-X'i takip edin.", unfollow:"Takibi bırak", follow:"Takip et", loginFollow:"Bu QR-X'i takip etmek için giriş yapın.", savedByOne:"{{count}} kullanıcı kaydetti", savedByMany:"{{count}} kullanıcı kaydetti",
+    collection:{untitled:"Adsız QR-X",business:"Business QR-X",normal:"Normal QR-X",collection:"Koleksiyon",one:"öğe",many:"öğe",verified:"Doğrulandı",part:"Koleksiyon",open:"Aç →"},
+    categories:{praxis_gesundheit:"Muayenehane & Sağlık",gastronomie:"Gastronomi",unternehmen:"Şirket",dienstleistung:"Hizmet",handwerk:"Zanaat",event:"Etkinlik",verein:"Dernek",wohltaetigkeit:"Hayır kurumu",sehenswuerdigkeit:"Gezilecek yer",sonstiges:"Diğer"},
+  },
+  pl: {
+    notFound:"Nie znaleziono QR-X lub został usunięty.", unavailableTitle:"QR-X niedostępny", unavailable:"Ten QR-X nie jest już dostępny.", restrictedOwnerTitle:"QR-X ograniczony", restrictedOwnerText:"Ten QR-X został ograniczony na podstawie decyzji moderacyjnej i obecnie nie jest publicznie dostępny.", restrictedPublicText:"Ten QR-X jest obecnie niedostępny.",
+    reason:"Powód", noReason:"Nie podano dokładniejszego powodu.", reviewHint:"Jeśli uważasz, że decyzja powinna zostać ponownie sprawdzona, możesz poprosić o ponowną weryfikację.", reviewRequested:"Poproszono o weryfikację. Twoje zgłoszenie zostało wysłane do pomocy.", reviewExisting:"Dla tej decyzji istnieje już otwarta weryfikacja.", reviewError:"Nie udało się zapisać zgłoszenia. Spróbuj ponownie później.", reviewButton:"Poproś o weryfikację decyzji", reviewDisclaimer:"Zgłoszenie nie powoduje automatycznego zniesienia ograniczenia.",
+    backCollection:"← Wróć do kolekcji „{{title}}”", normalQrx:"Zwykły QR-X", businessVerified: "Zweryfikowana firma", businessQrx: "Business QR-X", verified:"Zweryfikowany", follower:"OBSERWUJĄCY", mediaStat:"MEDIA", updatesStat:"AKTUALIZACJE", openApp:"Otwórz aplikację", website:"Strona WWW", call:"Zadzwoń", email:"E-mail", navigation:"Nawigacja", appMissing:"Aplikacja nie jest zainstalowana?", downloadHere:"Pobierz tutaj",
+    title:"Tytuł", description:"Opis", noDescription:"Brak opisu.", news:"Aktualności", noNews:"Brak aktualności.", images:"Obrazy", noImages:"Brak obrazów.", imageOpenAria:"Otwórz obraz {{name}}", tapImage:"Dotknij obrazu, aby otworzyć", files:"Pliki", fileOpenAria:"Otwórz plik {{name}}", fileDownloadAria:"Pobierz plik {{name}}", open:"Otwórz", download:"Pobierz",
+    location:"Lokalizacja", noLocation:"Brak zapisanej lokalizacji.", googleMaps:"Otwórz w Google Maps", navigationOpen:"Otwórz nawigację", transfer:"Transfer", transferHint:"Historia i aktualny status transferu tego QR-X.", noTransfer:"Brak transferu.", recipient:"Odbiorca", from:"Od", to:"Do", accepted:"Zaakceptowano", expires:"Wygasa",
+    followed:"Obserwowane", ownerText:"Jesteś właścicielem tego QR-X.", ownQrx:"Mój QR-X", savedText:"Ten QR-X znajduje się obecnie w zapisanych elementach.", followHint:"Obserwuj ten QR-X, aby szybciej go odnaleźć.", unfollow:"Przestań obserwować", follow:"Obserwuj", loginFollow:"Zaloguj się, aby obserwować ten QR-X.", savedByOne:"Zapisany przez {{count}} użytkownika", savedByMany:"Zapisany przez {{count}} użytkowników",
+    collection:{untitled:"QR-X bez nazwy",business:"Business QR-X",normal:"Zwykły QR-X",collection:"Kolekcja",one:"element",many:"elementów",verified:"Zweryfikowany",part:"Kolekcja",open:"Otwórz →"},
+    categories:{praxis_gesundheit:"Praktyka i zdrowie",gastronomie:"Gastronomia",unternehmen:"Firma",dienstleistung:"Usługi",handwerk:"Rzemiosło",event:"Wydarzenie",verein:"Stowarzyszenie",wohltaetigkeit:"Dobroczynność",sehenswuerdigkeit:"Atrakcja",sonstiges:"Inne"},
+  },
+  ar: {
+    notFound:"لم يتم العثور على QR-X أو تم حذفه.", unavailableTitle:"QR-X غير متاح", unavailable:"لم يعد QR-X هذا متاحًا.", restrictedOwnerTitle:"QR-X مقيّد", restrictedOwnerText:"تم تقييد QR-X هذا بسبب قرار إشراف وهو غير متاح للعامة حاليًا.", restrictedPublicText:"QR-X هذا غير متاح حاليًا.",
+    reason:"السبب", noReason:"لم يتم تقديم سبب أكثر تفصيلًا.", reviewHint:"إذا كنت ترى أن هذا القرار يجب مراجعته، يمكنك طلب مراجعة جديدة.", reviewRequested:"تم طلب المراجعة. أُرسل طلبك إلى الدعم.", reviewExisting:"توجد بالفعل مراجعة مفتوحة لهذا القرار.", reviewError:"تعذر حفظ الطلب. يرجى المحاولة مرة أخرى لاحقًا.", reviewButton:"طلب مراجعة القرار", reviewDisclaimer:"لا يؤدي الطلب تلقائيًا إلى رفع التقييد.",
+    backCollection:"← العودة إلى المجموعة «{{title}}»", normalQrx:"QR-X عادي", businessVerified: "نشاط تجاري موثّق", businessQrx: "Business QR-X", verified:"تم التحقق", follower:"المتابعون", mediaStat:"الوسائط", updatesStat:"التحديثات", openApp:"فتح التطبيق", website:"الموقع", call:"اتصال", email:"البريد الإلكتروني", navigation:"التنقل", appMissing:"التطبيق غير مثبت؟", downloadHere:"تنزيل من هنا",
+    title:"العنوان", description:"الوصف", noDescription:"لا يوجد وصف.", news:"الأخبار / التحديثات", noNews:"لا توجد أخبار بعد.", images:"الصور", noImages:"لا توجد صور.", imageOpenAria:"فتح الصورة {{name}}", tapImage:"اضغط على الصورة لفتحها", files:"الملفات", fileOpenAria:"فتح الملف {{name}}", fileDownloadAria:"تنزيل الملف {{name}}", open:"فتح", download:"تنزيل",
+    location:"الموقع", noLocation:"لم يتم حفظ موقع.", googleMaps:"فتح في خرائط Google", navigationOpen:"فتح التنقل", transfer:"النقل", transferHint:"سجل النقل والحالة الحالية لهذا QR-X.", noTransfer:"لا يوجد نقل بعد.", recipient:"المستلم", from:"من", to:"إلى", accepted:"تم القبول", expires:"انتهاء الصلاحية",
+    followed:"المتابعة", ownerText:"أنت مالك QR-X هذا.", ownQrx:"QR-X الخاص بي", savedText:"QR-X هذا موجود حاليًا في العناصر المحفوظة لديك.", followHint:"تابع QR-X هذا للعثور عليه بسرعة أكبر.", unfollow:"إلغاء المتابعة", follow:"متابعة", loginFollow:"سجّل الدخول لمتابعة QR-X هذا.", savedByOne:"محفوظ بواسطة مستخدم واحد", savedByMany:"محفوظ بواسطة {{count}} مستخدمين",
+    collection:{untitled:"QR-X بدون اسم",business:"Business QR-X",normal:"QR-X عادي",collection:"مجموعة",one:"عنصر",many:"عناصر",verified:"تم التحقق",part:"مجموعة",open:"فتح →"},
+    categories:{praxis_gesundheit:"العيادات والصحة",gastronomie:"المطاعم والضيافة",unternehmen:"شركة",dienstleistung:"خدمة",handwerk:"حِرف",event:"فعالية",verein:"جمعية",wohltaetigkeit:"أعمال خيرية",sehenswuerdigkeit:"معلم سياحي",sonstiges:"أخرى"},
+  },
+  fr: {
+    notFound:"QR-X introuvable ou supprimé.", unavailableTitle:"QR-X indisponible", unavailable:"Ce QR-X n’est plus disponible.", restrictedOwnerTitle:"QR-X restreint", restrictedOwnerText:"Ce QR-X a été restreint à la suite d’une décision de modération et n’est actuellement pas accessible au public.", restrictedPublicText:"Ce QR-X est actuellement indisponible.",
+    reason:"Motif", noReason:"Aucun motif plus détaillé n’a été indiqué.", reviewHint:"Si vous pensez que cette décision doit être réexaminée, vous pouvez demander une nouvelle vérification.", reviewRequested:"Vérification demandée. Votre demande a été transmise au support.", reviewExisting:"Une vérification est déjà ouverte pour cette décision.", reviewError:"La demande n’a pas pu être enregistrée. Veuillez réessayer plus tard.", reviewButton:"Demander la révision de la décision", reviewDisclaimer:"La demande ne lève pas automatiquement la restriction.",
+    backCollection:"← Retour à la collection « {{title}} »", normalQrx:"QR-X normal", businessVerified: "Entreprise vérifiée", businessQrx: "Business QR-X", verified:"Vérifié", follower:"ABONNÉS", mediaStat:"MÉDIAS", updatesStat:"ACTUALITÉS", openApp:"Ouvrir l’application", website:"Site web", call:"Appeler", email:"E-mail", navigation:"Navigation", appMissing:"Application non installée ?", downloadHere:"Télécharger ici",
+    title:"Titre", description:"Description", noDescription:"Aucune description disponible.", news:"Actualités", noNews:"Aucune actualité pour le moment.", images:"Images", noImages:"Aucune image disponible.", imageOpenAria:"Ouvrir l’image {{name}}", tapImage:"Touchez l’image pour l’ouvrir", files:"Fichiers", fileOpenAria:"Ouvrir le fichier {{name}}", fileDownloadAria:"Télécharger le fichier {{name}}", open:"Ouvrir", download:"Télécharger",
+    location:"Lieu", noLocation:"Aucun lieu enregistré.", googleMaps:"Ouvrir dans Google Maps", navigationOpen:"Ouvrir la navigation", transfer:"Transfert", transferHint:"Historique et état actuel du transfert de ce QR-X.", noTransfer:"Aucun transfert pour le moment.", recipient:"Destinataire", from:"De", to:"À", accepted:"Accepté", expires:"Expiration",
+    followed:"Suivi", ownerText:"Vous êtes le propriétaire de ce QR-X.", ownQrx:"Mon QR-X", savedText:"Ce QR-X figure actuellement dans vos éléments enregistrés.", followHint:"Suivez ce QR-X pour le retrouver plus rapidement.", unfollow:"Ne plus suivre", follow:"Suivre", loginFollow:"Connectez-vous pour suivre ce QR-X.", savedByOne:"Enregistré par {{count}} utilisateur", savedByMany:"Enregistré par {{count}} utilisateurs",
+    collection:{untitled:"QR-X sans nom",business:"Business QR-X",normal:"QR-X normal",collection:"Collection",one:"élément",many:"éléments",verified:"Vérifié",part:"Collection",open:"Ouvrir →"},
+    categories:{praxis_gesundheit:"Cabinet & Santé",gastronomie:"Restauration",unternehmen:"Entreprise",dienstleistung:"Service",handwerk:"Artisanat",event:"Événement",verein:"Association",wohltaetigkeit:"Caritatif",sehenswuerdigkeit:"Site touristique",sonstiges:"Autre"},
+  },
+  es: {
+    notFound:"No se encontró el QR-X o fue eliminado.", unavailableTitle:"QR-X no disponible", unavailable:"Este QR-X ya no está disponible.", restrictedOwnerTitle:"QR-X restringido", restrictedOwnerText:"Este QR-X ha sido restringido debido a una decisión de moderación y actualmente no está disponible públicamente.", restrictedPublicText:"Este QR-X no está disponible actualmente.",
+    reason:"Motivo", noReason:"No se indicó un motivo más detallado.", reviewHint:"Si crees que esta decisión debe revisarse, puedes solicitar una nueva revisión.", reviewRequested:"Revisión solicitada. Tu solicitud se ha enviado al soporte.", reviewExisting:"Ya existe una revisión abierta para esta decisión.", reviewError:"No se pudo guardar la solicitud. Inténtalo de nuevo más tarde.", reviewButton:"Solicitar revisión de la decisión", reviewDisclaimer:"La solicitud no elimina automáticamente la restricción.",
+    backCollection:"← Volver a la colección «{{title}}»", normalQrx:"QR-X normal", businessVerified: "Empresa verificada", businessQrx: "Business QR-X", verified:"Verificado", follower:"SEGUIDORES", mediaStat:"MEDIOS", updatesStat:"ACTUALIZACIONES", openApp:"Abrir app", website:"Sitio web", call:"Llamar", email:"Correo", navigation:"Navegación", appMissing:"¿No tienes instalada la app?", downloadHere:"Descargar aquí",
+    title:"Título", description:"Descripción", noDescription:"No hay descripción disponible.", news:"Noticias / Actualizaciones", noNews:"Todavía no hay noticias.", images:"Imágenes", noImages:"No hay imágenes disponibles.", imageOpenAria:"Abrir imagen {{name}}", tapImage:"Toca la imagen para abrirla", files:"Archivos", fileOpenAria:"Abrir archivo {{name}}", fileDownloadAria:"Descargar archivo {{name}}", open:"Abrir", download:"Descargar",
+    location:"Ubicación", noLocation:"No hay ubicación guardada.", googleMaps:"Abrir en Google Maps", navigationOpen:"Abrir navegación", transfer:"Transferencia", transferHint:"Historial y estado actual de transferencia de este QR-X.", noTransfer:"Todavía no hay transferencia.", recipient:"Destinatario", from:"De", to:"A", accepted:"Aceptada", expires:"Vencimiento",
+    followed:"Seguimiento", ownerText:"Eres el propietario de este QR-X.", ownQrx:"Mi QR-X", savedText:"Este QR-X está actualmente entre tus elementos guardados.", followHint:"Sigue este QR-X para encontrarlo más rápidamente.", unfollow:"Dejar de seguir", follow:"Seguir", loginFollow:"Inicia sesión para seguir este QR-X.", savedByOne:"Guardado por {{count}} usuario", savedByMany:"Guardado por {{count}} usuarios",
+    collection:{untitled:"QR-X sin nombre",business:"Business QR-X",normal:"QR-X normal",collection:"Colección",one:"elemento",many:"elementos",verified:"Verificado",part:"Colección",open:"Abrir →"},
+    categories:{praxis_gesundheit:"Consulta y salud",gastronomie:"Gastronomía",unternehmen:"Empresa",dienstleistung:"Servicio",handwerk:"Oficio",event:"Evento",verein:"Asociación",wohltaetigkeit:"Beneficencia",sehenswuerdigkeit:"Lugar de interés",sonstiges:"Otros"},
+  },
+  it: {
+    notFound:"QR-X non trovato o eliminato.", unavailableTitle:"QR-X non disponibile", unavailable:"Questo QR-X non è più disponibile.", restrictedOwnerTitle:"QR-X limitato", restrictedOwnerText:"Questo QR-X è stato limitato a seguito di una decisione di moderazione e al momento non è disponibile pubblicamente.", restrictedPublicText:"Questo QR-X al momento non è disponibile.",
+    reason:"Motivo", noReason:"Non è stato indicato un motivo più dettagliato.", reviewHint:"Se ritieni che questa decisione debba essere riesaminata, puoi richiedere una nuova verifica.", reviewRequested:"Verifica richiesta. La tua richiesta è stata inviata al supporto.", reviewExisting:"Esiste già una verifica aperta per questa decisione.", reviewError:"Impossibile salvare la richiesta. Riprova più tardi.", reviewButton:"Richiedi la verifica della decisione", reviewDisclaimer:"La richiesta non rimuove automaticamente la limitazione.",
+    backCollection:"← Torna alla raccolta «{{title}}»", normalQrx:"QR-X normale", businessVerified: "Azienda verificata", businessQrx: "Business QR-X", verified:"Verificato", follower:"FOLLOWER", mediaStat:"MEDIA", updatesStat:"AGGIORNAMENTI", openApp:"Apri app", website:"Sito web", call:"Chiama", email:"E-mail", navigation:"Navigazione", appMissing:"App non installata?", downloadHere:"Scarica qui",
+    title:"Titolo", description:"Descrizione", noDescription:"Nessuna descrizione disponibile.", news:"Notizie / Aggiornamenti", noNews:"Nessuna notizia ancora.", images:"Immagini", noImages:"Nessuna immagine disponibile.", imageOpenAria:"Apri immagine {{name}}", tapImage:"Tocca l’immagine per aprirla", files:"File", fileOpenAria:"Apri file {{name}}", fileDownloadAria:"Scarica file {{name}}", open:"Apri", download:"Scarica",
+    location:"Luogo", noLocation:"Nessun luogo salvato.", googleMaps:"Apri in Google Maps", navigationOpen:"Apri navigazione", transfer:"Trasferimento", transferHint:"Cronologia e stato attuale del trasferimento di questo QR-X.", noTransfer:"Nessun trasferimento ancora.", recipient:"Destinatario", from:"Da", to:"A", accepted:"Accettato", expires:"Scadenza",
+    followed:"Seguito", ownerText:"Sei il proprietario di questo QR-X.", ownQrx:"Il mio QR-X", savedText:"Questo QR-X è attualmente tra gli elementi salvati.", followHint:"Segui questo QR-X per ritrovarlo più rapidamente.", unfollow:"Smetti di seguire", follow:"Segui", loginFollow:"Accedi per seguire questo QR-X.", savedByOne:"Salvato da {{count}} utente", savedByMany:"Salvato da {{count}} utenti",
+    collection:{untitled:"QR-X senza nome",business:"Business QR-X",normal:"QR-X normale",collection:"Raccolta",one:"elemento",many:"elementi",verified:"Verificato",part:"Raccolta",open:"Apri →"},
+    categories:{praxis_gesundheit:"Studio & Salute",gastronomie:"Ristorazione",unternehmen:"Azienda",dienstleistung:"Servizio",handwerk:"Artigianato",event:"Evento",verein:"Associazione",wohltaetigkeit:"Beneficenza",sehenswuerdigkeit:"Attrazione",sonstiges:"Altro"},
+  },
+} as const;
+
+function legacyInterpolate(value: string, values: Record<string, string>) {
+  return Object.entries(values).reduce(
+    (result, [key, replacement]) => result.replaceAll(`{{${key}}}`, replacement),
+    value,
+  );
+}
+
 type SearchParams = Record<string, string | string[] | undefined>;
 
 function getFirst(param: string | string[] | undefined): string | undefined {
@@ -151,17 +276,17 @@ function normalizeNavigation(value: string | null | undefined): string | null {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
 }
 
-function formatNumber(value: number | null | undefined) {
+function formatNumber(value: number | null | undefined, locale: LegacyQrxLocale) {
   const numberValue = Number(value ?? 0);
   if (!Number.isFinite(numberValue)) return "0";
-  return new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 }).format(Math.max(0, numberValue));
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(Math.max(0, numberValue));
 }
 
-function formatDate(value: string | null | undefined) {
+function formatDate(value: string | null | undefined, locale: LegacyQrxLocale) {
   if (!value) return "–";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "–";
-  return new Intl.DateTimeFormat("de-DE", {
+  return new Intl.DateTimeFormat(locale, {
     day: "2-digit",
     month: "numeric",
     year: "numeric",
@@ -209,6 +334,9 @@ export default async function QrxPage({
     adminKey === process.env.QRX_ADMIN_ACCESS_KEY;
 
   const qrxId = normalizeQrxId(id);
+  const h = await headers();
+  const publicLocale = resolveLegacyQrxLocale(h.get("accept-language"));
+  const ui = LEGACY_QRX_TEXT[publicLocale];
   const supabase = await createSupabaseServerClient();;
 
   const { data: entry, error: entryErr } = await supabase
@@ -440,7 +568,6 @@ export default async function QrxPage({
     redirect(`/qrx/${qrxId}?review=requested`);
   }
 
-  const h = await headers();
   const ua = h.get("user-agent");
   const showDownloadHint = isProbablyMobile(ua);
   const isMobile = showDownloadHint;
@@ -477,7 +604,7 @@ export default async function QrxPage({
       <main className={styles.page}>
         <div className={styles.card}>
           <h1 className={styles.title}>404</h1>
-          <p className={styles.sub}>QR-X wurde nicht gefunden oder wurde gelöscht.</p>
+          <p className={styles.sub}>{ui.notFound}</p>
           {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
         </div>
       </main>
@@ -488,8 +615,8 @@ export default async function QrxPage({
     return (
       <main className={styles.page}>
         <div className={styles.card}>
-          <h1 className={styles.title}>QR-X nicht verfügbar</h1>
-          <p className={styles.sub}>Dieser QR-X ist nicht mehr verfügbar.</p>
+          <h1 className={styles.title}>{ui.unavailableTitle}</h1>
+          <p className={styles.sub}>{ui.unavailable}</p>
           {debug && <pre className={styles.debug}>{JSON.stringify(debugPayload, null, 2)}</pre>}
         </div>
       </main>
@@ -524,13 +651,11 @@ export default async function QrxPage({
           </div>
 
           <h1 className={styles.title}>
-            {isOwner ? "QR-X eingeschränkt" : "QR-X nicht verfügbar"}
+            {isOwner ? ui.restrictedOwnerTitle : ui.unavailableTitle}
           </h1>
 
           <p className={styles.sub}>
-            {isOwner
-              ? "Dieser QR-X wurde aufgrund einer Moderationsentscheidung eingeschränkt und ist derzeit nicht öffentlich verfügbar."
-              : "Dieser QR-X ist derzeit nicht verfügbar."}
+            {isOwner ? ui.restrictedOwnerText : ui.restrictedPublicText}
           </p>
 
           {isOwner ? (
@@ -555,16 +680,15 @@ export default async function QrxPage({
                     letterSpacing: "0.05em",
                   }}
                 >
-                  Grund
+                  {ui.reason}
                 </strong>
                 <span style={{ color: "#E2E8F0", lineHeight: 1.5 }}>
-                  {entry.suspended_reason?.trim() || "Es wurde kein näherer Grund angegeben."}
+                  {entry.suspended_reason?.trim() || ui.noReason}
                 </span>
               </div>
 
               <p className={styles.sub} style={{ marginTop: 18 }}>
-                Wenn du der Meinung bist, dass diese Entscheidung überprüft werden sollte,
-                kannst du eine erneute Prüfung anfordern.
+                {ui.reviewHint}
               </p>
 
               {moderationReviewResult === "requested" ? (
@@ -578,7 +702,7 @@ export default async function QrxPage({
                     color: "#BBF7D0",
                   }}
                 >
-                  Überprüfung angefordert. Deine Anfrage wurde an den Support übermittelt.
+                  {ui.reviewRequested}
                 </div>
               ) : moderationReviewResult === "existing" ? (
                 <div
@@ -591,7 +715,7 @@ export default async function QrxPage({
                     color: "#BFDBFE",
                   }}
                 >
-                  Für diese Entscheidung gibt es bereits eine offene Überprüfung.
+                  {ui.reviewExisting}
                 </div>
               ) : moderationReviewResult === "error" ? (
                 <div
@@ -604,7 +728,7 @@ export default async function QrxPage({
                     color: "#FECACA",
                   }}
                 >
-                  Die Anfrage konnte nicht gespeichert werden. Bitte versuche es später erneut.
+                  {ui.reviewError}
                 </div>
               ) : (
                 <form action={requestModerationReviewAction} style={{ marginTop: 16 }}>
@@ -623,7 +747,7 @@ export default async function QrxPage({
                       cursor: "pointer",
                     }}
                   >
-                    Entscheidung überprüfen lassen
+                    {ui.reviewButton}
                   </button>
                 </form>
               )}
@@ -636,7 +760,7 @@ export default async function QrxPage({
                   lineHeight: 1.5,
                 }}
               >
-                Die Anfrage führt nicht automatisch zur Aufhebung der Sperrung.
+                {ui.reviewDisclaimer}
               </p>
             </>
           ) : null}
@@ -664,12 +788,12 @@ export default async function QrxPage({
 
   const wantSave = getFirst(sp.save) === "1";
   const deepLink = wantSave ? `miosegqr://qrx/${qrxId}?save=1` : `miosegqr://qrx/${qrxId}`;
-  const fallbackUrl = `/get-app?from=${encodeURIComponent(`/qrx/${qrxId}${wantSave ? "?save=1" : ""}`)}`;
+  const fallbackUrl = `/${publicLocale}/get-app?from=${encodeURIComponent(`/qrx/${qrxId}${wantSave ? "?save=1" : ""}`)}`;
   const websiteUrl = normalizeWebsite(entry.cta_website);
   const navigationUrl = normalizeNavigation(entry.cta_navigation);
   const phoneUrl = entry.cta_phone?.trim() ? `tel:${entry.cta_phone.trim()}` : null;
   const emailUrl = entry.cta_email?.trim() ? `mailto:${entry.cta_email.trim()}` : null;
-  const categoryMeta = getBusinessCategoryMeta(entry.category);
+  const categoryMeta = getBusinessCategoryMeta(entry.category, ui.categories);
   const newsItems = normalizeNewsItems(entry.news);
   const transferHistory = ((transferHistoryRaw ?? []) as TransferHistoryItem[]).sort((a, b) => {
     const ta = a?.created_at ? new Date(a.created_at).getTime() : 0;
@@ -922,14 +1046,14 @@ const sectionCardStyle: CSSProperties = {
     <main className={styles.page}>
       <TrackViewClient qrxId={qrxId} />
 
-      <QrxPasswordGate qrxId={qrxId} enabled={entry.password_protected === true && !hasAdminAccess}>
+      <QrxPasswordGate qrxId={qrxId} enabled={entry.password_protected === true && !hasAdminAccess} locale={publicLocale}>
         {parentQrxId && parentQrxTitle ? (
           <section style={collectionBackSectionStyle}>
             <a
               href={`/qrx/${encodeURIComponent(parentQrxId)}`}
               style={collectionBackLinkStyle}
             >
-              ← Zurück zur Sammlung „{parentQrxTitle}“
+              {legacyInterpolate(ui.backCollection, { title: parentQrxTitle })}
             </a>
           </section>
         ) : null}
@@ -967,10 +1091,10 @@ const sectionCardStyle: CSSProperties = {
                     {entry.verified ? (
                       <span style={heroVerifiedBusinessBadgeStyle}>
                         <span style={heroVerifiedBusinessIconStyle}>✓</span>
-                        VERIFIED BUSINESS
+                        {ui.businessVerified}
                       </span>
                     ) : (
-                      <span style={heroBusinessBadgeStyle}>BUSINESS QR-X</span>
+                      <span style={heroBusinessBadgeStyle}>{ui.businessQrx}</span>
                     )}
 
                     <span style={heroBrandDividerStyle} aria-hidden="true" />
@@ -993,13 +1117,13 @@ const sectionCardStyle: CSSProperties = {
         ) : (
           <section style={sectionCardStyle}>
             <div style={phaseBadgeRowStyle}>
-              <span style={phaseCategoryBadgeStyle}>⌗ Normaler QR-X</span>
+              <span style={phaseCategoryBadgeStyle}>⌗ {ui.normalQrx}</span>
               {categoryMeta ? (
                 <span style={phaseCategoryBadgeStyle}>
                   {categoryMeta.icon} {categoryMeta.label}
                 </span>
               ) : null}
-              {entry.verified ? <span style={phaseVerifiedSoftBadgeStyle}>✓ Verifiziert</span> : null}
+              {entry.verified ? <span style={phaseVerifiedSoftBadgeStyle}>✓ {ui.verified}</span> : null}
             </div>
             <h1 style={normalHeroTitleStyle}>{companyName}</h1>
           </section>
@@ -1017,54 +1141,54 @@ const sectionCardStyle: CSSProperties = {
 
           <div style={profileStatsStyle}>
             <div style={profileStatBoxStyle}>
-              <strong style={profileStatValueStyle}>{formatNumber(followerCount)}</strong>
-              <span style={profileStatLabelStyle}>FOLLOWER</span>
+              <strong style={profileStatValueStyle}>{formatNumber(followerCount, publicLocale)}</strong>
+              <span style={profileStatLabelStyle}>{ui.follower}</span>
             </div>
             <div style={profileStatBoxStyle}>
-              <strong style={profileStatValueStyle}>{formatNumber(totalMediaCount)}</strong>
-              <span style={profileStatLabelStyle}>MEDIEN</span>
+              <strong style={profileStatValueStyle}>{formatNumber(totalMediaCount, publicLocale)}</strong>
+              <span style={profileStatLabelStyle}>{ui.mediaStat}</span>
             </div>
             <div style={profileStatBoxStyle}>
-              <strong style={profileStatValueStyle}>{formatNumber(newsItems.length)}</strong>
-              <span style={profileStatLabelStyle}>UPDATES</span>
+              <strong style={profileStatValueStyle}>{formatNumber(newsItems.length, publicLocale)}</strong>
+              <span style={profileStatLabelStyle}>{ui.updatesStat}</span>
             </div>
           </div>
 
           <div style={profileActionsStyle}>
             <a href={deepLink} data-fallback={fallbackUrl} id="openAppBtn" style={appButtonStyle}>
-              App öffnen
+              {ui.openApp}
             </a>
 
             {websiteUrl ? (
               <a style={actionChipStyle} href={websiteUrl} target="_blank" rel="noreferrer">
-                🌐 Website
+                🌐 {ui.website}
               </a>
             ) : null}
 
             {phoneUrl ? (
               <a style={actionChipStyle} href={phoneUrl}>
-                ☎️ Anrufen
+                ☎️ {ui.call}
               </a>
             ) : null}
 
             {emailUrl ? (
               <a style={actionChipStyle} href={emailUrl}>
-                ✉️ E-Mail
+                ✉️ {ui.email}
               </a>
             ) : null}
 
             {navigationUrl ? (
               <a style={actionChipStyle} href={navigationUrl} target="_blank" rel="noreferrer">
-                🧭 Navigation
+                🧭 {ui.navigation}
               </a>
             ) : null}
           </div>
 
           {showDownloadHint ? (
             <p className={styles.muted} style={{ marginTop: 14 }}>
-              App nicht installiert?{" "}
+              {ui.appMissing}{" "}
               <a className={styles.downloadLink} href={fallbackUrl}>
-                Hier herunterladen
+                {ui.downloadHere}
               </a>
             </p>
           ) : null}
@@ -1098,24 +1222,24 @@ const sectionCardStyle: CSSProperties = {
 
         {/* 3. Titel */}
         <section style={sectionCardStyle}>
-          <h2 style={cardTitleStyle}>Titel</h2>
+          <h2 style={cardTitleStyle}>{ui.title}</h2>
           <p style={simpleTextStyle}>{entry.title?.trim() || companyName}</p>
         </section>
 
         {/* 4. Beschreibung */}
         <section style={sectionCardStyle}>
-          <h2 style={cardTitleStyle}>Beschreibung</h2>
+          <h2 style={cardTitleStyle}>{ui.description}</h2>
           <p style={descriptionTextStyle}>
-            {entry.description?.trim() ? entry.description : "Keine Beschreibung vorhanden."}
+            {entry.description?.trim() ? entry.description : ui.noDescription}
           </p>
         </section>
 
         {/* 5. News / Updates */}
         <section style={sectionCardStyle}>
-          <h2 style={cardTitleStyle}>News / Updates</h2>
+          <h2 style={cardTitleStyle}>{ui.news}</h2>
 
           {newsItems.length === 0 ? (
-            <p style={mutedTextStyle}>Noch keine News vorhanden.</p>
+            <p style={mutedTextStyle}>{ui.noNews}</p>
           ) : (
             <div style={newsBoxStyle}>
               {newsItems.map((n, index) => (
@@ -1130,7 +1254,7 @@ const sectionCardStyle: CSSProperties = {
     }}
   >
                   <div style={newsTextStyle}>{n.text}</div>
-                  <div style={newsDateStyle}>{formatDate(n.createdAt)}</div>
+                  <div style={newsDateStyle}>{formatDate(n.createdAt, publicLocale)}</div>
                 </article>
               ))}
             </div>
@@ -1139,10 +1263,10 @@ const sectionCardStyle: CSSProperties = {
 
         {/* 6. Bilder */}
         <section style={sectionCardStyle}>
-          <h2 style={cardTitleStyle}>Bilder</h2>
+          <h2 style={cardTitleStyle}>{ui.images}</h2>
 
           {galleryImages.length === 0 ? (
-            <p style={mutedTextStyle}>Keine Bilder vorhanden.</p>
+            <p style={mutedTextStyle}>{ui.noImages}</p>
           ) : (
             <div style={imageGridStyle}>
               {galleryImages.map((img) => (
@@ -1157,12 +1281,12 @@ const sectionCardStyle: CSSProperties = {
                   href={img.url}
                   mode="open"
                   style={imageItemStyle}
-                  ariaLabel={`Bild ${img.filename} öffnen`}
+                  ariaLabel={legacyInterpolate(ui.imageOpenAria, { name: img.filename })}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={img.url} alt={img.filename} style={imageThumbStyle} />
                   <span style={imageCaptionStyle}>{img.filename}</span>
-                  <span style={imageOpenHintStyle}>Zum Öffnen Bild antippen</span>
+                  <span style={imageOpenHintStyle}>{ui.tapImage}</span>
                 </MediaInteractionLink>
               ))}
             </div>
@@ -1171,7 +1295,7 @@ const sectionCardStyle: CSSProperties = {
 
         {/* 7. Dateien */}
         <section style={sectionCardStyle}>
-          <h2 style={cardTitleStyle}>Dateien</h2>
+          <h2 style={cardTitleStyle}>{ui.files}</h2>
 
           {files.length === 0 ? (
             <p style={mutedTextStyle}>–</p>
@@ -1192,9 +1316,9 @@ const sectionCardStyle: CSSProperties = {
                       href={f.url}
                       mode="open"
                       style={fileActionButtonStyle}
-                      ariaLabel={`Datei ${f.filename} öffnen`}
+                      ariaLabel={legacyInterpolate(ui.fileOpenAria, { name: f.filename })}
                     >
-                      Öffnen
+                      {ui.open}
                     </MediaInteractionLink>
 
                     <MediaInteractionLink
@@ -1208,9 +1332,9 @@ const sectionCardStyle: CSSProperties = {
                       mode="download"
                       filename={f.filename}
                       style={fileDownloadButtonStyle}
-                      ariaLabel={`Datei ${f.filename} herunterladen`}
+                      ariaLabel={legacyInterpolate(ui.fileDownloadAria, { name: f.filename })}
                     >
-                      ⬇ Herunterladen
+                      ⬇ {ui.download}
                     </MediaInteractionLink>
                   </div>
                 </div>
@@ -1226,7 +1350,9 @@ const sectionCardStyle: CSSProperties = {
               parentQrxId={qrxId}
               parentQrxTitle={companyName}
               items={collectionItems}
+              locale={publicLocale}
               routeMode="root"
+              labels={ui.collection}
               collectionTitle={entry.collection_title}
               collectionDescription={entry.collection_description}
             />
@@ -1235,8 +1361,8 @@ const sectionCardStyle: CSSProperties = {
 
         {/* 9. Standort */}
         <section style={sectionCardStyle}>
-          <h2 style={cardTitleStyle}>Ort</h2>
-          <p style={simpleTextStyle}>{entry.location_name?.trim() ? entry.location_name : "Kein Ort hinterlegt."}</p>
+          <h2 style={cardTitleStyle}>{ui.location}</h2>
+          <p style={simpleTextStyle}>{entry.location_name?.trim() ? entry.location_name : ui.noLocation}</p>
 
           {entry.location_lat != null && entry.location_lng != null ? (
             <p style={coordinateTextStyle}>
@@ -1252,13 +1378,13 @@ const sectionCardStyle: CSSProperties = {
                 target="_blank"
                 rel="noreferrer"
               >
-                🗺️ In Google Maps öffnen
+                🗺️ {ui.googleMaps}
               </a>
             ) : null}
 
             {isBusiness && navigationUrl ? (
               <a style={wideSecondaryButtonStyle} href={navigationUrl} target="_blank" rel="noreferrer">
-                🧭 Navigation öffnen
+                🧭 {ui.navigationOpen}
               </a>
             ) : null}
           </div>
@@ -1267,24 +1393,24 @@ const sectionCardStyle: CSSProperties = {
         {/* 10. Transfer */}
         {isOwner ? (
           <section style={sectionCardStyle}>
-            <h2 style={cardTitleStyle}>Transfer</h2>
-            <p style={mutedTextStyle}>Verlauf und aktueller Transferstatus dieses QR-X.</p>
+            <h2 style={cardTitleStyle}>{ui.transfer}</h2>
+            <p style={mutedTextStyle}>{ui.transferHint}</p>
 
             {transferHistory.length === 0 ? (
-              <div style={emptyTransferStyle}>↔ Noch kein Transfer vorhanden.</div>
+              <div style={emptyTransferStyle}>↔ {ui.noTransfer}</div>
             ) : (
               <div style={transferListStyle}>
                 {transferHistory.map((item, index) => (
                   <div key={item.id ?? item.transfer_id ?? `${item.created_at}-${index}`} style={transferCardStyle}>
                     <div style={transferTopStyle}>
                       <strong>{item.status ?? "Transfer"}</strong>
-                      <span>{formatDate(item.created_at)}</span>
+                      <span>{formatDate(item.created_at, publicLocale)}</span>
                     </div>
-                    {item.recipient_email ? <span>Empfänger: {item.recipient_email}</span> : null}
-                    {item.from_name ? <span>Von: {item.from_name}</span> : null}
-                    {item.to_name ? <span>An: {item.to_name}</span> : null}
-                    {item.accepted_at ? <span>Angenommen: {formatDate(item.accepted_at)}</span> : null}
-                    {item.expires_at ? <span>Ablauf: {formatDate(item.expires_at)}</span> : null}
+                    {item.recipient_email ? <span>{ui.recipient}: {item.recipient_email}</span> : null}
+                    {item.from_name ? <span>{ui.from}: {item.from_name}</span> : null}
+                    {item.to_name ? <span>{ui.to}: {item.to_name}</span> : null}
+                    {item.accepted_at ? <span>{ui.accepted}: {formatDate(item.accepted_at, publicLocale)}</span> : null}
+                    {item.expires_at ? <span>{ui.expires}: {formatDate(item.expires_at, publicLocale)}</span> : null}
                   </div>
                 ))}
               </div>
@@ -1294,40 +1420,41 @@ const sectionCardStyle: CSSProperties = {
 
         {/* 11. Gefolgt */}
         <section style={sectionCardStyle}>
-          <h2 style={cardTitleStyle}>Gefolgt</h2>
+          <h2 style={cardTitleStyle}>{ui.followed}</h2>
 
           {isOwner ? (
             <>
-              <p style={mutedTextStyle}>Du bist der Besitzer dieses QR-X.</p>
+              <p style={mutedTextStyle}>{ui.ownerText}</p>
               <button type="button" disabled style={widePrimaryDisabledButtonStyle}>
-                👑 Eigener QR-X
+                👑 {ui.ownQrx}
               </button>
             </>
           ) : currentUserId ? (
             <>
               <p style={mutedTextStyle}>
-                {savedRow
-                  ? "Dieser QR-X ist aktuell in deinen gespeicherten Einträgen."
-                  : "Folge diesem QR-X, um ihn schneller wiederzufinden."}
+                {savedRow ? ui.savedText : ui.followHint}
               </p>
 
               <form action={toggleFollowAction}>
                 <button type="submit" style={widePrimaryButtonStyle}>
-                  {savedRow ? "🔖 Folgen beenden" : "🔖 Folgen"}
+                  {savedRow ? `🔖 ${ui.unfollow}` : `🔖 ${ui.follow}`}
                 </button>
               </form>
             </>
           ) : (
             <>
-              <p style={mutedTextStyle}>Melde dich an, um diesem QR-X zu folgen.</p>
-              <a href={`/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`} style={widePrimaryLinkStyle}>
-                + Folgen
+              <p style={mutedTextStyle}>{ui.loginFollow}</p>
+              <a href={`/${publicLocale}/login?next=${encodeURIComponent(`/qrx/${qrxId}`)}`} style={widePrimaryLinkStyle}>
+                + {ui.follow}
               </a>
             </>
           )}
 
           <p style={centerInfoStyle}>
-            Gespeichert von {formatNumber(followerCount)} Nutzer{Number(followerCount) === 1 ? "" : "n"}
+            {legacyInterpolate(
+              Number(followerCount) === 1 ? ui.savedByOne : ui.savedByMany,
+              { count: formatNumber(followerCount, publicLocale) },
+            )}
           </p>
         </section>
 
@@ -1343,7 +1470,7 @@ const sectionCardStyle: CSSProperties = {
 
         {/* 13. Inhalt melden */}
         <section style={sectionCardStyle}>
-          <QrxReportForm qrxId={qrxId} />
+          <QrxReportForm qrxId={qrxId} locale={publicLocale} />
         </section>
 
         <div className={styles.footer}>mioseg qr • QR-X Web</div>
