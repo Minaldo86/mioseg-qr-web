@@ -24,6 +24,7 @@ async function createPositionedCoverFile(
   file: File,
   positionX: number,
   positionY: number,
+  zoomPercent: number,
 ): Promise<File> {
   const bitmap = await createImageBitmap(file);
   const targetWidth = 1600;
@@ -35,6 +36,10 @@ async function createPositionedCoverFile(
   let cropHeight = bitmap.height;
   if (sourceRatio > targetRatio) cropWidth = bitmap.height * targetRatio;
   else cropHeight = bitmap.width / targetRatio;
+
+  const zoom = Math.min(2, Math.max(1, zoomPercent / 100));
+  cropWidth /= zoom;
+  cropHeight /= zoom;
 
   const maxX = Math.max(0, bitmap.width - cropWidth);
   const maxY = Math.max(0, bitmap.height - cropHeight);
@@ -257,6 +262,12 @@ const QR_FORM_TEXT = {
     currentLogoAlt: "Aktuelles Logo",
     noLogo: "Noch kein Logo hinterlegt.",
     storageRuleShort: "2 MB kostenlos · danach +5 MB = 1 Credit",
+    coverAdjustTitle: "Bildausschnitt anpassen",
+    coverAdjustHint: "Verschiebe und zoome das Bild, bis das Motiv im sichtbaren Bereich richtig sitzt.",
+    coverHorizontal: "Horizontal",
+    coverVertical: "Vertikal",
+    coverZoom: "Zoom",
+    coverCenter: "Zentrieren",
     createFailed: "QR-X konnte nicht erstellt werden.",
   },
   en: {
@@ -449,6 +460,12 @@ const QR_FORM_TEXT = {
     currentLogoAlt: "Current logo",
     noLogo: "No logo added yet.",
     storageRuleShort: "2 MB free · then +5 MB = 1 Credit",
+    coverAdjustTitle: "Adjust image crop",
+    coverAdjustHint: "Move and zoom the image until the subject is positioned correctly in the visible area.",
+    coverHorizontal: "Horizontal",
+    coverVertical: "Vertical",
+    coverZoom: "Zoom",
+    coverCenter: "Center",
     createFailed: "QR-X could not be created.",
   },
   tr: {
@@ -641,6 +658,12 @@ const QR_FORM_TEXT = {
     currentLogoAlt: "Mevcut logo",
     noLogo: "Henüz logo eklenmedi.",
     storageRuleShort: "2 MB ücretsiz · ardından +5 MB = 1 Credit",
+    coverAdjustTitle: "Görüntü alanını ayarla",
+    coverAdjustHint: "Motif görünür alanda doğru konuma gelene kadar görüntüyü taşı ve yakınlaştır.",
+    coverHorizontal: "Yatay",
+    coverVertical: "Dikey",
+    coverZoom: "Yakınlaştırma",
+    coverCenter: "Ortala",
     createFailed: "QR-X oluşturulamadı.",
   },
   pl: {
@@ -833,6 +856,12 @@ const QR_FORM_TEXT = {
     currentLogoAlt: "Aktualne logo",
     noLogo: "Nie dodano jeszcze logo.",
     storageRuleShort: "2 MB bezpłatnie · potem +5 MB = 1 Credit",
+    coverAdjustTitle: "Dostosuj kadr",
+    coverAdjustHint: "Przesuń i powiększ obraz, aż motyw będzie prawidłowo ustawiony w widocznym obszarze.",
+    coverHorizontal: "Poziomo",
+    coverVertical: "Pionowo",
+    coverZoom: "Powiększenie",
+    coverCenter: "Wyśrodkuj",
     createFailed: "Nie udało się utworzyć QR-X.",
   },
   ar: {
@@ -1025,6 +1054,12 @@ const QR_FORM_TEXT = {
     currentLogoAlt: "الشعار الحالي",
     noLogo: "لم تتم إضافة شعار بعد.",
     storageRuleShort: "2 MB مجانًا · ثم +5 MB = 1 Credit",
+    coverAdjustTitle: "ضبط إطار الصورة",
+    coverAdjustHint: "حرّك الصورة وكبّرها حتى يظهر العنصر بالشكل الصحيح داخل المنطقة المرئية.",
+    coverHorizontal: "أفقي",
+    coverVertical: "عمودي",
+    coverZoom: "تكبير",
+    coverCenter: "توسيط",
     createFailed: "تعذر إنشاء QR-X.",
   },
   fr: {
@@ -1217,6 +1252,12 @@ const QR_FORM_TEXT = {
     currentLogoAlt: "Logo actuel",
     noLogo: "Aucun logo ajouté pour le moment.",
     storageRuleShort: "2 MB gratuits · puis +5 MB = 1 Credit",
+    coverAdjustTitle: "Ajuster le cadrage",
+    coverAdjustHint: "Déplacez et zoomez l’image jusqu’à ce que le sujet soit correctement placé dans la zone visible.",
+    coverHorizontal: "Horizontal",
+    coverVertical: "Vertical",
+    coverZoom: "Zoom",
+    coverCenter: "Centrer",
     createFailed: "Le QR-X n’a pas pu être créé.",
   },
   es: {
@@ -1409,6 +1450,12 @@ const QR_FORM_TEXT = {
     currentLogoAlt: "Logo actual",
     noLogo: "Todavía no se ha añadido ningún logo.",
     storageRuleShort: "2 MB gratis · después +5 MB = 1 Credit",
+    coverAdjustTitle: "Ajustar encuadre",
+    coverAdjustHint: "Mueve y amplía la imagen hasta que el motivo quede bien colocado en el área visible.",
+    coverHorizontal: "Horizontal",
+    coverVertical: "Vertical",
+    coverZoom: "Zoom",
+    coverCenter: "Centrar",
     createFailed: "No se pudo crear el QR-X.",
   },
   it: {
@@ -1601,6 +1648,12 @@ const QR_FORM_TEXT = {
     currentLogoAlt: "Logo attuale",
     noLogo: "Nessun logo aggiunto finora.",
     storageRuleShort: "2 MB gratuiti · poi +5 MB = 1 Credit",
+    coverAdjustTitle: "Regola inquadratura",
+    coverAdjustHint: "Sposta e ingrandisci l’immagine finché il soggetto non è posizionato correttamente nell’area visibile.",
+    coverHorizontal: "Orizzontale",
+    coverVertical: "Verticale",
+    coverZoom: "Zoom",
+    coverCenter: "Centra",
     createFailed: "Impossibile creare il QR-X.",
   },
 } as const;
@@ -2261,6 +2314,7 @@ export default function EditQrxPage() {
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [coverPositionX, setCoverPositionX] = useState(50);
   const [coverPositionY, setCoverPositionY] = useState(50);
+  const [coverZoom, setCoverZoom] = useState(100);
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [fileUploads, setFileUploads] = useState<File[]>([]);
   const [mediaSaving, setMediaSaving] = useState(false);
@@ -3008,7 +3062,7 @@ export default function EditQrxPage() {
       }
 
       if (coverFile) {
-        const positionedCoverFile = await createPositionedCoverFile(coverFile, coverPositionX, coverPositionY);
+        const positionedCoverFile = await createPositionedCoverFile(coverFile, coverPositionX, coverPositionY, coverZoom);
         const uploadedCoverUrl = await uploadQrxMedia({
           qrxId,
           file: positionedCoverFile,
@@ -3172,6 +3226,7 @@ export default function EditQrxPage() {
     setCoverPreview(file ? URL.createObjectURL(file) : null);
     setCoverPositionX(50);
     setCoverPositionY(50);
+    setCoverZoom(100);
     event.target.value = "";
   }
 
@@ -3889,7 +3944,9 @@ export default function EditQrxPage() {
             <div style={mediaUploadBoxStyle}>
               <h3 style={mediaTitleStyle}>{ui.cover}</h3>
               {coverPreview ? (
-                <img src={coverPreview} alt={ui.coverPreviewAlt} style={{ ...coverPreviewStyle, objectPosition: `${coverPositionX}% ${coverPositionY}%` }} />
+                <div style={coverPreviewViewportStyle}>
+                  <img src={coverPreview} alt={ui.coverPreviewAlt} style={{ ...coverPreviewStyle, objectPosition: `${coverPositionX}% ${coverPositionY}%`, transform: `scale(${coverZoom / 100})`, transformOrigin: `${coverPositionX}% ${coverPositionY}%` }} />
+                </div>
               ) : coverUrl ? (
                 <img src={coverUrl} alt={ui.currentCoverAlt} style={coverPreviewStyle} />
               ) : (
@@ -3899,15 +3956,19 @@ export default function EditQrxPage() {
                 <>
                   <p style={selectedFileTextStyle}>{ui.newSelected}: {coverFile.name} · {formatBytes(coverFile.size)}</p>
                   <div style={coverAdjustBoxStyle}>
-                    <strong style={{ color: "#fff" }}>Bildausschnitt anpassen</strong>
-                    <span style={coverAdjustHintStyle}>Verschiebe den sichtbaren Bereich, bis das Motiv richtig sitzt.</span>
-                    <label style={coverRangeLabelStyle}>Horizontal
+                    <strong style={{ color: "#fff" }}>{ui.coverAdjustTitle}</strong>
+                    <span style={coverAdjustHintStyle}>{ui.coverAdjustHint}</span>
+                    <label style={coverRangeLabelStyle}>{ui.coverHorizontal}
                       <input type="range" min="0" max="100" value={coverPositionX} onChange={(e) => setCoverPositionX(Number(e.target.value))} style={coverRangeStyle} />
                     </label>
-                    <label style={coverRangeLabelStyle}>Vertikal
+                    <label style={coverRangeLabelStyle}>{ui.coverVertical}
                       <input type="range" min="0" max="100" value={coverPositionY} onChange={(e) => setCoverPositionY(Number(e.target.value))} style={coverRangeStyle} />
                     </label>
-                    <button type="button" onClick={() => { setCoverPositionX(50); setCoverPositionY(50); }} style={coverResetButtonStyle}>Zentrieren</button>
+                    <label style={coverRangeLabelStyle}>{ui.coverZoom}
+                      <input type="range" min="100" max="200" value={coverZoom} onChange={(e) => setCoverZoom(Number(e.target.value))} style={coverRangeStyle} />
+                      <span style={coverZoomValueStyle}>{coverZoom}%</span>
+                    </label>
+                    <button type="button" onClick={() => { setCoverPositionX(50); setCoverPositionY(50); setCoverZoom(100); }} style={coverResetButtonStyle}>{ui.coverCenter}</button>
                   </div>
                 </>
               ) : null}
@@ -3916,7 +3977,7 @@ export default function EditQrxPage() {
                   {ui.chooseCover}
                   <input type="file" accept="image/*" onChange={handleCoverChange} style={{ display: "none" }} />
                 </label>
-                {coverFile ? <button type="button" onClick={() => { setCoverFile(null); if (coverPreview) URL.revokeObjectURL(coverPreview); setCoverPreview(null); setCoverPositionX(50); setCoverPositionY(50); }} style={miniDangerButtonStyle}>{ui.removeSelection}</button> : null}
+                {coverFile ? <button type="button" onClick={() => { setCoverFile(null); if (coverPreview) URL.revokeObjectURL(coverPreview); setCoverPreview(null); setCoverPositionX(50); setCoverPositionY(50); setCoverZoom(100); }} style={miniDangerButtonStyle}>{ui.removeSelection}</button> : null}
                 {coverUrl ? <button type="button" onClick={handleClearCover} style={miniDangerButtonStyle}>{ui.deleteCover}</button> : null}
               </div>
             </div>
@@ -4500,19 +4561,31 @@ const logoPreviewStyle: CSSProperties = {
   background: "rgba(15,23,42,0.55)",
 };
 
+const coverPreviewViewportStyle: CSSProperties = {
+  width: "100%",
+  aspectRatio: "16 / 9",
+  overflow: "hidden",
+  borderRadius: 22,
+  border: "1px solid rgba(255,255,255,0.18)",
+  background: "rgba(15,23,42,0.55)",
+};
+
 const coverPreviewStyle: CSSProperties = {
   width: "100%",
-  maxHeight: 180,
+  height: "100%",
   objectFit: "cover",
-  borderRadius: 18,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(15,23,42,0.55)",
+  display: "block",
+  borderRadius: 0,
+  border: 0,
+  background: "transparent",
+  transition: "transform 120ms ease-out",
 };
 
 const coverAdjustBoxStyle: CSSProperties = { display: "grid", gap: 8, padding: 12, borderRadius: 14, background: "rgba(15,23,42,0.55)", border: "1px solid rgba(148,163,184,0.18)" };
 const coverAdjustHintStyle: CSSProperties = { color: "#94a3b8", fontSize: 12, lineHeight: 1.45 };
 const coverRangeLabelStyle: CSSProperties = { display: "grid", gridTemplateColumns: "80px 1fr", gap: 8, alignItems: "center", color: "#cbd5e1", fontSize: 12, fontWeight: 800 };
 const coverRangeStyle: CSSProperties = { width: "100%", cursor: "pointer", accentColor: "#6366f1" };
+const coverZoomValueStyle: CSSProperties = { justifySelf: "end", color: "#94a3b8", fontSize: 12, fontWeight: 800 };
 const coverResetButtonStyle: CSSProperties = { justifySelf: "start", border: "1px solid rgba(148,163,184,0.25)", background: "rgba(255,255,255,0.06)", color: "#fff", borderRadius: 10, padding: "6px 9px", cursor: "pointer", fontWeight: 800 };
 
 const pendingListStyle: CSSProperties = {
