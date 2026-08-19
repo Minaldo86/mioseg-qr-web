@@ -19,6 +19,53 @@ function normalizeQrxLocale(value: string): QrxWebLocale {
     : "de";
 }
 
+
+async function createPositionedCoverFile(
+  file: File,
+  positionX: number,
+  positionY: number,
+): Promise<File> {
+  const bitmap = await createImageBitmap(file);
+  const targetWidth = 1600;
+  const targetHeight = 900;
+  const targetRatio = targetWidth / targetHeight;
+  const sourceRatio = bitmap.width / bitmap.height;
+
+  let cropWidth = bitmap.width;
+  let cropHeight = bitmap.height;
+  if (sourceRatio > targetRatio) cropWidth = bitmap.height * targetRatio;
+  else cropHeight = bitmap.width / targetRatio;
+
+  const maxX = Math.max(0, bitmap.width - cropWidth);
+  const maxY = Math.max(0, bitmap.height - cropHeight);
+  const sourceX = maxX * (Math.min(100, Math.max(0, positionX)) / 100);
+  const sourceY = maxY * (Math.min(100, Math.max(0, positionY)) / 100);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Coverbild konnte nicht vorbereitet werden.");
+
+  context.drawImage(
+    bitmap,
+    sourceX, sourceY, cropWidth, cropHeight,
+    0, 0, targetWidth, targetHeight,
+  );
+  bitmap.close();
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (result) => result ? resolve(result) : reject(new Error("Coverbild konnte nicht erstellt werden.")),
+      "image/jpeg",
+      0.92,
+    );
+  });
+
+  const baseName = file.name.replace(/\.[^.]+$/, "") || "cover";
+  return new File([blob], `${baseName}-cover.jpg`, { type: "image/jpeg", lastModified: Date.now() });
+}
+
 const QR_FORM_TEXT = {
   de: {
     dashboard: "Dashboard",
@@ -2113,6 +2160,8 @@ export default function NewQrxPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [coverPositionX, setCoverPositionX] = useState(50);
+  const [coverPositionY, setCoverPositionY] = useState(50);
   const [galleryFiles, setGalleryFiles] = useState<SelectedMediaFile[]>([]);
   const [fileUploads, setFileUploads] = useState<SelectedMediaFile[]>([]);
   const logoPreviewRef = useRef<string | null>(null);
@@ -2888,6 +2937,8 @@ export default function NewQrxPage() {
   function handleCoverChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
     setCoverFile(file);
+    setCoverPositionX(50);
+    setCoverPositionY(50);
 
     if (coverPreview) URL.revokeObjectURL(coverPreview);
     setCoverPreview(file ? URL.createObjectURL(file) : null);
@@ -2903,6 +2954,8 @@ export default function NewQrxPage() {
     setCoverFile(null);
     if (coverPreview) URL.revokeObjectURL(coverPreview);
     setCoverPreview(null);
+    setCoverPositionX(50);
+    setCoverPositionY(50);
   }
 
   function handleGalleryFilesChange(event: ChangeEvent<HTMLInputElement>) {
@@ -3370,9 +3423,10 @@ export default function NewQrxPage() {
       }
 
       if (newId && qrxType === "business" && coverFile) {
+        const positionedCoverFile = await createPositionedCoverFile(coverFile, coverPositionX, coverPositionY);
         const coverUpload = await uploadQrxMedia({
           qrxId: newId,
-          file: coverFile,
+          file: positionedCoverFile,
           prefix: "cover",
         });
 
@@ -3839,8 +3893,19 @@ export default function NewQrxPage() {
                   <img
                     src={coverPreview}
                     alt={ui.coverPreviewAlt}
-                    style={coverPreviewStyle}
+                    style={{ ...coverPreviewStyle, objectPosition: `${coverPositionX}% ${coverPositionY}%` }}
                   />
+                  <div style={coverAdjustBoxStyle}>
+                    <strong style={{ color: "#fff" }}>Bildausschnitt anpassen</strong>
+                    <span style={coverAdjustHintStyle}>Verschiebe den sichtbaren Bereich, bis das Motiv richtig sitzt.</span>
+                    <label style={coverRangeLabelStyle}>Horizontal
+                      <input type="range" min="0" max="100" value={coverPositionX} onChange={(e) => setCoverPositionX(Number(e.target.value))} style={coverRangeStyle} />
+                    </label>
+                    <label style={coverRangeLabelStyle}>Vertikal
+                      <input type="range" min="0" max="100" value={coverPositionY} onChange={(e) => setCoverPositionY(Number(e.target.value))} style={coverRangeStyle} />
+                    </label>
+                    <button type="button" onClick={() => { setCoverPositionX(50); setCoverPositionY(50); }} style={coverResetButtonStyle}>Zentrieren</button>
+                  </div>
                   <button
                     type="button"
                     onClick={clearCoverSelection}
@@ -4921,6 +4986,12 @@ const coverPreviewStyle: CSSProperties = {
   border: "1px solid rgba(255,255,255,0.18)",
   background: "rgba(255,255,255,0.08)",
 };
+
+const coverAdjustBoxStyle: CSSProperties = { display: "grid", gap: 8, padding: 14, borderRadius: 16, background: "rgba(15,23,42,0.55)", border: "1px solid rgba(148,163,184,0.18)" };
+const coverAdjustHintStyle: CSSProperties = { color: "#94a3b8", fontSize: 13, lineHeight: 1.45 };
+const coverRangeLabelStyle: CSSProperties = { display: "grid", gridTemplateColumns: "90px 1fr", gap: 10, alignItems: "center", color: "#cbd5e1", fontSize: 13, fontWeight: 800 };
+const coverRangeStyle: CSSProperties = { width: "100%", cursor: "pointer", accentColor: "#6366f1" };
+const coverResetButtonStyle: CSSProperties = { justifySelf: "start", border: "1px solid rgba(148,163,184,0.25)", background: "rgba(255,255,255,0.06)", color: "#fff", borderRadius: 10, padding: "7px 10px", cursor: "pointer", fontWeight: 800 };
 
 const fileButtonStyle: CSSProperties = {
   minHeight: 48,
