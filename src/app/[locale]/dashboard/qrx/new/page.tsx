@@ -71,6 +71,44 @@ async function createPositionedCoverFile(
   return new File([blob], `${baseName}-cover.jpg`, { type: "image/jpeg", lastModified: Date.now() });
 }
 
+function drawPositionedCoverPreview(
+  canvas: HTMLCanvasElement,
+  bitmap: ImageBitmap,
+  positionX: number,
+  positionY: number,
+  zoomPercent: number,
+) {
+  const targetWidth = 1600;
+  const targetHeight = 900;
+  const targetRatio = targetWidth / targetHeight;
+  const sourceRatio = bitmap.width / bitmap.height;
+
+  let cropWidth = bitmap.width;
+  let cropHeight = bitmap.height;
+  if (sourceRatio > targetRatio) cropWidth = bitmap.height * targetRatio;
+  else cropHeight = bitmap.width / targetRatio;
+
+  const zoom = Math.min(2, Math.max(1, zoomPercent / 100));
+  cropWidth /= zoom;
+  cropHeight /= zoom;
+
+  const maxX = Math.max(0, bitmap.width - cropWidth);
+  const maxY = Math.max(0, bitmap.height - cropHeight);
+  const sourceX = maxX * (Math.min(100, Math.max(0, positionX)) / 100);
+  const sourceY = maxY * (Math.min(100, Math.max(0, positionY)) / 100);
+
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+  const context = canvas.getContext("2d");
+  if (!context) return;
+  context.clearRect(0, 0, targetWidth, targetHeight);
+  context.drawImage(
+    bitmap,
+    sourceX, sourceY, cropWidth, cropHeight,
+    0, 0, targetWidth, targetHeight,
+  );
+}
+
 const QR_FORM_TEXT = {
   de: {
     dashboard: "Dashboard",
@@ -2216,6 +2254,9 @@ export default function NewQrxPage() {
   const [coverPositionX, setCoverPositionX] = useState(50);
   const [coverPositionY, setCoverPositionY] = useState(50);
   const [coverZoom, setCoverZoom] = useState(100);
+  const coverPreviewCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const coverBitmapRef = useRef<ImageBitmap | null>(null);
+  const [coverBitmapVersion, setCoverBitmapVersion] = useState(0);
   const [galleryFiles, setGalleryFiles] = useState<SelectedMediaFile[]>([]);
   const [fileUploads, setFileUploads] = useState<SelectedMediaFile[]>([]);
   const logoPreviewRef = useRef<string | null>(null);
@@ -2295,6 +2336,53 @@ export default function NewQrxPage() {
     totalCostCredits != null && credits != null
       ? credits >= totalCostCredits
       : false;
+
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function prepareCoverBitmap() {
+      coverBitmapRef.current?.close();
+      coverBitmapRef.current = null;
+
+      if (!coverFile) {
+        setCoverBitmapVersion((value) => value + 1);
+        return;
+      }
+
+      try {
+        const bitmap = await createImageBitmap(coverFile);
+        if (cancelled) {
+          bitmap.close();
+          return;
+        }
+        coverBitmapRef.current = bitmap;
+        setCoverBitmapVersion((value) => value + 1);
+      } catch {
+        // The normal upload validation handles invalid image files.
+      }
+    }
+
+    void prepareCoverBitmap();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coverFile]);
+
+  useEffect(() => {
+    const canvas = coverPreviewCanvasRef.current;
+    const bitmap = coverBitmapRef.current;
+    if (!canvas || !bitmap) return;
+    drawPositionedCoverPreview(canvas, bitmap, coverPositionX, coverPositionY, coverZoom);
+  }, [coverBitmapVersion, coverPositionX, coverPositionY, coverZoom]);
+
+  useEffect(() => {
+    return () => {
+      coverBitmapRef.current?.close();
+      coverBitmapRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     setCostConfirmed(false);
@@ -3947,10 +4035,10 @@ export default function NewQrxPage() {
               {coverPreview ? (
                 <div style={{ display: "grid", gap: 12 }}>
                   <div style={coverPreviewViewportStyle}>
-                    <img
-                      src={coverPreview}
-                      alt={ui.coverPreviewAlt}
-                      style={{ ...coverPreviewStyle, objectPosition: `${coverPositionX}% ${coverPositionY}%`, transform: `scale(${coverZoom / 100})`, transformOrigin: `${coverPositionX}% ${coverPositionY}%` }}
+                    <canvas
+                      ref={coverPreviewCanvasRef}
+                      aria-label={ui.coverPreviewAlt}
+                      style={coverPreviewCanvasStyle}
                     />
                   </div>
                   <div style={coverAdjustBoxStyle}>
@@ -5047,6 +5135,12 @@ const coverPreviewViewportStyle: CSSProperties = {
   borderRadius: 22,
   border: "1px solid rgba(255,255,255,0.18)",
   background: "rgba(15,23,42,0.55)",
+};
+
+const coverPreviewCanvasStyle: CSSProperties = {
+  width: "100%",
+  height: "100%",
+  display: "block",
 };
 
 const coverPreviewStyle: CSSProperties = {
