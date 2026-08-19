@@ -858,7 +858,6 @@ const sectionCardStyle: CSSProperties = {
     position: "relative",
     overflow: "hidden",
     borderRadius: isMobile ? 22 : 26,
-    minHeight: isMobile ? 300 : 390,
     background: "#0D1728",
     border: "1px solid rgba(59, 130, 246, 0.18)",
     boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
@@ -866,7 +865,6 @@ const sectionCardStyle: CSSProperties = {
 
   const heroCoverImageStyle: CSSProperties = {
     width: "100%",
-    height: isMobile ? 300 : 390,
     objectFit: "cover",
     display: "block",
     filter: "brightness(0.78)",
