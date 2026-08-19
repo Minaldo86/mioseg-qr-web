@@ -4274,7 +4274,8 @@ function typeButtonStyle(active: boolean, type: QrxType): CSSProperties {
 
 const panelStyle: CSSProperties = {
   width: "100%",
-  maxWidth: "none",
+  maxWidth: 1180,
+  boxSizing: "border-box",
   margin: "0 auto",
   borderRadius: 30,
   background: "rgba(15, 23, 42, 0.82)",
