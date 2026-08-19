@@ -10,6 +10,7 @@ import QrxPasswordGate from "./QrxPasswordGate";
 import QrxCodeCanvas from "./QrxCodeCanvas";
 import MediaInteractionLink from "./MediaInteractionLink";
 import CollectionPreview, { type QrxCollectionPreviewItem } from "@/components/qrx/CollectionPreview";
+import VerificationInfoButton from "./VerificationInfoButton";
 
 type NewsItem = { text: string; createdAt: string };
 
@@ -140,6 +141,7 @@ const LEGACY_QRX_TEXT = {
     location: "Ort", noLocation: "Kein Ort hinterlegt.", googleMaps: "In Google Maps öffnen", navigationOpen: "Navigation öffnen",
     transfer: "Transfer", transferHint: "Verlauf und aktueller Transferstatus dieses QR-X.", noTransfer: "Noch kein Transfer vorhanden.", recipient: "Empfänger", from: "Von", to: "An", accepted: "Angenommen", expires: "Ablauf",
     followed: "Gefolgt", ownerText: "Du bist der Besitzer dieses QR-X.", ownQrx: "Eigener QR-X", savedText: "Dieser QR-X ist aktuell in deinen gespeicherten Einträgen.", followHint: "Folge diesem QR-X, um ihn schneller wiederzufinden.", unfollow: "Folgen beenden", follow: "Folgen", loginFollow: "Melde dich an, um diesem QR-X zu folgen.", savedByOne: "Gespeichert von {{count}} Nutzer", savedByMany: "Gespeichert von {{count}} Nutzern",
+    verificationInfo: { dialogTitle: "Verifizierter QR-X", dialogIntro: "Dieser QR-X wurde von mioseg qr verifiziert.", checkedTitle: "Angaben & Nachweise geprüft", checkedText: "Im Rahmen der Verifizierung wurden entsprechende Angaben und Nachweise geprüft.", statusTitle: "Verifizierungsstatus", statusText: "Das Abzeichen kennzeichnet diesen QR-X als verifiziert.", meaningTitle: "Was bedeutet die Verifizierung?", meaningText: "Die Prüfung bezieht sich auf die im Verifizierungsverfahren geprüften Angaben und Nachweise. Sie stellt keine Empfehlung oder Garantie für Inhalte, Angebote, Leistungen, Qualität, Sicherheit oder zukünftiges Verhalten des Anbieters bzw. Verantwortlichen dar.", understood: "Verstanden", openAria: "Informationen zur Verifizierung öffnen", closeAria: "Verifizierungsinformationen schließen" },
     collection: { untitled:"Unbenannter QR-X", business:"Business QR-X", normal:"Normaler QR-X", collection:"Sammlung", one:"Eintrag", many:"Einträge", verified:"Verifiziert", part:"Sammlung", open:"Öffnen →" },
     categories: { praxis_gesundheit:"Praxis & Gesundheit", gastronomie:"Gastronomie", unternehmen:"Unternehmen", dienstleistung:"Dienstleistung", handwerk:"Handwerk", event:"Event", verein:"Verein", wohltaetigkeit:"Wohltätigkeit", sehenswuerdigkeit:"Sehenswürdigkeit", sonstiges:"Sonstiges" },
   },
@@ -156,6 +158,7 @@ const LEGACY_QRX_TEXT = {
     location: "Location", noLocation: "No location saved.", googleMaps: "Open in Google Maps", navigationOpen: "Open navigation",
     transfer: "Transfer", transferHint: "History and current transfer status for this QR-X.", noTransfer: "No transfer yet.", recipient: "Recipient", from: "From", to: "To", accepted: "Accepted", expires: "Expires",
     followed: "Following", ownerText: "You are the owner of this QR-X.", ownQrx: "My QR-X", savedText: "This QR-X is currently in your saved items.", followHint: "Follow this QR-X to find it again more quickly.", unfollow: "Unfollow", follow: "Follow", loginFollow: "Sign in to follow this QR-X.", savedByOne: "Saved by {{count}} user", savedByMany: "Saved by {{count}} users",
+    verificationInfo: { dialogTitle: "Verified QR-X", dialogIntro: "This QR-X has been verified by mioseg qr.", checkedTitle: "Details & evidence reviewed", checkedText: "As part of the verification process, the relevant details and supporting evidence were reviewed.", statusTitle: "Verification status", statusText: "The badge identifies this QR-X as verified.", meaningTitle: "What does verification mean?", meaningText: "Verification relates only to the information and evidence reviewed during the verification process. It is not a recommendation or guarantee of content, offers, services, quality, safety, or future conduct of the provider or responsible party.", understood: "Got it", openAria: "Open verification information", closeAria: "Close verification information" },
     collection: { untitled:"Untitled QR-X", business:"Business QR-X", normal:"Normal QR-X", collection:"Collection", one:"item", many:"items", verified:"Verified", part:"Collection", open:"Open →" },
     categories: { praxis_gesundheit:"Practice & Health", gastronomie:"Food & Hospitality", unternehmen:"Company", dienstleistung:"Service", handwerk:"Trade", event:"Event", verein:"Association", wohltaetigkeit:"Charity", sehenswuerdigkeit:"Attraction", sonstiges:"Other" },
   },
@@ -166,6 +169,7 @@ const LEGACY_QRX_TEXT = {
     title:"Başlık", description:"Açıklama", noDescription:"Açıklama yok.", news:"Haberler / Güncellemeler", noNews:"Henüz haber yok.", images:"Görseller", noImages:"Görsel yok.", imageOpenAria:"{{name}} görselini aç", tapImage:"Açmak için görsele dokun", files:"Dosyalar", fileOpenAria:"{{name}} dosyasını aç", fileDownloadAria:"{{name}} dosyasını indir", open:"Aç", download:"İndir",
     location:"Konum", noLocation:"Konum kaydedilmemiş.", googleMaps:"Google Maps'te aç", navigationOpen:"Navigasyonu aç", transfer:"Transfer", transferHint:"Bu QR-X'in transfer geçmişi ve mevcut durumu.", noTransfer:"Henüz transfer yok.", recipient:"Alıcı", from:"Kimden", to:"Kime", accepted:"Kabul edildi", expires:"Bitiş",
     followed:"Takip", ownerText:"Bu QR-X'in sahibisiniz.", ownQrx:"Kendi QR-X'im", savedText:"Bu QR-X şu anda kayıtlı öğelerinizde.", followHint:"Daha hızlı bulmak için bu QR-X'i takip edin.", unfollow:"Takibi bırak", follow:"Takip et", loginFollow:"Bu QR-X'i takip etmek için giriş yapın.", savedByOne:"{{count}} kullanıcı kaydetti", savedByMany:"{{count}} kullanıcı kaydetti",
+    verificationInfo: { dialogTitle: "Doğrulanmış QR-X", dialogIntro: "Bu QR-X, mioseg qr tarafından doğrulanmıştır.", checkedTitle: "Bilgiler ve belgeler kontrol edildi", checkedText: "Doğrulama kapsamında ilgili bilgiler ve destekleyici belgeler kontrol edildi.", statusTitle: "Doğrulama durumu", statusText: "Bu rozet, QR-X'in doğrulanmış olduğunu gösterir.", meaningTitle: "Doğrulama ne anlama gelir?", meaningText: "Doğrulama yalnızca doğrulama sürecinde incelenen bilgi ve belgelere ilişkindir. Sağlayıcının veya sorumlu kişinin içerikleri, teklifleri, hizmetleri, kalitesi, güvenliği ya da gelecekteki davranışları için bir tavsiye veya garanti değildir.", understood: "Anladım", openAria: "Doğrulama bilgilerini aç", closeAria: "Doğrulama bilgilerini kapat" },
     collection:{untitled:"Adsız QR-X",business:"Business QR-X",normal:"Normal QR-X",collection:"Koleksiyon",one:"öğe",many:"öğe",verified:"Doğrulandı",part:"Koleksiyon",open:"Aç →"},
     categories:{praxis_gesundheit:"Muayenehane & Sağlık",gastronomie:"Gastronomi",unternehmen:"Şirket",dienstleistung:"Hizmet",handwerk:"Zanaat",event:"Etkinlik",verein:"Dernek",wohltaetigkeit:"Hayır kurumu",sehenswuerdigkeit:"Gezilecek yer",sonstiges:"Diğer"},
   },
@@ -176,6 +180,7 @@ const LEGACY_QRX_TEXT = {
     title:"Tytuł", description:"Opis", noDescription:"Brak opisu.", news:"Aktualności", noNews:"Brak aktualności.", images:"Obrazy", noImages:"Brak obrazów.", imageOpenAria:"Otwórz obraz {{name}}", tapImage:"Dotknij obrazu, aby otworzyć", files:"Pliki", fileOpenAria:"Otwórz plik {{name}}", fileDownloadAria:"Pobierz plik {{name}}", open:"Otwórz", download:"Pobierz",
     location:"Lokalizacja", noLocation:"Brak zapisanej lokalizacji.", googleMaps:"Otwórz w Google Maps", navigationOpen:"Otwórz nawigację", transfer:"Transfer", transferHint:"Historia i aktualny status transferu tego QR-X.", noTransfer:"Brak transferu.", recipient:"Odbiorca", from:"Od", to:"Do", accepted:"Zaakceptowano", expires:"Wygasa",
     followed:"Obserwowane", ownerText:"Jesteś właścicielem tego QR-X.", ownQrx:"Mój QR-X", savedText:"Ten QR-X znajduje się obecnie w zapisanych elementach.", followHint:"Obserwuj ten QR-X, aby szybciej go odnaleźć.", unfollow:"Przestań obserwować", follow:"Obserwuj", loginFollow:"Zaloguj się, aby obserwować ten QR-X.", savedByOne:"Zapisany przez {{count}} użytkownika", savedByMany:"Zapisany przez {{count}} użytkowników",
+    verificationInfo: { dialogTitle: "Zweryfikowany QR-X", dialogIntro: "Ten QR-X został zweryfikowany przez mioseg qr.", checkedTitle: "Dane i dokumenty sprawdzone", checkedText: "W ramach weryfikacji sprawdzono odpowiednie dane i dokumenty potwierdzające.", statusTitle: "Status weryfikacji", statusText: "Odznaka oznacza ten QR-X jako zweryfikowany.", meaningTitle: "Co oznacza weryfikacja?", meaningText: "Weryfikacja odnosi się wyłącznie do danych i dokumentów sprawdzonych w procesie weryfikacji. Nie stanowi rekomendacji ani gwarancji dotyczącej treści, ofert, usług, jakości, bezpieczeństwa lub przyszłego zachowania dostawcy bądź osoby odpowiedzialnej.", understood: "Rozumiem", openAria: "Otwórz informacje o weryfikacji", closeAria: "Zamknij informacje o weryfikacji" },
     collection:{untitled:"QR-X bez nazwy",business:"Business QR-X",normal:"Zwykły QR-X",collection:"Kolekcja",one:"element",many:"elementów",verified:"Zweryfikowany",part:"Kolekcja",open:"Otwórz →"},
     categories:{praxis_gesundheit:"Praktyka i zdrowie",gastronomie:"Gastronomia",unternehmen:"Firma",dienstleistung:"Usługi",handwerk:"Rzemiosło",event:"Wydarzenie",verein:"Stowarzyszenie",wohltaetigkeit:"Dobroczynność",sehenswuerdigkeit:"Atrakcja",sonstiges:"Inne"},
   },
@@ -186,6 +191,7 @@ const LEGACY_QRX_TEXT = {
     title:"العنوان", description:"الوصف", noDescription:"لا يوجد وصف.", news:"الأخبار / التحديثات", noNews:"لا توجد أخبار بعد.", images:"الصور", noImages:"لا توجد صور.", imageOpenAria:"فتح الصورة {{name}}", tapImage:"اضغط على الصورة لفتحها", files:"الملفات", fileOpenAria:"فتح الملف {{name}}", fileDownloadAria:"تنزيل الملف {{name}}", open:"فتح", download:"تنزيل",
     location:"الموقع", noLocation:"لم يتم حفظ موقع.", googleMaps:"فتح في خرائط Google", navigationOpen:"فتح التنقل", transfer:"النقل", transferHint:"سجل النقل والحالة الحالية لهذا QR-X.", noTransfer:"لا يوجد نقل بعد.", recipient:"المستلم", from:"من", to:"إلى", accepted:"تم القبول", expires:"انتهاء الصلاحية",
     followed:"المتابعة", ownerText:"أنت مالك QR-X هذا.", ownQrx:"QR-X الخاص بي", savedText:"QR-X هذا موجود حاليًا في العناصر المحفوظة لديك.", followHint:"تابع QR-X هذا للعثور عليه بسرعة أكبر.", unfollow:"إلغاء المتابعة", follow:"متابعة", loginFollow:"سجّل الدخول لمتابعة QR-X هذا.", savedByOne:"محفوظ بواسطة مستخدم واحد", savedByMany:"محفوظ بواسطة {{count}} مستخدمين",
+    verificationInfo: { dialogTitle: "QR-X موثّق", dialogIntro: "تم توثيق QR-X هذا بواسطة mioseg qr.", checkedTitle: "تمت مراجعة البيانات والمستندات", checkedText: "في إطار عملية التوثيق، تمت مراجعة البيانات والمستندات الداعمة ذات الصلة.", statusTitle: "حالة التوثيق", statusText: "تشير الشارة إلى أن QR-X هذا موثّق.", meaningTitle: "ماذا يعني التوثيق؟", meaningText: "يقتصر التوثيق على البيانات والمستندات التي تمت مراجعتها ضمن عملية التوثيق. ولا يُعد توصية أو ضمانًا للمحتوى أو العروض أو الخدمات أو الجودة أو السلامة أو السلوك المستقبلي لمقدم الخدمة أو المسؤول.", understood: "فهمت", openAria: "فتح معلومات التوثيق", closeAria: "إغلاق معلومات التوثيق" },
     collection:{untitled:"QR-X بدون اسم",business:"Business QR-X",normal:"QR-X عادي",collection:"مجموعة",one:"عنصر",many:"عناصر",verified:"تم التحقق",part:"مجموعة",open:"فتح →"},
     categories:{praxis_gesundheit:"العيادات والصحة",gastronomie:"المطاعم والضيافة",unternehmen:"شركة",dienstleistung:"خدمة",handwerk:"حِرف",event:"فعالية",verein:"جمعية",wohltaetigkeit:"أعمال خيرية",sehenswuerdigkeit:"معلم سياحي",sonstiges:"أخرى"},
   },
@@ -196,6 +202,7 @@ const LEGACY_QRX_TEXT = {
     title:"Titre", description:"Description", noDescription:"Aucune description disponible.", news:"Actualités", noNews:"Aucune actualité pour le moment.", images:"Images", noImages:"Aucune image disponible.", imageOpenAria:"Ouvrir l’image {{name}}", tapImage:"Touchez l’image pour l’ouvrir", files:"Fichiers", fileOpenAria:"Ouvrir le fichier {{name}}", fileDownloadAria:"Télécharger le fichier {{name}}", open:"Ouvrir", download:"Télécharger",
     location:"Lieu", noLocation:"Aucun lieu enregistré.", googleMaps:"Ouvrir dans Google Maps", navigationOpen:"Ouvrir la navigation", transfer:"Transfert", transferHint:"Historique et état actuel du transfert de ce QR-X.", noTransfer:"Aucun transfert pour le moment.", recipient:"Destinataire", from:"De", to:"À", accepted:"Accepté", expires:"Expiration",
     followed:"Suivi", ownerText:"Vous êtes le propriétaire de ce QR-X.", ownQrx:"Mon QR-X", savedText:"Ce QR-X figure actuellement dans vos éléments enregistrés.", followHint:"Suivez ce QR-X pour le retrouver plus rapidement.", unfollow:"Ne plus suivre", follow:"Suivre", loginFollow:"Connectez-vous pour suivre ce QR-X.", savedByOne:"Enregistré par {{count}} utilisateur", savedByMany:"Enregistré par {{count}} utilisateurs",
+    verificationInfo: { dialogTitle: "QR-X vérifié", dialogIntro: "Ce QR-X a été vérifié par mioseg qr.", checkedTitle: "Informations et justificatifs vérifiés", checkedText: "Dans le cadre de la vérification, les informations et justificatifs correspondants ont été contrôlés.", statusTitle: "Statut de vérification", statusText: "Le badge indique que ce QR-X est vérifié.", meaningTitle: "Que signifie la vérification ?", meaningText: "La vérification porte uniquement sur les informations et justificatifs examinés dans le cadre de la procédure. Elle ne constitue ni une recommandation ni une garantie concernant les contenus, offres, services, la qualité, la sécurité ou le comportement futur du fournisseur ou du responsable.", understood: "Compris", openAria: "Ouvrir les informations de vérification", closeAria: "Fermer les informations de vérification" },
     collection:{untitled:"QR-X sans nom",business:"Business QR-X",normal:"QR-X normal",collection:"Collection",one:"élément",many:"éléments",verified:"Vérifié",part:"Collection",open:"Ouvrir →"},
     categories:{praxis_gesundheit:"Cabinet & Santé",gastronomie:"Restauration",unternehmen:"Entreprise",dienstleistung:"Service",handwerk:"Artisanat",event:"Événement",verein:"Association",wohltaetigkeit:"Caritatif",sehenswuerdigkeit:"Site touristique",sonstiges:"Autre"},
   },
@@ -206,6 +213,7 @@ const LEGACY_QRX_TEXT = {
     title:"Título", description:"Descripción", noDescription:"No hay descripción disponible.", news:"Noticias / Actualizaciones", noNews:"Todavía no hay noticias.", images:"Imágenes", noImages:"No hay imágenes disponibles.", imageOpenAria:"Abrir imagen {{name}}", tapImage:"Toca la imagen para abrirla", files:"Archivos", fileOpenAria:"Abrir archivo {{name}}", fileDownloadAria:"Descargar archivo {{name}}", open:"Abrir", download:"Descargar",
     location:"Ubicación", noLocation:"No hay ubicación guardada.", googleMaps:"Abrir en Google Maps", navigationOpen:"Abrir navegación", transfer:"Transferencia", transferHint:"Historial y estado actual de transferencia de este QR-X.", noTransfer:"Todavía no hay transferencia.", recipient:"Destinatario", from:"De", to:"A", accepted:"Aceptada", expires:"Vencimiento",
     followed:"Seguimiento", ownerText:"Eres el propietario de este QR-X.", ownQrx:"Mi QR-X", savedText:"Este QR-X está actualmente entre tus elementos guardados.", followHint:"Sigue este QR-X para encontrarlo más rápidamente.", unfollow:"Dejar de seguir", follow:"Seguir", loginFollow:"Inicia sesión para seguir este QR-X.", savedByOne:"Guardado por {{count}} usuario", savedByMany:"Guardado por {{count}} usuarios",
+    verificationInfo: { dialogTitle: "QR-X verificado", dialogIntro: "Este QR-X ha sido verificado por mioseg qr.", checkedTitle: "Datos y justificantes revisados", checkedText: "Como parte de la verificación, se revisaron los datos y justificantes correspondientes.", statusTitle: "Estado de verificación", statusText: "La insignia identifica este QR-X como verificado.", meaningTitle: "¿Qué significa la verificación?", meaningText: "La verificación se refiere únicamente a los datos y justificantes revisados durante el proceso. No constituye una recomendación ni una garantía sobre contenidos, ofertas, servicios, calidad, seguridad o el comportamiento futuro del proveedor o responsable.", understood: "Entendido", openAria: "Abrir información de verificación", closeAria: "Cerrar información de verificación" },
     collection:{untitled:"QR-X sin nombre",business:"Business QR-X",normal:"QR-X normal",collection:"Colección",one:"elemento",many:"elementos",verified:"Verificado",part:"Colección",open:"Abrir →"},
     categories:{praxis_gesundheit:"Consulta y salud",gastronomie:"Gastronomía",unternehmen:"Empresa",dienstleistung:"Servicio",handwerk:"Oficio",event:"Evento",verein:"Asociación",wohltaetigkeit:"Beneficencia",sehenswuerdigkeit:"Lugar de interés",sonstiges:"Otros"},
   },
@@ -216,6 +224,7 @@ const LEGACY_QRX_TEXT = {
     title:"Titolo", description:"Descrizione", noDescription:"Nessuna descrizione disponibile.", news:"Notizie / Aggiornamenti", noNews:"Nessuna notizia ancora.", images:"Immagini", noImages:"Nessuna immagine disponibile.", imageOpenAria:"Apri immagine {{name}}", tapImage:"Tocca l’immagine per aprirla", files:"File", fileOpenAria:"Apri file {{name}}", fileDownloadAria:"Scarica file {{name}}", open:"Apri", download:"Scarica",
     location:"Luogo", noLocation:"Nessun luogo salvato.", googleMaps:"Apri in Google Maps", navigationOpen:"Apri navigazione", transfer:"Trasferimento", transferHint:"Cronologia e stato attuale del trasferimento di questo QR-X.", noTransfer:"Nessun trasferimento ancora.", recipient:"Destinatario", from:"Da", to:"A", accepted:"Accettato", expires:"Scadenza",
     followed:"Seguito", ownerText:"Sei il proprietario di questo QR-X.", ownQrx:"Il mio QR-X", savedText:"Questo QR-X è attualmente tra gli elementi salvati.", followHint:"Segui questo QR-X per ritrovarlo più rapidamente.", unfollow:"Smetti di seguire", follow:"Segui", loginFollow:"Accedi per seguire questo QR-X.", savedByOne:"Salvato da {{count}} utente", savedByMany:"Salvato da {{count}} utenti",
+    verificationInfo: { dialogTitle: "QR-X verificato", dialogIntro: "Questo QR-X è stato verificato da mioseg qr.", checkedTitle: "Dati e documenti verificati", checkedText: "Nell'ambito della verifica sono stati controllati i dati e i documenti di supporto pertinenti.", statusTitle: "Stato di verifica", statusText: "Il badge identifica questo QR-X come verificato.", meaningTitle: "Cosa significa la verifica?", meaningText: "La verifica riguarda esclusivamente i dati e i documenti esaminati durante la procedura. Non costituisce una raccomandazione o garanzia relativa a contenuti, offerte, servizi, qualità, sicurezza o al comportamento futuro del fornitore o del responsabile.", understood: "Ho capito", openAria: "Apri informazioni sulla verifica", closeAria: "Chiudi informazioni sulla verifica" },
     collection:{untitled:"QR-X senza nome",business:"Business QR-X",normal:"QR-X normale",collection:"Raccolta",one:"elemento",many:"elementi",verified:"Verificato",part:"Raccolta",open:"Apri →"},
     categories:{praxis_gesundheit:"Studio & Salute",gastronomie:"Ristorazione",unternehmen:"Azienda",dienstleistung:"Servizio",handwerk:"Artigianato",event:"Evento",verein:"Associazione",wohltaetigkeit:"Beneficenza",sehenswuerdigkeit:"Attrazione",sonstiges:"Altro"},
   },
@@ -858,6 +867,7 @@ const sectionCardStyle: CSSProperties = {
     position: "relative",
     overflow: "hidden",
     borderRadius: isMobile ? 22 : 26,
+    minHeight: isMobile ? 300 : 390,
     background: "#0D1728",
     border: "1px solid rgba(59, 130, 246, 0.18)",
     boxShadow: "0 8px 32px rgba(0,0,0,0.28)",
@@ -865,6 +875,7 @@ const sectionCardStyle: CSSProperties = {
 
   const heroCoverImageStyle: CSSProperties = {
     width: "100%",
+    height: isMobile ? 300 : 390,
     objectFit: "cover",
     display: "block",
     filter: "brightness(0.78)",
@@ -1099,10 +1110,10 @@ const sectionCardStyle: CSSProperties = {
 
                   <div style={heroBrandRowStyle}>
                     {entry.verified ? (
-                      <span style={heroVerifiedBusinessBadgeStyle}>
-                        <span style={heroVerifiedBusinessIconStyle}>✓</span>
-                        {ui.businessVerified}
-                      </span>
+                      <VerificationInfoButton
+                        badgeLabel={ui.businessVerified}
+                        copy={ui.verificationInfo}
+                      />
                     ) : (
                       <span style={heroBusinessBadgeStyle}>{ui.businessQrx}</span>
                     )}
