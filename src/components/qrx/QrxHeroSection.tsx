@@ -61,13 +61,21 @@ export default function QrxHeroSection({
 }
 
 const coverStyle: CSSProperties = {
-  minHeight: 360,
+  width: "100%",
+  aspectRatio: "16 / 9",
   borderRadius: 28,
   overflow: "hidden",
   position: "relative",
   background: "linear-gradient(135deg, rgba(15,23,42,0.9), rgba(30,41,59,0.7))",
 };
-const coverImageStyle: CSSProperties = { width: "100%", height: "100%", minHeight: 360, objectFit: "cover", display: "block" };
+const coverImageStyle: CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  display: "block",
+};
 const coverPlaceholderStyle: CSSProperties = { minHeight: 360, display: "grid", placeItems: "center", color: "rgba(255,255,255,0.18)", fontSize: 72, fontWeight: 950 };
 const coverOverlayStyle: CSSProperties = { position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(6,12,21,0.1) 0%, rgba(6,12,21,0.88) 100%)" };
 const coverContentStyle: CSSProperties = { position: "absolute", left: 24, right: 24, bottom: 24, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" };
