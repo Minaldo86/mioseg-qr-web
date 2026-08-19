@@ -1463,13 +1463,16 @@ function PublicQrxDetailPageContent() {
   const forceOriginalQuality = Boolean(entry?.force_original_quality);
   const coverMedia = getMediaById(media, entry?.cover_media_id);
   const logoMedia = getMediaById(media, entry?.logo_media_id);
+  // Prefer the explicitly saved cover_image_url.
+  // The create/edit flow writes the final positioned 16:9 cover here.
+  // A stale cover_media_id may otherwise point to an older media image and override it.
   const cover =
+    entry?.cover_image_url?.trim() ||
     getBestMediaUrl({
       media: coverMedia,
       purpose: "hero",
       forceOriginal: forceOriginalQuality,
     }) ||
-    entry?.cover_image_url?.trim() ||
     null;
   const logo =
     getBestMediaUrl({
