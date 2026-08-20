@@ -2301,8 +2301,7 @@ export default function NewQrxPage() {
   }, [qrxType, wantsVerification]);
 
   const selectedStorageBytes = useMemo(() => {
-    // Logo und Cover gehören zur kostenlosen Grunddarstellung.
-    // Für Storage-Credits zählen nur Galerie-Inhalte und Dateien.
+    // Logo und Cover gehören zur Grunddarstellung und sind kostenlos.
     const galleryBytes = galleryFiles.reduce(
       (sum, item) => sum + item.file.size,
       0,
@@ -2884,7 +2883,8 @@ export default function NewQrxPage() {
 
   async function prepareUpload(args: {
     qrxId: string;
-    type: "image" | "file" | "logo" | "cover";
+    type: "image" | "file";
+    role?: "gallery" | "logo" | "cover" | "file";
     filename: string;
     mimeType: string;
     bytes: number;
@@ -2897,6 +2897,7 @@ export default function NewQrxPage() {
         body: {
           qrxId: args.qrxId,
           type: args.type,
+          role: args.role ?? (args.type === "file" ? "file" : "gallery"),
           filename: args.filename,
           mimeType: args.mimeType,
           bytes: args.bytes,
@@ -2938,7 +2939,8 @@ export default function NewQrxPage() {
 
   async function finalizeUpload(args: {
     qrxId: string;
-    type: "image" | "file" | "logo" | "cover";
+    type: "image" | "file";
+    role?: "gallery" | "logo" | "cover" | "file";
     filename: string;
     mimeType: string;
     bytes: number;
@@ -2952,6 +2954,7 @@ export default function NewQrxPage() {
         body: {
           qrxId: args.qrxId,
           type: args.type,
+          role: args.role ?? (args.type === "file" ? "file" : "gallery"),
           filename: args.filename,
           mimeType: args.mimeType,
           bytes: args.bytes,
@@ -3023,7 +3026,8 @@ export default function NewQrxPage() {
     qrxId: string;
     file: File;
     prefix: "logo" | "cover" | "gallery" | "file";
-    mediaType?: "image" | "file" | "logo" | "cover";
+    mediaType?: "image" | "file";
+    mediaRole?: "gallery" | "logo" | "cover" | "file";
   }) {
     const filename = buildUploadFilename(args.prefix, args.file);
     const mimeType =
@@ -3033,13 +3037,16 @@ export default function NewQrxPage() {
 
     const prepared = await prepareUpload({
       qrxId: args.qrxId,
-      type:
-        args.mediaType ??
+      type: args.mediaType ?? "image",
+      role:
+        args.mediaRole ??
         (args.prefix === "logo"
           ? "logo"
           : args.prefix === "cover"
             ? "cover"
-            : "image"),
+            : args.mediaType === "file"
+              ? "file"
+              : "gallery"),
       filename,
       mimeType,
       bytes,
@@ -3061,13 +3068,16 @@ export default function NewQrxPage() {
 
     const finalized = await finalizeUpload({
       qrxId: args.qrxId,
-      type:
-        args.mediaType ??
+      type: args.mediaType ?? "image",
+      role:
+        args.mediaRole ??
         (args.prefix === "logo"
           ? "logo"
           : args.prefix === "cover"
             ? "cover"
-            : "image"),
+            : args.mediaType === "file"
+              ? "file"
+              : "gallery"),
       filename,
       mimeType,
       bytes,
@@ -3568,7 +3578,8 @@ export default function NewQrxPage() {
           qrxId: newId,
           file: logoFile,
           prefix: "logo",
-          mediaType: "logo",
+          mediaType: "image",
+          mediaRole: "logo",
         });
 
         const { error: logoUpdateError } = await supabase
@@ -3585,7 +3596,8 @@ export default function NewQrxPage() {
           qrxId: newId,
           file: positionedCoverFile,
           prefix: "cover",
-          mediaType: "cover",
+          mediaType: "image",
+          mediaRole: "cover",
         });
 
         const { error: coverUpdateError } = await supabase

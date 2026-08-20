@@ -2515,7 +2515,6 @@ export default function EditQrxPage() {
     } | null;
 
     const billableList = list.filter((item) => {
-      if (item.type === "logo" || item.type === "cover") return false;
       if (storageEntry?.logo_url && item.url === storageEntry.logo_url) return false;
       if (storageEntry?.cover_image_url && item.url === storageEntry.cover_image_url) return false;
       return item.type === "image" || item.type === "file";
@@ -2868,7 +2867,8 @@ export default function EditQrxPage() {
 
   async function prepareUpload(args: {
     qrxId: string;
-    type: "image" | "file" | "logo" | "cover";
+    type: "image" | "file";
+    role?: "gallery" | "logo" | "cover" | "file";
     filename: string;
     mimeType: string;
     bytes: number;
@@ -2879,6 +2879,7 @@ export default function EditQrxPage() {
       body: {
         qrxId: args.qrxId,
         type: args.type,
+        role: args.role ?? (args.type === "file" ? "file" : "gallery"),
         filename: args.filename,
         mimeType: args.mimeType,
         bytes: args.bytes,
@@ -2910,7 +2911,8 @@ export default function EditQrxPage() {
 
   async function finalizeUpload(args: {
     qrxId: string;
-    type: "image" | "file" | "logo" | "cover";
+    type: "image" | "file";
+    role?: "gallery" | "logo" | "cover" | "file";
     filename: string;
     mimeType: string;
     bytes: number;
@@ -2922,6 +2924,7 @@ export default function EditQrxPage() {
       body: {
         qrxId: args.qrxId,
         type: args.type,
+        role: args.role ?? (args.type === "file" ? "file" : "gallery"),
         filename: args.filename,
         mimeType: args.mimeType,
         bytes: args.bytes,
@@ -2951,7 +2954,8 @@ export default function EditQrxPage() {
     qrxId: string;
     file: File;
     prefix: "logo" | "cover" | "gallery" | "file";
-    mediaType: "image" | "file" | "logo" | "cover";
+    mediaType: "image" | "file";
+    mediaRole?: "gallery" | "logo" | "cover" | "file";
   }) {
     const filename = buildUploadFilename(args.prefix, args.file);
     const mimeType = args.file.type || (args.mediaType === "file" ? "application/octet-stream" : "image/jpeg");
@@ -2960,6 +2964,7 @@ export default function EditQrxPage() {
     const prepared = await prepareUpload({
       qrxId: args.qrxId,
       type: args.mediaType,
+      role: args.mediaRole ?? (args.mediaType === "file" ? "file" : "gallery"),
       filename,
       mimeType,
       bytes,
@@ -2980,6 +2985,7 @@ export default function EditQrxPage() {
     const finalized = await finalizeUpload({
       qrxId: args.qrxId,
       type: args.mediaType,
+      role: args.mediaRole ?? (args.mediaType === "file" ? "file" : "gallery"),
       filename,
       mimeType,
       bytes,
@@ -3152,7 +3158,8 @@ export default function EditQrxPage() {
           qrxId,
           file: logoFile,
           prefix: "logo",
-          mediaType: "logo",
+          mediaType: "image",
+          mediaRole: "logo",
         });
 
         const { error: logoUpdateError } = await supabase
@@ -3171,7 +3178,8 @@ export default function EditQrxPage() {
           qrxId,
           file: positionedCoverFile,
           prefix: "cover",
-          mediaType: "cover",
+          mediaType: "image",
+          mediaRole: "cover",
         });
 
         const { error: coverUpdateError } = await supabase
@@ -3185,11 +3193,11 @@ export default function EditQrxPage() {
       }
 
       for (const file of galleryFiles) {
-        await uploadQrxMedia({ qrxId, file, prefix: "gallery", mediaType: "image" });
+        await uploadQrxMedia({ qrxId, file, prefix: "gallery", mediaType: "image", mediaRole: "gallery" });
       }
 
       for (const file of fileUploads) {
-        await uploadQrxMedia({ qrxId, file, prefix: "file", mediaType: "file" });
+        await uploadQrxMedia({ qrxId, file, prefix: "file", mediaType: "file", mediaRole: "file" });
       }
 
       setLogoFile(null);
@@ -3470,7 +3478,7 @@ export default function EditQrxPage() {
     verificationRequest?.status !== "pending" &&
     !verificationSaving;
 
-  // Logo und Cover sind kostenlos und zählen nicht zum Storage-Limit.
+  // Logo und Cover gehören zur Grunddarstellung und sind kostenlos.
   const pendingBytes =
     galleryFiles.reduce((sum, file) => sum + Number(file.size ?? 0), 0) +
     fileUploads.reduce((sum, file) => sum + Number(file.size ?? 0), 0);
