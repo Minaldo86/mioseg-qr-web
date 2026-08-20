@@ -2497,7 +2497,7 @@ export default function EditQrxPage() {
         .returns<QrxMedia[]>(),
       supabase
         .from("qr_x_entries")
-        .select("storage_limit_mb")
+        .select("storage_limit_mb,logo_url,cover_image_url")
         .eq("id", qrxId)
         .maybeSingle(),
     ]);
@@ -2507,10 +2507,26 @@ export default function EditQrxPage() {
 
     const list = mediaResult.data ?? [];
     setMediaItems(list);
-    setUsedBytes(list.reduce((sum, item) => sum + Number(item.bytes ?? 0), 0));
+
+    const storageEntry = entryResult.data as {
+      storage_limit_mb?: number | null;
+      logo_url?: string | null;
+      cover_image_url?: string | null;
+    } | null;
+
+    const billableList = list.filter((item) => {
+      if (item.type === "logo" || item.type === "cover") return false;
+      if (storageEntry?.logo_url && item.url === storageEntry.logo_url) return false;
+      if (storageEntry?.cover_image_url && item.url === storageEntry.cover_image_url) return false;
+      return item.type === "image" || item.type === "file";
+    });
+
+    setUsedBytes(
+      billableList.reduce((sum, item) => sum + Number(item.bytes ?? 0), 0),
+    );
 
     const nextStorageLimit = Number(
-      (entryResult.data as { storage_limit_mb?: number | null } | null)?.storage_limit_mb ?? 2,
+      storageEntry?.storage_limit_mb ?? 2,
     );
     setStorageLimitMb(Number.isFinite(nextStorageLimit) && nextStorageLimit >= 2 ? nextStorageLimit : 2);
   }
@@ -2852,7 +2868,7 @@ export default function EditQrxPage() {
 
   async function prepareUpload(args: {
     qrxId: string;
-    type: "image" | "file";
+    type: "image" | "file" | "logo" | "cover";
     filename: string;
     mimeType: string;
     bytes: number;
@@ -2894,7 +2910,7 @@ export default function EditQrxPage() {
 
   async function finalizeUpload(args: {
     qrxId: string;
-    type: "image" | "file";
+    type: "image" | "file" | "logo" | "cover";
     filename: string;
     mimeType: string;
     bytes: number;
@@ -2935,7 +2951,7 @@ export default function EditQrxPage() {
     qrxId: string;
     file: File;
     prefix: "logo" | "cover" | "gallery" | "file";
-    mediaType: "image" | "file";
+    mediaType: "image" | "file" | "logo" | "cover";
   }) {
     const filename = buildUploadFilename(args.prefix, args.file);
     const mimeType = args.file.type || (args.mediaType === "file" ? "application/octet-stream" : "image/jpeg");
@@ -3136,7 +3152,7 @@ export default function EditQrxPage() {
           qrxId,
           file: logoFile,
           prefix: "logo",
-          mediaType: "image",
+          mediaType: "logo",
         });
 
         const { error: logoUpdateError } = await supabase
@@ -3155,7 +3171,7 @@ export default function EditQrxPage() {
           qrxId,
           file: positionedCoverFile,
           prefix: "cover",
-          mediaType: "image",
+          mediaType: "cover",
         });
 
         const { error: coverUpdateError } = await supabase
@@ -3454,9 +3470,8 @@ export default function EditQrxPage() {
     verificationRequest?.status !== "pending" &&
     !verificationSaving;
 
+  // Logo und Cover sind kostenlos und zählen nicht zum Storage-Limit.
   const pendingBytes =
-    Number(logoFile?.size ?? 0) +
-    Number(coverFile?.size ?? 0) +
     galleryFiles.reduce((sum, file) => sum + Number(file.size ?? 0), 0) +
     fileUploads.reduce((sum, file) => sum + Number(file.size ?? 0), 0);
   const projectedBytes = usedBytes + pendingBytes;
