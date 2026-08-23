@@ -292,13 +292,34 @@ function formatViewCountExact(value: number | null | undefined, ui: ExploreText,
 }
 
 function getExploreRankScore(entry: ExploreEntry, followerCount: number, viewCount: number) {
+  // Nur noch als Anzeige-/DOM-Metrik verwendet. Die eigentliche Sortierung
+  // erfolgt unten strikt nach Followern, Aufrufen, Verifizierung und Aktualität.
   const followers = Math.max(0, Number(followerCount ?? 0));
   const views = Math.max(0, Number(viewCount ?? 0));
-  const verifiedBonus = entry.verified ? 250 : 0;
-  const createdTime = entry.created_at ? new Date(entry.created_at).getTime() : 0;
-  const daysOld = createdTime > 0 ? Math.max(0, (Date.now() - createdTime) / 86400000) : 365;
-  const freshnessBonus = Math.max(0, 120 - Math.min(120, daysOld));
-  return Math.round(followers * 10 + views * 0.2 + verifiedBonus + freshnessBonus);
+  return followers * 1_000_000_000 + views;
+}
+
+function compareExplorePopularity(
+  a: ExploreEntry,
+  b: ExploreEntry,
+  getFollowerCount: (entry: ExploreEntry) => number,
+  getViewCount: (entry: ExploreEntry) => number
+) {
+  const followersA = Math.max(0, Number(getFollowerCount(a) ?? 0));
+  const followersB = Math.max(0, Number(getFollowerCount(b) ?? 0));
+  if (followersB !== followersA) return followersB - followersA;
+
+  const viewsA = Math.max(0, Number(getViewCount(a) ?? 0));
+  const viewsB = Math.max(0, Number(getViewCount(b) ?? 0));
+  if (viewsB !== viewsA) return viewsB - viewsA;
+
+  if (Boolean(b.verified) !== Boolean(a.verified)) {
+    return Number(Boolean(b.verified)) - Number(Boolean(a.verified));
+  }
+
+  const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+  const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+  return bTime - aTime;
 }
 
 function getSocialProofBadges(entry: ExploreEntry, followerCount: number, viewCount: number, uniqueViewCount: number, ui: ExploreText) {
@@ -488,10 +509,8 @@ export default async function ExplorePage({
 
   const mapVisibleEntries = items
     .filter((entry) => entry.location_lat != null && entry.location_lng != null)
-    .sort(
-      (a, b) =>
-        getExploreRankScore(b, getFollowerCountForEntry(b), getViewTotalForEntry(b)) -
-        getExploreRankScore(a, getFollowerCountForEntry(a), getViewTotalForEntry(a))
+    .sort((a, b) =>
+      compareExplorePopularity(a, b, getFollowerCountForEntry, getViewTotalForEntry)
     );
 
   const newMapEntries = items
