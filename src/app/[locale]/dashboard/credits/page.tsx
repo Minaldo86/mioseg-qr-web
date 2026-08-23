@@ -803,16 +803,7 @@ export default function CreditsPage() {
         </div>
       </section>
 
-      <section
-        style={{
-          maxWidth: 1240,
-          margin: "0 auto",
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(280px, 420px)",
-          gap: 18,
-          alignItems: "start",
-        }}
-      >
+      <section className={styles.creditContentGrid}>
         <article style={panelStyle}>
           <div className={styles.cardHeader}>
             <div>
