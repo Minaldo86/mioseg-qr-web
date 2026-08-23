@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
 import styles from "../dashboard.module.css";
@@ -48,6 +48,7 @@ type CreditCopy = {
   launchLabel: string;
   packagesTitle: string;
   packagesText: string;
+  selectPackagePrompt: string;
   invoiceIncluded: string;
   buyCredits: string;
   goStripe: string;
@@ -103,6 +104,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     openInvoices:"Rechnungen öffnen", backDashboard:"Zurück zum Dashboard", statsLabel:"Credit Kennzahlen",
     currentCredits:"Aktuelle Credits", qrxCreation:"QR-X Erstellung", freeStorage:"Freier Speicher", packages:"Pakete", payPerUse:"Nutzungsabhängig", launchLabel:"Einführung",
     packagesTitle:"Credit-Pakete", packagesText:"Wähle ein Paket und starte den sicheren Checkout über Stripe. Die Preise werden live aus der Admin-Konfiguration geladen.",
+    selectPackagePrompt:"Wähle ein Paket aus. Anschließend kannst du den Kauf über den Button unter den Paketen starten.",
     invoiceIncluded:"inkl. Rechnung für deine Unterlagen.", buyCredits:"Credits kaufen", goStripe:"Weiter zu Stripe...",
     historyTitle:"Kaufhistorie", historyText:"Deine letzten Rechnungen und Gutschriften zu Credit-Käufen.", loading:"Lädt",
     noPurchases:"Noch keine Käufe vorhanden. Nach deinem ersten Credit-Kauf erscheint der Beleg hier.", receiptsLoading:"Belege werden geladen …",
@@ -125,6 +127,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     openInvoices:"Open invoices", backDashboard:"Back to dashboard", statsLabel:"Credit statistics",
     currentCredits:"Current credits", qrxCreation:"QR-X creation", freeStorage:"Free storage", packages:"Packages", payPerUse:"Pay per use", launchLabel:"Launch",
     packagesTitle:"Credit packages", packagesText:"Choose a package and start secure checkout via Stripe. Prices are loaded live from the admin configuration.",
+    selectPackagePrompt:"Choose a package. You can then start the purchase using the button below the packages.",
     invoiceIncluded:"including an invoice for your records.", buyCredits:"Buy credits", goStripe:"Continue to Stripe...",
     historyTitle:"Purchase history", historyText:"Your latest invoices and credit notes for credit purchases.", loading:"Loading",
     noPurchases:"No purchases yet. After your first credit purchase, the receipt will appear here.", receiptsLoading:"Loading receipts …",
@@ -147,6 +150,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     openInvoices:"Faturaları aç", backDashboard:"Kontrol paneline dön", statsLabel:"Credit istatistikleri",
     currentCredits:"Mevcut Credits", qrxCreation:"QR-X oluşturma", freeStorage:"Ücretsiz depolama", packages:"Paketler", payPerUse:"Kullandıkça öde", launchLabel:"Lansman",
     packagesTitle:"Credit paketleri", packagesText:"Bir paket seç ve Stripe üzerinden güvenli ödeme sürecini başlat. Fiyatlar yönetici yapılandırmasından canlı olarak yüklenir.",
+    selectPackagePrompt:"Bir paket seç. Ardından paketlerin altındaki düğme ile satın alma işlemini başlatabilirsin.",
     invoiceIncluded:"kayıtların için fatura dahil.", buyCredits:"Credits satın al", goStripe:"Stripe'a devam et...",
     historyTitle:"Satın alma geçmişi", historyText:"Credit satın alımlarına ait son faturaların ve alacak notların.", loading:"Yükleniyor",
     noPurchases:"Henüz satın alma yok. İlk Credit satın alımından sonra belge burada görünür.", receiptsLoading:"Belgeler yükleniyor …",
@@ -169,6 +173,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     openInvoices:"Otwórz faktury", backDashboard:"Wróć do panelu", statsLabel:"Statystyki Credits",
     currentCredits:"Aktualne Credits", qrxCreation:"Tworzenie QR-X", freeStorage:"Bezpłatna przestrzeń", packages:"Pakiety", payPerUse:"Płatność za użycie", launchLabel:"Start",
     packagesTitle:"Pakiety Credits", packagesText:"Wybierz pakiet i rozpocznij bezpieczną płatność przez Stripe. Ceny są pobierane na żywo z konfiguracji administratora.",
+    selectPackagePrompt:"Wybierz pakiet. Następnie rozpocznij zakup przyciskiem znajdującym się pod pakietami.",
     invoiceIncluded:"z fakturą do Twojej dokumentacji.", buyCredits:"Kup Credits", goStripe:"Przejdź do Stripe...",
     historyTitle:"Historia zakupów", historyText:"Twoje ostatnie faktury i noty uznaniowe za zakupy Credits.", loading:"Ładowanie",
     noPurchases:"Nie ma jeszcze zakupów. Po pierwszym zakupie Credits dokument pojawi się tutaj.", receiptsLoading:"Ładowanie dokumentów …",
@@ -191,6 +196,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     openInvoices:"فتح الفواتير", backDashboard:"العودة إلى لوحة التحكم", statsLabel:"إحصاءات Credits",
     currentCredits:"Credits الحالية", qrxCreation:"إنشاء QR-X", freeStorage:"التخزين المجاني", packages:"الحزم", payPerUse:"الدفع حسب الاستخدام", launchLabel:"إطلاق",
     packagesTitle:"حزم Credits", packagesText:"اختر حزمة وابدأ الدفع الآمن عبر Stripe. يتم تحميل الأسعار مباشرة من إعدادات الإدارة.",
+    selectPackagePrompt:"اختر حزمة، ثم ابدأ عملية الشراء باستخدام الزر الموجود أسفل الحزم.",
     invoiceIncluded:"مع فاتورة لسجلاتك.", buyCredits:"شراء Credits", goStripe:"المتابعة إلى Stripe...",
     historyTitle:"سجل المشتريات", historyText:"أحدث الفواتير وإشعارات الدائن لعمليات شراء Credits.", loading:"جارٍ التحميل",
     noPurchases:"لا توجد مشتريات بعد. بعد أول شراء Credits سيظهر المستند هنا.", receiptsLoading:"جارٍ تحميل المستندات …",
@@ -213,6 +219,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     openInvoices:"Ouvrir les factures", backDashboard:"Retour au tableau de bord", statsLabel:"Statistiques des Credits",
     currentCredits:"Credits actuels", qrxCreation:"Création de QR-X", freeStorage:"Stockage gratuit", packages:"Packs", payPerUse:"Paiement à l’usage", launchLabel:"Lancement",
     packagesTitle:"Packs de Credits", packagesText:"Choisissez un pack et lancez le paiement sécurisé via Stripe. Les prix sont chargés en direct depuis la configuration d’administration.",
+    selectPackagePrompt:"Choisissez un pack, puis lancez l’achat avec le bouton situé sous les packs.",
     invoiceIncluded:"avec une facture pour vos archives.", buyCredits:"Acheter des Credits", goStripe:"Continuer vers Stripe...",
     historyTitle:"Historique des achats", historyText:"Vos dernières factures et notes de crédit pour vos achats de Credits.", loading:"Chargement",
     noPurchases:"Aucun achat pour le moment. Après votre premier achat de Credits, le document apparaîtra ici.", receiptsLoading:"Chargement des documents …",
@@ -235,6 +242,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     openInvoices:"Abrir facturas", backDashboard:"Volver al panel", statsLabel:"Estadísticas de Credits",
     currentCredits:"Credits actuales", qrxCreation:"Creación de QR-X", freeStorage:"Almacenamiento gratuito", packages:"Paquetes", payPerUse:"Pago por uso", launchLabel:"Lanzamiento",
     packagesTitle:"Paquetes de Credits", packagesText:"Elige un paquete e inicia el pago seguro mediante Stripe. Los precios se cargan en directo desde la configuración de administración.",
+    selectPackagePrompt:"Elige un paquete y después inicia la compra con el botón situado debajo de los paquetes.",
     invoiceIncluded:"incluye factura para tus archivos.", buyCredits:"Comprar Credits", goStripe:"Continuar a Stripe...",
     historyTitle:"Historial de compras", historyText:"Tus últimas facturas y notas de crédito de compras de Credits.", loading:"Cargando",
     noPurchases:"Aún no hay compras. Tras tu primera compra de Credits, el documento aparecerá aquí.", receiptsLoading:"Cargando documentos …",
@@ -257,6 +265,7 @@ const CREDIT_TEXT: Record<CreditLocale, CreditCopy> = {
     openInvoices:"Apri fatture", backDashboard:"Torna alla dashboard", statsLabel:"Statistiche Credits",
     currentCredits:"Credits attuali", qrxCreation:"Creazione QR-X", freeStorage:"Spazio gratuito", packages:"Pacchetti", payPerUse:"Pagamento a consumo", launchLabel:"Lancio",
     packagesTitle:"Pacchetti Credits", packagesText:"Scegli un pacchetto e avvia il checkout sicuro tramite Stripe. I prezzi vengono caricati in tempo reale dalla configurazione amministrativa.",
+    selectPackagePrompt:"Scegli un pacchetto, quindi avvia l’acquisto con il pulsante sotto i pacchetti.",
     invoiceIncluded:"fattura inclusa per i tuoi documenti.", buyCredits:"Acquista Credits", goStripe:"Continua su Stripe...",
     historyTitle:"Cronologia acquisti", historyText:"Le tue ultime fatture e note di credito per gli acquisti di Credits.", loading:"Caricamento",
     noPurchases:"Nessun acquisto ancora. Dopo il primo acquisto di Credits, il documento apparirà qui.", receiptsLoading:"Caricamento documenti …",
@@ -466,6 +475,7 @@ export default function CreditsPage() {
   const [withdrawalLossAcknowledged, setWithdrawalLossAcknowledged] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [pricingPacks, setPricingPacks] = useState<PricingPack[]>(FALLBACK_PACKAGES);
+  const [selectedPackId, setSelectedPackId] = useState<string | null>(FALLBACK_PACKAGES[0]?.id ?? null);
   const [pricingConfig, setPricingConfig] = useState<PricingConfig | null>({
     currency: "EUR",
     launch_discount_enabled: true,
@@ -504,6 +514,11 @@ export default function CreditsPage() {
 
       if (activePacks.length > 0) {
         setPricingPacks(activePacks);
+        setSelectedPackId((current) =>
+          current && activePacks.some((pack: PricingPack) => pack.id === current)
+            ? current
+            : activePacks[0].id
+        );
       }
 
       setPricingConfig({
@@ -579,23 +594,6 @@ export default function CreditsPage() {
     setLoading(false);
   }
 
-  const stats = useMemo(
-    () => [
-      { label: ui.currentCredits, value: credits, icon: "💳" },
-      {
-        label: ui.qrxCreation,
-        value: `${Number(pricingConfig?.qrx_creation_credit_cost ?? 1)} Credit`,
-        icon: "▣",
-      },
-      {
-        label: ui.freeStorage,
-        value: `${Number(pricingConfig?.free_storage_mb ?? 2)} MB`,
-        icon: "☁️",
-      },
-      { label: ui.packages, value: pricingPacks.length, icon: "🛒" },
-    ],
-    [credits, pricingPacks.length, pricingConfig?.qrx_creation_credit_cost, pricingConfig?.free_storage_mb, ui]
-  );
 
   function openCheckoutConfirmation(pack: PricingPack) {
     setCheckoutPack(pack);
@@ -734,16 +732,75 @@ export default function CreditsPage() {
         </div>
       </section>
 
-      <section className={styles.statsGrid} aria-label={ui.statsLabel}>
-        {stats.map((item) => (
-          <article key={item.label} className={styles.statCard}>
-            <div className={styles.statIcon}>{item.icon}</div>
-            <div>
-              <div className={styles.statValue}>{String(item.value)}</div>
-              <div className={styles.statLabel}>{item.label}</div>
+      <section
+        aria-label={ui.statsLabel}
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto 18px",
+          borderRadius: 26,
+          padding: "18px 22px",
+          background: "linear-gradient(135deg, rgba(15,23,42,0.92), rgba(30,41,59,0.86))",
+          border: "1px solid rgba(96,165,250,0.24)",
+          boxShadow: "0 18px 48px rgba(0,0,0,0.16)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 20,
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 16, minWidth: 0 }}>
+          <div
+            aria-hidden="true"
+            style={{
+              width: 52,
+              height: 52,
+              flex: "0 0 52px",
+              borderRadius: 18,
+              display: "grid",
+              placeItems: "center",
+              background: "rgba(37,99,235,0.16)",
+              border: "1px solid rgba(96,165,250,0.26)",
+              fontSize: 23,
+            }}
+          >
+            💳
+          </div>
+
+          <div style={{ minWidth: 0 }}>
+            <div style={{ color: "#94a3b8", fontSize: 13, fontWeight: 850, marginBottom: 2 }}>
+              {ui.currentCredits}
             </div>
-          </article>
-        ))}
+            <div style={{ display: "flex", alignItems: "baseline", gap: 9, flexWrap: "wrap" }}>
+              <strong
+                style={{
+                  color: "#ffffff",
+                  fontSize: "clamp(34px, 4vw, 48px)",
+                  lineHeight: 1,
+                  letterSpacing: "-0.04em",
+                  fontWeight: 950,
+                }}
+              >
+                {String(credits)}
+              </strong>
+              <span style={{ color: "#cbd5e1", fontSize: 17, fontWeight: 900 }}>Credits</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            color: "#cbd5e1",
+            fontSize: 13,
+            fontWeight: 800,
+            lineHeight: 1.5,
+            textAlign: "right",
+          }}
+        >
+          {ui.qrxCreation}: {Number(pricingConfig?.qrx_creation_credit_cost ?? 1)} Credits
+          <span style={{ opacity: 0.45, margin: "0 10px" }}>•</span>
+          {ui.freeStorage}: {Number(pricingConfig?.free_storage_mb ?? 2)} MB
+        </div>
       </section>
 
       <section
@@ -760,7 +817,7 @@ export default function CreditsPage() {
           <div className={styles.cardHeader}>
             <div>
               <h2>{ui.packagesTitle}</h2>
-              <p>{ui.packagesText}</p>
+              <p>{ui.selectPackagePrompt}</p>
             </div>
             <span>{ui.payPerUse}</span>
           </div>
@@ -768,14 +825,32 @@ export default function CreditsPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
             {pricingPacks.map((pack) => {
               return (
-              <div
+              <button
                 key={pack.id}
+                type="button"
+                onClick={() => setSelectedPackId(pack.id)}
+                aria-pressed={selectedPackId === pack.id}
                 style={{
+                  textAlign: "left",
+                  width: "100%",
+                  color: "inherit",
+                  font: "inherit",
+                  cursor: "pointer",
                   borderRadius: 24,
                   padding: 18,
-                  background: "linear-gradient(180deg, rgba(255,255,255,0.105), rgba(255,255,255,0.045))",
-                  border: "1px solid rgba(255,255,255,0.105)",
-                  boxShadow: "0 18px 46px rgba(0,0,0,0.14)",
+                  background:
+                    selectedPackId === pack.id
+                      ? "linear-gradient(180deg, rgba(37,99,235,0.22), rgba(124,58,237,0.12))"
+                      : "linear-gradient(180deg, rgba(255,255,255,0.105), rgba(255,255,255,0.045))",
+                  border:
+                    selectedPackId === pack.id
+                      ? "1px solid rgba(96,165,250,0.65)"
+                      : "1px solid rgba(255,255,255,0.105)",
+                  boxShadow:
+                    selectedPackId === pack.id
+                      ? "0 0 0 2px rgba(37,99,235,0.12), 0 18px 46px rgba(0,0,0,0.18)"
+                      : "0 18px 46px rgba(0,0,0,0.14)",
+                  transition: "border-color 160ms ease, background 160ms ease, box-shadow 160ms ease",
                 }}
               >
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
@@ -830,24 +905,42 @@ export default function CreditsPage() {
                   {ui.invoiceIncluded}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={() => openCheckoutConfirmation(pack)}
-                  disabled={checkoutLoading === pack.id}
-                  className={styles.primaryButton}
-                  style={{
-                    width: "100%",
-                    border: 0,
-                    cursor: checkoutLoading === pack.id ? "not-allowed" : "pointer",
-                    opacity: checkoutLoading === pack.id ? 0.72 : 1,
-                  }}
-                >
-                  {checkoutLoading === pack.id ? ui.goStripe : ui.buyCredits}
-                </button>
-              </div>
+                {selectedPackId === pack.id ? (
+                  <div
+                    style={{
+                      marginTop: 12,
+                      color: "#dbeafe",
+                      fontSize: 12,
+                      fontWeight: 900,
+                    }}
+                  >
+                    ✓ {ui.package}
+                  </div>
+                ) : null}
+              </button>
             );
             })}
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const selectedPack = pricingPacks.find((pack) => pack.id === selectedPackId);
+              if (selectedPack) openCheckoutConfirmation(selectedPack);
+            }}
+            disabled={!selectedPackId || Boolean(checkoutLoading)}
+            className={styles.primaryButton}
+            style={{
+              width: "100%",
+              marginTop: 16,
+              border: 0,
+              cursor: !selectedPackId || checkoutLoading ? "not-allowed" : "pointer",
+              opacity: !selectedPackId || checkoutLoading ? 0.58 : 1,
+              justifyContent: "center",
+            }}
+          >
+            {checkoutLoading ? ui.goStripe : ui.buyCredits}
+          </button>
         </article>
 
         <aside style={panelStyle}>
