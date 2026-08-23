@@ -2947,7 +2947,12 @@ export default function EditQrxPage() {
       throw new Error("Finalize-Upload: publicUrl fehlt.");
     }
 
-    return { publicUrl };
+    const mediaId =
+      typeof response.media?.id === "string" && response.media.id.trim()
+        ? response.media.id
+        : null;
+
+    return { publicUrl, mediaId };
   }
 
   async function uploadQrxMedia(args: {
@@ -2992,7 +2997,7 @@ export default function EditQrxPage() {
       storagePath: prepared.storagePath,
     });
 
-    return finalized.publicUrl;
+    return finalized;
   }
 
   async function loadQrx() {
@@ -3154,7 +3159,7 @@ export default function EditQrxPage() {
       }
 
       if (logoFile) {
-        const uploadedLogoUrl = await uploadQrxMedia({
+        const uploadedLogo = await uploadQrxMedia({
           qrxId,
           file: logoFile,
           prefix: "logo",
@@ -3162,19 +3167,27 @@ export default function EditQrxPage() {
           mediaRole: "logo",
         });
 
+        if (!uploadedLogo.mediaId) {
+          throw new Error("Logo-Upload: mediaId fehlt.");
+        }
+
         const { error: logoUpdateError } = await supabase
           .from("qr_x_entries")
-          .update({ logo_url: uploadedLogoUrl, updated_at: new Date().toISOString() })
+          .update({
+            logo_url: uploadedLogo.publicUrl,
+            logo_media_id: uploadedLogo.mediaId,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", qrxId)
           .eq("owner_user_id", user.id);
 
         if (logoUpdateError) throw logoUpdateError;
-        setLogoUrl(uploadedLogoUrl);
+        setLogoUrl(uploadedLogo.publicUrl);
       }
 
       if (coverFile) {
         const positionedCoverFile = await createPositionedCoverFile(coverFile, coverPositionX, coverPositionY, coverZoom);
-        const uploadedCoverUrl = await uploadQrxMedia({
+        const uploadedCover = await uploadQrxMedia({
           qrxId,
           file: positionedCoverFile,
           prefix: "cover",
@@ -3182,22 +3195,22 @@ export default function EditQrxPage() {
           mediaRole: "cover",
         });
 
-        // Persist the new cover on the canonical QR-X row.
-        // Using .select().single() also verifies that the owner-filtered update
-        // actually changed exactly this QR-X instead of only updating local UI state.
-        const { data: updatedCoverEntry, error: coverUpdateError } = await supabase
+        if (!uploadedCover.mediaId) {
+          throw new Error("Cover-Upload: mediaId fehlt.");
+        }
+
+        const { error: coverUpdateError } = await supabase
           .from("qr_x_entries")
-          .update({ cover_image_url: uploadedCoverUrl, updated_at: new Date().toISOString() })
+          .update({
+            cover_image_url: uploadedCover.publicUrl,
+            cover_media_id: uploadedCover.mediaId,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", qrxId)
-          .eq("owner_user_id", user.id)
-          .select("cover_image_url")
-          .single();
+          .eq("owner_user_id", user.id);
 
         if (coverUpdateError) throw coverUpdateError;
-        if (!updatedCoverEntry?.cover_image_url) {
-          throw new Error("Coverbild konnte nicht mit dem QR-X synchronisiert werden.");
-        }
-        setCoverUrl(updatedCoverEntry.cover_image_url);
+        setCoverUrl(uploadedCover.publicUrl);
       }
 
       for (const file of galleryFiles) {
@@ -3213,10 +3226,6 @@ export default function EditQrxPage() {
       setGalleryFiles([]);
       setFileUploads([]);
       await Promise.all([loadMediaAndStorage(), loadCreditBalance(user.id)]);
-
-      // Reload the QR-X from Supabase so web detail, overview and app all use
-      // the same persisted logo/cover URLs rather than only local React state.
-      await loadQrx();
 
       setSuccessText(hasPendingMedia ? ui.savedMedia : ui.saved);
       router.refresh();
@@ -3451,7 +3460,7 @@ export default function EditQrxPage() {
     const user = await getCurrentUserOrThrow();
     const { error } = await supabase
       .from("qr_x_entries")
-      .update({ logo_url: null, updated_at: new Date().toISOString() })
+      .update({ logo_url: null, logo_media_id: null, updated_at: new Date().toISOString() })
       .eq("id", qrxId)
       .eq("owner_user_id", user.id);
     if (error) setErrorText(normalizeErrorMessage(error));
@@ -3476,7 +3485,7 @@ export default function EditQrxPage() {
     const user = await getCurrentUserOrThrow();
     const { error } = await supabase
       .from("qr_x_entries")
-      .update({ cover_image_url: null, updated_at: new Date().toISOString() })
+      .update({ cover_image_url: null, cover_media_id: null, updated_at: new Date().toISOString() })
       .eq("id", qrxId)
       .eq("owner_user_id", user.id);
     if (error) setErrorText(normalizeErrorMessage(error));
