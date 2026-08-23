@@ -461,6 +461,7 @@ export default function CreditsPage() {
   const [errorText, setErrorText] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [checkoutPack, setCheckoutPack] = useState<PricingPack | null>(null);
+  const [checkoutQuantity, setCheckoutQuantity] = useState(1);
   const [immediatePerformanceConsent, setImmediatePerformanceConsent] = useState(false);
   const [withdrawalLossAcknowledged, setWithdrawalLossAcknowledged] = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
@@ -598,6 +599,7 @@ export default function CreditsPage() {
 
   function openCheckoutConfirmation(pack: PricingPack) {
     setCheckoutPack(pack);
+    setCheckoutQuantity(1);
     setImmediatePerformanceConsent(false);
     setWithdrawalLossAcknowledged(false);
   }
@@ -605,6 +607,7 @@ export default function CreditsPage() {
   function closeCheckoutConfirmation() {
     if (checkoutLoading) return;
     setCheckoutPack(null);
+    setCheckoutQuantity(1);
     setImmediatePerformanceConsent(false);
     setWithdrawalLossAcknowledged(false);
   }
@@ -649,6 +652,7 @@ export default function CreditsPage() {
         },
         body: JSON.stringify({
           packId,
+          quantity: checkoutQuantity,
           immediatePerformanceConsent: true,
           withdrawalLossAcknowledged: true,
           consentLocale: locale,
@@ -974,6 +978,57 @@ export default function CreditsPage() {
                   )}
                 </strong>
               </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  paddingTop: 12,
+                  marginTop: 12,
+                  borderTop: "1px solid rgba(148,163,184,0.18)",
+                }}
+              >
+                <span style={{ color: "#cbd5e1", fontWeight: 850 }}>× {checkoutQuantity}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button
+                    type="button"
+                    aria-label="Menge verringern"
+                    onClick={() => setCheckoutQuantity((value) => Math.max(1, value - 1))}
+                    disabled={checkoutQuantity <= 1 || checkoutLoading === checkoutPack.id}
+                    style={{ ...withdrawalCancelButtonStyle, minWidth: 42, padding: "8px 12px" }}
+                  >
+                    −
+                  </button>
+                  <strong style={{ minWidth: 34, textAlign: "center", color: "#fff" }}>
+                    {checkoutQuantity}
+                  </strong>
+                  <button
+                    type="button"
+                    aria-label="Menge erhöhen"
+                    onClick={() => setCheckoutQuantity((value) => Math.min(100, value + 1))}
+                    disabled={checkoutQuantity >= 100 || checkoutLoading === checkoutPack.id}
+                    style={{ ...withdrawalCancelButtonStyle, minWidth: 42, padding: "8px 12px" }}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ ...withdrawalOrderRowStyle, marginTop: 12 }}>
+                <span style={{ fontWeight: 900 }}>
+                  {checkoutPack.credits * checkoutQuantity} Credits
+                </span>
+                <strong>
+                  {formatEuro(
+                    getPackPriceCents(checkoutPack, pricingConfig) * checkoutQuantity,
+                    pricingConfig?.currency ?? "EUR",
+                    creditLocale,
+                  )}
+                </strong>
+              </div>
+
               <div style={withdrawalTaxNoteStyle}>
                 {ui.totalTaxNote}
               </div>

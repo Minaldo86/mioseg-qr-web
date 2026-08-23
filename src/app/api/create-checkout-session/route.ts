@@ -188,6 +188,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const packId = String(body?.packId || "").trim();
+    const quantity = Number(body?.quantity ?? 1);
     const immediatePerformanceConsent =
       body?.immediatePerformanceConsent === true;
     const withdrawalLossAcknowledged =
@@ -196,6 +197,13 @@ export async function POST(req: Request) {
 
     if (!packId) {
       return Response.json({ error: "Paket-ID fehlt." }, { status: 400 });
+    }
+
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+      return Response.json(
+        { error: "Die Menge muss zwischen 1 und 100 liegen." },
+        { status: 400 },
+      );
     }
 
     if (!immediatePerformanceConsent || !withdrawalLossAcknowledged) {
@@ -263,6 +271,8 @@ export async function POST(req: Request) {
       );
     }
 
+    const totalCredits = pack.credits * quantity;
+    const totalAmount = amount * quantity;
     const acceptedAt = new Date().toISOString();
 
     const { data: consentRow, error: consentInsertError } = await supabaseAdmin
@@ -271,8 +281,8 @@ export async function POST(req: Request) {
         user_id: userId,
         purchase_channel: "web_stripe",
         pack_id: pack.id,
-        credits: pack.credits,
-        amount_cents: amount,
+        credits: totalCredits,
+        amount_cents: totalAmount,
         currency: currency.toUpperCase(),
         immediate_performance_consent: true,
         withdrawal_loss_acknowledged: true,
@@ -302,12 +312,14 @@ export async function POST(req: Request) {
     const metadata = {
       userId,
       packId: pack.id,
-      credits: String(pack.credits),
-      amountCents: String(amount),
+      credits: String(totalCredits),
+      amountCents: String(totalAmount),
+      quantity: String(quantity),
 
       user_id: userId,
       pack_id: pack.id,
-      amount_cents: String(amount),
+      amount_cents: String(totalAmount),
+      quantity_count: String(quantity),
       source: "web_checkout",
 
       legal_acceptance_id: consentId,
@@ -348,7 +360,7 @@ export async function POST(req: Request) {
 
       line_items: [
         {
-          quantity: 1,
+          quantity,
           price_data: {
             currency,
             unit_amount: amount,
