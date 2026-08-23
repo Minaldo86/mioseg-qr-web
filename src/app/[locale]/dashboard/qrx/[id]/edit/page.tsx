@@ -3182,14 +3182,22 @@ export default function EditQrxPage() {
           mediaRole: "cover",
         });
 
-        const { error: coverUpdateError } = await supabase
+        // Persist the new cover on the canonical QR-X row.
+        // Using .select().single() also verifies that the owner-filtered update
+        // actually changed exactly this QR-X instead of only updating local UI state.
+        const { data: updatedCoverEntry, error: coverUpdateError } = await supabase
           .from("qr_x_entries")
           .update({ cover_image_url: uploadedCoverUrl, updated_at: new Date().toISOString() })
           .eq("id", qrxId)
-          .eq("owner_user_id", user.id);
+          .eq("owner_user_id", user.id)
+          .select("cover_image_url")
+          .single();
 
         if (coverUpdateError) throw coverUpdateError;
-        setCoverUrl(uploadedCoverUrl);
+        if (!updatedCoverEntry?.cover_image_url) {
+          throw new Error("Coverbild konnte nicht mit dem QR-X synchronisiert werden.");
+        }
+        setCoverUrl(updatedCoverEntry.cover_image_url);
       }
 
       for (const file of galleryFiles) {
@@ -3205,6 +3213,10 @@ export default function EditQrxPage() {
       setGalleryFiles([]);
       setFileUploads([]);
       await Promise.all([loadMediaAndStorage(), loadCreditBalance(user.id)]);
+
+      // Reload the QR-X from Supabase so web detail, overview and app all use
+      // the same persisted logo/cover URLs rather than only local React state.
+      await loadQrx();
 
       setSuccessText(hasPendingMedia ? ui.savedMedia : ui.saved);
       router.refresh();
