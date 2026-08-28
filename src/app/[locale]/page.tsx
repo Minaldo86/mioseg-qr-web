@@ -27,7 +27,7 @@ const HOME_HERO_COPY: Record<PublicLocale, {
   miniExplore: string;
   miniExploreText: string;
 }> = {
-  de: { headline1:"Scannen.", headline2:"Speichern.", headline3:"Wiederfinden.", text:"Mioseg qr macht QR-Codes intelligent. Speichere Orte, entdecke neue Möglichkeiten und bleibe immer up to date.", ctaExplore:"Explore entdecken", navFeatures:"Funktionen", navExplore:"Explore", navUseCases:"Use Cases", navPrices:"Preise", miniScan:"Scannen", miniScanText:"QR-Codes öffnen", miniSave:"Speichern", miniSaveText:"Nie wieder verlieren", miniExplore:"Entdecken", miniExploreText:"Orte, Menschen, Möglichkeiten" },
+  de: { headline1:"Alles hinter", headline2:"einem Scan.", headline3:"Eine App.", text:"Scannen, speichern, organisieren, wiederfinden, folgen, erstellen und entdecken. Mioseg qr verbindet alles, was rund um QR-Codes wichtig ist, an einem Ort.", ctaExplore:"Kostenlos entdecken", navFeatures:"Funktionen", navExplore:"Explore", navUseCases:"Use Cases", navPrices:"Preise", miniScan:"Scannen & speichern", miniScanText:"Nicht mehr verlieren", miniSave:"Folgen & Updates", miniSaveText:"Änderungen mitbekommen", miniExplore:"Erstellen & entdecken", miniExploreText:"Eigene QR-X und Explore" },
   en: { headline1:"Scan.", headline2:"Save.", headline3:"Find again.", text:"Mioseg qr makes QR codes intelligent. Save places, discover new possibilities and stay up to date.", ctaExplore:"Discover Explore", navFeatures:"Features", navExplore:"Explore", navUseCases:"Use Cases", navPrices:"Prices", miniScan:"Scan", miniScanText:"Open QR codes", miniSave:"Save", miniSaveText:"Never lose them again", miniExplore:"Discover", miniExploreText:"Places, people, possibilities" },
   tr: { headline1:"Tara.", headline2:"Kaydet.", headline3:"Yeniden bul.", text:"Mioseg qr, QR kodlarını akıllı hale getirir. Yerleri kaydet, yeni olanakları keşfet ve her zaman güncel kal.", ctaExplore:"Explore'u keşfet", navFeatures:"Özellikler", navExplore:"Explore", navUseCases:"Kullanım alanları", navPrices:"Fiyatlar", miniScan:"Tara", miniScanText:"QR kodlarını aç", miniSave:"Kaydet", miniSaveText:"Bir daha kaybetme", miniExplore:"Keşfet", miniExploreText:"Yerler, insanlar, olanaklar" },
   pl: { headline1:"Skanuj.", headline2:"Zapisuj.", headline3:"Odnajduj.", text:"Mioseg qr sprawia, że kody QR stają się inteligentne. Zapisuj miejsca, odkrywaj nowe możliwości i bądź zawsze na bieżąco.", ctaExplore:"Odkryj Explore", navFeatures:"Funkcje", navExplore:"Explore", navUseCases:"Zastosowania", navPrices:"Ceny", miniScan:"Skanuj", miniScanText:"Otwieraj kody QR", miniSave:"Zapisuj", miniSaveText:"Nigdy więcej nie zgub", miniExplore:"Odkrywaj", miniExploreText:"Miejsca, ludzie, możliwości" },
@@ -384,6 +384,7 @@ export default async function Home({ params }: Props) {
   const heroCopy = HOME_HERO_COPY[publicLanguage];
   const publicUi = HOME_PUBLIC_UI[publicLanguage];
   const releaseCopy = HOME_RELEASE_COPY[publicLanguage];
+  const isGerman = publicLanguage === "de";
   const showcaseCopy = APP_SHOWCASE_COPY[publicLanguage];
 
   const professionalUseCases = {
@@ -494,14 +495,21 @@ export default async function Home({ params }: Props) {
                 {heroCopy.ctaExplore}
               </Link>
               <Link href={`/${locale}#features`} className="landingBSecondary">
-                Mehr erfahren
+                {isGerman ? "In 60 Sekunden verstehen" : "Mehr erfahren"}
               </Link>
             </div>
 
-            <div className="landingBStoreRow">
-              <div className="landingBStorePlaceholder">App Store</div>
-              <div className="landingBStorePlaceholder">Google Play</div>
-            </div>
+            {isGerman && (
+              <div className="landingBPromise">
+                <span>✓ Kostenlos starten</span><span>✓ Keine Abo-Pflicht</span><span>✓ App & Web</span>
+              </div>
+            )}
+            {!isGerman && (
+              <div className="landingBStoreRow">
+                <div className="landingBStorePlaceholder">App Store</div>
+                <div className="landingBStorePlaceholder">Google Play</div>
+              </div>
+            )}
           </div>
 
           <div className="landingBHeroVisual">
@@ -534,6 +542,59 @@ export default async function Home({ params }: Props) {
           </div>
         </div>
       </section>
+
+      {isGerman && (
+        <>
+          <section className="landingBVerbBar" aria-label="Mioseg qr Funktionen">
+            {['SCANNEN','SPEICHERN','ORDNEN','WIEDERFINDEN','FOLGEN','ERSTELLEN','TEILEN','ENTDECKEN'].map((word, i) => (
+              <div key={word}><span>{String(i + 1).padStart(2,'0')}</span><strong>{word}</strong></div>
+            ))}
+          </section>
+
+          <section className="landingBProblem">
+            <div className="landingBSectionHeader">
+              <span className="landingBEyebrow">Kommt dir das bekannt vor?</span>
+              <h2>Gescannt. Geschlossen. Später nie wiedergefunden.</h2>
+              <p>QR-Codes sind überall. Aber nach dem Scan verschwinden Links, Orte und Informationen oft wieder im Alltag. Mioseg qr macht aus einem kurzen Scan etwas, das bleibt.</p>
+            </div>
+            <div className="landingBProblemGrid">
+              <article><span>🍽️</span><strong>Restaurant</strong><p>„Wo war nochmal die digitale Speisekarte?“</p></article>
+              <article><span>📍</span><strong>Ort</strong><p>„Wo hatte ich das eigentlich gescannt?“</p></article>
+              <article><span>📦</span><strong>Produkt</strong><p>„Wo finde ich Anleitung und Infos wieder?“</p></article>
+              <article><span>🎟️</span><strong>Event</strong><p>„Gab es dazu nicht noch aktuelle Hinweise?“</p></article>
+            </div>
+            <div className="landingBProblemAnswer"><strong>Scannen → speichern → organisieren → wiederfinden.</strong><span>Dein digitales QR-Gedächtnis.</span></div>
+          </section>
+
+          <section className="landingBOneApp">
+            <div className="landingBOneAppCopy">
+              <span className="landingBEyebrow">Eine App statt Einzellösungen</span>
+              <h2>Warum QR-Codes nur öffnen, wenn du viel mehr damit machen kannst?</h2>
+              <p>Mioseg qr bündelt die Funktionen, die rund um einen QR-Code wirklich nützlich werden: vom ersten Scan bis zum späteren Update.</p>
+              <div className="landingBOneAppList">
+                {['QR-Code scannen','Scans speichern','Ordner & Unterordner','Standorte merken','Eigene QR-X erstellen','Bilder & Dateien teilen','News & Updates erhalten','QR-X folgen','Collections verbinden','Explore auf der Karte'].map(x => <span key={x}>✓ {x}</span>)}
+              </div>
+            </div>
+            <div className="landingBOneAppVisual">
+              <Image src={landingImages.appScans} alt="Mioseg qr – gespeicherte Scans organisieren" width={945} height={2048} className="landingBOneAppPhone" />
+              <div className="landingBOneAppSeal"><strong>1</strong><span>App</span><small>für deinen QR-Alltag</small></div>
+            </div>
+          </section>
+
+          <section className="landingBQrxAha">
+            <div className="landingBSectionHeader">
+              <span className="landingBEyebrow">Der QR-X Aha-Moment</span>
+              <h2>Ein normaler QR-Code führt irgendwohin. Ein QR-X kann alles Wichtige zusammenbringen.</h2>
+            </div>
+            <div className="landingBCompare">
+              <div className="landingBCompareOld"><span>Normaler QR-Code</span><strong>QR</strong><p>Ein Scan → ein Link</p></div>
+              <div className="landingBCompareArrow">→</div>
+              <div className="landingBCompareNew"><span>QR-X</span><strong>QR-X</strong><div>{['Bilder','PDF & Dateien','Video & Audio','Standort','Kontakt','News','Updates','Follow','Passwort','Collection'].map(x => <b key={x}>{x}</b>)}</div></div>
+            </div>
+            <div className="landingBStatement">Ein Code. Alles dahinter.</div>
+          </section>
+        </>
+      )}
 
       <section className="landingBVideo">
         <div className="landingBVideoCopy">
@@ -632,6 +693,36 @@ export default async function Home({ params }: Props) {
           </article>
         </div>
       </section>
+
+      {isGerman && (
+        <>
+          <section className="landingBFollow">
+            <div className="landingBFollowCopy">
+              <span className="landingBEyebrow">Folgen statt vergessen</span>
+              <h2>Ein QR-Code, der dich auf dem Laufenden hält.</h2>
+              <p>Speichere oder folge einem QR-X. Wenn der Ersteller wichtige Inhalte aktualisiert, kann Mioseg qr dich darüber informieren.</p>
+              <div className="landingBFollowExamples"><span>🏠 Preis reduziert</span><span>🍕 Neues Wochenangebot</span><span>🎭 Beginn geändert</span><span>📄 Neues Dokument</span></div>
+            </div>
+            <div className="landingBFollowFlow">
+              <div><b>1</b><strong>QR-X folgen</strong><small>Einmal speichern</small></div><i>→</i>
+              <div><b>2</b><strong>Inhalt ändert sich</strong><small>Der QR-Code bleibt</small></div><i>→</i>
+              <div className="landingBPushCard"><b>🔔</b><strong>Du erfährst es.</strong><small>Aktuell bleiben</small></div>
+            </div>
+          </section>
+
+          <section className="landingBStories">
+            <div className="landingBSectionHeader">
+              <span className="landingBEyebrow">So fühlt sich Mioseg qr im Alltag an</span>
+              <h2>Drei Scans. Drei völlig unterschiedliche Möglichkeiten.</h2>
+            </div>
+            <div className="landingBStoryGrid">
+              <article><span className="landingBStoryIcon">🏠</span><h3>Immobilie</h3><p>Verkaufsschild scannen → Exposé, Bilder, Grundriss, Energieausweis, Kontakt und Navigation öffnen.</p><strong>Später: 🔔 „Preis reduziert.“</strong></article>
+              <article><span className="landingBStoryIcon">🍝</span><h3>Restaurant</h3><p>QR-X öffnen → Speisekarte, Öffnungszeiten, Reservierung, Standort und Angebote an einem Ort.</p><strong>Später: 🔔 „Neue Wochenkarte.“</strong></article>
+              <article><span className="landingBStoryIcon">🎭</span><h3>Theater</h3><p>Ein Plakat scannen → Theater-QR-X öffnen → Produktionen als Collection entdecken → Termine und Tickets wählen.</p><strong>Ein Scan öffnet eine ganze Welt.</strong></article>
+            </div>
+          </section>
+        </>
+      )}
 
       <section id="usecases" className="landingBUseCases">
         <div className="landingBSectionHeader">
@@ -745,8 +836,17 @@ html{scroll-behavior:smooth}body{background:var(--b)}
 .landingBPricing{margin-top:26px;padding:34px;display:grid;grid-template-columns:1.05fr .55fr 1fr;gap:32px;align-items:center;border-radius:22px;background:#0a1525;border:1px solid var(--line)}.landingBCreditVisual{min-height:150px;position:relative;border-radius:20px;background:radial-gradient(circle at 50% 50%,rgba(121,65,255,.24),transparent 55%),#0b1322;border:1px solid rgba(145,96,255,.22)}.coin{position:absolute;left:50%;width:92px;height:34px;border-radius:50%;transform:translateX(-50%);border:4px solid #7d43ff;box-shadow:inset 0 0 0 3px rgba(44,111,255,.55)}.coinA{top:38px}.coinB{top:64px;width:105px}.coinC{top:90px;width:118px}.landingBPricingPoints{display:grid;gap:10px}.landingBPricingPoints>div{display:flex;gap:10px;color:#dce5f1;font-size:13px}.landingBPricingPoints span{color:#a06bff}
 .landingBFinalCta{margin-top:26px;padding:28px 34px;display:flex;align-items:center;justify-content:space-between;gap:32px;border-radius:20px;background:radial-gradient(circle at 75% 30%,rgba(82,71,255,.22),transparent 30%),linear-gradient(135deg,#111b3a,#17114c);border:1px solid rgba(112,91,255,.28)}.landingBFinalCta h2{font-size:clamp(28px,3.4vw,42px)}.landingBFinalCta p{margin-bottom:0}
 .landingBFooter{padding:30px 0 36px;display:flex;align-items:center;justify-content:space-between;gap:24px}.landingBFooterBrand{display:flex;align-items:center;gap:14px;color:#77889f;font-size:12px}.landingBFooterBrand img{width:104px;height:auto}.landingBFooterLinks{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:16px}
-@media(max-width:1120px){.landingBNav{grid-template-columns:1fr auto}.landingBNavLinks{display:none}.landingBHeroGrid,.landingBVideo{grid-template-columns:1fr}.landingBHeroVisual{min-height:560px}.landingBUseGrid{grid-template-columns:repeat(3,1fr)}.landingBQrxFeatures{grid-template-columns:repeat(3,1fr)}.landingBShowcaseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseCollection{grid-column:1/-1}.landingBBenefits{grid-template-columns:repeat(2,1fr)}.landingBBenefits>div:nth-child(2){border-right:none}.landingBPricing{grid-template-columns:1fr}.landingBCreditVisual{max-width:280px}}
-@media(max-width:720px){.landingBNav,.landingBHeroGrid,.landingBVideo,.landingBQrx,.landingBShowcase,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{width:min(100% - 28px,1280px)}.landingBNav{min-height:74px;grid-template-columns:1fr auto}.landingBNavActions>:first-child{display:none}.landingBPrimary,.landingBSecondary{min-height:44px;padding:0 16px}.landingBHeroGrid{padding:44px 0 64px}.landingBHeroCopy h1{font-size:54px;letter-spacing:-2.6px}.landingBHeroVisual{min-height:470px}.landingBHeroPhoneFrame{width:260px}.landingBHeroFeature{width:180px;padding:10px}.featureOne{right:0;top:52px}.featureTwo{right:0;top:174px}.featureThree{right:0;top:298px}.landingBVideo{padding:24px}.landingBVideoFrame,.landingBVideoFrame video{min-height:220px}.landingBQrx{padding-top:56px}.landingBQrxFeatures,.landingBUseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseGrid{grid-template-columns:1fr}.landingBShowcaseCollection{grid-column:auto;grid-template-columns:1fr}.landingBShotWrap{height:390px}.landingBShowcaseCard .landingBShot{height:510px}.landingBCollectionCopy{padding:28px 22px}.landingBCollectionShot{height:390px;padding:18px 18px 0}.landingBCollectionShot .landingBShot{height:500px}.landingBBenefits{grid-template-columns:1fr}.landingBBenefits>div{border-right:none;border-bottom:1px solid rgba(127,150,185,.12)}.landingBBenefits>div:last-child{border-bottom:none}.landingBPricing,.landingBFinalCta{padding:24px 20px}.landingBFinalCta{align-items:flex-start;flex-direction:column}.landingBFinalCta .landingBActions{width:100%;flex-direction:column}.landingBFinalCta .landingBActions a{width:100%}.landingBFooter{align-items:flex-start;flex-direction:column}.landingBFooterLinks{justify-content:flex-start}}
+
+.landingBPromise{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}.landingBPromise span{padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(130,153,190,.15);color:#b9c8da;font-size:11px;font-weight:800}
+.landingBVerbBar,.landingBProblem,.landingBOneApp,.landingBQrxAha,.landingBFollow,.landingBStories{width:min(1280px,calc(100% - 48px));margin-left:auto;margin-right:auto;color:var(--txt)}
+.landingBVerbBar{margin-top:24px;padding:14px;display:grid;grid-template-columns:repeat(8,1fr);gap:6px;border:1px solid var(--line);border-radius:22px;background:#091525}.landingBVerbBar div{min-width:0;padding:14px 8px;text-align:center;border-radius:14px;background:rgba(255,255,255,.025)}.landingBVerbBar span{display:block;color:#60738e;font-size:9px;font-weight:900}.landingBVerbBar strong{display:block;margin-top:5px;font-size:10px;letter-spacing:.05em}
+.landingBProblem{padding:78px 0 46px}.landingBProblemGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.landingBProblemGrid article{padding:24px;border-radius:20px;background:#0b1728;border:1px solid var(--line)}.landingBProblemGrid article>span{font-size:30px}.landingBProblemGrid strong{display:block;margin-top:14px;font-size:15px}.landingBProblemGrid p{margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.55}.landingBProblemAnswer{margin:18px auto 0;max-width:780px;padding:20px;text-align:center;border-radius:18px;background:linear-gradient(135deg,rgba(36,119,255,.10),rgba(147,51,234,.10));border:1px solid rgba(91,100,255,.22)}.landingBProblemAnswer strong,.landingBProblemAnswer span{display:block}.landingBProblemAnswer strong{font-size:20px}.landingBProblemAnswer span{margin-top:5px;color:#9fb0c6}
+.landingBOneApp{margin-top:28px;min-height:590px;display:grid;grid-template-columns:1fr .8fr;gap:44px;align-items:center;padding:52px;border-radius:28px;background:radial-gradient(circle at 80% 40%,rgba(42,100,255,.17),transparent 32%),linear-gradient(135deg,#0b1729,#091321);border:1px solid var(--line);overflow:hidden}.landingBOneApp h2,.landingBFollow h2{margin:15px 0 14px;font-size:clamp(34px,4.5vw,58px);line-height:1.02;letter-spacing:-1.8px}.landingBOneAppCopy>p,.landingBFollowCopy>p{color:var(--muted);line-height:1.7}.landingBOneAppList{margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.landingBOneAppList span{padding:11px 12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(126,149,186,.12);color:#dce5f1;font-size:12px;font-weight:750}.landingBOneAppVisual{height:500px;position:relative;display:flex;justify-content:center;align-items:flex-start}.landingBOneAppPhone{height:620px;width:auto;max-width:78%;object-fit:contain;border-radius:28px;box-shadow:0 30px 60px rgba(0,0,0,.45)}.landingBOneAppSeal{position:absolute;right:0;top:90px;width:130px;height:130px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#2477ff,#9333ea);box-shadow:0 20px 44px rgba(60,64,255,.3);text-align:center}.landingBOneAppSeal strong{font-size:42px;line-height:.9}.landingBOneAppSeal span{font-weight:950}.landingBOneAppSeal small{max-width:90px;margin-top:3px;font-size:9px}
+.landingBQrxAha{padding:86px 0 52px}.landingBCompare{display:grid;grid-template-columns:.7fr auto 1.3fr;gap:22px;align-items:center}.landingBCompareOld,.landingBCompareNew{min-height:280px;padding:30px;border-radius:24px;border:1px solid var(--line);background:#0a1525}.landingBCompareOld{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:.72}.landingBCompareOld>span,.landingBCompareNew>span{color:#8295ae;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.landingBCompareOld>strong,.landingBCompareNew>strong{margin:15px 0;font-size:44px}.landingBCompareOld p{color:var(--muted)}.landingBCompareArrow{font-size:36px;color:#677b99}.landingBCompareNew{background:radial-gradient(circle at 20% 20%,rgba(36,119,255,.14),transparent 36%),#0b1729}.landingBCompareNew>div{display:flex;flex-wrap:wrap;gap:8px}.landingBCompareNew b{padding:9px 11px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(131,153,190,.14);font-size:11px}.landingBStatement{margin-top:20px;text-align:center;font-size:clamp(30px,4vw,48px);font-weight:950;letter-spacing:-1.5px;background:linear-gradient(90deg,#3d8cff,#a44cff);-webkit-background-clip:text;color:transparent}
+.landingBFollow{margin-top:40px;padding:48px;display:grid;grid-template-columns:.9fr 1.1fr;gap:38px;align-items:center;border-radius:26px;background:linear-gradient(135deg,#0a1628,#0d1729);border:1px solid var(--line)}.landingBFollowExamples{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}.landingBFollowExamples span{padding:9px 11px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(128,151,188,.14);font-size:11px}.landingBFollowFlow{display:flex;align-items:center;gap:9px}.landingBFollowFlow>div{flex:1;min-height:145px;padding:18px;border-radius:18px;background:#0b1728;border:1px solid rgba(126,149,186,.15);display:flex;flex-direction:column;justify-content:center}.landingBFollowFlow b{font-size:20px;color:#729aff}.landingBFollowFlow strong{margin-top:10px;font-size:13px}.landingBFollowFlow small{margin-top:4px;color:var(--muted)}.landingBFollowFlow i{color:#667a98;font-style:normal}.landingBFollowFlow .landingBPushCard{border-color:rgba(147,81,255,.34);background:linear-gradient(145deg,rgba(36,119,255,.10),rgba(147,51,234,.13))}
+.landingBStories{padding:78px 0 34px}.landingBStoryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.landingBStoryGrid article{padding:28px;border-radius:22px;background:#0b1728;border:1px solid var(--line)}.landingBStoryIcon{font-size:34px}.landingBStoryGrid h3{margin:16px 0 8px;font-size:22px}.landingBStoryGrid p{min-height:92px;color:var(--muted);font-size:13px;line-height:1.65}.landingBStoryGrid strong{display:block;padding-top:14px;border-top:1px solid rgba(126,149,186,.12);color:#dfe8f4;font-size:12px}
+@media(max-width:1120px){.landingBVerbBar{grid-template-columns:repeat(4,1fr)}.landingBOneApp,.landingBFollow{grid-template-columns:1fr}.landingBProblemGrid{grid-template-columns:1fr 1fr}.landingBFollowFlow{max-width:760px}.landingBStoryGrid{grid-template-columns:1fr 1fr}.landingBNav{grid-template-columns:1fr auto}.landingBNavLinks{display:none}.landingBHeroGrid,.landingBVideo{grid-template-columns:1fr}.landingBHeroVisual{min-height:560px}.landingBUseGrid{grid-template-columns:repeat(3,1fr)}.landingBQrxFeatures{grid-template-columns:repeat(3,1fr)}.landingBShowcaseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseCollection{grid-column:1/-1}.landingBBenefits{grid-template-columns:repeat(2,1fr)}.landingBBenefits>div:nth-child(2){border-right:none}.landingBPricing{grid-template-columns:1fr}.landingBCreditVisual{max-width:280px}}
+@media(max-width:720px){.landingBVerbBar,.landingBProblem,.landingBOneApp,.landingBQrxAha,.landingBFollow,.landingBStories{width:min(100% - 28px,1280px)}.landingBVerbBar{grid-template-columns:1fr 1fr}.landingBProblem{padding-top:56px}.landingBProblemGrid,.landingBStoryGrid{grid-template-columns:1fr}.landingBOneApp,.landingBFollow{padding:26px 20px}.landingBOneAppList{grid-template-columns:1fr}.landingBOneAppVisual{height:390px}.landingBOneAppPhone{height:480px}.landingBOneAppSeal{width:100px;height:100px;right:4px}.landingBCompare{grid-template-columns:1fr}.landingBCompareArrow{transform:rotate(90deg);text-align:center}.landingBFollowFlow{flex-direction:column;align-items:stretch}.landingBFollowFlow i{transform:rotate(90deg);text-align:center}.landingBStoryGrid p{min-height:0}.landingBNav,.landingBHeroGrid,.landingBVideo,.landingBQrx,.landingBShowcase,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{width:min(100% - 28px,1280px)}.landingBNav{min-height:74px;grid-template-columns:1fr auto}.landingBNavActions>:first-child{display:none}.landingBPrimary,.landingBSecondary{min-height:44px;padding:0 16px}.landingBHeroGrid{padding:44px 0 64px}.landingBHeroCopy h1{font-size:54px;letter-spacing:-2.6px}.landingBHeroVisual{min-height:470px}.landingBHeroPhoneFrame{width:260px}.landingBHeroFeature{width:180px;padding:10px}.featureOne{right:0;top:52px}.featureTwo{right:0;top:174px}.featureThree{right:0;top:298px}.landingBVideo{padding:24px}.landingBVideoFrame,.landingBVideoFrame video{min-height:220px}.landingBQrx{padding-top:56px}.landingBQrxFeatures,.landingBUseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseGrid{grid-template-columns:1fr}.landingBShowcaseCollection{grid-column:auto;grid-template-columns:1fr}.landingBShotWrap{height:390px}.landingBShowcaseCard .landingBShot{height:510px}.landingBCollectionCopy{padding:28px 22px}.landingBCollectionShot{height:390px;padding:18px 18px 0}.landingBCollectionShot .landingBShot{height:500px}.landingBBenefits{grid-template-columns:1fr}.landingBBenefits>div{border-right:none;border-bottom:1px solid rgba(127,150,185,.12)}.landingBBenefits>div:last-child{border-bottom:none}.landingBPricing,.landingBFinalCta{padding:24px 20px}.landingBFinalCta{align-items:flex-start;flex-direction:column}.landingBFinalCta .landingBActions{width:100%;flex-direction:column}.landingBFinalCta .landingBActions a{width:100%}.landingBFooter{align-items:flex-start;flex-direction:column}.landingBFooterLinks{justify-content:flex-start}}
           `.trim(),
         }}
       />
