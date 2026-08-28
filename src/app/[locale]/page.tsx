@@ -315,6 +315,30 @@ const HOME_RELEASE_COPY: Record<PublicLocale, {
   },
 };
 
+const APP_SHOWCASE_COPY: Record<PublicLocale, {
+  eyebrow: string;
+  title: string;
+  text: string;
+  exploreTitle: string;
+  exploreText: string;
+  scansTitle: string;
+  scansText: string;
+  businessTitle: string;
+  businessText: string;
+  collectionTitle: string;
+  collectionText: string;
+  collectionBadge: string;
+}> = {
+  de: { eyebrow:"Echte App-Einblicke", title:"So sieht Mioseg qr wirklich aus.", text:"Keine Demo-Grafiken: Diese Ansichten stammen direkt aus der App und zeigen die wichtigsten Funktionen im echten Einsatz.", exploreTitle:"Explore & Karte", exploreText:"QR-X in der Umgebung entdecken und Orte direkt auf der Karte wiederfinden.", scansTitle:"Scans organisieren", scansText:"Gespeicherte QR-Codes und QR-X suchen, filtern und in Ordnern übersichtlich ablegen.", businessTitle:"Business QR-X", businessText:"Unternehmen erhalten ein professionelles Profil mit Kategorie, Kontaktaktionen und optionaler Verifizierung.", collectionTitle:"Custom Collection", collectionText:"Mehrere eigenständige QR-X zu einer Sammlung verbinden – ideal für Produkte, Immobilien, Events, Ausstellungen oder Standorte.", collectionBadge:"Besonderes QR-X Feature" },
+  en: { eyebrow:"Real app views", title:"This is what Mioseg qr really looks like.", text:"No demo graphics: these screens come directly from the app and show the core features in real use.", exploreTitle:"Explore & map", exploreText:"Discover QR-X nearby and find places again directly on the map.", scansTitle:"Organize scans", scansText:"Search, filter and organize saved QR codes and QR-X in folders.", businessTitle:"Business QR-X", businessText:"Businesses get a professional profile with category, contact actions and optional verification.", collectionTitle:"Custom Collection", collectionText:"Connect multiple independent QR-X in one collection – ideal for products, real estate, events, exhibitions or locations.", collectionBadge:"Distinctive QR-X feature" },
+  tr: { eyebrow:"Gerçek uygulama ekranları", title:"Mioseg qr gerçekten böyle görünüyor.", text:"Demo görselleri değil: Bu ekranlar doğrudan uygulamadan alınmıştır ve temel özellikleri gerçek kullanımda gösterir.", exploreTitle:"Explore ve harita", exploreText:"Yakındaki QR-X'leri keşfet ve yerleri haritada yeniden bul.", scansTitle:"Taramaları düzenle", scansText:"Kaydedilen QR kodlarını ve QR-X'leri ara, filtrele ve klasörlerde düzenle.", businessTitle:"Business QR-X", businessText:"İşletmeler kategori, iletişim işlemleri ve isteğe bağlı doğrulama içeren profesyonel bir profil alır.", collectionTitle:"Custom Collection", collectionText:"Birden fazla bağımsız QR-X'i tek koleksiyonda birleştir – ürünler, gayrimenkuller, etkinlikler, sergiler veya konumlar için ideal.", collectionBadge:"Özel QR-X özelliği" },
+  pl: { eyebrow:"Prawdziwe widoki aplikacji", title:"Tak naprawdę wygląda Mioseg qr.", text:"Bez grafik demonstracyjnych: te ekrany pochodzą bezpośrednio z aplikacji i pokazują najważniejsze funkcje w praktyce.", exploreTitle:"Explore i mapa", exploreText:"Odkrywaj QR-X w pobliżu i odnajduj miejsca bezpośrednio na mapie.", scansTitle:"Organizuj skany", scansText:"Wyszukuj, filtruj i porządkuj zapisane kody QR i QR-X w folderach.", businessTitle:"Business QR-X", businessText:"Firmy otrzymują profesjonalny profil z kategorią, akcjami kontaktowymi i opcjonalną weryfikacją.", collectionTitle:"Custom Collection", collectionText:"Połącz wiele niezależnych QR-X w jedną kolekcję – idealne dla produktów, nieruchomości, wydarzeń, wystaw lub lokalizacji.", collectionBadge:"Wyjątkowa funkcja QR-X" },
+  ar: { eyebrow:"لقطات حقيقية من التطبيق", title:"هكذا يبدو Mioseg qr فعليًا.", text:"ليست رسومات تجريبية: هذه الشاشات مأخوذة مباشرة من التطبيق وتعرض أهم الوظائف أثناء الاستخدام الحقيقي.", exploreTitle:"Explore والخريطة", exploreText:"اكتشف QR-X القريبة واعثر على الأماكن مباشرة على الخريطة.", scansTitle:"تنظيم عمليات المسح", scansText:"ابحث عن رموز QR وQR-X المحفوظة وقم بتصفيتها وتنظيمها في مجلدات.", businessTitle:"Business QR-X", businessText:"تحصل الشركات على ملف احترافي مع فئة وإجراءات اتصال وتحقق اختياري.", collectionTitle:"Custom Collection", collectionText:"اربط عدة QR-X مستقلة في مجموعة واحدة، وهو مناسب للمنتجات والعقارات والفعاليات والمعارض والمواقع.", collectionBadge:"ميزة QR-X مميزة" },
+  fr: { eyebrow:"Vrais aperçus de l’app", title:"Voici à quoi ressemble réellement Mioseg qr.", text:"Pas de maquettes : ces écrans proviennent directement de l’application et montrent les fonctions principales en situation réelle.", exploreTitle:"Explore & carte", exploreText:"Découvrez les QR-X à proximité et retrouvez des lieux directement sur la carte.", scansTitle:"Organiser les scans", scansText:"Recherchez, filtrez et classez les QR codes et QR-X enregistrés dans des dossiers.", businessTitle:"Business QR-X", businessText:"Les entreprises disposent d’un profil professionnel avec catégorie, actions de contact et vérification optionnelle.", collectionTitle:"Custom Collection", collectionText:"Regroupez plusieurs QR-X indépendants dans une collection – idéal pour produits, immobilier, événements, expositions ou sites.", collectionBadge:"Fonction QR-X distinctive" },
+  es: { eyebrow:"Vistas reales de la app", title:"Así es Mioseg qr de verdad.", text:"Sin gráficos de demostración: estas pantallas proceden directamente de la app y muestran las funciones principales en uso real.", exploreTitle:"Explore y mapa", exploreText:"Descubre QR-X cercanos y vuelve a encontrar lugares directamente en el mapa.", scansTitle:"Organizar escaneos", scansText:"Busca, filtra y organiza códigos QR y QR-X guardados en carpetas.", businessTitle:"Business QR-X", businessText:"Las empresas obtienen un perfil profesional con categoría, acciones de contacto y verificación opcional.", collectionTitle:"Custom Collection", collectionText:"Conecta varios QR-X independientes en una colección, ideal para productos, inmuebles, eventos, exposiciones o ubicaciones.", collectionBadge:"Función QR-X distintiva" },
+  it: { eyebrow:"Schermate reali dell’app", title:"Ecco come appare davvero Mioseg qr.", text:"Niente grafiche demo: queste schermate provengono direttamente dall’app e mostrano le funzioni principali nell’uso reale.", exploreTitle:"Explore e mappa", exploreText:"Scopri QR-X nelle vicinanze e ritrova i luoghi direttamente sulla mappa.", scansTitle:"Organizza le scansioni", scansText:"Cerca, filtra e organizza QR code e QR-X salvati in cartelle.", businessTitle:"Business QR-X", businessText:"Le aziende ottengono un profilo professionale con categoria, azioni di contatto e verifica opzionale.", collectionTitle:"Custom Collection", collectionText:"Collega più QR-X indipendenti in una raccolta, ideale per prodotti, immobili, eventi, mostre o sedi.", collectionBadge:"Funzione QR-X distintiva" },
+};
+
 const PROMO_VIDEO_SRC = "/landing/mioseg-qr-promo.mp4";
 
 function publicLocale(value: string): PublicLocale {
@@ -336,9 +360,14 @@ export default async function Home({ params }: Props) {
 
   const t = getDictionary(locale);
   const landingImages = {
-    // Replace these files later with your own final assets.
-    heroScan: "/landing/hero-scan.png",
-    heroPhone: "/landing/hero-phone-map.png",
+    // Real app screenshots are used for the product presentation.
+    heroScan: "/landing/app-explore.jpg",
+    heroPhone: "/landing/app-hero-qrx.jpg",
+    appExplore: "/landing/app-explore.jpg",
+    appScans: "/landing/app-my-scans.jpg",
+    appBusiness: "/landing/app-business-qrx.jpg",
+    appCollection: "/landing/app-collection.jpg",
+    appUpdates: "/landing/app-updates.jpg",
     videoPoster: "/landing/video-poster.png",
     realEstate: "/landing/usecase-real-estate.png",
     restaurant: "/landing/usecase-restaurant.png",
@@ -355,6 +384,7 @@ export default async function Home({ params }: Props) {
   const heroCopy = HOME_HERO_COPY[publicLanguage];
   const publicUi = HOME_PUBLIC_UI[publicLanguage];
   const releaseCopy = HOME_RELEASE_COPY[publicLanguage];
+  const showcaseCopy = APP_SHOWCASE_COPY[publicLanguage];
 
   const professionalUseCases = {
     de: [
@@ -482,12 +512,11 @@ export default async function Home({ params }: Props) {
               <Image
                 src={landingImages.heroPhone}
                 alt={publicUi.heroImageAlt}
-                width={760}
-                height={980}
+                width={945}
+                height={2048}
                 className="landingBHeroPhone"
                 priority
               />
-              <div className="landingBHeroAssetLabel">Eigenes App-Mockup</div>
             </div>
 
             <div className="landingBHeroFeature featureOne">
@@ -547,6 +576,63 @@ export default async function Home({ params }: Props) {
         </div>
       </section>
 
+      <section className="landingBShowcase" aria-labelledby="app-showcase-title">
+        <div className="landingBSectionHeader landingBShowcaseHeader">
+          <span className="landingBEyebrow">{showcaseCopy.eyebrow}</span>
+          <h2 id="app-showcase-title">{showcaseCopy.title}</h2>
+          <p>{showcaseCopy.text}</p>
+        </div>
+
+        <div className="landingBShowcaseGrid">
+          <article className="landingBShowcaseCard">
+            <div className="landingBShotWrap">
+              <Image src={landingImages.appExplore} alt={showcaseCopy.exploreTitle} width={945} height={2048} className="landingBShot" />
+            </div>
+            <div className="landingBShowcaseBody">
+              <span className="landingBShowcaseNumber">01</span>
+              <h3>{showcaseCopy.exploreTitle}</h3>
+              <p>{showcaseCopy.exploreText}</p>
+            </div>
+          </article>
+
+          <article className="landingBShowcaseCard">
+            <div className="landingBShotWrap">
+              <Image src={landingImages.appScans} alt={showcaseCopy.scansTitle} width={945} height={2048} className="landingBShot" />
+            </div>
+            <div className="landingBShowcaseBody">
+              <span className="landingBShowcaseNumber">02</span>
+              <h3>{showcaseCopy.scansTitle}</h3>
+              <p>{showcaseCopy.scansText}</p>
+            </div>
+          </article>
+
+          <article className="landingBShowcaseCard landingBShowcaseCardGold">
+            <div className="landingBShotWrap">
+              <Image src={landingImages.appBusiness} alt={showcaseCopy.businessTitle} width={945} height={2048} className="landingBShot" />
+            </div>
+            <div className="landingBShowcaseBody">
+              <span className="landingBShowcaseNumber">03</span>
+              <h3>{showcaseCopy.businessTitle}</h3>
+              <p>{showcaseCopy.businessText}</p>
+            </div>
+          </article>
+
+          <article className="landingBShowcaseCard landingBShowcaseCollection">
+            <div className="landingBCollectionCopy">
+              <span className="landingBCollectionBadge">{showcaseCopy.collectionBadge}</span>
+              <h3>{showcaseCopy.collectionTitle}</h3>
+              <p>{showcaseCopy.collectionText}</p>
+              <div className="landingBCollectionFlow" aria-hidden="true">
+                <span>QR-X</span><b>+</b><span>QR-X</span><b>+</b><span>QR-X</span><b>→</b><strong>Collection</strong>
+              </div>
+            </div>
+            <div className="landingBCollectionShot">
+              <Image src={landingImages.appCollection} alt={showcaseCopy.collectionTitle} width={945} height={2048} className="landingBShot" />
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section id="usecases" className="landingBUseCases">
         <div className="landingBSectionHeader">
           <span className="landingBEyebrow">{publicUi.useCasesEyebrow}</span>
@@ -558,7 +644,6 @@ export default async function Home({ params }: Props) {
             <article key={item.title} className="landingBUseCard">
               <div className="landingBUseImage">
                 <Image src={item.image} alt={item.title} width={720} height={460} />
-                <div className="landingBImageHint">Eigenes Bild einsetzen</div>
               </div>
 
               <div className="landingBUseBody">
@@ -636,7 +721,7 @@ export default async function Home({ params }: Props) {
           __html: `
 :root{--b:#06101f;--card:#0d1a2c;--line:rgba(132,157,194,.18);--txt:#f8fbff;--muted:#9aabc1;--blue:#2477ff;--violet:#9333ea}
 html{scroll-behavior:smooth}body{background:var(--b)}
-.landingBHero,.landingBVideo,.landingBQrx,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{color:var(--txt)}
+.landingBHero,.landingBVideo,.landingBQrx,.landingBShowcase,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{color:var(--txt)}
 .landingBHero{min-height:760px;background:radial-gradient(circle at 68% 26%,rgba(41,98,255,.17),transparent 26%),radial-gradient(circle at 78% 34%,rgba(124,58,237,.14),transparent 28%),linear-gradient(180deg,#06101f 0%,#081426 100%);overflow:hidden}
 .landingBNav{width:min(1280px,calc(100% - 48px));margin:0 auto;min-height:88px;display:grid;grid-template-columns:180px 1fr auto;gap:24px;align-items:center}
 .landingBBrand img{width:128px;height:auto;display:block}.landingBNavLinks{display:flex;justify-content:center;gap:32px}.landingBNavLinks a,.landingBFooter a{color:rgba(255,255,255,.82);text-decoration:none;font-weight:800;font-size:14px}.landingBNavLinks a:hover,.landingBFooter a:hover{color:#fff}
@@ -646,21 +731,22 @@ html{scroll-behavior:smooth}body{background:var(--b)}
 .landingBHeroCopy h1{margin:18px 0 0;font-size:clamp(58px,6.6vw,98px);line-height:.94;letter-spacing:-3.7px;font-weight:950}.landingBHeroCopy h1 span{display:block}.landingBHeroCopy h1 span:last-child{background:linear-gradient(90deg,#1f74ff 0%,#2d67ff 40%,#9a32ff 100%);-webkit-background-clip:text;color:transparent}.landingBHeroCopy>p{max-width:550px;margin:28px 0;color:#c1ccdb;font-size:18px;line-height:1.72}
 .landingBStoreRow{margin-top:18px}.landingBStorePlaceholder{min-width:126px;min-height:40px;display:grid;place-items:center;border-radius:10px;background:#03070d;border:1px solid rgba(255,255,255,.16);color:#fff;font-size:12px;font-weight:800}
 .landingBHeroVisual{min-height:560px;position:relative}.landingBOrb{position:absolute;border-radius:50%}.orbOne{width:440px;height:440px;right:100px;top:68px;background:radial-gradient(circle at 35% 35%,rgba(41,116,255,.30),rgba(38,83,255,.05) 56%,transparent 70%);border:1px solid rgba(89,129,255,.16)}.orbTwo{width:360px;height:360px;right:20px;top:120px;background:radial-gradient(circle at 50% 50%,rgba(128,58,237,.22),transparent 66%)}
-.landingBHeroPhoneFrame{position:absolute;z-index:3;left:50%;top:48%;transform:translate(-50%,-50%) rotate(4deg);width:min(340px,47vw);filter:drop-shadow(0 30px 55px rgba(0,0,0,.42))}.landingBHeroPhone{width:100%;height:auto;display:block}.landingBHeroAssetLabel{position:absolute;left:50%;bottom:-34px;transform:translateX(-50%);white-space:nowrap;padding:7px 10px;border-radius:10px;background:rgba(4,8,14,.8);border:1px solid rgba(255,255,255,.12);color:#b7c5d8;font-size:10px}
+.landingBHeroPhoneFrame{position:absolute;z-index:3;left:50%;top:48%;transform:translate(-50%,-50%) rotate(2deg);width:min(300px,43vw);padding:8px;border-radius:38px;background:#03070d;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 75px rgba(0,0,0,.48),0 0 0 8px rgba(12,24,42,.72)}.landingBHeroPhone{width:100%;height:auto;display:block;border-radius:30px}
 .landingBHeroFeature{position:absolute;z-index:4;width:220px;display:grid;grid-template-columns:48px 1fr;gap:13px;align-items:center;padding:14px;border-radius:18px;background:rgba(8,18,34,.86);border:1px solid rgba(120,145,185,.19);box-shadow:0 18px 36px rgba(0,0,0,.24);backdrop-filter:blur(14px)}.landingBHeroFeature>span{width:48px;height:48px;display:grid;place-items:center;border-radius:16px;color:#87a7ff;background:linear-gradient(145deg,rgba(55,116,255,.14),rgba(126,58,237,.13));font-size:20px}.landingBHeroFeature strong{font-size:14px}.landingBHeroFeature p{margin:3px 0 0;color:var(--muted);font-size:12px;line-height:1.4}.featureOne{right:0;top:94px}.featureTwo{right:-16px;top:236px}.featureThree{right:12px;top:380px}
-.landingBVideo,.landingBQrx,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{width:min(1280px,calc(100% - 48px));margin-left:auto;margin-right:auto}
+.landingBVideo,.landingBQrx,.landingBShowcase,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{width:min(1280px,calc(100% - 48px));margin-left:auto;margin-right:auto}
 .landingBVideo{margin-top:18px;padding:42px;display:grid;grid-template-columns:.86fr 1.14fr;gap:36px;align-items:center;border-radius:26px;background:radial-gradient(circle at 75% 30%,rgba(71,89,255,.13),transparent 30%),linear-gradient(135deg,#0a1628,#0c1728);border:1px solid var(--line)}
 .landingBVideoCopy h2,.landingBSectionHeader h2,.landingBPricingCopy h2,.landingBFinalCta h2{margin:14px 0 0;color:#fff;font-size:clamp(30px,4vw,50px);line-height:1.04;letter-spacing:-1.4px}.landingBVideoCopy p,.landingBSectionHeader p,.landingBPricingCopy p,.landingBFinalCta p{color:var(--muted);line-height:1.7}
 .landingBVideoFrame{min-height:290px;position:relative;overflow:hidden;border-radius:20px;background:#03070d;border:1px solid rgba(255,255,255,.08)}.landingBVideoFrame video{width:100%;height:100%;min-height:290px;display:block;object-fit:cover}
 .landingBAssetHint,.landingBImageHint{position:absolute;z-index:3;display:grid;gap:2px;padding:8px 10px;border-radius:10px;background:rgba(4,8,14,.72);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:10px;backdrop-filter:blur(8px);pointer-events:none}.landingBAssetHint{right:12px;bottom:12px}.landingBAssetHint span{color:#9eabc0;font-size:9px}
 .landingBQrx{padding:70px 0 46px}.landingBSectionHeader{max-width:820px;margin:0 auto 34px;text-align:center}.landingBQrxFeatures{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.landingBQrxFeatures>div{min-height:132px;display:grid;place-items:center;align-content:center;gap:12px;text-align:center;border-radius:20px;background:rgba(255,255,255,.025);border:1px solid rgba(123,147,186,.14)}.landingBQrxFeatures span{width:52px;height:52px;display:grid;place-items:center;border-radius:18px;color:#7da1ff;background:linear-gradient(145deg,rgba(36,119,255,.10),rgba(124,58,237,.10));font-size:21px}.landingBQrxFeatures strong{font-size:13px}
+.landingBShowcase{padding:56px 0 38px}.landingBShowcaseHeader{margin-bottom:38px}.landingBShowcaseGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.landingBShowcaseCard{min-width:0;overflow:hidden;border-radius:24px;background:linear-gradient(180deg,#0d1a2c 0%,#091523 100%);border:1px solid rgba(128,153,194,.16);box-shadow:0 22px 50px rgba(0,0,0,.18)}.landingBShotWrap{height:430px;overflow:hidden;padding:18px 18px 0;display:flex;justify-content:center;background:radial-gradient(circle at 50% 18%,rgba(38,104,255,.17),transparent 42%),#081321}.landingBShot{display:block;width:auto;height:560px;max-width:100%;object-fit:contain;border-radius:22px 22px 0 0;box-shadow:0 20px 48px rgba(0,0,0,.38)}.landingBShowcaseBody{padding:20px 22px 24px;position:relative}.landingBShowcaseNumber{display:inline-flex;margin-bottom:10px;color:#7186a3;font-size:11px;font-weight:900;letter-spacing:.14em}.landingBShowcaseBody h3,.landingBCollectionCopy h3{margin:0;color:#fff;font-size:21px;letter-spacing:-.35px}.landingBShowcaseBody p,.landingBCollectionCopy p{margin:9px 0 0;color:var(--muted);font-size:13px;line-height:1.62}.landingBShowcaseCardGold{border-color:rgba(225,176,72,.28)}.landingBShowcaseCardGold .landingBShotWrap{background:radial-gradient(circle at 50% 18%,rgba(225,176,72,.14),transparent 44%),#0c141f}.landingBShowcaseCollection{grid-column:1/-1;display:grid;grid-template-columns:.92fr 1.08fr;min-height:470px;background:radial-gradient(circle at 20% 50%,rgba(82,71,255,.14),transparent 42%),linear-gradient(135deg,#0b1729,#0b1422)}.landingBCollectionCopy{padding:46px;display:flex;flex-direction:column;justify-content:center}.landingBCollectionCopy h3{font-size:clamp(30px,4vw,48px);letter-spacing:-1.2px}.landingBCollectionCopy p{max-width:570px;font-size:15px}.landingBCollectionBadge{align-self:flex-start;margin-bottom:16px;padding:8px 11px;border-radius:999px;background:rgba(144,91,255,.12);border:1px solid rgba(144,91,255,.28);color:#b8a3ff;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.landingBCollectionFlow{margin-top:26px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}.landingBCollectionFlow span,.landingBCollectionFlow strong{padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(135,157,194,.16);font-size:12px}.landingBCollectionFlow strong{color:#fff;background:linear-gradient(135deg,rgba(36,119,255,.18),rgba(147,51,234,.18));border-color:rgba(122,96,255,.28)}.landingBCollectionFlow b{color:#7c8fa9;font-size:12px}.landingBCollectionShot{height:470px;overflow:hidden;padding:28px 32px 0;display:flex;justify-content:center;align-items:flex-start;background:linear-gradient(180deg,rgba(255,255,255,.015),transparent)}.landingBCollectionShot .landingBShot{height:600px}
 .landingBUseCases{padding:44px 0 28px}.landingBUseGrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}.landingBUseCard{overflow:hidden;border-radius:18px;background:#0c1829;border:1px solid rgba(124,147,184,.15)}.landingBUseImage{height:150px;position:relative;overflow:hidden;background:#091321}.landingBUseImage img{width:100%;height:100%;object-fit:cover}.landingBImageHint{left:8px;top:8px}.landingBUseBody{position:relative;padding:36px 14px 18px}.landingBUseIcon{position:absolute;left:14px;top:-24px;width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:#0d1d33;border:1px solid rgba(99,129,190,.22);font-size:20px}.landingBUseBody h3{margin:0 0 7px;font-size:16px}.landingBUseBody p{margin:0;color:var(--muted);font-size:12px;line-height:1.5}
 .landingBBenefits{margin-top:24px;padding:18px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border-radius:20px;background:#0b1627;border:1px solid var(--line)}.landingBBenefits>div{min-height:88px;display:grid;grid-template-columns:45px 1fr;column-gap:12px;align-content:center;padding:8px 18px;border-right:1px solid rgba(127,150,185,.12)}.landingBBenefits>div:last-child{border-right:none}.landingBBenefits span{grid-row:1/3;width:45px;height:45px;display:grid;place-items:center;border-radius:15px;color:#b198ff;background:rgba(124,58,237,.12)}.landingBBenefits strong{align-self:end;font-size:14px}.landingBBenefits p{margin:3px 0 0;color:var(--muted);font-size:11px}
 .landingBPricing{margin-top:26px;padding:34px;display:grid;grid-template-columns:1.05fr .55fr 1fr;gap:32px;align-items:center;border-radius:22px;background:#0a1525;border:1px solid var(--line)}.landingBCreditVisual{min-height:150px;position:relative;border-radius:20px;background:radial-gradient(circle at 50% 50%,rgba(121,65,255,.24),transparent 55%),#0b1322;border:1px solid rgba(145,96,255,.22)}.coin{position:absolute;left:50%;width:92px;height:34px;border-radius:50%;transform:translateX(-50%);border:4px solid #7d43ff;box-shadow:inset 0 0 0 3px rgba(44,111,255,.55)}.coinA{top:38px}.coinB{top:64px;width:105px}.coinC{top:90px;width:118px}.landingBPricingPoints{display:grid;gap:10px}.landingBPricingPoints>div{display:flex;gap:10px;color:#dce5f1;font-size:13px}.landingBPricingPoints span{color:#a06bff}
 .landingBFinalCta{margin-top:26px;padding:28px 34px;display:flex;align-items:center;justify-content:space-between;gap:32px;border-radius:20px;background:radial-gradient(circle at 75% 30%,rgba(82,71,255,.22),transparent 30%),linear-gradient(135deg,#111b3a,#17114c);border:1px solid rgba(112,91,255,.28)}.landingBFinalCta h2{font-size:clamp(28px,3.4vw,42px)}.landingBFinalCta p{margin-bottom:0}
 .landingBFooter{padding:30px 0 36px;display:flex;align-items:center;justify-content:space-between;gap:24px}.landingBFooterBrand{display:flex;align-items:center;gap:14px;color:#77889f;font-size:12px}.landingBFooterBrand img{width:104px;height:auto}.landingBFooterLinks{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:16px}
-@media(max-width:1120px){.landingBNav{grid-template-columns:1fr auto}.landingBNavLinks{display:none}.landingBHeroGrid,.landingBVideo{grid-template-columns:1fr}.landingBHeroVisual{min-height:560px}.landingBUseGrid{grid-template-columns:repeat(3,1fr)}.landingBQrxFeatures{grid-template-columns:repeat(3,1fr)}.landingBBenefits{grid-template-columns:repeat(2,1fr)}.landingBBenefits>div:nth-child(2){border-right:none}.landingBPricing{grid-template-columns:1fr}.landingBCreditVisual{max-width:280px}}
-@media(max-width:720px){.landingBNav,.landingBHeroGrid,.landingBVideo,.landingBQrx,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{width:min(100% - 28px,1280px)}.landingBNav{min-height:74px;grid-template-columns:1fr auto}.landingBNavActions>:first-child{display:none}.landingBPrimary,.landingBSecondary{min-height:44px;padding:0 16px}.landingBHeroGrid{padding:44px 0 64px}.landingBHeroCopy h1{font-size:54px;letter-spacing:-2.6px}.landingBHeroVisual{min-height:470px}.landingBHeroPhoneFrame{width:260px}.landingBHeroFeature{width:180px;padding:10px}.featureOne{right:0;top:52px}.featureTwo{right:0;top:174px}.featureThree{right:0;top:298px}.landingBVideo{padding:24px}.landingBVideoFrame,.landingBVideoFrame video{min-height:220px}.landingBQrx{padding-top:56px}.landingBQrxFeatures,.landingBUseGrid{grid-template-columns:1fr 1fr}.landingBBenefits{grid-template-columns:1fr}.landingBBenefits>div{border-right:none;border-bottom:1px solid rgba(127,150,185,.12)}.landingBBenefits>div:last-child{border-bottom:none}.landingBPricing,.landingBFinalCta{padding:24px 20px}.landingBFinalCta{align-items:flex-start;flex-direction:column}.landingBFinalCta .landingBActions{width:100%;flex-direction:column}.landingBFinalCta .landingBActions a{width:100%}.landingBFooter{align-items:flex-start;flex-direction:column}.landingBFooterLinks{justify-content:flex-start}}
+@media(max-width:1120px){.landingBNav{grid-template-columns:1fr auto}.landingBNavLinks{display:none}.landingBHeroGrid,.landingBVideo{grid-template-columns:1fr}.landingBHeroVisual{min-height:560px}.landingBUseGrid{grid-template-columns:repeat(3,1fr)}.landingBQrxFeatures{grid-template-columns:repeat(3,1fr)}.landingBShowcaseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseCollection{grid-column:1/-1}.landingBBenefits{grid-template-columns:repeat(2,1fr)}.landingBBenefits>div:nth-child(2){border-right:none}.landingBPricing{grid-template-columns:1fr}.landingBCreditVisual{max-width:280px}}
+@media(max-width:720px){.landingBNav,.landingBHeroGrid,.landingBVideo,.landingBQrx,.landingBShowcase,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{width:min(100% - 28px,1280px)}.landingBNav{min-height:74px;grid-template-columns:1fr auto}.landingBNavActions>:first-child{display:none}.landingBPrimary,.landingBSecondary{min-height:44px;padding:0 16px}.landingBHeroGrid{padding:44px 0 64px}.landingBHeroCopy h1{font-size:54px;letter-spacing:-2.6px}.landingBHeroVisual{min-height:470px}.landingBHeroPhoneFrame{width:260px}.landingBHeroFeature{width:180px;padding:10px}.featureOne{right:0;top:52px}.featureTwo{right:0;top:174px}.featureThree{right:0;top:298px}.landingBVideo{padding:24px}.landingBVideoFrame,.landingBVideoFrame video{min-height:220px}.landingBQrx{padding-top:56px}.landingBQrxFeatures,.landingBUseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseGrid{grid-template-columns:1fr}.landingBShowcaseCollection{grid-column:auto;grid-template-columns:1fr}.landingBShotWrap{height:390px}.landingBShowcaseCard .landingBShot{height:510px}.landingBCollectionCopy{padding:28px 22px}.landingBCollectionShot{height:390px;padding:18px 18px 0}.landingBCollectionShot .landingBShot{height:500px}.landingBBenefits{grid-template-columns:1fr}.landingBBenefits>div{border-right:none;border-bottom:1px solid rgba(127,150,185,.12)}.landingBBenefits>div:last-child{border-bottom:none}.landingBPricing,.landingBFinalCta{padding:24px 20px}.landingBFinalCta{align-items:flex-start;flex-direction:column}.landingBFinalCta .landingBActions{width:100%;flex-direction:column}.landingBFinalCta .landingBActions a{width:100%}.landingBFooter{align-items:flex-start;flex-direction:column}.landingBFooterLinks{justify-content:flex-start}}
           `.trim(),
         }}
       />
