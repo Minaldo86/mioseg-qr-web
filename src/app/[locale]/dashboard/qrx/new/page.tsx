@@ -3078,7 +3078,7 @@ export default function NewQrxPage() {
             : args.mediaType === "file"
               ? "file"
               : "gallery"),
-      filename,
+      filename: args.mediaType === "file" ? args.file.name : filename,
       mimeType,
       bytes,
       storagePath: prepared.storagePath,

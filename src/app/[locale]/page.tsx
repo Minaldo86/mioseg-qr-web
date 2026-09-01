@@ -27,7 +27,7 @@ const HOME_HERO_COPY: Record<PublicLocale, {
   miniExplore: string;
   miniExploreText: string;
 }> = {
-  de: { headline1:"Alles hinter", headline2:"einem Scan.", headline3:"Eine App.", text:"Scannen, speichern, organisieren, wiederfinden, folgen, erstellen und entdecken. Mioseg qr verbindet alles, was rund um QR-Codes wichtig ist, an einem Ort.", ctaExplore:"Kostenlos entdecken", navFeatures:"Funktionen", navExplore:"Explore", navUseCases:"Use Cases", navPrices:"Preise", miniScan:"Scannen & speichern", miniScanText:"Nicht mehr verlieren", miniSave:"Folgen & Updates", miniSaveText:"Änderungen mitbekommen", miniExplore:"Erstellen & entdecken", miniExploreText:"Eigene QR-X und Explore" },
+  de: { headline1:"Mehr als", headline2:"ein QR-Code.", headline3:"Dein QR-X.", text:"Für dich: scannen, speichern, wiederfinden, folgen und entdecken. Für Unternehmen: Produkte, Maschinen, Projekte und Standorte dauerhaft mit aktuellen Informationen verbinden.", ctaExplore:"Explore entdecken", navFeatures:"QR-X verstehen", navExplore:"Explore", navUseCases:"Für Unternehmen", navPrices:"Preise", miniScan:"Für dich", miniScanText:"Scannen, speichern, wiederfinden", miniSave:"Bleib aktuell", miniSaveText:"Folgen & Updates erhalten", miniExplore:"Für Unternehmen", miniExploreText:"QR-X erstellen & sichtbar machen" },
   en: { headline1:"Scan.", headline2:"Save.", headline3:"Find again.", text:"Mioseg qr makes QR codes intelligent. Save places, discover new possibilities and stay up to date.", ctaExplore:"Discover Explore", navFeatures:"Features", navExplore:"Explore", navUseCases:"Use Cases", navPrices:"Prices", miniScan:"Scan", miniScanText:"Open QR codes", miniSave:"Save", miniSaveText:"Never lose them again", miniExplore:"Discover", miniExploreText:"Places, people, possibilities" },
   tr: { headline1:"Tara.", headline2:"Kaydet.", headline3:"Yeniden bul.", text:"Mioseg qr, QR kodlarını akıllı hale getirir. Yerleri kaydet, yeni olanakları keşfet ve her zaman güncel kal.", ctaExplore:"Explore'u keşfet", navFeatures:"Özellikler", navExplore:"Explore", navUseCases:"Kullanım alanları", navPrices:"Fiyatlar", miniScan:"Tara", miniScanText:"QR kodlarını aç", miniSave:"Kaydet", miniSaveText:"Bir daha kaybetme", miniExplore:"Keşfet", miniExploreText:"Yerler, insanlar, olanaklar" },
   pl: { headline1:"Skanuj.", headline2:"Zapisuj.", headline3:"Odnajduj.", text:"Mioseg qr sprawia, że kody QR stają się inteligentne. Zapisuj miejsca, odkrywaj nowe możliwości i bądź zawsze na bieżąco.", ctaExplore:"Odkryj Explore", navFeatures:"Funkcje", navExplore:"Explore", navUseCases:"Zastosowania", navPrices:"Ceny", miniScan:"Skanuj", miniScanText:"Otwieraj kody QR", miniSave:"Zapisuj", miniSaveText:"Nigdy więcej nie zgub", miniExplore:"Odkrywaj", miniExploreText:"Miejsca, ludzie, możliwości" },
@@ -378,6 +378,7 @@ export default async function Home({ params }: Props) {
     school: "/landing/usecase-school.png",
     fitness: "/landing/usecase-fitness.png",
     creator: "/landing/usecase-creator.png",
+    businessIndustry: "/landing/business-machine-qrx.png",
   };
 
   const publicLanguage = publicLocale(locale);
@@ -468,7 +469,7 @@ export default async function Home({ params }: Props) {
           <nav className="landingBNavLinks" aria-label="Landing Navigation">
             <Link href={`/${locale}#features`}>{heroCopy.navFeatures}</Link>
             <Link href={`/${locale}/explore`}>{heroCopy.navExplore}</Link>
-            <Link href={`/${locale}#usecases`}>{heroCopy.navUseCases}</Link>
+            <Link href={`/${locale}#${isGerman ? "business" : "usecases"}`}>{heroCopy.navUseCases}</Link>
             <Link href={`/${locale}#pricing`}>{heroCopy.navPrices}</Link>
           </nav>
 
@@ -494,8 +495,8 @@ export default async function Home({ params }: Props) {
               <Link href={`/${locale}/explore`} className="landingBPrimary">
                 {heroCopy.ctaExplore}
               </Link>
-              <Link href={`/${locale}#features`} className="landingBSecondary">
-                {isGerman ? "In 60 Sekunden verstehen" : "Mehr erfahren"}
+              <Link href={`/${locale}#${isGerman ? "qrx-explained" : "features"}`} className="landingBSecondary">
+                {isGerman ? "QR-X verstehen" : "Mehr erfahren"}
               </Link>
             </div>
 
@@ -545,73 +546,120 @@ export default async function Home({ params }: Props) {
 
       {isGerman && (
         <>
-          <section className="landingBJourney" aria-label="Mioseg qr Funktionen">
-            <div className="landingBJourneyLine" aria-hidden="true" />
-            {['Scannen','Speichern','Ordnen','Wiederfinden','Folgen','Erstellen','Teilen','Entdecken'].map((word, i) => (
-              <div className="landingBJourneyStep" key={word}>
-                <span>{String(i + 1).padStart(2,'0')}</span>
-                <strong>{word}</strong>
-              </div>
-            ))}
-          </section>
-
           <section className="landingBProblem landingBDarkBand">
             <div className="landingBSectionHeader">
-              <span className="landingBEyebrow">Kommt dir das bekannt vor?</span>
+              <span className="landingBEyebrow">Warum Mioseg qr?</span>
               <h2>Gescannt. Geschlossen. Später nie wiedergefunden.</h2>
-              <p>QR-Codes sind überall. Aber der Inhalt verschwindet oft genauso schnell wieder. Mioseg qr macht aus einem kurzen Scan etwas, das du behältst.</p>
-            </div>
-            <div className="landingBProblemGrid">
-              <article><span>🍽️</span><div><strong>Restaurant</strong><p>„Wo war nochmal die digitale Speisekarte?“</p></div></article>
-              <article><span>📍</span><div><strong>Ort</strong><p>„Wo hatte ich das eigentlich gescannt?“</p></div></article>
-              <article><span>📦</span><div><strong>Produkt</strong><p>„Wo finde ich Anleitung und Infos wieder?“</p></div></article>
-              <article><span>🎟️</span><div><strong>Event</strong><p>„Gab es dazu nicht noch aktuelle Hinweise?“</p></div></article>
+              <p>Ein normaler QR-Code ist oft nur ein kurzer Weg zu einer Seite. Mioseg qr macht aus dem Scan etwas, das du speichern, wiederfinden und weiter nutzen kannst.</p>
             </div>
             <div className="landingBProblemAnswer">
-              <strong>Scannen → speichern → organisieren → wiederfinden.</strong>
-              <span>Dein digitales QR-Gedächtnis.</span>
+              <strong>Scannen → speichern → wiederfinden → folgen → entdecken.</strong>
+              <span>Und Unternehmen können genau diese Verbindung dauerhaft mit aktuellen Informationen versorgen.</span>
             </div>
           </section>
 
-          <section className="landingBOneApp">
-            <div className="landingBOneAppCopy">
-              <span className="landingBEyebrow">Eine App. Alles rund um deinen Scan.</span>
-              <h2>Warum zwischen mehreren Lösungen springen?</h2>
-              <p>Mioseg qr verbindet den ganzen Weg: vom ersten Scan bis zum späteren Wiederfinden, Teilen, Folgen und Entdecken.</p>
-              <div className="landingBOneAppList">
-                {['QR-Code scannen','Scans speichern','Ordner & Unterordner','Standorte merken','Eigene QR-X erstellen','Bilder & Dateien','News & Updates','QR-X folgen','Collections','Explore-Karte'].map(x => <span key={x}><b>✓</b>{x}</span>)}
-              </div>
-            </div>
-            <div className="landingBOneAppVisual">
-              <div className="landingBOneAppGlow" />
-              <Image src={landingImages.appScans} alt="Mioseg qr – gespeicherte Scans organisieren" width={945} height={2048} className="landingBOneAppPhone" />
-              <span className="landingBFloatingTag tagScan">⌗ Scan</span>
-              <span className="landingBFloatingTag tagFolder">▣ Ordner</span>
-              <span className="landingBFloatingTag tagMap">⌖ Karte</span>
-              <span className="landingBFloatingTag tagBell">🔔 Updates</span>
-              <span className="landingBFloatingTag tagCollection">✦ Collections</span>
-              <span className="landingBFloatingTag tagExplore">↗ Explore</span>
-              <div className="landingBOneAppSeal"><strong>1</strong><span>App</span><small>für alles rund um QR</small></div>
-            </div>
-          </section>
-
-          <section className="landingBQrxAha">
+          <section id="qrx-explained" className="landingBQrxAha">
             <div className="landingBSectionHeader">
               <span className="landingBEyebrow">Der QR-X Aha-Moment</span>
-              <h2>Ein normaler QR-Code öffnet einen Link. Ein QR-X öffnet Möglichkeiten.</h2>
-              <p>Der Code bleibt derselbe. Was dahinter steckt, kann wachsen, aktuell bleiben und Nutzer wieder zurückholen.</p>
+              <h2>Ein normaler QR-Code öffnet ein Ziel. Ein QR-X bleibt nützlich.</h2>
+              <p>Der QR-X bleibt derselbe. Die Informationen dahinter können jederzeit aktualisiert und erweitert werden.</p>
             </div>
             <div className="landingBCompare">
               <div className="landingBCompareOld">
-                <span>Normaler QR-Code</span><strong>QR</strong><p>Ein Scan → ein Ziel</p>
+                <span>Normaler QR-Code</span><strong>QR</strong><p>Ein Scan → ein Link</p>
               </div>
               <div className="landingBCompareArrow"><span>→</span><small>wird zu</small></div>
               <div className="landingBCompareNew">
                 <div className="landingBCompareNewHead"><span>QR-X</span><strong>QR-X</strong></div>
-                <div className="landingBFeatureCloud">{['Bilder','PDF & Dateien','Video & Audio','Standort','Kontakt','News','Updates','Follow','Passwort','Collection'].map(x => <b key={x}>{x}</b>)}</div>
+                <div className="landingBFeatureCloud">{['Bilder','PDF & Dateien','Standort','Kontakt','News','Updates','Follow','Passwort'].map(x => <b key={x}>{x}</b>)}</div>
+                <p className="landingBQrxCoreText">Ein dauerhaft verwaltbarer digitaler Informationspunkt für reale Dinge, Orte und Projekte.</p>
               </div>
             </div>
-            <div className="landingBStatement">Ein Code. Alles dahinter.</div>
+            <div className="landingBStatement">Einmal verbinden. Dauerhaft aktuell halten.</div>
+          </section>
+
+          <section className="landingBAudience" aria-labelledby="audience-title">
+            <div className="landingBSectionHeader">
+              <span className="landingBEyebrow">Was bringt dir QR-X?</span>
+              <h2 id="audience-title">Zwei Seiten. Dieselbe Verbindung.</h2>
+              <p>Menschen nutzen QR-X. Unternehmen und Ersteller stellen die Informationen dahinter bereit und halten sie aktuell.</p>
+            </div>
+            <div className="landingBAudienceGrid">
+              <article className="landingBAudienceCard">
+                <span className="landingBAudienceBadge">Für dich</span>
+                <h3>Scannen, behalten und später wiederfinden.</h3>
+                <p>Interessante QR-Codes und QR-X verschwinden nicht mehr nach dem Scan. Speichere sie, ordne sie und finde sie später in deinen Scans oder auf der Karte wieder.</p>
+                <div className="landingBAudienceFlow"><span>Scannen</span><b>→</b><span>Speichern</span><b>→</b><span>Wiederfinden</span><b>→</b><span>Folgen</span></div>
+              </article>
+              <article className="landingBAudienceCard landingBAudienceCardBusiness">
+                <span className="landingBAudienceBadge">Für Unternehmen</span>
+                <h3>Informationen genau dort bereitstellen, wo sie gebraucht werden.</h3>
+                <p>Verbinde ein reales Objekt, einen Standort oder ein Projekt mit einem QR-X. Inhalte lassen sich später ändern, ohne den angebrachten QR-X auszutauschen.</p>
+                <div className="landingBAudienceFlow"><span>Erstellen</span><b>→</b><span>Anbringen</span><b>→</b><span>Aktualisieren</span><b>→</b><span>Sichtbar bleiben</span></div>
+              </article>
+            </div>
+          </section>
+
+          <section id="business" className="landingBBusiness">
+            <div className="landingBBusinessVisual">
+              <Image src={landingImages.businessIndustry} alt="Mitarbeiter scannt einen QR-X an einer Industriemaschine" width={1536} height={1024} className="landingBBusinessImage" />
+              <div className="landingBBusinessImageLabel"><strong>QR-X direkt am Objekt</strong><span>Informationen dort, wo sie gebraucht werden.</span></div>
+            </div>
+            <div className="landingBBusinessCopy">
+              <span className="landingBEyebrow">Mioseg qr für Unternehmen</span>
+              <h2>Eine Maschine. Ein QR-X. Alle wichtigen Informationen.</h2>
+              <p>Ein Mitarbeiter scannt den QR-X direkt an der Maschine und gelangt zu den Informationen, die für dieses konkrete Objekt hinterlegt wurden.</p>
+              <div className="landingBBusinessInfoGrid">
+                {['Betriebsanleitung','Technische Daten','Wartung & Service','Prüfberichte','Sicherheitsinfos','Ersatzteile','Ansprechpartner','Aktuelle Änderungen'].map(item => <span key={item}>✓ {item}</span>)}
+              </div>
+              <div className="landingBBusinessPromise">
+                <strong>Einmal anbringen. Dauerhaft verwalten.</strong>
+                <p>Der QR-X bleibt an der Maschine. Die Informationen dahinter können jederzeit aktualisiert werden.</p>
+              </div>
+              <p className="landingBBusinessTransfer">Was hier für eine Maschine funktioniert, lässt sich genauso auf Produkte, Immobilien, Fahrzeuge, Gebäude, Projekte oder Standorte übertragen.</p>
+            </div>
+          </section>
+
+          <section className="landingBExploreValue" aria-labelledby="explore-value-title">
+            <div className="landingBSectionHeader">
+              <span className="landingBEyebrow">Explore verbindet beide Seiten</span>
+              <h2 id="explore-value-title">Entdecken für Nutzer. Sichtbarkeit für Unternehmen.</h2>
+              <p>Explore macht QR-X auf der Karte auffindbar und zeigt, was sich an realen Orten befindet.</p>
+            </div>
+            <div className="landingBExploreValueGrid">
+              <div className="landingBExplorePhone">
+                <Image src={landingImages.appExplore} alt="Mioseg qr Explore Karte" width={945} height={2048} className="landingBExploreShot" />
+              </div>
+              <div className="landingBExploreValueCards">
+                <article>
+                  <span className="landingBAudienceBadge">Für Nutzer</span>
+                  <h3>Entdecke, was um dich herum interessant ist.</h3>
+                  <p>Finde QR-X in deiner Nähe, öffne Orte und Angebote, speichere interessante Einträge und navigiere direkt dorthin.</p>
+                  <div className="landingBExploreTags"><span>In meiner Nähe</span><span>Kategorien</span><span>Speichern</span><span>Navigation</span></div>
+                </article>
+                <article className="landingBExploreBusinessCard">
+                  <span className="landingBAudienceBadge">Für Unternehmen</span>
+                  <h3>Zeige, wo dein Unternehmen aktiv ist.</h3>
+                  <p>Ein Immobilienunternehmen kann seine angebotenen Objekte auf Explore sichtbar machen. Interessenten sehen, wo sie liegen, öffnen den passenden QR-X und gelangen direkt zu Informationen, Kontakt und Navigation.</p>
+                  <small>Dasselbe Prinzip funktioniert für Projekte, Filialen, Standorte und Servicepunkte.</small>
+                </article>
+              </div>
+            </div>
+            <div className="landingBExploreAction"><Link href={`/${locale}/explore`} className="landingBPrimary">Explore ansehen</Link></div>
+          </section>
+
+          <section className="landingBFollow">
+            <div className="landingBFollowCopy">
+              <span className="landingBEyebrow">Scannen ist nur der Anfang</span>
+              <h2>Folge einem QR-X und bleib auf dem Laufenden.</h2>
+              <p>Wenn sich wichtige Inhalte ändern, kann Mioseg qr dich darüber informieren. Der QR-X bleibt derselbe – nur die Information dahinter wird aktueller.</p>
+              <div className="landingBFollowExamples"><span>🏠 Preis geändert</span><span>📄 Neues Dokument</span><span>🔧 Wartung aktualisiert</span><span>🎟️ Termin geändert</span></div>
+            </div>
+            <div className="landingBFollowFlow">
+              <div><b>1</b><strong>QR-X speichern oder folgen</strong><small>Einmal verbinden</small></div><i>→</i>
+              <div><b>2</b><strong>Inhalt wird aktualisiert</strong><small>Der QR-X bleibt</small></div><i>→</i>
+              <div className="landingBPushCard"><b>🔔</b><strong>Du erfährst es.</strong><small>Aktuell bleiben</small></div>
+            </div>
           </section>
         </>
       )}
@@ -694,53 +742,10 @@ export default async function Home({ params }: Props) {
               <p>{showcaseCopy.businessText}</p>
             </div>
           </article>
-
-          <article className="landingBShowcaseCard landingBShowcaseCollection">
-            <div className="landingBCollectionCopy">
-              <span className="landingBCollectionBadge">{showcaseCopy.collectionBadge}</span>
-              <h3>{showcaseCopy.collectionTitle}</h3>
-              <p>{showcaseCopy.collectionText}</p>
-              <div className="landingBCollectionFlow" aria-hidden="true">
-                <span>QR-X</span><b>+</b><span>QR-X</span><b>+</b><span>QR-X</span><b>→</b><strong>Collection</strong>
-              </div>
-            </div>
-            <div className="landingBCollectionShot">
-              <Image src={landingImages.appCollection} alt={showcaseCopy.collectionTitle} width={945} height={2048} className="landingBShot" />
-            </div>
-          </article>
         </div>
       </section>
 
-      {isGerman && (
-        <>
-          <section className="landingBFollow">
-            <div className="landingBFollowCopy">
-              <span className="landingBEyebrow">Folgen statt vergessen</span>
-              <h2>Ein QR-Code, der dich auf dem Laufenden hält.</h2>
-              <p>Speichere oder folge einem QR-X. Wenn der Ersteller wichtige Inhalte aktualisiert, kann Mioseg qr dich darüber informieren.</p>
-              <div className="landingBFollowExamples"><span>🏠 Preis reduziert</span><span>🍕 Neues Wochenangebot</span><span>🎭 Beginn geändert</span><span>📄 Neues Dokument</span></div>
-            </div>
-            <div className="landingBFollowFlow">
-              <div><b>1</b><strong>QR-X folgen</strong><small>Einmal speichern</small></div><i>→</i>
-              <div><b>2</b><strong>Inhalt ändert sich</strong><small>Der QR-Code bleibt</small></div><i>→</i>
-              <div className="landingBPushCard"><b>🔔</b><strong>Du erfährst es.</strong><small>Aktuell bleiben</small></div>
-            </div>
-          </section>
-
-          <section className="landingBStories">
-            <div className="landingBSectionHeader">
-              <span className="landingBEyebrow">So fühlt sich Mioseg qr im Alltag an</span>
-              <h2>Drei Scans. Drei völlig unterschiedliche Möglichkeiten.</h2>
-            </div>
-            <div className="landingBStoryGrid">
-              <article><span className="landingBStoryIcon">🏠</span><h3>Immobilie</h3><p>Verkaufsschild scannen → Exposé, Bilder, Grundriss, Energieausweis, Kontakt und Navigation öffnen.</p><strong>Später: 🔔 „Preis reduziert.“</strong></article>
-              <article><span className="landingBStoryIcon">🍝</span><h3>Restaurant</h3><p>QR-X öffnen → Speisekarte, Öffnungszeiten, Reservierung, Standort und Angebote an einem Ort.</p><strong>Später: 🔔 „Neue Wochenkarte.“</strong></article>
-              <article><span className="landingBStoryIcon">🎭</span><h3>Theater</h3><p>Ein Plakat scannen → Theater-QR-X öffnen → Produktionen als Collection entdecken → Termine und Tickets wählen.</p><strong>Ein Scan öffnet eine ganze Welt.</strong></article>
-            </div>
-          </section>
-        </>
-      )}
-
+      {!isGerman && (
       <section id="usecases" className="landingBUseCases">
         <div className="landingBSectionHeader">
           <span className="landingBEyebrow">{publicUi.useCasesEyebrow}</span>
@@ -763,11 +768,30 @@ export default async function Home({ params }: Props) {
           ))}
         </div>
       </section>
+      )}
+
+      {isGerman && (
+        <section className="landingBTrust">
+          <div className="landingBSectionHeader">
+            <span className="landingBEyebrow">Für den professionellen Einsatz</span>
+            <h2>Mehr als Inhalte hinter einem Code.</h2>
+            <p>QR-X kombiniert die Informationen mit Funktionen, die auch im professionellen Einsatz wichtig sind.</p>
+          </div>
+          <div className="landingBTrustGrid">
+            <div><span>🔐</span><strong>Passwortschutz</strong><p>Zugriff auf geschützte QR-X gezielt absichern.</p></div>
+            <div><span>▧</span><strong>Dateien & Medien</strong><p>Dokumente, Bilder und weitere Inhalte zentral bereitstellen.</p></div>
+            <div><span>⌖</span><strong>Standort & Explore</strong><p>Reale Orte mit digitalen Informationen verbinden.</p></div>
+            <div><span>↗</span><strong>Kontakt & Aktionen</strong><p>Telefon, Website, E-Mail oder Navigation direkt erreichbar machen.</p></div>
+            <div><span>↻</span><strong>Updates</strong><p>Informationen ändern, ohne den QR-X auszutauschen.</p></div>
+            <div><span>▣</span><strong>App & Web</strong><p>Mit demselben Konto plattformübergreifend arbeiten.</p></div>
+          </div>
+        </section>
+      )}
 
       <section className="landingBBenefits">
         <div><span>✦</span><strong>Kostenlos starten</strong><p>Erster normaler QR-X immer kostenlos.</p></div>
         <div><span>✕</span><strong>Keine Abo-Pflicht</strong><p>Zahle nur, wenn du Credits brauchst.</p></div>
-        <div><span>⬡</span><strong>Sicher & privat</strong><p>Deine Daten sind bestens geschützt.</p></div>
+        <div><span>⬡</span><strong>Zugriff & Datenschutz</strong><p>Mit Schutzfunktionen wie Passwortzugriff für private QR-X.</p></div>
         <div><span>▣</span><strong>App & Web</strong><p>Überall synchron verfügbar.</p></div>
       </section>
 
@@ -817,7 +841,7 @@ export default async function Home({ params }: Props) {
         <div className="landingBFooterLinks">
           <Link href={`/${locale}#features`}>{heroCopy.navFeatures}</Link>
           <Link href={`/${locale}/explore`}>{heroCopy.navExplore}</Link>
-          <Link href={`/${locale}#usecases`}>{heroCopy.navUseCases}</Link>
+          <Link href={`/${locale}#${isGerman ? "business" : "usecases"}`}>{heroCopy.navUseCases}</Link>
           <Link href={`/${locale}#pricing`}>{heroCopy.navPrices}</Link>
           <Link href={`/${locale}/datenschutz`}>{releaseCopy.footerPrivacy}</Link>
           <Link href={`/${locale}/nutzungsbedingungen`}>{releaseCopy.footerTerms}</Link>
@@ -829,7 +853,7 @@ export default async function Home({ params }: Props) {
           __html: `
 :root{--b:#06101f;--card:#0d1a2c;--line:rgba(132,157,194,.18);--txt:#f8fbff;--muted:#9aabc1;--blue:#2477ff;--violet:#9333ea}
 html{scroll-behavior:smooth;background:var(--b)}body{margin:0;background:var(--b)!important}#__next{background:var(--b)}
-.landingBHero,.landingBVideo,.landingBQrx,.landingBShowcase,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{color:var(--txt)}
+.landingBHero,.landingBVideo,.landingBQrx,.landingBShowcase,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter,.landingBAudience,.landingBBusiness,.landingBExploreValue,.landingBTrust{color:var(--txt)}
 .landingBHero{min-height:760px;background:radial-gradient(circle at 68% 26%,rgba(41,98,255,.17),transparent 26%),radial-gradient(circle at 78% 34%,rgba(124,58,237,.14),transparent 28%),linear-gradient(180deg,#06101f 0%,#081426 100%);overflow:hidden}
 .landingBNav{width:min(1280px,calc(100% - 48px));margin:0 auto;min-height:88px;display:grid;grid-template-columns:180px 1fr auto;gap:24px;align-items:center}
 .landingBBrand img{width:128px;height:auto;display:block}.landingBNavLinks{display:flex;justify-content:center;gap:32px}.landingBNavLinks a,.landingBFooter a{color:rgba(255,255,255,.82);text-decoration:none;font-weight:800;font-size:14px}.landingBNavLinks a:hover,.landingBFooter a:hover{color:#fff}
@@ -856,15 +880,21 @@ html{scroll-behavior:smooth;background:var(--b)}body{margin:0;background:var(--b
 
 .landingBPage{background:#06101f!important;color:var(--txt);overflow-x:hidden}.landingBPage:before{content:"";position:fixed;inset:0;z-index:-1;background:#06101f}
 .landingBPromise{margin-top:20px;display:flex;flex-wrap:wrap;gap:8px}.landingBPromise span{padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(130,153,190,.15);color:#b9c8da;font-size:11px;font-weight:800}
-.landingBJourney,.landingBProblem,.landingBOneApp,.landingBQrxAha,.landingBFollow,.landingBStories{width:min(1280px,calc(100% - 48px));margin-left:auto;margin-right:auto;color:var(--txt)}
+.landingBJourney,.landingBProblem,.landingBOneApp,.landingBQrxAha,.landingBFollow,.landingBStories,.landingBAudience,.landingBBusiness,.landingBExploreValue,.landingBTrust{width:min(1280px,calc(100% - 48px));margin-left:auto;margin-right:auto;color:var(--txt)}
 .landingBJourney{position:relative;margin-top:30px;padding:26px 24px;display:grid;grid-template-columns:repeat(8,1fr);gap:0;border:1px solid rgba(130,153,190,.16);border-radius:28px;background:linear-gradient(180deg,rgba(13,26,44,.94),rgba(7,17,31,.96));box-shadow:0 24px 70px rgba(0,0,0,.22);overflow:hidden}.landingBJourneyLine{position:absolute;left:7%;right:7%;top:45px;height:1px;background:linear-gradient(90deg,transparent,rgba(66,128,255,.65),rgba(151,69,255,.65),transparent)}.landingBJourneyStep{position:relative;z-index:1;text-align:center}.landingBJourneyStep span{width:38px;height:38px;margin:0 auto;display:grid;place-items:center;border-radius:50%;background:#0a1729;border:1px solid rgba(110,142,201,.25);color:#7295c7;font-size:9px;font-weight:950;box-shadow:0 0 0 6px #091525}.landingBJourneyStep strong{display:block;margin-top:13px;font-size:11px;letter-spacing:.015em;color:#e7edf6}
 .landingBDarkBand{position:relative}.landingBProblem{padding:92px 0 54px}.landingBProblem:before{content:"";position:absolute;left:50%;top:20px;width:100vw;height:calc(100% - 10px);transform:translateX(-50%);z-index:-1;background:radial-gradient(circle at 50% 30%,rgba(35,95,210,.08),transparent 36%),linear-gradient(180deg,#06101f,#071423 50%,#06101f)}.landingBProblemGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.landingBProblemGrid article{display:flex;align-items:flex-start;gap:14px;padding:20px;border-radius:18px;background:linear-gradient(180deg,#0c1829,#091523);border:1px solid rgba(126,149,186,.14);box-shadow:0 16px 34px rgba(0,0,0,.10)}.landingBProblemGrid article>span{flex:0 0 48px;width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:rgba(255,255,255,.04);font-size:23px}.landingBProblemGrid strong{display:block;margin-top:2px;font-size:14px}.landingBProblemGrid p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.5}.landingBProblemAnswer{margin:20px auto 0;max-width:850px;padding:22px 28px;text-align:center;border-radius:20px;background:linear-gradient(135deg,rgba(36,119,255,.12),rgba(147,51,234,.12));border:1px solid rgba(91,100,255,.26);box-shadow:0 18px 50px rgba(40,64,190,.10)}.landingBProblemAnswer strong,.landingBProblemAnswer span{display:block}.landingBProblemAnswer strong{font-size:22px;letter-spacing:-.45px}.landingBProblemAnswer span{margin-top:6px;color:#aebdd1;font-size:13px}
 .landingBOneApp{margin-top:42px;min-height:640px;display:grid;grid-template-columns:1fr .9fr;gap:54px;align-items:center;padding:62px;border-radius:32px;background:radial-gradient(circle at 82% 42%,rgba(42,100,255,.22),transparent 31%),radial-gradient(circle at 95% 75%,rgba(147,51,234,.13),transparent 30%),linear-gradient(135deg,#0b1729,#081320);border:1px solid rgba(127,151,190,.17);overflow:hidden;box-shadow:0 35px 90px rgba(0,0,0,.18)}.landingBOneApp h2,.landingBFollow h2{margin:16px 0 14px;font-size:clamp(38px,4.8vw,62px);line-height:1.01;letter-spacing:-2px}.landingBOneAppCopy>p,.landingBFollowCopy>p{max-width:650px;color:var(--muted);line-height:1.72;font-size:15px}.landingBOneAppList{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:9px}.landingBOneAppList span{display:flex;align-items:center;gap:9px;padding:11px 12px;border-radius:13px;background:rgba(255,255,255,.032);border:1px solid rgba(126,149,186,.11);color:#dce5f1;font-size:12px;font-weight:760}.landingBOneAppList b{color:#6f9dff}.landingBOneAppVisual{height:520px;position:relative;display:flex;justify-content:center;align-items:flex-start}.landingBOneAppGlow{position:absolute;width:390px;height:390px;top:60px;border-radius:50%;background:radial-gradient(circle,rgba(54,109,255,.24),rgba(126,58,237,.08) 45%,transparent 70%);filter:blur(2px)}.landingBOneAppPhone{position:relative;z-index:2;height:630px;width:auto;max-width:72%;object-fit:contain;border-radius:30px;box-shadow:0 34px 70px rgba(0,0,0,.48),0 0 0 1px rgba(255,255,255,.08)}.landingBFloatingTag{position:absolute;z-index:3;padding:9px 12px;border-radius:999px;background:rgba(8,18,34,.88);border:1px solid rgba(123,150,196,.20);box-shadow:0 16px 34px rgba(0,0,0,.24);backdrop-filter:blur(12px);font-size:11px;font-weight:850;color:#dde7f5}.tagScan{left:0;top:64px}.tagFolder{left:-18px;top:182px}.tagMap{left:2px;top:305px}.tagBell{right:-10px;top:78px}.tagCollection{right:-34px;top:210px}.tagExplore{right:-2px;top:342px}.landingBOneAppSeal{position:absolute;z-index:4;right:8px;bottom:8px;width:122px;height:122px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#2477ff,#9333ea);box-shadow:0 22px 50px rgba(60,64,255,.34);text-align:center}.landingBOneAppSeal strong{font-size:40px;line-height:.9}.landingBOneAppSeal span{font-weight:950}.landingBOneAppSeal small{max-width:88px;margin-top:4px;font-size:9px;line-height:1.2}
 .landingBQrxAha{padding:96px 0 60px}.landingBQrxAha .landingBSectionHeader{max-width:900px}.landingBCompare{display:grid;grid-template-columns:.62fr 90px 1.38fr;gap:22px;align-items:center}.landingBCompareOld,.landingBCompareNew{min-height:300px;padding:32px;border-radius:26px;border:1px solid var(--line);background:#0a1525}.landingBCompareOld{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:.66}.landingBCompareOld>span,.landingBCompareNewHead>span{color:#8295ae;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em}.landingBCompareOld>strong{margin:18px 0;font-size:56px;letter-spacing:-2px}.landingBCompareOld p{margin:0;color:var(--muted)}.landingBCompareArrow{text-align:center;color:#657c9d}.landingBCompareArrow span{display:block;font-size:38px}.landingBCompareArrow small{display:block;margin-top:4px;font-size:9px;text-transform:uppercase;letter-spacing:.12em}.landingBCompareNew{position:relative;overflow:hidden;background:radial-gradient(circle at 18% 18%,rgba(36,119,255,.18),transparent 35%),radial-gradient(circle at 82% 78%,rgba(147,51,234,.13),transparent 36%),#0b1729}.landingBCompareNew:after{content:"";position:absolute;inset:auto -90px -120px auto;width:260px;height:260px;border-radius:50%;border:1px solid rgba(115,88,255,.16)}.landingBCompareNewHead{display:flex;align-items:end;justify-content:space-between;gap:18px}.landingBCompareNewHead strong{font-size:54px;letter-spacing:-2px}.landingBFeatureCloud{position:relative;z-index:1;margin-top:28px;display:flex;flex-wrap:wrap;gap:9px}.landingBFeatureCloud b{padding:10px 13px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(131,153,190,.16);font-size:11px}.landingBStatement{margin-top:26px;text-align:center;font-size:clamp(34px,4.6vw,56px);font-weight:950;letter-spacing:-1.8px;background:linear-gradient(90deg,#4b95ff,#b15bff);-webkit-background-clip:text;color:transparent}
 .landingBFollow{margin-top:52px;padding:52px;display:grid;grid-template-columns:.88fr 1.12fr;gap:44px;align-items:center;border-radius:28px;background:radial-gradient(circle at 84% 40%,rgba(116,62,255,.10),transparent 32%),linear-gradient(135deg,#0a1628,#0d1729);border:1px solid var(--line)}.landingBFollowExamples{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}.landingBFollowExamples span{padding:9px 11px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(128,151,188,.14);font-size:11px}.landingBFollowFlow{display:flex;align-items:center;gap:9px}.landingBFollowFlow>div{flex:1;min-height:150px;padding:19px;border-radius:19px;background:#0b1728;border:1px solid rgba(126,149,186,.15);display:flex;flex-direction:column;justify-content:center}.landingBFollowFlow b{font-size:21px;color:#729aff}.landingBFollowFlow strong{margin-top:10px;font-size:13px}.landingBFollowFlow small{margin-top:4px;color:var(--muted)}.landingBFollowFlow i{color:#667a98;font-style:normal}.landingBFollowFlow .landingBPushCard{border-color:rgba(147,81,255,.38);background:linear-gradient(145deg,rgba(36,119,255,.12),rgba(147,51,234,.16));box-shadow:0 18px 42px rgba(75,54,200,.12)}
 .landingBStories{padding:86px 0 38px}.landingBStoryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.landingBStoryGrid article{padding:30px;border-radius:24px;background:linear-gradient(180deg,#0c1829,#091523);border:1px solid var(--line)}.landingBStoryIcon{font-size:36px}.landingBStoryGrid h3{margin:16px 0 8px;font-size:23px}.landingBStoryGrid p{min-height:92px;color:var(--muted);font-size:13px;line-height:1.68}.landingBStoryGrid strong{display:block;padding-top:15px;border-top:1px solid rgba(126,149,186,.12);color:#e5ecf6;font-size:12px}
-@media(max-width:1120px){.landingBJourney{grid-template-columns:repeat(4,1fr);row-gap:22px}.landingBJourneyLine{display:none}.landingBOneApp,.landingBFollow{grid-template-columns:1fr}.landingBProblemGrid{grid-template-columns:1fr 1fr}.landingBFollowFlow{max-width:760px}.landingBStoryGrid{grid-template-columns:1fr 1fr}.landingBNav{grid-template-columns:1fr auto}.landingBNavLinks{display:none}.landingBHeroGrid,.landingBVideo{grid-template-columns:1fr}.landingBHeroVisual{min-height:560px}.landingBUseGrid{grid-template-columns:repeat(3,1fr)}.landingBQrxFeatures{grid-template-columns:repeat(3,1fr)}.landingBShowcaseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseCollection{grid-column:1/-1}.landingBBenefits{grid-template-columns:repeat(2,1fr)}.landingBBenefits>div:nth-child(2){border-right:none}.landingBPricing{grid-template-columns:1fr}.landingBCreditVisual{max-width:280px}}
-@media(max-width:720px){.landingBJourney,.landingBProblem,.landingBOneApp,.landingBQrxAha,.landingBFollow,.landingBStories{width:min(100% - 28px,1280px)}.landingBJourney{grid-template-columns:repeat(2,1fr);padding:20px 14px;row-gap:18px}.landingBProblem{padding-top:56px}.landingBProblemGrid,.landingBStoryGrid{grid-template-columns:1fr}.landingBOneApp,.landingBFollow{padding:26px 20px}.landingBOneAppList{grid-template-columns:1fr}.landingBOneAppVisual{height:420px}.landingBOneAppPhone{height:500px;max-width:70%}.landingBFloatingTag{font-size:9px;padding:7px 9px}.tagScan{left:0;top:55px}.tagFolder{left:-4px;top:145px}.tagMap{left:0;top:255px}.tagBell{right:0;top:68px}.tagCollection{right:-4px;top:174px}.tagExplore{right:0;top:290px}.landingBOneAppSeal{width:96px;height:96px;right:0;bottom:8px}.landingBCompare{grid-template-columns:1fr}.landingBCompareArrow span{transform:rotate(90deg);display:inline-block}.landingBCompareArrow{text-align:center}.landingBFollowFlow{flex-direction:column;align-items:stretch}.landingBFollowFlow i{transform:rotate(90deg);text-align:center}.landingBStoryGrid p{min-height:0}.landingBNav,.landingBHeroGrid,.landingBVideo,.landingBQrx,.landingBShowcase,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{width:min(100% - 28px,1280px)}.landingBNav{min-height:74px;grid-template-columns:1fr auto}.landingBNavActions>:first-child{display:none}.landingBPrimary,.landingBSecondary{min-height:44px;padding:0 16px}.landingBHeroGrid{padding:44px 0 64px}.landingBHeroCopy h1{font-size:54px;letter-spacing:-2.6px}.landingBHeroVisual{min-height:470px}.landingBHeroPhoneFrame{width:260px}.landingBHeroFeature{width:180px;padding:10px}.featureOne{right:0;top:52px}.featureTwo{right:0;top:174px}.featureThree{right:0;top:298px}.landingBVideo{padding:24px}.landingBVideoFrame,.landingBVideoFrame video{min-height:220px}.landingBQrx{padding-top:56px}.landingBQrxFeatures,.landingBUseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseGrid{grid-template-columns:1fr}.landingBShowcaseCollection{grid-column:auto;grid-template-columns:1fr}.landingBShotWrap{height:390px}.landingBShowcaseCard .landingBShot{height:510px}.landingBCollectionCopy{padding:28px 22px}.landingBCollectionShot{height:390px;padding:18px 18px 0}.landingBCollectionShot .landingBShot{height:500px}.landingBBenefits{grid-template-columns:1fr}.landingBBenefits>div{border-right:none;border-bottom:1px solid rgba(127,150,185,.12)}.landingBBenefits>div:last-child{border-bottom:none}.landingBPricing,.landingBFinalCta{padding:24px 20px}.landingBFinalCta{align-items:flex-start;flex-direction:column}.landingBFinalCta .landingBActions{width:100%;flex-direction:column}.landingBFinalCta .landingBActions a{width:100%}.landingBFooter{align-items:flex-start;flex-direction:column}.landingBFooterLinks{justify-content:flex-start}}
+
+.landingBQrxCoreText{position:relative;z-index:1;margin:24px 0 0;color:#b8c7db;font-size:13px;line-height:1.65;max-width:590px}
+.landingBAudience{padding:78px 0 38px}.landingBAudienceGrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.landingBAudienceCard{padding:34px;border-radius:28px;background:linear-gradient(180deg,#0c192b,#091523);border:1px solid rgba(126,149,186,.16)}.landingBAudienceCardBusiness{background:radial-gradient(circle at 90% 12%,rgba(214,170,55,.13),transparent 34%),linear-gradient(180deg,#111a27,#0a1523);border-color:rgba(214,170,55,.25)}.landingBAudienceBadge{display:inline-flex;padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.055);border:1px solid rgba(139,160,194,.16);color:#b9c8db;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.landingBAudienceCard h3,.landingBExploreValueCards h3{margin:17px 0 10px;font-size:clamp(25px,3vw,36px);line-height:1.08;letter-spacing:-1px}.landingBAudienceCard p,.landingBExploreValueCards p{margin:0;color:var(--muted);font-size:14px;line-height:1.72}.landingBAudienceFlow{margin-top:24px;display:flex;align-items:center;flex-wrap:wrap;gap:8px}.landingBAudienceFlow span{padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(126,149,186,.13);font-size:11px;font-weight:850}.landingBAudienceFlow b{color:#697f9e;font-size:11px}
+.landingBBusiness{margin-top:58px;display:grid;grid-template-columns:1.06fr .94fr;gap:0;overflow:hidden;border-radius:32px;background:radial-gradient(circle at 92% 15%,rgba(208,162,45,.10),transparent 30%),linear-gradient(135deg,#0b1728,#081320);border:1px solid rgba(211,168,61,.20);box-shadow:0 32px 90px rgba(0,0,0,.20)}.landingBBusinessVisual{position:relative;min-height:620px;overflow:hidden}.landingBBusinessImage{width:100%;height:100%;position:absolute;inset:0;object-fit:cover}.landingBBusinessVisual:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,16,31,.06),rgba(6,16,31,.14) 65%,rgba(6,16,31,.72))}.landingBBusinessImageLabel{position:absolute;z-index:2;left:24px;bottom:24px;display:flex;flex-direction:column;gap:4px;max-width:330px;padding:13px 15px;border-radius:15px;background:rgba(5,12,22,.78);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(12px)}.landingBBusinessImageLabel strong{font-size:13px}.landingBBusinessImageLabel span{color:#aebdd1;font-size:10px}.landingBBusinessCopy{padding:52px 48px;display:flex;flex-direction:column;justify-content:center}.landingBBusinessCopy h2{margin:16px 0 14px;font-size:clamp(38px,4.7vw,60px);line-height:1.01;letter-spacing:-2px}.landingBBusinessCopy>p{color:var(--muted);font-size:14px;line-height:1.72}.landingBBusinessInfoGrid{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.landingBBusinessInfoGrid span{padding:10px 11px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(128,151,188,.12);font-size:11px;color:#dbe5f1}.landingBBusinessPromise{margin-top:24px;padding:18px 20px;border-radius:18px;background:linear-gradient(135deg,rgba(214,169,55,.12),rgba(255,255,255,.025));border:1px solid rgba(214,169,55,.25)}.landingBBusinessPromise strong{font-size:18px}.landingBBusinessPromise p{margin:6px 0 0;color:#b6c3d5;font-size:12px;line-height:1.6}.landingBBusinessTransfer{margin-top:18px!important;color:#d3dcea!important;font-weight:750}
+.landingBExploreValue{padding:96px 0 48px}.landingBExploreValueGrid{display:grid;grid-template-columns:.72fr 1.28fr;gap:26px;align-items:stretch}.landingBExplorePhone{min-height:600px;display:flex;justify-content:center;align-items:flex-start;padding:28px 24px 0;overflow:hidden;border-radius:28px;background:radial-gradient(circle at 50% 22%,rgba(36,119,255,.20),transparent 42%),#081321;border:1px solid rgba(124,148,187,.16)}.landingBExploreShot{height:690px;width:auto;max-width:90%;object-fit:contain;border-radius:28px;box-shadow:0 30px 70px rgba(0,0,0,.44)}.landingBExploreValueCards{display:grid;grid-template-rows:1fr 1fr;gap:16px}.landingBExploreValueCards article{padding:34px;border-radius:26px;background:linear-gradient(180deg,#0c1829,#091523);border:1px solid rgba(126,149,186,.15)}.landingBExploreValueCards .landingBExploreBusinessCard{background:radial-gradient(circle at 88% 18%,rgba(214,169,55,.11),transparent 36%),linear-gradient(180deg,#101925,#091523);border-color:rgba(214,169,55,.22)}.landingBExploreTags{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}.landingBExploreTags span{padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(126,149,186,.14);font-size:10px;font-weight:800}.landingBExploreBusinessCard small{display:block;margin-top:18px;padding-top:16px;border-top:1px solid rgba(129,151,187,.12);color:#c5d0df;line-height:1.55}.landingBExploreAction{margin-top:24px;text-align:center}
+.landingBTrust{padding:74px 0 22px}.landingBTrustGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.landingBTrustGrid>div{padding:22px;border-radius:19px;background:#0b1728;border:1px solid rgba(126,149,186,.14)}.landingBTrustGrid span{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:rgba(36,119,255,.09);margin-bottom:14px}.landingBTrustGrid strong{display:block;font-size:14px}.landingBTrustGrid p{margin:7px 0 0;color:var(--muted);font-size:11px;line-height:1.55}
+@media(max-width:1120px){.landingBAudienceGrid,.landingBBusiness,.landingBExploreValueGrid{grid-template-columns:1fr}.landingBBusinessVisual{min-height:520px}.landingBExplorePhone{min-height:480px}.landingBExploreShot{height:570px}.landingBTrustGrid{grid-template-columns:repeat(2,1fr)}.landingBJourney{grid-template-columns:repeat(4,1fr);row-gap:22px}.landingBJourneyLine{display:none}.landingBOneApp,.landingBFollow{grid-template-columns:1fr}.landingBProblemGrid{grid-template-columns:1fr 1fr}.landingBFollowFlow{max-width:760px}.landingBStoryGrid{grid-template-columns:1fr 1fr}.landingBNav{grid-template-columns:1fr auto}.landingBNavLinks{display:none}.landingBHeroGrid,.landingBVideo{grid-template-columns:1fr}.landingBHeroVisual{min-height:560px}.landingBUseGrid{grid-template-columns:repeat(3,1fr)}.landingBQrxFeatures{grid-template-columns:repeat(3,1fr)}.landingBShowcaseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseCollection{grid-column:1/-1}.landingBBenefits{grid-template-columns:repeat(2,1fr)}.landingBBenefits>div:nth-child(2){border-right:none}.landingBPricing{grid-template-columns:1fr}.landingBCreditVisual{max-width:280px}}
+@media(max-width:720px){.landingBAudience,.landingBBusiness,.landingBExploreValue,.landingBTrust{width:min(100% - 28px,1280px)}.landingBAudience{padding-top:54px}.landingBAudienceCard{padding:24px 20px}.landingBBusiness{margin-top:34px;border-radius:24px}.landingBBusinessVisual{min-height:360px}.landingBBusinessCopy{padding:28px 20px}.landingBBusinessCopy h2{font-size:38px;letter-spacing:-1.4px}.landingBBusinessInfoGrid{grid-template-columns:1fr}.landingBExploreValue{padding-top:64px}.landingBExplorePhone{min-height:390px}.landingBExploreShot{height:480px}.landingBExploreValueCards article{padding:24px 20px}.landingBTrustGrid{grid-template-columns:1fr}.landingBJourney,.landingBProblem,.landingBOneApp,.landingBQrxAha,.landingBFollow,.landingBStories{width:min(100% - 28px,1280px)}.landingBJourney{grid-template-columns:repeat(2,1fr);padding:20px 14px;row-gap:18px}.landingBProblem{padding-top:56px}.landingBProblemGrid,.landingBStoryGrid{grid-template-columns:1fr}.landingBOneApp,.landingBFollow{padding:26px 20px}.landingBOneAppList{grid-template-columns:1fr}.landingBOneAppVisual{height:420px}.landingBOneAppPhone{height:500px;max-width:70%}.landingBFloatingTag{font-size:9px;padding:7px 9px}.tagScan{left:0;top:55px}.tagFolder{left:-4px;top:145px}.tagMap{left:0;top:255px}.tagBell{right:0;top:68px}.tagCollection{right:-4px;top:174px}.tagExplore{right:0;top:290px}.landingBOneAppSeal{width:96px;height:96px;right:0;bottom:8px}.landingBCompare{grid-template-columns:1fr}.landingBCompareArrow span{transform:rotate(90deg);display:inline-block}.landingBCompareArrow{text-align:center}.landingBFollowFlow{flex-direction:column;align-items:stretch}.landingBFollowFlow i{transform:rotate(90deg);text-align:center}.landingBStoryGrid p{min-height:0}.landingBNav,.landingBHeroGrid,.landingBVideo,.landingBQrx,.landingBShowcase,.landingBUseCases,.landingBBenefits,.landingBPricing,.landingBFinalCta,.landingBFooter{width:min(100% - 28px,1280px)}.landingBNav{min-height:74px;grid-template-columns:1fr auto}.landingBNavActions>:first-child{display:none}.landingBPrimary,.landingBSecondary{min-height:44px;padding:0 16px}.landingBHeroGrid{padding:44px 0 64px}.landingBHeroCopy h1{font-size:54px;letter-spacing:-2.6px}.landingBHeroVisual{min-height:470px}.landingBHeroPhoneFrame{width:260px}.landingBHeroFeature{width:180px;padding:10px}.featureOne{right:0;top:52px}.featureTwo{right:0;top:174px}.featureThree{right:0;top:298px}.landingBVideo{padding:24px}.landingBVideoFrame,.landingBVideoFrame video{min-height:220px}.landingBQrx{padding-top:56px}.landingBQrxFeatures,.landingBUseGrid{grid-template-columns:1fr 1fr}.landingBShowcaseGrid{grid-template-columns:1fr}.landingBShowcaseCollection{grid-column:auto;grid-template-columns:1fr}.landingBShotWrap{height:390px}.landingBShowcaseCard .landingBShot{height:510px}.landingBCollectionCopy{padding:28px 22px}.landingBCollectionShot{height:390px;padding:18px 18px 0}.landingBCollectionShot .landingBShot{height:500px}.landingBBenefits{grid-template-columns:1fr}.landingBBenefits>div{border-right:none;border-bottom:1px solid rgba(127,150,185,.12)}.landingBBenefits>div:last-child{border-bottom:none}.landingBPricing,.landingBFinalCta{padding:24px 20px}.landingBFinalCta{align-items:flex-start;flex-direction:column}.landingBFinalCta .landingBActions{width:100%;flex-direction:column}.landingBFinalCta .landingBActions a{width:100%}.landingBFooter{align-items:flex-start;flex-direction:column}.landingBFooterLinks{justify-content:flex-start}}
           `.trim(),
         }}
       />

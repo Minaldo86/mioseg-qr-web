@@ -2991,7 +2991,7 @@ export default function EditQrxPage() {
       qrxId: args.qrxId,
       type: args.mediaType,
       role: args.mediaRole ?? (args.mediaType === "file" ? "file" : "gallery"),
-      filename,
+      filename: args.mediaType === "file" ? args.file.name : filename,
       mimeType,
       bytes,
       storagePath: prepared.storagePath,
