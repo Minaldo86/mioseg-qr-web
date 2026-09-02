@@ -926,6 +926,8 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
   const userIdRef = useRef<string | null>(null);
   const savedQrxIdsRef = useRef<string[]>([]);
   const viewportTimerRef = useRef<number | null>(null);
+  const hasLoadedInitialViewportRef = useRef(false);
+  const viewportRequestIdRef = useRef(0);
   const [points, setPoints] = useState<MapPoint[]>([]);
   const [visibleIds, setVisibleIds] = useState<string[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -991,7 +993,15 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       const userId = userIdRef.current;
       if (!userId) return;
 
-      setLoading(true);
+      const requestId = ++viewportRequestIdRef.current;
+      const isInitialViewportLoad = !hasLoadedInitialViewportRef.current;
+
+      // Only cover the map during the very first load. Later viewport refreshes
+      // keep the already rendered tiles and markers visible while new points
+      // are fetched in the background.
+      if (isInitialViewportLoad) {
+        setLoading(true);
+      }
 
       const ownQuery = supabase
         .from("qr_x_entries")
@@ -1132,8 +1142,18 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           coverUrl: null,
         }));
 
+      // Ignore a slower, older viewport request if the user has already
+      // moved or zoomed the map again in the meantime.
+      if (requestId !== viewportRequestIdRef.current) {
+        return;
+      }
+
       setPoints([...ownPoints, ...savedPoints, ...scanPoints]);
-      setLoading(false);
+
+      if (isInitialViewportLoad) {
+        hasLoadedInitialViewportRef.current = true;
+        setLoading(false);
+      }
     },
     [locale, ui],
   );
