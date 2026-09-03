@@ -53,6 +53,7 @@ type ExploreEntry = {
   force_original_quality: boolean | null;
   deleted_at: string | null;
   suspended: boolean | null;
+  owner_user_id: string | null;
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -397,12 +398,17 @@ export default async function ExplorePage({
   const userLng = parseNumberParam(sp.lng);
   const hasUserLocation = userLat != null && userLng != null;
 
-  const supabase = await createSupabaseServerClient();;
+  const supabase = await createSupabaseServerClient();
+
+  // Eingeloggten Nutzer serverseitig ermitteln, damit Explore eigene QR-X
+  // genauso erkennt wie die QR-X-Detailseite.
+  const { data: authData } = await supabase.auth.getUser();
+  const currentUserId = authData.user?.id ?? null;
 
   const { data, error } = await supabase
     .from("qr_x_entries")
     .select(
-      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost, force_original_quality, deleted_at, suspended"
+      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost, force_original_quality, deleted_at, suspended, owner_user_id"
     )
     .eq("type", "business")
     .is("deleted_at", null)
@@ -534,6 +540,7 @@ export default async function ExplorePage({
     const viewCount = getViewTotalForEntry(entry);
     const uniqueViewCount = getUniqueViewCountForEntry(entry);
     const socialProofBadges = getSocialProofBadges(entry, followerCount, viewCount, uniqueViewCount, ui);
+    const isOwnQrx = currentUserId != null && entry.owner_user_id === currentUserId;
 
     return (
       <div
@@ -890,11 +897,31 @@ export default async function ExplorePage({
                     flexWrap: "wrap",
                   }}
                 >
-                  <ExploreFollowClient
-                    qrxId={entry.id}
-                    locale={locale}
-                    compact
-                  />
+                  {isOwnQrx ? (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        minHeight: "42px",
+                        padding: "0 14px",
+                        borderRadius: "14px",
+                        border: "1px solid #cfe0f2",
+                        background: "#f4f8fc",
+                        color: "#17304d",
+                        fontSize: "13px",
+                        fontWeight: 900,
+                      }}
+                    >
+                      {language === "de" ? "Mein QR-X" : language === "en" ? "My QR-X" : language === "tr" ? "QR-X'im" : language === "pl" ? "Mój QR-X" : language === "ar" ? "QR-X الخاص بي" : language === "fr" ? "Mon QR-X" : language === "es" ? "Mi QR-X" : "Il mio QR-X"}
+                    </span>
+                  ) : (
+                    <ExploreFollowClient
+                      qrxId={entry.id}
+                      locale={locale}
+                      compact
+                    />
+                  )}
 
                   <Link
                     href={`/qrx/${entry.id}?lang=${language}`}
