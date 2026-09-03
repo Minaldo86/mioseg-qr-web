@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const BUSINESS_DEMOS = [
+const BUSINESS_DEMOS: Demo[] = [
   {
     eyebrow: "Maschine & Industrie",
     title: "MX-500",
@@ -41,7 +41,7 @@ const BUSINESS_DEMOS = [
   },
 ];
 
-const PRIVATE_DEMOS = [
+const PRIVATE_DEMOS: Demo[] = [
   {
     eyebrow: "Produkt im Alltag",
     title: "Meine AeroTherm X12",
@@ -62,6 +62,17 @@ const PRIVATE_DEMOS = [
     password: "mioseg-qr",
   },
 ];
+
+type Demo = {
+  eyebrow: string;
+  title: string;
+  text: string;
+  href: string;
+  image: string;
+  imageAlt: string;
+  cta: string;
+  password?: string;
+};
 
 type Audience = "private" | "business";
 
