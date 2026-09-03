@@ -13,6 +13,15 @@ const BUSINESS_DEMOS: Demo[] = [
     cta: "QR-X öffnen",
   },
   {
+    eyebrow: "Business QR-X + Collection",
+    title: "Theater am Rhein",
+    text: "Ein Theater-QR-X bündelt die Spielzeit und verbindet mehrere eigenständige Produktionen in einer Collection.",
+    href: "https://www.mioseg-qr.com/qrx/17be4d84-a874-433f-a0c0-3cf32a9021c1",
+    image: "/landing/theater.jpg",
+    imageAlt: "Theater am Rhein Spielzeit 2026/27",
+    cta: "Collection öffnen",
+  },
+  {
     eyebrow: "Produkt",
     title: "AeroTherm X12",
     text: "Produktdaten, Dokumente, Support und spätere Aktualisierungen dauerhaft mit der Wärmepumpe verbinden.",
@@ -29,15 +38,6 @@ const BUSINESS_DEMOS: Demo[] = [
     image: "/landing/immobilien.png",
     imageAlt: "WohnOase Immobilie",
     cta: "QR-X öffnen",
-  },
-  {
-    eyebrow: "Business QR-X + Collection",
-    title: "Theater am Rhein",
-    text: "Ein Theater-QR-X bündelt die Spielzeit und verbindet mehrere eigenständige Produktionen in einer Collection.",
-    href: "https://www.mioseg-qr.com/qrx/17be4d84-a874-433f-a0c0-3cf32a9021c1",
-    image: "/landing/theater.jpg",
-    imageAlt: "Theater am Rhein Spielzeit 2026/27",
-    cta: "Collection öffnen",
   },
 ];
 
