@@ -188,6 +188,100 @@ export default function HomeAudienceDemos() {
           ))}
         </div>
       </div>
+
+      {activeAudience === "business" ? (
+        <section id="business" className="landingBBusiness">
+          <div className="landingBBusinessVisual">
+            <img
+              src="/landing/business-machine-qrx.png"
+              alt="Mitarbeiter scannt einen QR-X an einer Industriemaschine"
+              className="landingBBusinessImage"
+            />
+            <div className="landingBBusinessImageLabel">
+              <strong>QR-X direkt am Objekt</strong>
+              <span>Informationen dort, wo sie gebraucht werden.</span>
+            </div>
+          </div>
+
+          <div className="landingBBusinessCopy">
+            <span className="landingBEyebrow">Mioseg qr für Unternehmen</span>
+            <h2>Eine Maschine. Ein QR-X. Alle wichtigen Informationen.</h2>
+            <p>
+              Ein Mitarbeiter scannt den QR-X direkt an der Maschine und gelangt zu den Informationen,
+              die für dieses konkrete Objekt hinterlegt wurden.
+            </p>
+            <div className="landingBBusinessInfoGrid">
+              {[
+                "Betriebsanleitung",
+                "Technische Daten",
+                "Wartung & Service",
+                "Prüfberichte",
+                "Sicherheitsinfos",
+                "Ersatzteile",
+                "Ansprechpartner",
+                "Aktuelle Änderungen",
+              ].map((item) => (
+                <span key={item}>✓ {item}</span>
+              ))}
+            </div>
+            <div className="landingBBusinessPromise">
+              <strong>Einmal anbringen. Dauerhaft verwalten.</strong>
+              <p>
+                Der QR-X bleibt an der Maschine. Die Informationen dahinter können jederzeit aktualisiert werden.
+              </p>
+            </div>
+            <p className="landingBBusinessTransfer">
+              Was hier für eine Maschine funktioniert, lässt sich genauso auf Produkte, Immobilien,
+              Fahrzeuge, Gebäude, Projekte oder Standorte übertragen.
+            </p>
+          </div>
+        </section>
+      ) : (
+        <section className="landingBBusiness">
+          <div className="landingBBusinessVisual">
+            <img
+              src="/landing/Trattoria.png"
+              alt="Person scannt einen QR-X an der Trattoria Bellavista"
+              className="landingBBusinessImage"
+            />
+            <div className="landingBBusinessImageLabel">
+              <strong>QR-X im Alltag entdecken</strong>
+              <span>Interessantes speichern und später wiederfinden.</span>
+            </div>
+          </div>
+
+          <div className="landingBBusinessCopy">
+            <span className="landingBEyebrow">Mioseg qr für dich</span>
+            <h2>Entdecken. Speichern. Später wiederfinden.</h2>
+            <p>
+              Du entdeckst einen interessanten Ort, ein Restaurant, eine Sehenswürdigkeit oder einen
+              anderen QR-X? Scanne ihn mit mioseg qr und behalte ihn einfach bei dir.
+            </p>
+            <div className="landingBBusinessInfoGrid">
+              {[
+                "Scannen",
+                "Speichern",
+                "In Ordner ablegen",
+                "Folgen",
+                "Updates erhalten",
+                "Auf der Karte wiederfinden",
+              ].map((item) => (
+                <span key={item}>✓ {item}</span>
+              ))}
+            </div>
+            <div className="landingBBusinessPromise">
+              <strong>Einmal entdeckt. Dauerhaft bei dir.</strong>
+              <p>
+                Interessante QR-X bleiben gespeichert und können später schnell wiedergefunden werden.
+              </p>
+            </div>
+            <p className="landingBBusinessTransfer">
+              Egal ob Restaurant, Reiseziel, Veranstaltung, Produkt oder ein QR-X für dein Zuhause –
+              mit mioseg qr musst du interessante Informationen nicht jedes Mal neu suchen.
+            </p>
+          </div>
+        </section>
+      )}
     </section>
   );
 }

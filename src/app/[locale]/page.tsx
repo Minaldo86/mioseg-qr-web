@@ -379,7 +379,6 @@ export default async function Home({ params }: Props) {
     school: "/landing/usecase-school.png",
     fitness: "/landing/usecase-fitness.png",
     creator: "/landing/usecase-creator.png",
-    businessIndustry: "/landing/business-machine-qrx.png",
   };
 
   const publicLanguage = publicLocale(locale);
@@ -580,26 +579,6 @@ export default async function Home({ params }: Props) {
           </section>
 
           <HomeAudienceDemos />
-
-          <section id="business" className="landingBBusiness">
-            <div className="landingBBusinessVisual">
-              <Image src={landingImages.businessIndustry} alt="Mitarbeiter scannt einen QR-X an einer Industriemaschine" width={1536} height={1024} className="landingBBusinessImage" />
-              <div className="landingBBusinessImageLabel"><strong>QR-X direkt am Objekt</strong><span>Informationen dort, wo sie gebraucht werden.</span></div>
-            </div>
-            <div className="landingBBusinessCopy">
-              <span className="landingBEyebrow">Mioseg qr für Unternehmen</span>
-              <h2>Eine Maschine. Ein QR-X. Alle wichtigen Informationen.</h2>
-              <p>Ein Mitarbeiter scannt den QR-X direkt an der Maschine und gelangt zu den Informationen, die für dieses konkrete Objekt hinterlegt wurden.</p>
-              <div className="landingBBusinessInfoGrid">
-                {['Betriebsanleitung','Technische Daten','Wartung & Service','Prüfberichte','Sicherheitsinfos','Ersatzteile','Ansprechpartner','Aktuelle Änderungen'].map(item => <span key={item}>✓ {item}</span>)}
-              </div>
-              <div className="landingBBusinessPromise">
-                <strong>Einmal anbringen. Dauerhaft verwalten.</strong>
-                <p>Der QR-X bleibt an der Maschine. Die Informationen dahinter können jederzeit aktualisiert werden.</p>
-              </div>
-              <p className="landingBBusinessTransfer">Was hier für eine Maschine funktioniert, lässt sich genauso auf Produkte, Immobilien, Fahrzeuge, Gebäude, Projekte oder Standorte übertragen.</p>
-            </div>
-          </section>
 
           <section className="landingBExploreValue" aria-labelledby="explore-value-title">
             <div className="landingBSectionHeader">
