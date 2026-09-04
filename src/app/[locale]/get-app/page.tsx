@@ -17,30 +17,64 @@ type GetAppCopy = {
   scanSaveTitle:string; scanSaveText:string; ownQrxTitle:string; ownQrxText:string; businessText:string;
   availabilityEyebrow:string; availabilityTitle:string; availabilityText:string; availabilitySubText:string;
   statusLabel:string; statusValue:string; home:string; privacy:string; terms:string;
+  heroPromise:string; compareEyebrow:string; compareTitle:string; compareText:string;
+  withoutAppTitle:string; withoutAppText:string; withAppTitle:string; withAppText:string;
+  appBenefit1:string; appBenefit2:string; appBenefit3:string; appBenefit4:string; appBenefit5:string; appBenefit6:string;
 };
 
 const GET_APP_COPY: Record<string, GetAppCopy> = {
   de: {
-    badge:"{ui.badge}", title1:"{ui.title1}", title2:"{ui.title2}",
-    intro:"Scanne QR-Codes, speichere Inhalte, erstelle eigene QR-X und nutze Business QR-X mit professioneller Webansicht, Kontaktfunktionen, Medien und flexibler Verwaltung.",
-    storeAppleSmall:"{ui.storeAppleSmall}", storeGoogleSmall:"{ui.storeGoogleSmall}", appStoreButton:"{ui.appStoreButton}", playButton:"{ui.playButton}",
-    factScan:"Scannen", factScanText:"{ui.factScanText}", factQrxText:"{ui.factQrxText}", factBusinessText:"{ui.factBusinessText}",
-    phoneSubtitle:"{ui.phoneSubtitle}", phoneOverline:"{ui.phoneOverline}", phoneTitle:"{ui.phoneTitle}", phoneText:"Scans, gespeicherte Inhalte, eigene QR-X und Business-Funktionen übersichtlich in einer App.",
-    phoneScanText:"Speichern & wiederfinden", phoneQrxText:"{ui.phoneQrxText}", chipScan:"Scannen", chipSave:"Speichern",
-    noticeTitle:"Hinweis", noticeText:"Die finalen Store-Links kannst du hier später einfach einsetzen. Solange deine App noch nicht live ist, kannst du hier auch TestFlight, Beta-Links oder einen kurzen Hinweis zum baldigen Start anzeigen.",
-    insightsEyebrow:"{ui.insightsEyebrow}", insightsTitle:"{ui.insightsTitle}", insightsText:"Hier kannst du echte Screenshots deiner App einsetzen. Das macht die Seite glaubwürdiger und deutlich hochwertiger.",
-    cardScanBadge:"Scannen", cardScanTitle:"{ui.cardScanTitle}", cardScanText:"{ui.cardScanText}",
-    cardMapBadge:"Karte", cardMapTitle:"{ui.cardMapTitle}", cardMapText:"Gespeicherte Scans auf der Karte sehen und später direkt zurück navigieren.",
-    cardCreateBadge:"Erstellen", cardCreateTitle:"{ui.cardCreateTitle}", cardCreateText:"{ui.cardCreateText}",
-    expectEyebrow:"{ui.expectEyebrow}", expectTitle:"{ui.expectTitle}", expectText:"mioseg qr verbindet klassisches Scannen mit einer eigenen QR-X Plattform für private Nutzer und Unternehmen.",
-    strongLabel:"{ui.strongLabel}", strongTitle:"{ui.strongTitle}", strongText:"Die App verbindet klassisches Speichern mit QR-X, Business-Funktionen, Kartenansicht und strukturierter Verwaltung.",
-    bullet1:"Scannen & dauerhaft speichern", bullet2:"Eigene QR-X flexibel pflegen", bullet3:"Business QR-X professionell nutzen",
-    scanSaveTitle:"Scannen & Speichern", scanSaveText:"Erfasse QR-Codes, speichere sie dauerhaft und organisiere sie übersichtlich in deiner App.",
-    ownQrxTitle:"{ui.ownQrxTitle}", ownQrxText:"Erstelle eigene Inhalte mit Texten, Bildern, PDFs, MP3 oder MP4 und pflege sie flexibel weiter.",
-    businessText:"Nutze professionelle Webansichten mit Firmenname, Coverbild, Kontaktbuttons und modernem Business-Look.",
-    availabilityEyebrow:"Download & Verfügbarkeit", availabilityTitle:"{ui.availabilityTitle}", availabilityText:"Hier kannst du später deine offiziellen Store-Links hinterlegen und Besucher direkt zum richtigen App-Store weiterleiten.",
-    availabilitySubText:"Noch nicht live? Dann kannst du hier vorübergehend auch einen Hinweis wie „Demnächst im App Store und bei Google Play verfügbar“ anzeigen.",
-    statusLabel:"{ui.statusLabel}", statusValue:"{ui.statusValue}", home:"{ui.home}", privacy:"Datenschutz", terms:"Nutzungsbedingungen"
+    badge:"mioseg qr · App herunterladen",
+    title1:"mioseg qr im vollen",
+    title2:"Umfang nutzen.",
+    intro:"Lade die mioseg qr App herunter und mache mehr aus jedem QR-X. Scanne, speichere und organisiere QR-Codes und QR-X, folge interessanten QR-X und erhalte wichtige Aktualisierungen direkt in der App.",
+    storeAppleSmall:"Laden im", storeGoogleSmall:"Jetzt bei", appStoreButton:"Im App Store", playButton:"Bei Google Play",
+    factScan:"Speichern", factScanText:"QR-Codes und QR-X dauerhaft behalten und in eigenen Ordnern organisieren",
+    factQrxText:"QR-X folgen und wichtige Aktualisierungen direkt mitbekommen",
+    factBusinessText:"Eigene QR-X erstellen, verwalten und professionell einsetzen",
+    phoneSubtitle:"Speichern, organisieren, folgen und wiederfinden",
+    phoneOverline:"Die App im Überblick", phoneTitle:"Deine QR-X an einem Ort",
+    phoneText:"Scans, gespeicherte QR-X, eigene Inhalte, Updates und Standorte übersichtlich in einer App.",
+    phoneScanText:"Speichern & wiederfinden", phoneQrxText:"Folgen & Updates erhalten", chipScan:"Scannen", chipSave:"Speichern",
+    noticeTitle:"Ohne App sofort öffnen. Mit App mehr daraus machen.",
+    noticeText:"Jeder öffentliche QR-X lässt sich direkt im Browser öffnen. Mit der mioseg qr App kannst du ihn zusätzlich speichern, organisieren, verfolgen und später jederzeit wiederfinden.",
+    insightsEyebrow:"Deine Vorteile in der App",
+    insightsTitle:"Aus einem Scan wird etwas, das bei dir bleibt",
+    insightsText:"Die App macht aus QR-Codes und QR-X mehr als einen einmaligen Scan: Inhalte speichern, ordnen, wiederfinden und bei wichtigen Änderungen auf dem Laufenden bleiben.",
+    cardScanBadge:"Scannen & Speichern", cardScanTitle:"Scannen, speichern und wiederfinden",
+    cardScanText:"Erfasse QR-Codes und QR-X, speichere sie dauerhaft und organisiere sie in deinen eigenen Ordnern.",
+    cardMapBadge:"Karte", cardMapTitle:"Orte später wiederfinden",
+    cardMapText:"Gespeicherte und eigene QR-X mit Standort auf deiner persönlichen Karte sehen und direkt wiederfinden.",
+    cardCreateBadge:"Erstellen & Verwalten", cardCreateTitle:"Eigene QR-X erstellen",
+    cardCreateText:"Erstelle eigene QR-X mit Texten, Bildern, Dateien und weiteren Inhalten und aktualisiere sie jederzeit.",
+    expectEyebrow:"Der Unterschied",
+    expectTitle:"Ohne App zugänglich. Mit App verbunden.",
+    expectText:"QR-X bleiben bewusst ohne App erreichbar. Die App erweitert sie um die Funktionen, die aus einem einzelnen Aufruf eine dauerhafte Verbindung machen.",
+    strongLabel:"Mit mioseg qr App", strongTitle:"Mehr als ansehen",
+    strongText:"Speichere wichtige QR-X, ordne sie, folge ihnen und erhalte Aktualisierungen. So bleiben Informationen nicht nur erreichbar, sondern auch bei dir.",
+    bullet1:"QR-Codes & QR-X speichern und in Ordnern organisieren",
+    bullet2:"QR-X folgen und Updates mitbekommen",
+    bullet3:"Standorte auf der Karte wiederfinden",
+    scanSaveTitle:"Scannen, Speichern & Ordnen",
+    scanSaveText:"Scanne QR-Codes und QR-X, speichere sie dauerhaft und sortiere sie übersichtlich in eigenen Ordnern.",
+    ownQrxTitle:"Eigene QR-X",
+    ownQrxText:"Erstelle und verwalte eigene QR-X mit Texten, Bildern, PDFs, MP3 oder MP4 und halte die Inhalte flexibel aktuell.",
+    businessText:"Nutze Business QR-X mit professioneller Webansicht, Kontaktfunktionen, Medien, Standort und flexibler Verwaltung.",
+    availabilityEyebrow:"Download & Verfügbarkeit",
+    availabilityTitle:"mioseg qr App",
+    availabilityText:"Die App wird für iPhone und Android verfügbar sein. Nach Veröffentlichung führen dich die Buttons direkt zum jeweiligen Store.",
+    availabilitySubText:"Bis zum offiziellen Start zeigen wir hier den aktuellen Veröffentlichungsstatus.",
+    statusLabel:"Aktueller Status", statusValue:"Demnächst verfügbar", home:"Startseite", privacy:"Datenschutz", terms:"Nutzungsbedingungen",
+    heroPromise:"Ohne App sofort öffnen. Mit App mehr daraus machen.",
+    compareEyebrow:"Warum die App?",
+    compareTitle:"QR-X öffnen kann jeder. Die App macht sie persönlich.",
+    compareText:"Ein QR-X funktioniert direkt im Browser. Wenn du ihn aber behalten, ordnen, verfolgen oder später wiederfinden möchtest, spielt die App ihre Stärke aus.",
+    withoutAppTitle:"Ohne App",
+    withoutAppText:"QR-X direkt scannen, öffnen und alle freigegebenen Inhalte sofort ansehen – ohne Installation.",
+    withAppTitle:"Mit mioseg qr App",
+    withAppText:"QR-X speichern, in Ordnern organisieren, folgen, Updates erhalten, Standorte wiederfinden und eigene QR-X verwalten.",
+    appBenefit1:"QR-X speichern", appBenefit2:"Eigene Ordner", appBenefit3:"Folgen & Updates",
+    appBenefit4:"Persönliche Karte", appBenefit5:"Explore nutzen", appBenefit6:"Eigene QR-X verwalten"
   },
   en: {
     badge:"{ui.badge}", title1:"Get the mioseg qr app", title2:"for iPhone and Android.",
@@ -62,7 +96,18 @@ const GET_APP_COPY: Record<string, GetAppCopy> = {
     businessText:"Use professional web views with company name, cover image, contact buttons and a modern business look.",
     availabilityEyebrow:"Download & availability", availabilityTitle:"Coming soon or already available", availabilityText:"Later you can add your official store links here and direct visitors to the correct app store.",
     availabilitySubText:"Not live yet? You can temporarily show a message such as “Coming soon to the App Store and Google Play”.",
-    statusLabel:"Current status", statusValue:"Coming Soon / Beta possible", home:"Home", privacy:"Privacy", terms:"Terms of Use"
+    statusLabel:"Current status", statusValue:"Coming Soon / Beta possible", home:"Home", privacy:"Privacy", terms:"Terms of Use",
+    heroPromise:"Open QR-X instantly without the app. Get more with the app.",
+    compareEyebrow:"Why the app?",
+    compareTitle:"Open QR-X anywhere. Make them personal with the app.",
+    compareText:"A QR-X works directly in the browser. The app adds saving, organizing, following, updates, maps and management.",
+    withoutAppTitle:"Without the app",
+    withoutAppText:"Scan and open QR-X directly and view shared content instantly — no installation required.",
+    withAppTitle:"With the mioseg qr app",
+    withAppText:"Save and organize QR-X, follow updates, find locations again and manage your own QR-X.",
+    appBenefit1:"Save QR-X", appBenefit2:"Your folders", appBenefit3:"Follow & updates",
+    appBenefit4:"Personal map", appBenefit5:"Explore", appBenefit6:"Manage your QR-X"
+
   },
   tr: {
     badge:"mioseg qr · Uygulama İndir", title1:"mioseg qr uygulamasını edin", title2:"iPhone ve Android için.",
@@ -84,7 +129,18 @@ const GET_APP_COPY: Record<string, GetAppCopy> = {
     businessText:"Şirket adı, kapak görseli, iletişim düğmeleri ve modern iş görünümüyle profesyonel web sayfaları kullan.",
     availabilityEyebrow:"İndirme ve kullanılabilirlik", availabilityTitle:"Yakında veya zaten kullanılabilir", availabilityText:"Daha sonra resmi mağaza bağlantılarını ekleyebilir ve ziyaretçileri doğru uygulama mağazasına yönlendirebilirsin.",
     availabilitySubText:"Henüz yayında değil mi? Geçici olarak “Yakında App Store ve Google Play'de” gibi bir mesaj gösterebilirsin.",
-    statusLabel:"Güncel durum", statusValue:"Coming Soon / Beta mümkün", home:"Ana sayfa", privacy:"Gizlilik", terms:"Kullanım Koşulları"
+    statusLabel:"Güncel durum", statusValue:"Coming Soon / Beta mümkün", home:"Ana sayfa", privacy:"Gizlilik", terms:"Kullanım Koşulları",
+    heroPromise:"Open QR-X instantly without the app. Get more with the app.",
+    compareEyebrow:"Why the app?",
+    compareTitle:"Open QR-X anywhere. Make them personal with the app.",
+    compareText:"A QR-X works directly in the browser. The app adds saving, organizing, following, updates, maps and management.",
+    withoutAppTitle:"Without the app",
+    withoutAppText:"Scan and open QR-X directly and view shared content instantly — no installation required.",
+    withAppTitle:"With the mioseg qr app",
+    withAppText:"Save and organize QR-X, follow updates, find locations again and manage your own QR-X.",
+    appBenefit1:"Save QR-X", appBenefit2:"Your folders", appBenefit3:"Follow & updates",
+    appBenefit4:"Personal map", appBenefit5:"Explore", appBenefit6:"Manage your QR-X"
+
   },
   pl: {
     badge:"mioseg qr · Pobierz aplikację", title1:"Pobierz aplikację mioseg qr", title2:"na iPhone i Android.",
@@ -106,7 +162,18 @@ const GET_APP_COPY: Record<string, GetAppCopy> = {
     businessText:"Korzystaj z profesjonalnych widoków webowych z nazwą firmy, grafiką okładkową, przyciskami kontaktu i nowoczesnym wyglądem.",
     availabilityEyebrow:"Pobieranie i dostępność", availabilityTitle:"Wkrótce lub już dostępna", availabilityText:"Później możesz dodać oficjalne linki do sklepów i kierować odwiedzających do właściwego sklepu.",
     availabilitySubText:"Jeszcze nie jest dostępna? Tymczasowo możesz pokazać komunikat „Wkrótce w App Store i Google Play”.",
-    statusLabel:"Aktualny status", statusValue:"Coming Soon / możliwa Beta", home:"Strona główna", privacy:"Prywatność", terms:"Warunki użytkowania"
+    statusLabel:"Aktualny status", statusValue:"Coming Soon / możliwa Beta", home:"Strona główna", privacy:"Prywatność", terms:"Warunki użytkowania",
+    heroPromise:"Open QR-X instantly without the app. Get more with the app.",
+    compareEyebrow:"Why the app?",
+    compareTitle:"Open QR-X anywhere. Make them personal with the app.",
+    compareText:"A QR-X works directly in the browser. The app adds saving, organizing, following, updates, maps and management.",
+    withoutAppTitle:"Without the app",
+    withoutAppText:"Scan and open QR-X directly and view shared content instantly — no installation required.",
+    withAppTitle:"With the mioseg qr app",
+    withAppText:"Save and organize QR-X, follow updates, find locations again and manage your own QR-X.",
+    appBenefit1:"Save QR-X", appBenefit2:"Your folders", appBenefit3:"Follow & updates",
+    appBenefit4:"Personal map", appBenefit5:"Explore", appBenefit6:"Manage your QR-X"
+
   },
   ar: {
     badge:"mioseg qr · تنزيل التطبيق", title1:"احصل على تطبيق mioseg qr", title2:"لـ iPhone وAndroid.",
@@ -128,7 +195,18 @@ const GET_APP_COPY: Record<string, GetAppCopy> = {
     businessText:"استخدم عروض ويب احترافية مع اسم الشركة وصورة غلاف وأزرار اتصال ومظهر أعمال حديث.",
     availabilityEyebrow:"التنزيل والتوفر", availabilityTitle:"قريبًا أو متاح بالفعل", availabilityText:"يمكنك لاحقًا إضافة روابط المتاجر الرسمية وتوجيه الزوار إلى متجر التطبيقات المناسب.",
     availabilitySubText:"لم يُطلق بعد؟ يمكنك مؤقتًا عرض رسالة مثل «قريبًا على App Store وGoogle Play».",
-    statusLabel:"الحالة الحالية", statusValue:"قريبًا / نسخة Beta ممكنة", home:"الرئيسية", privacy:"الخصوصية", terms:"شروط الاستخدام"
+    statusLabel:"الحالة الحالية", statusValue:"قريبًا / نسخة Beta ممكنة", home:"الرئيسية", privacy:"الخصوصية", terms:"شروط الاستخدام",
+    heroPromise:"Open QR-X instantly without the app. Get more with the app.",
+    compareEyebrow:"Why the app?",
+    compareTitle:"Open QR-X anywhere. Make them personal with the app.",
+    compareText:"A QR-X works directly in the browser. The app adds saving, organizing, following, updates, maps and management.",
+    withoutAppTitle:"Without the app",
+    withoutAppText:"Scan and open QR-X directly and view shared content instantly — no installation required.",
+    withAppTitle:"With the mioseg qr app",
+    withAppText:"Save and organize QR-X, follow updates, find locations again and manage your own QR-X.",
+    appBenefit1:"Save QR-X", appBenefit2:"Your folders", appBenefit3:"Follow & updates",
+    appBenefit4:"Personal map", appBenefit5:"Explore", appBenefit6:"Manage your QR-X"
+
   },
   fr: {
     badge:"mioseg qr · Télécharger l’app", title1:"Téléchargez l’app mioseg qr", title2:"pour iPhone et Android.",
@@ -150,7 +228,18 @@ const GET_APP_COPY: Record<string, GetAppCopy> = {
     businessText:"Utilisez des vues web professionnelles avec nom d’entreprise, image de couverture, boutons de contact et design business moderne.",
     availabilityEyebrow:"Téléchargement & disponibilité", availabilityTitle:"Bientôt ou déjà disponible", availabilityText:"Vous pourrez ajouter ici vos liens officiels vers les stores et diriger les visiteurs vers le bon magasin d’applications.",
     availabilitySubText:"Pas encore disponible ? Vous pouvez temporairement afficher un message comme « Bientôt sur l’App Store et Google Play ».",
-    statusLabel:"Statut actuel", statusValue:"Coming Soon / Beta possible", home:"Accueil", privacy:"Confidentialité", terms:"Conditions d’utilisation"
+    statusLabel:"Statut actuel", statusValue:"Coming Soon / Beta possible", home:"Accueil", privacy:"Confidentialité", terms:"Conditions d’utilisation",
+    heroPromise:"Open QR-X instantly without the app. Get more with the app.",
+    compareEyebrow:"Why the app?",
+    compareTitle:"Open QR-X anywhere. Make them personal with the app.",
+    compareText:"A QR-X works directly in the browser. The app adds saving, organizing, following, updates, maps and management.",
+    withoutAppTitle:"Without the app",
+    withoutAppText:"Scan and open QR-X directly and view shared content instantly — no installation required.",
+    withAppTitle:"With the mioseg qr app",
+    withAppText:"Save and organize QR-X, follow updates, find locations again and manage your own QR-X.",
+    appBenefit1:"Save QR-X", appBenefit2:"Your folders", appBenefit3:"Follow & updates",
+    appBenefit4:"Personal map", appBenefit5:"Explore", appBenefit6:"Manage your QR-X"
+
   },
   es: {
     badge:"mioseg qr · Descargar app", title1:"Descarga la app mioseg qr", title2:"para iPhone y Android.",
@@ -172,7 +261,18 @@ const GET_APP_COPY: Record<string, GetAppCopy> = {
     businessText:"Utiliza vistas web profesionales con nombre de empresa, imagen de portada, botones de contacto y un diseño Business moderno.",
     availabilityEyebrow:"Descarga y disponibilidad", availabilityTitle:"Próximamente o ya disponible", availabilityText:"Más adelante puedes añadir los enlaces oficiales de las tiendas y dirigir a los visitantes a la tienda adecuada.",
     availabilitySubText:"¿Aún no está publicada? Puedes mostrar temporalmente un aviso como «Próximamente en App Store y Google Play».",
-    statusLabel:"Estado actual", statusValue:"Coming Soon / Beta posible", home:"Inicio", privacy:"Privacidad", terms:"Condiciones de uso"
+    statusLabel:"Estado actual", statusValue:"Coming Soon / Beta posible", home:"Inicio", privacy:"Privacidad", terms:"Condiciones de uso",
+    heroPromise:"Open QR-X instantly without the app. Get more with the app.",
+    compareEyebrow:"Why the app?",
+    compareTitle:"Open QR-X anywhere. Make them personal with the app.",
+    compareText:"A QR-X works directly in the browser. The app adds saving, organizing, following, updates, maps and management.",
+    withoutAppTitle:"Without the app",
+    withoutAppText:"Scan and open QR-X directly and view shared content instantly — no installation required.",
+    withAppTitle:"With the mioseg qr app",
+    withAppText:"Save and organize QR-X, follow updates, find locations again and manage your own QR-X.",
+    appBenefit1:"Save QR-X", appBenefit2:"Your folders", appBenefit3:"Follow & updates",
+    appBenefit4:"Personal map", appBenefit5:"Explore", appBenefit6:"Manage your QR-X"
+
   },
   it: {
     badge:"mioseg qr · Download app", title1:"Scarica l’app mioseg qr", title2:"per iPhone e Android.",
@@ -194,7 +294,18 @@ const GET_APP_COPY: Record<string, GetAppCopy> = {
     businessText:"Usa viste web professionali con nome azienda, immagine di copertina, pulsanti di contatto e un look Business moderno.",
     availabilityEyebrow:"Download e disponibilità", availabilityTitle:"Presto o già disponibile", availabilityText:"In seguito potrai aggiungere i link ufficiali agli store e indirizzare i visitatori allo store corretto.",
     availabilitySubText:"Non è ancora disponibile? Puoi mostrare temporaneamente un messaggio come «Presto su App Store e Google Play».",
-    statusLabel:"Stato attuale", statusValue:"Coming Soon / Beta possibile", home:"Home", privacy:"Privacy", terms:"Condizioni d’uso"
+    statusLabel:"Stato attuale", statusValue:"Coming Soon / Beta possibile", home:"Home", privacy:"Privacy", terms:"Condizioni d’uso",
+    heroPromise:"Open QR-X instantly without the app. Get more with the app.",
+    compareEyebrow:"Why the app?",
+    compareTitle:"Open QR-X anywhere. Make them personal with the app.",
+    compareText:"A QR-X works directly in the browser. The app adds saving, organizing, following, updates, maps and management.",
+    withoutAppTitle:"Without the app",
+    withoutAppText:"Scan and open QR-X directly and view shared content instantly — no installation required.",
+    withAppTitle:"With the mioseg qr app",
+    withAppText:"Save and organize QR-X, follow updates, find locations again and manage your own QR-X.",
+    appBenefit1:"Save QR-X", appBenefit2:"Your folders", appBenefit3:"Follow & updates",
+    appBenefit4:"Personal map", appBenefit5:"Explore", appBenefit6:"Manage your QR-X"
+
   }
 };
 
@@ -232,6 +343,11 @@ export default async function GetAppPage({ params }: Props) {
               <p className={styles.text}>
                 {ui.intro}
               </p>
+
+              <div className={styles.heroPromise}>
+                <span className={styles.heroPromiseDot}>✓</span>
+                <strong>{ui.heroPromise}</strong>
+              </div>
 
               <div className={styles.storeBadgeRow}>
                 <a
@@ -452,6 +568,43 @@ export default async function GetAppPage({ params }: Props) {
                 <p className={styles.previewCardText}>
                   {ui.cardCreateText}
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.compareSection}>
+        <div className={styles.container}>
+          <div className={styles.sectionIntro}>
+            <span className={styles.sectionEyebrow}>{ui.compareEyebrow}</span>
+            <h2 className={styles.sectionTitle}>{ui.compareTitle}</h2>
+            <p className={styles.sectionText}>{ui.compareText}</p>
+          </div>
+
+          <div className={styles.compareGrid}>
+            <div className={styles.compareCard}>
+              <div className={styles.compareIcon}>↗</div>
+              <h3 className={styles.compareCardTitle}>{ui.withoutAppTitle}</h3>
+              <p className={styles.compareCardText}>{ui.withoutAppText}</p>
+              <div className={styles.compareSimpleList}>
+                <span>✓ QR-X</span>
+                <span>✓ Browser</span>
+                <span>✓ Sofort zugänglich</span>
+              </div>
+            </div>
+
+            <div className={styles.compareCardFeatured}>
+              <div className={styles.compareAppLabel}>mioseg qr</div>
+              <h3 className={styles.compareCardFeaturedTitle}>{ui.withAppTitle}</h3>
+              <p className={styles.compareCardFeaturedText}>{ui.withAppText}</p>
+              <div className={styles.benefitPills}>
+                <span>{ui.appBenefit1}</span>
+                <span>{ui.appBenefit2}</span>
+                <span>{ui.appBenefit3}</span>
+                <span>{ui.appBenefit4}</span>
+                <span>{ui.appBenefit5}</span>
+                <span>{ui.appBenefit6}</span>
               </div>
             </div>
           </div>
