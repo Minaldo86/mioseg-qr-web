@@ -61,6 +61,24 @@ const PRIVATE_DEMOS: Demo[] = [
     cta: "Geschützten QR-X öffnen",
     password: "mioseg-qr",
   },
+  {
+    eyebrow: "Reise & Kultur",
+    title: "Paris Culture Guide",
+    text: "Sehenswürdigkeiten und Kultur entdecken, den QR-X speichern und interessante Orte später wiederfinden.",
+    href: "https://www.mioseg-qr.com/qrx/e38e07d4-2f34-4a02-8908-40ce13f512f0",
+    image: "/landing/paris.png",
+    imageAlt: "Paris Culture Guide",
+    cta: "QR-X öffnen",
+  },
+  {
+    eyebrow: "Restaurant",
+    title: "Trattoria Bellavista",
+    text: "Speisekarte ansehen, Restaurant speichern und über neue Gerichte und aktuelle Angebote informiert bleiben.",
+    href: "https://www.mioseg-qr.com/qrx/5260589f-6a8d-43ad-8348-ee8ad22c0c4b",
+    image: "/landing/restaurant.png",
+    imageAlt: "Trattoria Bellavista Restaurant",
+    cta: "QR-X öffnen",
+  },
 ];
 
 type Demo = {
