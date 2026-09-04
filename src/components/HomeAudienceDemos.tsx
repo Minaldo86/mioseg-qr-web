@@ -75,7 +75,7 @@ const PRIVATE_DEMOS: Demo[] = [
     title: "Trattoria Bellavista",
     text: "Speisekarte ansehen, Restaurant speichern und über neue Gerichte und aktuelle Angebote informiert bleiben.",
     href: "https://www.mioseg-qr.com/qrx/5260589f-6a8d-43ad-8348-ee8ad22c0c4b",
-    image: "/landing/restaurant.png",
+    image: "/landing/restaurant.jpg",
     imageAlt: "Trattoria Bellavista Restaurant",
     cta: "QR-X öffnen",
   },
