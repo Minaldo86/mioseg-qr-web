@@ -390,6 +390,78 @@ export default async function Home({ params }: Props) {
   const promoVideoSrc = isGerman ? PROMO_VIDEO_DE_SRC : PROMO_VIDEO_EN_SRC;
   const showcaseCopy = APP_SHOWCASE_COPY[publicLanguage];
 
+  const masterCopy = publicLanguage === "de" ? {
+    learnMore:"QR-X verstehen",
+    freeStart:"Kostenlos starten", noSubscription:"Keine Abo-Pflicht", appWeb:"App & Web",
+    problemEyebrow:"Warum Mioseg qr?", problemTitle:"Gescannt. Geschlossen. Später nie wiedergefunden.",
+    problemText:"Ein normaler QR-Code ist oft nur ein kurzer Weg zu einer Seite. Mioseg qr macht aus dem Scan etwas, das du speichern, wiederfinden und weiter nutzen kannst.",
+    problemStrong:"Scannen → speichern → wiederfinden → folgen → entdecken.",
+    problemAnswer:"Und Unternehmen können genau diese Verbindung dauerhaft mit aktuellen Informationen versorgen.",
+    ahaEyebrow:"Der QR-X Aha-Moment", ahaTitle:"Ein normaler QR-Code öffnet ein Ziel. Ein QR-X bleibt nützlich.",
+    ahaText:"Der QR-X bleibt derselbe. Die Informationen dahinter können jederzeit aktualisiert und erweitert werden.",
+    normalQr:"Normaler QR-Code", oneScan:"Ein Scan → ein Link", becomes:"wird zu",
+    featureCloud:["Bilder","PDF & Dateien","Standort","Kontakt","News","Updates","Follow","Passwort"],
+    coreText:"Ein dauerhaft verwaltbarer digitaler Informationspunkt für reale Dinge, Orte und Projekte.",
+    statement:"Einmal verbinden. Dauerhaft aktuell halten.",
+    exploreEyebrow:"Explore verbindet beide Seiten", exploreTitle:"Entdecken für Nutzer. Sichtbarkeit für Unternehmen.",
+    exploreIntro:"Explore macht QR-X auf der Karte auffindbar und zeigt, was sich an realen Orten befindet.",
+    users:"Für Nutzer", userExploreTitle:"Entdecke, was um dich herum interessant ist.",
+    userExploreText:"Finde QR-X in deiner Nähe, öffne Orte und Angebote, speichere interessante Einträge und navigiere direkt dorthin.",
+    exploreTags:["In meiner Nähe","Kategorien","Speichern","Navigation"],
+    businesses:"Für Unternehmen", businessExploreTitle:"Zeige, wo dein Unternehmen aktiv ist.",
+    businessExploreText:"Ein Immobilienunternehmen kann seine angebotenen Objekte auf Explore sichtbar machen. Interessenten sehen, wo sie liegen, öffnen den passenden QR-X und gelangen direkt zu Informationen, Kontakt und Navigation.",
+    businessExploreSmall:"Dasselbe Prinzip funktioniert für Projekte, Filialen, Standorte und Servicepunkte.",
+    exploreCta:"Explore ansehen",
+    followEyebrow:"Scannen ist nur der Anfang", followTitle:"Folge einem QR-X und bleib auf dem Laufenden.",
+    followText:"Wenn sich wichtige Inhalte ändern, kann Mioseg qr dich darüber informieren. Der QR-X bleibt derselbe – nur die Information dahinter wird aktueller.",
+    followExamples:["🏠 Preis geändert","📄 Neues Dokument","🔧 Wartung aktualisiert","🎟️ Termin geändert"],
+    flow1:"QR-X speichern oder folgen", flow1Small:"Einmal verbinden", flow2:"Inhalt wird aktualisiert", flow2Small:"Der QR-X bleibt", flow3:"Du erfährst es.", flow3Small:"Aktuell bleiben",
+    trustEyebrow:"Für den professionellen Einsatz", trustTitle:"Mehr als Inhalte hinter einem Code.", trustText:"QR-X kombiniert die Informationen mit Funktionen, die auch im professionellen Einsatz wichtig sind.",
+    trust:[
+      ["🔐","Passwortschutz","Zugriff auf geschützte QR-X gezielt absichern."],["▧","Dateien & Medien","Dokumente, Bilder und weitere Inhalte zentral bereitstellen."],["⌖","Standort & Explore","Reale Orte mit digitalen Informationen verbinden."],["↗","Kontakt & Aktionen","Telefon, Website, E-Mail oder Navigation direkt erreichbar machen."],["↻","Updates","Informationen ändern, ohne den QR-X auszutauschen."],["▣","App & Web","Mit demselben Konto plattformübergreifend arbeiten."]
+    ],
+    benefits:[
+      ["✦","Kostenlos starten","Erster normaler QR-X immer kostenlos."],["✕","Keine Abo-Pflicht","Zahle nur, wenn du Credits brauchst."],["⬡","Zugriff & Datenschutz","Mit Schutzfunktionen wie Passwortzugriff für private QR-X."],["▣","App & Web","Überall synchron verfügbar."]
+    ],
+    creditsNeverExpire:"Credits verfallen nicht", fullCostControl:"Volle Kostenkontrolle ohne versteckte Gebühren"
+  } : {
+    learnMore:"Understand QR-X",
+    freeStart:"Start for free", noSubscription:"No subscription required", appWeb:"App & Web",
+    problemEyebrow:"Why Mioseg qr?", problemTitle:"Scanned. Closed. Never found again.",
+    problemText:"A normal QR code is often just a quick route to a page. Mioseg qr turns a scan into something you can save, find again and keep using.",
+    problemStrong:"Scan → save → find again → follow → discover.",
+    problemAnswer:"And businesses can keep that connection supplied with up-to-date information.",
+    ahaEyebrow:"The QR-X aha moment", ahaTitle:"A normal QR code opens a destination. A QR-X stays useful.",
+    ahaText:"The QR-X stays the same. The information behind it can be updated and expanded at any time.",
+    normalQr:"Normal QR code", oneScan:"One scan → one link", becomes:"becomes",
+    featureCloud:["Images","PDF & files","Location","Contact","News","Updates","Follow","Password"],
+    coreText:"A permanently manageable digital information point for real objects, places and projects.",
+    statement:"Connect once. Keep it up to date.",
+    exploreEyebrow:"Explore connects both sides", exploreTitle:"Discovery for users. Visibility for businesses.",
+    exploreIntro:"Explore makes QR-X discoverable on the map and shows what is available at real locations.",
+    users:"For users", userExploreTitle:"Discover what is interesting around you.",
+    userExploreText:"Find QR-X nearby, open places and offers, save interesting entries and navigate directly to them.",
+    exploreTags:["Near me","Categories","Save","Navigation"],
+    businesses:"For businesses", businessExploreTitle:"Show where your business is active.",
+    businessExploreText:"A real estate company can make its listed properties visible in Explore. Interested users can see where they are, open the relevant QR-X and go directly to information, contact options and navigation.",
+    businessExploreSmall:"The same principle works for projects, branches, locations and service points.",
+    exploreCta:"View Explore",
+    followEyebrow:"Scanning is only the beginning", followTitle:"Follow a QR-X and stay up to date.",
+    followText:"When important content changes, Mioseg qr can let you know. The QR-X stays the same – only the information behind it becomes more current.",
+    followExamples:["🏠 Price changed","📄 New document","🔧 Maintenance updated","🎟️ Date changed"],
+    flow1:"Save or follow QR-X", flow1Small:"Connect once", flow2:"Content is updated", flow2Small:"The QR-X stays", flow3:"You hear about it.", flow3Small:"Stay up to date",
+    trustEyebrow:"For professional use", trustTitle:"More than content behind a code.", trustText:"QR-X combines information with functions that also matter in professional use.",
+    trust:[
+      ["🔐","Password protection","Secure access to protected QR-X."],["▧","Files & media","Provide documents, images and other content in one place."],["⌖","Location & Explore","Connect real places with digital information."],["↗","Contact & actions","Make phone, website, email or navigation directly accessible."],["↻","Updates","Change information without replacing the QR-X."],["▣","App & Web","Work across platforms with the same account."]
+    ],
+    benefits:[
+      ["✦","Start for free","Your first standard QR-X is always free."],["✕","No subscription required","Pay only when you need Credits."],["⬡","Access & privacy","Protection features such as password access for private QR-X."],["▣","App & Web","Synchronized and available everywhere."]
+    ],
+    creditsNeverExpire:"Credits never expire", fullCostControl:"Full cost control with no hidden fees"
+  };
+  const useMasterLayout = publicLanguage === "de" || publicLanguage === "en";
+
+
   const professionalUseCases = {
     de: [
       ["🍽️","Gastronomie","Speisekarten, Events und Angebote teilen.",landingImages.restaurant],
@@ -471,7 +543,7 @@ export default async function Home({ params }: Props) {
           <nav className="landingBNavLinks" aria-label="Landing Navigation">
             <Link href={`/${locale}#features`}>{heroCopy.navFeatures}</Link>
             <Link href={`/${locale}/explore`}>{heroCopy.navExplore}</Link>
-            <Link href={`/${locale}#${isGerman ? "business" : "usecases"}`}>{heroCopy.navUseCases}</Link>
+            <Link href={`/${locale}#${useMasterLayout ? "business" : "usecases"}`}>{heroCopy.navUseCases}</Link>
             <Link href={`/${locale}#pricing`}>{heroCopy.navPrices}</Link>
           </nav>
 
@@ -497,17 +569,17 @@ export default async function Home({ params }: Props) {
               <Link href={`/${locale}/explore`} className="landingBPrimary">
                 {heroCopy.ctaExplore}
               </Link>
-              <Link href={`/${locale}#${isGerman ? "qrx-explained" : "features"}`} className="landingBSecondary">
-                {isGerman ? "QR-X verstehen" : "Mehr erfahren"}
+              <Link href={`/${locale}#${useMasterLayout ? "qrx-explained" : "features"}`} className="landingBSecondary">
+                {useMasterLayout ? masterCopy.learnMore : "Mehr erfahren"}
               </Link>
             </div>
 
-            {isGerman && (
+            {useMasterLayout && (
               <div className="landingBPromise">
-                <span>✓ Kostenlos starten</span><span>✓ Keine Abo-Pflicht</span><span>✓ App & Web</span>
+                <span>✓ {masterCopy.freeStart}</span><span>✓ {masterCopy.noSubscription}</span><span>✓ {masterCopy.appWeb}</span>
               </div>
             )}
-            {!isGerman && (
+            {!useMasterLayout && (
               <div className="landingBStoreRow">
                 <div className="landingBStorePlaceholder">App Store</div>
                 <div className="landingBStorePlaceholder">Google Play</div>
@@ -546,47 +618,47 @@ export default async function Home({ params }: Props) {
         </div>
       </section>
 
-      {isGerman && (
+      {useMasterLayout && (
         <>
           <section className="landingBProblem landingBDarkBand">
             <div className="landingBSectionHeader">
-              <span className="landingBEyebrow">Warum Mioseg qr?</span>
-              <h2>Gescannt. Geschlossen. Später nie wiedergefunden.</h2>
-              <p>Ein normaler QR-Code ist oft nur ein kurzer Weg zu einer Seite. Mioseg qr macht aus dem Scan etwas, das du speichern, wiederfinden und weiter nutzen kannst.</p>
+              <span className="landingBEyebrow">{masterCopy.problemEyebrow}</span>
+              <h2>{masterCopy.problemTitle}</h2>
+              <p>{masterCopy.problemText}</p>
             </div>
             <div className="landingBProblemAnswer">
-              <strong>Scannen → speichern → wiederfinden → folgen → entdecken.</strong>
-              <span>Und Unternehmen können genau diese Verbindung dauerhaft mit aktuellen Informationen versorgen.</span>
+              <strong>{masterCopy.problemStrong}</strong>
+              <span>{masterCopy.problemAnswer}</span>
             </div>
           </section>
 
           <section id="qrx-explained" className="landingBQrxAha">
             <div className="landingBSectionHeader">
-              <span className="landingBEyebrow">Der QR-X Aha-Moment</span>
-              <h2>Ein normaler QR-Code öffnet ein Ziel. Ein QR-X bleibt nützlich.</h2>
-              <p>Der QR-X bleibt derselbe. Die Informationen dahinter können jederzeit aktualisiert und erweitert werden.</p>
+              <span className="landingBEyebrow">{masterCopy.ahaEyebrow}</span>
+              <h2>{masterCopy.ahaTitle}</h2>
+              <p>{masterCopy.ahaText}</p>
             </div>
             <div className="landingBCompare">
               <div className="landingBCompareOld">
-                <span>Normaler QR-Code</span><strong>QR</strong><p>Ein Scan → ein Link</p>
+                <span>{masterCopy.normalQr}</span><strong>QR</strong><p>{masterCopy.oneScan}</p>
               </div>
-              <div className="landingBCompareArrow"><span>→</span><small>wird zu</small></div>
+              <div className="landingBCompareArrow"><span>→</span><small>{masterCopy.becomes}</small></div>
               <div className="landingBCompareNew">
                 <div className="landingBCompareNewHead"><span>QR-X</span><strong>QR-X</strong></div>
-                <div className="landingBFeatureCloud">{['Bilder','PDF & Dateien','Standort','Kontakt','News','Updates','Follow','Passwort'].map(x => <b key={x}>{x}</b>)}</div>
-                <p className="landingBQrxCoreText">Ein dauerhaft verwaltbarer digitaler Informationspunkt für reale Dinge, Orte und Projekte.</p>
+                <div className="landingBFeatureCloud">{masterCopy.featureCloud.map(x => <b key={x}>{x}</b>)}</div>
+                <p className="landingBQrxCoreText">{masterCopy.coreText}</p>
               </div>
             </div>
-            <div className="landingBStatement">Einmal verbinden. Dauerhaft aktuell halten.</div>
+            <div className="landingBStatement">{masterCopy.statement}</div>
           </section>
 
-          <HomeAudienceDemos />
+          <HomeAudienceDemos locale={publicLanguage} />
 
           <section className="landingBExploreValue" aria-labelledby="explore-value-title">
             <div className="landingBSectionHeader">
-              <span className="landingBEyebrow">Explore verbindet beide Seiten</span>
-              <h2 id="explore-value-title">Entdecken für Nutzer. Sichtbarkeit für Unternehmen.</h2>
-              <p>Explore macht QR-X auf der Karte auffindbar und zeigt, was sich an realen Orten befindet.</p>
+              <span className="landingBEyebrow">{masterCopy.exploreEyebrow}</span>
+              <h2 id="explore-value-title">{masterCopy.exploreTitle}</h2>
+              <p>{masterCopy.exploreIntro}</p>
             </div>
             <div className="landingBExploreValueGrid">
               <div className="landingBExplorePhone">
@@ -594,33 +666,33 @@ export default async function Home({ params }: Props) {
               </div>
               <div className="landingBExploreValueCards">
                 <article>
-                  <span className="landingBAudienceBadge">Für Nutzer</span>
-                  <h3>Entdecke, was um dich herum interessant ist.</h3>
-                  <p>Finde QR-X in deiner Nähe, öffne Orte und Angebote, speichere interessante Einträge und navigiere direkt dorthin.</p>
-                  <div className="landingBExploreTags"><span>In meiner Nähe</span><span>Kategorien</span><span>Speichern</span><span>Navigation</span></div>
+                  <span className="landingBAudienceBadge">{masterCopy.users}</span>
+                  <h3>{masterCopy.userExploreTitle}</h3>
+                  <p>{masterCopy.userExploreText}</p>
+                  <div className="landingBExploreTags">{masterCopy.exploreTags.map(x => <span key={x}>{x}</span>)}</div>
                 </article>
                 <article className="landingBExploreBusinessCard">
-                  <span className="landingBAudienceBadge">Für Unternehmen</span>
-                  <h3>Zeige, wo dein Unternehmen aktiv ist.</h3>
-                  <p>Ein Immobilienunternehmen kann seine angebotenen Objekte auf Explore sichtbar machen. Interessenten sehen, wo sie liegen, öffnen den passenden QR-X und gelangen direkt zu Informationen, Kontakt und Navigation.</p>
-                  <small>Dasselbe Prinzip funktioniert für Projekte, Filialen, Standorte und Servicepunkte.</small>
+                  <span className="landingBAudienceBadge">{masterCopy.businesses}</span>
+                  <h3>{masterCopy.businessExploreTitle}</h3>
+                  <p>{masterCopy.businessExploreText}</p>
+                  <small>{masterCopy.businessExploreSmall}</small>
                 </article>
               </div>
             </div>
-            <div className="landingBExploreAction"><Link href={`/${locale}/explore`} className="landingBPrimary">Explore ansehen</Link></div>
+            <div className="landingBExploreAction"><Link href={`/${locale}/explore`} className="landingBPrimary">{masterCopy.exploreCta}</Link></div>
           </section>
 
           <section className="landingBFollow">
             <div className="landingBFollowCopy">
-              <span className="landingBEyebrow">Scannen ist nur der Anfang</span>
-              <h2>Folge einem QR-X und bleib auf dem Laufenden.</h2>
-              <p>Wenn sich wichtige Inhalte ändern, kann Mioseg qr dich darüber informieren. Der QR-X bleibt derselbe – nur die Information dahinter wird aktueller.</p>
-              <div className="landingBFollowExamples"><span>🏠 Preis geändert</span><span>📄 Neues Dokument</span><span>🔧 Wartung aktualisiert</span><span>🎟️ Termin geändert</span></div>
+              <span className="landingBEyebrow">{masterCopy.followEyebrow}</span>
+              <h2>{masterCopy.followTitle}</h2>
+              <p>{masterCopy.followText}</p>
+              <div className="landingBFollowExamples">{masterCopy.followExamples.map(x => <span key={x}>{x}</span>)}</div>
             </div>
             <div className="landingBFollowFlow">
-              <div><b>1</b><strong>QR-X speichern oder folgen</strong><small>Einmal verbinden</small></div><i>→</i>
-              <div><b>2</b><strong>Inhalt wird aktualisiert</strong><small>Der QR-X bleibt</small></div><i>→</i>
-              <div className="landingBPushCard"><b>🔔</b><strong>Du erfährst es.</strong><small>Aktuell bleiben</small></div>
+              <div><b>1</b><strong>{masterCopy.flow1}</strong><small>{masterCopy.flow1Small}</small></div><i>→</i>
+              <div><b>2</b><strong>{masterCopy.flow2}</strong><small>{masterCopy.flow2Small}</small></div><i>→</i>
+              <div className="landingBPushCard"><b>🔔</b><strong>{masterCopy.flow3}</strong><small>{masterCopy.flow3Small}</small></div>
             </div>
           </section>
         </>
@@ -707,7 +779,7 @@ export default async function Home({ params }: Props) {
         </div>
       </section>
 
-      {!isGerman && (
+      {!useMasterLayout && (
       <section id="usecases" className="landingBUseCases">
         <div className="landingBSectionHeader">
           <span className="landingBEyebrow">{publicUi.useCasesEyebrow}</span>
@@ -732,29 +804,21 @@ export default async function Home({ params }: Props) {
       </section>
       )}
 
-      {isGerman && (
+      {useMasterLayout && (
         <section className="landingBTrust">
           <div className="landingBSectionHeader">
-            <span className="landingBEyebrow">Für den professionellen Einsatz</span>
-            <h2>Mehr als Inhalte hinter einem Code.</h2>
-            <p>QR-X kombiniert die Informationen mit Funktionen, die auch im professionellen Einsatz wichtig sind.</p>
+            <span className="landingBEyebrow">{masterCopy.trustEyebrow}</span>
+            <h2>{masterCopy.trustTitle}</h2>
+            <p>{masterCopy.trustText}</p>
           </div>
           <div className="landingBTrustGrid">
-            <div><span>🔐</span><strong>Passwortschutz</strong><p>Zugriff auf geschützte QR-X gezielt absichern.</p></div>
-            <div><span>▧</span><strong>Dateien & Medien</strong><p>Dokumente, Bilder und weitere Inhalte zentral bereitstellen.</p></div>
-            <div><span>⌖</span><strong>Standort & Explore</strong><p>Reale Orte mit digitalen Informationen verbinden.</p></div>
-            <div><span>↗</span><strong>Kontakt & Aktionen</strong><p>Telefon, Website, E-Mail oder Navigation direkt erreichbar machen.</p></div>
-            <div><span>↻</span><strong>Updates</strong><p>Informationen ändern, ohne den QR-X auszutauschen.</p></div>
-            <div><span>▣</span><strong>App & Web</strong><p>Mit demselben Konto plattformübergreifend arbeiten.</p></div>
+            {masterCopy.trust.map(([icon,title,text]) => <div key={title}><span>{icon}</span><strong>{title}</strong><p>{text}</p></div>)}
           </div>
         </section>
       )}
 
       <section className="landingBBenefits">
-        <div><span>✦</span><strong>Kostenlos starten</strong><p>Erster normaler QR-X immer kostenlos.</p></div>
-        <div><span>✕</span><strong>Keine Abo-Pflicht</strong><p>Zahle nur, wenn du Credits brauchst.</p></div>
-        <div><span>⬡</span><strong>Zugriff & Datenschutz</strong><p>Mit Schutzfunktionen wie Passwortzugriff für private QR-X.</p></div>
-        <div><span>▣</span><strong>App & Web</strong><p>Überall synchron verfügbar.</p></div>
+        {masterCopy.benefits.map(([icon,title,text]) => <div key={title}><span>{icon}</span><strong>{title}</strong><p>{text}</p></div>)}
       </section>
 
       <section id="pricing" className="landingBPricing">
@@ -777,8 +841,8 @@ export default async function Home({ params }: Props) {
           <div><span>✓</span>{releaseCopy.pricingPoint1}</div>
           <div><span>✓</span>{releaseCopy.pricingPoint2}</div>
           <div><span>✓</span>{releaseCopy.pricingPoint3}</div>
-          <div><span>✓</span>Credits verfallen nicht</div>
-          <div><span>✓</span>Volle Kostenkontrolle ohne versteckte Gebühren</div>
+          <div><span>✓</span>{masterCopy.creditsNeverExpire}</div>
+          <div><span>✓</span>{masterCopy.fullCostControl}</div>
         </div>
       </section>
 
@@ -803,7 +867,7 @@ export default async function Home({ params }: Props) {
         <div className="landingBFooterLinks">
           <Link href={`/${locale}#features`}>{heroCopy.navFeatures}</Link>
           <Link href={`/${locale}/explore`}>{heroCopy.navExplore}</Link>
-          <Link href={`/${locale}#${isGerman ? "business" : "usecases"}`}>{heroCopy.navUseCases}</Link>
+          <Link href={`/${locale}#${useMasterLayout ? "business" : "usecases"}`}>{heroCopy.navUseCases}</Link>
           <Link href={`/${locale}#pricing`}>{heroCopy.navPrices}</Link>
           <Link href={`/${locale}/datenschutz`}>{releaseCopy.footerPrivacy}</Link>
           <Link href={`/${locale}/nutzungsbedingungen`}>{releaseCopy.footerTerms}</Link>
