@@ -459,7 +459,78 @@ export default async function Home({ params }: Props) {
     ],
     creditsNeverExpire:"Credits never expire", fullCostControl:"Full cost control with no hidden fees"
   };
-  const useMasterLayout = publicLanguage === "de" || publicLanguage === "en";
+  const useMasterLayout = true;
+
+  const masterLocaleOverlay: Partial<Record<PublicLocale, Partial<typeof masterCopy>>> = {
+    tr: { learnMore:"QR-X'i anla", freeStart:"Ücretsiz başla", noSubscription:"Abonelik zorunluluğu yok", appWeb:"Uygulama & Web",
+      problemEyebrow:"Neden Mioseg qr?", problemTitle:"Tarandı. Kapatıldı. Sonra bir daha bulunamadı.", problemText:"Normal bir QR kodu çoğu zaman yalnızca bir sayfaya giden kısa bir yoldur. Mioseg qr, taramayı kaydedebileceğin, yeniden bulabileceğin ve kullanmaya devam edebileceğin bir şeye dönüştürür.",
+      problemStrong:"Tara → kaydet → yeniden bul → takip et → keşfet.", problemAnswer:"İşletmeler de bu bağlantıyı sürekli güncel bilgilerle besleyebilir.",
+      ahaEyebrow:"QR-X'in farkı", ahaTitle:"Normal bir QR kodu bir hedef açar. QR-X ise faydalı kalır.", ahaText:"QR-X aynı kalır. Arkasındaki bilgiler her zaman güncellenebilir ve genişletilebilir.",
+      normalQr:"Normal QR kodu", oneScan:"Bir tarama → bir bağlantı", becomes:"dönüşür", statement:"Bir kez bağla. Sürekli güncel tut.",
+      exploreEyebrow:"Explore iki tarafı birleştirir", exploreTitle:"Kullanıcılar için keşif. İşletmeler için görünürlük.", exploreIntro:"Explore, QR-X'leri haritada bulunabilir hale getirir ve gerçek konumlarda neler olduğunu gösterir.",
+      users:"Kullanıcılar için", userExploreTitle:"Çevrende ilginç olanları keşfet.", userExploreText:"Yakınındaki QR-X'leri bul, yerleri ve teklifleri aç, ilginç kayıtları kaydet ve doğrudan oraya git.",
+      businesses:"İşletmeler için", businessExploreTitle:"İşletmenin nerede aktif olduğunu göster.", businessExploreSmall:"Aynı prensip projeler, şubeler, konumlar ve servis noktaları için de çalışır.", exploreCta:"Explore'u görüntüle",
+      followEyebrow:"Tarama sadece başlangıç", followTitle:"Bir QR-X'i takip et ve güncel kal.", followText:"Önemli içerikler değiştiğinde Mioseg qr sana haber verebilir. QR-X aynı kalır; yalnızca arkasındaki bilgiler güncellenir.",
+      trustEyebrow:"Profesyonel kullanım için", trustTitle:"Bir kodun arkasındaki içerikten daha fazlası.", trustText:"QR-X, bilgileri profesyonel kullanımda da önemli olan işlevlerle birleştirir.",
+      creditsNeverExpire:"Credits'in süresi dolmaz", fullCostControl:"Gizli ücret olmadan tam maliyet kontrolü" },
+    pl: { learnMore:"Poznaj QR-X", freeStart:"Zacznij za darmo", noSubscription:"Bez obowiązkowego abonamentu", appWeb:"Aplikacja i Web",
+      problemEyebrow:"Dlaczego Mioseg qr?", problemTitle:"Zeskanowane. Zamknięte. Później nie do odnalezienia.", problemText:"Zwykły kod QR jest często tylko krótką drogą do strony. Mioseg qr sprawia, że skan możesz zapisać, odnaleźć i dalej wykorzystywać.",
+      problemStrong:"Skanuj → zapisuj → odnajduj → obserwuj → odkrywaj.", problemAnswer:"Firmy mogą stale dostarczać przez to połączenie aktualne informacje.",
+      ahaEyebrow:"Moment, w którym rozumiesz QR-X", ahaTitle:"Zwykły kod QR otwiera cel. QR-X pozostaje użyteczny.", ahaText:"QR-X pozostaje ten sam. Informacje za nim można w każdej chwili aktualizować i rozszerzać.",
+      normalQr:"Zwykły kod QR", oneScan:"Jeden skan → jeden link", becomes:"staje się", statement:"Połącz raz. Utrzymuj stale aktualne.",
+      exploreEyebrow:"Explore łączy obie strony", exploreTitle:"Odkrywanie dla użytkowników. Widoczność dla firm.", exploreIntro:"Explore sprawia, że QR-X można znaleźć na mapie i pokazuje, co znajduje się w rzeczywistych lokalizacjach.",
+      users:"Dla użytkowników", userExploreTitle:"Odkrywaj to, co ciekawe wokół Ciebie.", userExploreText:"Znajduj QR-X w pobliżu, otwieraj miejsca i oferty, zapisuj ciekawe wpisy i nawiguj bezpośrednio do nich.",
+      businesses:"Dla firm", businessExploreTitle:"Pokaż, gdzie działa Twoja firma.", businessExploreSmall:"Ta sama zasada działa dla projektów, oddziałów, lokalizacji i punktów serwisowych.", exploreCta:"Zobacz Explore",
+      followEyebrow:"Skanowanie to dopiero początek", followTitle:"Obserwuj QR-X i bądź na bieżąco.", followText:"Gdy ważne treści się zmienią, Mioseg qr może Cię o tym poinformować. QR-X pozostaje ten sam – aktualizują się tylko informacje.",
+      trustEyebrow:"Do zastosowań profesjonalnych", trustTitle:"Więcej niż treść za kodem.", trustText:"QR-X łączy informacje z funkcjami ważnymi również w zastosowaniach profesjonalnych.",
+      creditsNeverExpire:"Credits nie wygasają", fullCostControl:"Pełna kontrola kosztów bez ukrytych opłat" },
+    fr: { learnMore:"Comprendre QR-X", freeStart:"Commencer gratuitement", noSubscription:"Aucun abonnement obligatoire", appWeb:"App & Web",
+      problemEyebrow:"Pourquoi Mioseg qr ?", problemTitle:"Scanné. Fermé. Puis impossible à retrouver.", problemText:"Un QR code classique n'est souvent qu'un raccourci vers une page. Mioseg qr transforme le scan en quelque chose que vous pouvez enregistrer, retrouver et continuer à utiliser.",
+      problemStrong:"Scanner → enregistrer → retrouver → suivre → découvrir.", problemAnswer:"Et les entreprises peuvent alimenter durablement cette connexion avec des informations à jour.",
+      ahaEyebrow:"Le déclic QR-X", ahaTitle:"Un QR code classique ouvre une destination. Un QR-X reste utile.", ahaText:"Le QR-X reste le même. Les informations associées peuvent être mises à jour et enrichies à tout moment.",
+      normalQr:"QR code classique", oneScan:"Un scan → un lien", becomes:"devient", statement:"Connectez une fois. Gardez toujours à jour.",
+      exploreEyebrow:"Explore relie les deux côtés", exploreTitle:"Découverte pour les utilisateurs. Visibilité pour les entreprises.", exploreIntro:"Explore rend les QR-X visibles sur la carte et montre ce qui se trouve dans des lieux réels.",
+      users:"Pour les utilisateurs", userExploreTitle:"Découvrez ce qui est intéressant autour de vous.", userExploreText:"Trouvez des QR-X à proximité, ouvrez lieux et offres, enregistrez les entrées intéressantes et naviguez directement vers elles.",
+      businesses:"Pour les entreprises", businessExploreTitle:"Montrez où votre entreprise est active.", businessExploreSmall:"Le même principe fonctionne pour les projets, agences, sites et points de service.", exploreCta:"Voir Explore",
+      followEyebrow:"Le scan n'est que le début", followTitle:"Suivez un QR-X et restez à jour.", followText:"Lorsque des contenus importants changent, Mioseg qr peut vous en informer. Le QR-X reste le même, seules les informations évoluent.",
+      trustEyebrow:"Pour un usage professionnel", trustTitle:"Bien plus que du contenu derrière un code.", trustText:"QR-X associe les informations à des fonctions importantes pour un usage professionnel.",
+      creditsNeverExpire:"Les Credits n'expirent pas", fullCostControl:"Contrôle total des coûts sans frais cachés" },
+    es: { learnMore:"Entender QR-X", freeStart:"Empieza gratis", noSubscription:"Sin suscripción obligatoria", appWeb:"App y Web",
+      problemEyebrow:"¿Por qué Mioseg qr?", problemTitle:"Escaneado. Cerrado. Y después, imposible de encontrar.", problemText:"Un código QR normal suele ser solo un acceso rápido a una página. Mioseg qr convierte el escaneo en algo que puedes guardar, volver a encontrar y seguir utilizando.",
+      problemStrong:"Escanear → guardar → encontrar → seguir → descubrir.", problemAnswer:"Y las empresas pueden mantener esa conexión con información siempre actualizada.",
+      ahaEyebrow:"El momento QR-X", ahaTitle:"Un código QR normal abre un destino. Un QR-X sigue siendo útil.", ahaText:"El QR-X permanece igual. La información asociada puede actualizarse y ampliarse en cualquier momento.",
+      normalQr:"Código QR normal", oneScan:"Un escaneo → un enlace", becomes:"se convierte en", statement:"Conecta una vez. Manténlo siempre actualizado.",
+      exploreEyebrow:"Explore conecta ambos lados", exploreTitle:"Descubrimiento para usuarios. Visibilidad para empresas.", exploreIntro:"Explore hace que los QR-X se puedan encontrar en el mapa y muestra lo que existe en ubicaciones reales.",
+      users:"Para usuarios", userExploreTitle:"Descubre lo interesante que hay a tu alrededor.", userExploreText:"Encuentra QR-X cercanos, abre lugares y ofertas, guarda entradas interesantes y navega directamente hasta ellas.",
+      businesses:"Para empresas", businessExploreTitle:"Muestra dónde está activa tu empresa.", businessExploreSmall:"El mismo principio funciona para proyectos, sucursales, ubicaciones y puntos de servicio.", exploreCta:"Ver Explore",
+      followEyebrow:"Escanear es solo el principio", followTitle:"Sigue un QR-X y mantente al día.", followText:"Cuando cambia contenido importante, Mioseg qr puede avisarte. El QR-X sigue siendo el mismo; solo se actualiza la información.",
+      trustEyebrow:"Para uso profesional", trustTitle:"Mucho más que contenido detrás de un código.", trustText:"QR-X combina la información con funciones importantes también para el uso profesional.",
+      creditsNeverExpire:"Los Credits no caducan", fullCostControl:"Control total de costes sin cargos ocultos" },
+    it: { learnMore:"Scopri QR-X", freeStart:"Inizia gratis", noSubscription:"Nessun abbonamento obbligatorio", appWeb:"App & Web",
+      problemEyebrow:"Perché Mioseg qr?", problemTitle:"Scansionato. Chiuso. Poi mai più ritrovato.", problemText:"Un normale QR code è spesso solo una scorciatoia verso una pagina. Mioseg qr trasforma la scansione in qualcosa che puoi salvare, ritrovare e continuare a usare.",
+      problemStrong:"Scansiona → salva → ritrova → segui → scopri.", problemAnswer:"E le aziende possono mantenere questa connessione sempre aggiornata.",
+      ahaEyebrow:"Il momento QR-X", ahaTitle:"Un normale QR code apre una destinazione. Un QR-X resta utile.", ahaText:"Il QR-X resta lo stesso. Le informazioni collegate possono essere aggiornate e ampliate in qualsiasi momento.",
+      normalQr:"QR code normale", oneScan:"Una scansione → un link", becomes:"diventa", statement:"Collega una volta. Mantieni sempre aggiornato.",
+      exploreEyebrow:"Explore collega entrambi i lati", exploreTitle:"Scoperta per gli utenti. Visibilità per le aziende.", exploreIntro:"Explore rende i QR-X visibili sulla mappa e mostra cosa si trova nei luoghi reali.",
+      users:"Per gli utenti", userExploreTitle:"Scopri cosa c'è di interessante intorno a te.", userExploreText:"Trova QR-X nelle vicinanze, apri luoghi e offerte, salva gli elementi interessanti e naviga direttamente fino a loro.",
+      businesses:"Per le aziende", businessExploreTitle:"Mostra dove è attiva la tua azienda.", businessExploreSmall:"Lo stesso principio funziona per progetti, filiali, sedi e punti di assistenza.", exploreCta:"Visualizza Explore",
+      followEyebrow:"La scansione è solo l'inizio", followTitle:"Segui un QR-X e resta aggiornato.", followText:"Quando cambiano contenuti importanti, Mioseg qr può informarti. Il QR-X resta lo stesso; cambiano solo le informazioni collegate.",
+      trustEyebrow:"Per uso professionale", trustTitle:"Molto più che contenuti dietro un codice.", trustText:"QR-X combina le informazioni con funzioni importanti anche nell'uso professionale.",
+      creditsNeverExpire:"I Credits non scadono", fullCostControl:"Pieno controllo dei costi senza spese nascoste" },
+    ar: { learnMore:"تعرّف على QR-X", freeStart:"ابدأ مجانًا", noSubscription:"لا اشتراك إلزامي", appWeb:"التطبيق والويب",
+      problemEyebrow:"لماذا Mioseg qr؟", problemTitle:"تم المسح. تم الإغلاق. ثم لم تجده مجددًا.", problemText:"غالبًا ما يكون رمز QR العادي مجرد طريق سريع إلى صفحة. يحول Mioseg qr عملية المسح إلى شيء يمكنك حفظه والعثور عليه مجددًا والاستمرار في استخدامه.",
+      problemStrong:"امسح ← احفظ ← اعثر مجددًا ← تابع ← اكتشف.", problemAnswer:"ويمكن للشركات إبقاء هذا الاتصال مزودًا بمعلومات محدثة باستمرار.",
+      ahaEyebrow:"لحظة فهم QR-X", ahaTitle:"رمز QR العادي يفتح وجهة. أما QR-X فيبقى مفيدًا.", ahaText:"يبقى QR-X نفسه، ويمكن تحديث المعلومات المرتبطة به وتوسيعها في أي وقت.",
+      normalQr:"رمز QR عادي", oneScan:"مسح واحد ← رابط واحد", becomes:"يصبح", statement:"اربط مرة واحدة. وحافظ على التحديث دائمًا.",
+      exploreEyebrow:"Explore يربط الجانبين", exploreTitle:"اكتشاف للمستخدمين. وظهور للشركات.", exploreIntro:"يجعل Explore رموز QR-X قابلة للاكتشاف على الخريطة ويعرض ما يوجد في المواقع الحقيقية.",
+      users:"للمستخدمين", userExploreTitle:"اكتشف ما يثير اهتمامك من حولك.", userExploreText:"اعثر على QR-X بالقرب منك وافتح الأماكن والعروض واحفظ العناصر المهمة وانتقل إليها مباشرة.",
+      businesses:"للشركات", businessExploreTitle:"أظهر أين تنشط شركتك.", businessExploreSmall:"ينطبق المبدأ نفسه على المشاريع والفروع والمواقع ونقاط الخدمة.", exploreCta:"عرض Explore",
+      followEyebrow:"المسح مجرد البداية", followTitle:"تابع QR-X وابقَ على اطلاع.", followText:"عندما يتغير محتوى مهم، يمكن لـ Mioseg qr إبلاغك. يبقى QR-X نفسه وتتحدث المعلومات المرتبطة به فقط.",
+      trustEyebrow:"للاستخدام المهني", trustTitle:"أكثر من مجرد محتوى خلف رمز.", trustText:"يجمع QR-X المعلومات مع وظائف مهمة أيضًا للاستخدام المهني.",
+      creditsNeverExpire:"لا تنتهي صلاحية Credits", fullCostControl:"تحكم كامل بالتكاليف دون رسوم مخفية" }
+  };
+  Object.assign(masterCopy, masterLocaleOverlay[publicLanguage] ?? {});
+
 
 
   const professionalUseCases = {
@@ -632,6 +703,29 @@ export default async function Home({ params }: Props) {
             </div>
           </section>
 
+
+      <section className="landingBVideo">
+        <div className="landingBVideoCopy">
+          <span className="landingBEyebrow">{releaseCopy.videoEyebrow}</span>
+          <h2>{releaseCopy.videoTitle}</h2>
+          <p>{releaseCopy.videoText}</p>
+        </div>
+
+        <div className="landingBVideoFrame">
+          <video
+            controls
+            preload="none"
+            poster={landingImages.videoPoster}
+            playsInline
+            aria-label={releaseCopy.videoTitle}
+          >
+            <source src={promoVideoSrc} type="video/mp4" />
+          </video>
+
+
+        </div>
+      </section>
+
           <section id="qrx-explained" className="landingBQrxAha">
             <div className="landingBSectionHeader">
               <span className="landingBEyebrow">{masterCopy.ahaEyebrow}</span>
@@ -697,28 +791,6 @@ export default async function Home({ params }: Props) {
           </section>
         </>
       )}
-
-      <section className="landingBVideo">
-        <div className="landingBVideoCopy">
-          <span className="landingBEyebrow">{releaseCopy.videoEyebrow}</span>
-          <h2>{releaseCopy.videoTitle}</h2>
-          <p>{releaseCopy.videoText}</p>
-        </div>
-
-        <div className="landingBVideoFrame">
-          <video
-            controls
-            preload="none"
-            poster={landingImages.videoPoster}
-            playsInline
-            aria-label={releaseCopy.videoTitle}
-          >
-            <source src={promoVideoSrc} type="video/mp4" />
-          </video>
-
-
-        </div>
-      </section>
 
       <section id="features" className="landingBQrx">
         <div className="landingBSectionHeader">
