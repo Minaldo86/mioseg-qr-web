@@ -108,7 +108,7 @@ const HOME_RELEASE_COPY: Record<PublicLocale, {
 }> = {
   de: {
     videoEyebrow: "Mioseg qr erleben",
-    videoTitle: "Mioseg qr in 60 Sekunden.",
+    videoTitle: "Mioseg qr entdecken.",
     videoText: "Sieh, wie aus einem einfachen QR-Code ein dynamischer QR-X wird – vom Scannen und Speichern bis zu Updates, Karte und direktem Kontakt.",
     videoHint: "Das finale Promo-Video wird hier direkt eingebunden.",
     qrxEyebrow: "Was ist ein QR-X?",
@@ -134,7 +134,7 @@ const HOME_RELEASE_COPY: Record<PublicLocale, {
   },
   en: {
     videoEyebrow: "Experience Mioseg qr",
-    videoTitle: "Mioseg qr in 60 seconds.",
+    videoTitle: "Discover Mioseg qr.",
     videoText: "See how a simple QR code becomes a dynamic QR-X — from scanning and saving to updates, map context and direct actions.",
     videoHint: "The final promotional video will be embedded here.",
     qrxEyebrow: "What is a QR-X?",
@@ -160,7 +160,7 @@ const HOME_RELEASE_COPY: Record<PublicLocale, {
   },
   tr: {
     videoEyebrow: "Mioseg qr'ı keşfet",
-    videoTitle: "60 saniyede Mioseg qr.",
+    videoTitle: "Mioseg qr’ı keşfet.",
     videoText: "Basit bir QR kodunun; tarama, kaydetme, güncellemeler, harita ve doğrudan işlemlerle nasıl dinamik bir QR-X'e dönüştüğünü gör.",
     videoHint: "Nihai tanıtım videosu burada doğrudan gösterilecek.",
     qrxEyebrow: "QR-X nedir?",
@@ -186,7 +186,7 @@ const HOME_RELEASE_COPY: Record<PublicLocale, {
   },
   pl: {
     videoEyebrow: "Poznaj Mioseg qr",
-    videoTitle: "Mioseg qr w 60 sekund.",
+    videoTitle: "Odkryj Mioseg qr.",
     videoText: "Zobacz, jak zwykły kod QR staje się dynamicznym QR-X — od skanowania i zapisywania po aktualizacje, mapę i bezpośrednie działania.",
     videoHint: "Finalny film promocyjny zostanie osadzony bezpośrednio tutaj.",
     qrxEyebrow: "Czym jest QR-X?",
@@ -212,7 +212,7 @@ const HOME_RELEASE_COPY: Record<PublicLocale, {
   },
   ar: {
     videoEyebrow: "اكتشف Mioseg qr",
-    videoTitle: "Mioseg qr في 60 ثانية.",
+    videoTitle: "اكتشف Mioseg qr.",
     videoText: "شاهد كيف يتحول رمز QR بسيط إلى QR-X ديناميكي، من المسح والحفظ إلى التحديثات والخريطة والإجراءات المباشرة.",
     videoHint: "سيتم تضمين الفيديو الترويجي النهائي هنا مباشرة.",
     qrxEyebrow: "ما هو QR-X؟",
@@ -238,7 +238,7 @@ const HOME_RELEASE_COPY: Record<PublicLocale, {
   },
   fr: {
     videoEyebrow: "Découvrir Mioseg qr",
-    videoTitle: "Mioseg qr en 60 secondes.",
+    videoTitle: "Découvrez Mioseg qr.",
     videoText: "Découvrez comment un simple QR code devient un QR-X dynamique, du scan et de l’enregistrement aux mises à jour, à la carte et aux actions directes.",
     videoHint: "La vidéo promotionnelle finale sera intégrée directement ici.",
     qrxEyebrow: "Qu’est-ce qu’un QR-X ?",
@@ -264,7 +264,7 @@ const HOME_RELEASE_COPY: Record<PublicLocale, {
   },
   es: {
     videoEyebrow: "Descubre Mioseg qr",
-    videoTitle: "Mioseg qr en 60 segundos.",
+    videoTitle: "Descubre Mioseg qr.",
     videoText: "Descubre cómo un simple código QR se convierte en un QR-X dinámico: desde escanear y guardar hasta actualizaciones, mapa y acciones directas.",
     videoHint: "El vídeo promocional final se integrará directamente aquí.",
     qrxEyebrow: "¿Qué es un QR-X?",
@@ -290,7 +290,7 @@ const HOME_RELEASE_COPY: Record<PublicLocale, {
   },
   it: {
     videoEyebrow: "Scopri Mioseg qr",
-    videoTitle: "Mioseg qr in 60 secondi.",
+    videoTitle: "Scopri Mioseg qr.",
     videoText: "Scopri come un semplice codice QR diventa un QR-X dinamico: dalla scansione e dal salvataggio agli aggiornamenti, alla mappa e alle azioni dirette.",
     videoHint: "Il video promozionale finale verrà integrato direttamente qui.",
     qrxEyebrow: "Cos’è un QR-X?",
@@ -340,7 +340,8 @@ const APP_SHOWCASE_COPY: Record<PublicLocale, {
   it: { eyebrow:"Schermate reali dell’app", title:"Ecco come appare davvero Mioseg qr.", text:"Niente grafiche demo: queste schermate provengono direttamente dall’app e mostrano le funzioni principali nell’uso reale.", exploreTitle:"Explore e mappa", exploreText:"Scopri QR-X nelle vicinanze e ritrova i luoghi direttamente sulla mappa.", scansTitle:"Organizza le scansioni", scansText:"Cerca, filtra e organizza QR code e QR-X salvati in cartelle.", businessTitle:"Business QR-X", businessText:"Le aziende ottengono un profilo professionale con categoria, azioni di contatto e verifica opzionale.", collectionTitle:"Custom Collection", collectionText:"Collega più QR-X indipendenti in una raccolta, ideale per prodotti, immobili, eventi, mostre o sedi.", collectionBadge:"Funzione QR-X distintiva" },
 };
 
-const PROMO_VIDEO_SRC = "/landing/mioseg-qr-promo.mp4";
+const PROMO_VIDEO_DE_SRC = "/landing/mioseg-qr-promo-de.mp4";
+const PROMO_VIDEO_EN_SRC = "/landing/mioseg-qr-promo-en.mp4";
 
 function publicLocale(value: string): PublicLocale {
   return PUBLIC_LOCALES.includes(value as PublicLocale) ? (value as PublicLocale) : "en";
@@ -386,6 +387,7 @@ export default async function Home({ params }: Props) {
   const publicUi = HOME_PUBLIC_UI[publicLanguage];
   const releaseCopy = HOME_RELEASE_COPY[publicLanguage];
   const isGerman = publicLanguage === "de";
+  const promoVideoSrc = isGerman ? PROMO_VIDEO_DE_SRC : PROMO_VIDEO_EN_SRC;
   const showcaseCopy = APP_SHOWCASE_COPY[publicLanguage];
 
   const professionalUseCases = {
@@ -634,12 +636,12 @@ export default async function Home({ params }: Props) {
         <div className="landingBVideoFrame">
           <video
             controls
-            preload="metadata"
+            preload="none"
             poster={landingImages.videoPoster}
             playsInline
             aria-label={releaseCopy.videoTitle}
           >
-            <source src={PROMO_VIDEO_SRC} type="video/mp4" />
+            <source src={promoVideoSrc} type="video/mp4" />
           </video>
 
 
