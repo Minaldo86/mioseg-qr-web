@@ -23,12 +23,12 @@ const COPY = {
     sectionText: "Wähle eine Perspektive und probiere darunter echte Beispiele direkt aus.",
     selectorLabel: "Zielgruppe für dynamische QR-Codes auswählen",
     privateBadge: "Für dich",
-    privateTitle: "Scannen, behalten und später wiederfinden.",
+    privateTitle: "Speichere und entdecke, was dich umgibt.",
     privateText: "Interessante QR-Codes verschwinden nicht mehr nach dem Scan. Speichere sie, ordne sie und finde sie später wieder.",
     privateFlow: ["Scannen", "Speichern", "Wiederfinden", "Folgen"],
     privateHint: "Private Beispiele anzeigen ↓",
     businessBadge: "Für Unternehmen",
-    businessTitle: "Informationen genau dort bereitstellen, wo sie gebraucht werden.",
+    businessTitle: "Mach physische Dinge digital.",
     businessText: "Verbinde ein reales Objekt, einen Standort oder ein Projekt mit einem dynamischen QR-Code. Inhalte lassen sich später ändern, ohne den angebrachten QR-Code auszutauschen.",
     businessFlow: ["Erstellen", "Anbringen", "Aktualisieren", "Sichtbar bleiben"],
     businessHint: "Unternehmensbeispiele anzeigen ↓",
@@ -183,7 +183,7 @@ const BUSINESS_DEMOS: Record<SupportedLocale, Demo[]> = {
   de: [
     { eyebrow:"Maschine & Industrie", title:"MX-500", text:"Betriebsanleitung, technische Daten, Wartung, Prüfberichte und aktuelle Änderungen direkt an der Maschine.", href:"https://www.mioseg-qr.com/qrx/2b87342e-809b-46ad-9ba1-4b7bcd5a3d67", image:"/landing/business-machine-qrx.png", imageAlt:"MX-500 Industriemaschine mit QR-Code", cta:"QR-Code öffnen" },
     { eyebrow:"Business + Collection", title:"Theater am Rhein", text:"Ein dynamischer Theater-QR-Code bündelt die Spielzeit und verbindet mehrere eigenständige Produktionen in einer Collection.", href:"https://www.mioseg-qr.com/qrx/17be4d84-a874-433f-a0c0-3cf32a9021c1", image:"/landing/theater.jpg", imageAlt:"Theater am Rhein Spielzeit 2026/27", cta:"Collection öffnen" },
-    { eyebrow:"Produkt", title:"AeroTherm X12", text:"Produktdaten, Dokumente, Support und spätere Aktualisierungen dauerhaft mit der Wärmepumpe verbinden.", href:"https://www.mioseg-qr.com/qrx/4a44cab9-fcd6-4809-8dab-0301af443b0d", image:"/landing/wärmepumpe.png", imageAlt:"AeroTherm X12 Wärmepumpe", cta:"QR-Code öffnen" },
+    { eyebrow:"Produkt", title:"AeroTherm X12", text:"Digitalisiere dein Produkt: Produktdaten, Dokumente, Support und spätere Aktualisierungen dauerhaft mit der Wärmepumpe verbinden.", href:"https://www.mioseg-qr.com/qrx/4a44cab9-fcd6-4809-8dab-0301af443b0d", image:"/landing/wärmepumpe.png", imageAlt:"AeroTherm X12 Wärmepumpe", cta:"QR-Code öffnen" },
     { eyebrow:"Immobilie", title:"WohnOase", text:"Exposé, Bilder, Grundrisse, Standort und Kontakt über einen dauerhaft aktualisierbaren QR-Code bereitstellen.", href:"https://www.mioseg-qr.com/qrx/2f8a5f04-db67-4fc1-b80b-67a2c049140d", image:"/landing/immobilien.png", imageAlt:"WohnOase Immobilie", cta:"QR-Code öffnen" }
   ],
   en: [

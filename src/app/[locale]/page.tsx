@@ -397,7 +397,7 @@ export default async function Home({ params }: Props) {
     problemText:"Ein normaler QR-Code ist oft nur ein kurzer Weg zu einer Seite. Mioseg qr macht aus dem Scan etwas, das du speichern, wiederfinden und weiter nutzen kannst.",
     problemStrong:"Scannen → speichern → wiederfinden → folgen → entdecken.",
     problemAnswer:"Und Unternehmen können genau diese Verbindung dauerhaft mit aktuellen Informationen versorgen.",
-    ahaEyebrow:"Der dynamische Unterschied", ahaTitle:"Ein normaler QR-Code öffnet einen Link. Ein dynamischer QR-Code mit Mioseg qr öffnet Möglichkeiten.",
+    ahaEyebrow:"Der dynamische Unterschied", ahaTitle:"Ein physischer Gegenstand erhält eine dauerhaft aktualisierbare digitale Identität.",
     ahaText:"Der QR-Code bleibt derselbe. Die Informationen dahinter können jederzeit aktualisiert und erweitert werden.",
     normalQr:"Normaler QR-Code", oneScan:"Ein Scan → ein Link", becomes:"wird zu",
     featureCloud:["Bilder","PDF & Dateien","Standort","Kontakt","News","Updates","Follow","Passwort"],
