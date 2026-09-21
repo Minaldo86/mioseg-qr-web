@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type Demo = {
   eyebrow: string;
@@ -285,7 +285,23 @@ export default function HomeAudienceDemos({ locale = "de" }: { locale?: string }
   const language: SupportedLocale = (["de","en","tr","pl","ar","fr","es","it"] as const).includes(locale as SupportedLocale) ? locale as SupportedLocale : "en";
   const c = COPY[language];
   const [activeAudience, setActiveAudience] = useState<Audience>("business");
+  const demoPanelRef = useRef<HTMLDivElement>(null);
   const demos = activeAudience === "business" ? BUSINESS_DEMOS[language] : PRIVATE_DEMOS[language];
+
+  const selectAudience = (audience: Audience) => {
+    setActiveAudience(audience);
+
+    // Wait until React has rendered the selected examples before scrolling.
+    // Two animation frames make this reliable in desktop and mobile browsers.
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        demoPanelRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+    });
+  };
 
   return (
     <section className="landingBAudience" aria-labelledby="audience-title">
@@ -296,7 +312,7 @@ export default function HomeAudienceDemos({ locale = "de" }: { locale?: string }
       </div>
 
       <div className="landingBAudienceGrid landingBAudienceSelector" role="group" aria-label={c.selectorLabel}>
-        <button type="button" className={`landingBAudienceCard landingBAudienceChoice ${activeAudience === "private" ? "landingBAudienceChoiceActive" : ""}`} onClick={() => setActiveAudience("private")} aria-pressed={activeAudience === "private"}>
+        <button type="button" className={`landingBAudienceCard landingBAudienceChoice ${activeAudience === "private" ? "landingBAudienceChoiceActive" : ""}`} onClick={() => selectAudience("private")} aria-pressed={activeAudience === "private"} aria-controls="audience-examples">
           <span className="landingBAudienceBadge">{c.privateBadge}</span>
           <h3>{c.privateTitle}</h3>
           <p>{c.privateText}</p>
@@ -304,7 +320,7 @@ export default function HomeAudienceDemos({ locale = "de" }: { locale?: string }
           <span className="landingBAudienceOpenHint">{c.privateHint}</span>
         </button>
 
-        <button type="button" className={`landingBAudienceCard landingBAudienceCardBusiness landingBAudienceChoice ${activeAudience === "business" ? "landingBAudienceChoiceActive" : ""}`} onClick={() => setActiveAudience("business")} aria-pressed={activeAudience === "business"}>
+        <button type="button" className={`landingBAudienceCard landingBAudienceCardBusiness landingBAudienceChoice ${activeAudience === "business" ? "landingBAudienceChoiceActive" : ""}`} onClick={() => selectAudience("business")} aria-pressed={activeAudience === "business"} aria-controls="audience-examples">
           <span className="landingBAudienceBadge">{c.businessBadge}</span>
           <h3>{c.businessTitle}</h3>
           <p>{c.businessText}</p>
@@ -313,7 +329,13 @@ export default function HomeAudienceDemos({ locale = "de" }: { locale?: string }
         </button>
       </div>
 
-      <div className="landingBAudienceDemoPanel" aria-live="polite">
+      <div
+        id="audience-examples"
+        ref={demoPanelRef}
+        className="landingBAudienceDemoPanel"
+        aria-live="polite"
+        style={{ scrollMarginTop: "clamp(72px, 10vh, 112px)" }}
+      >
         <div className="landingBAudienceDemoHead">
           <div>
             <span className="landingBAudienceBadge">{activeAudience === "business" ? c.businessBadge : c.privateBadge}</span>
