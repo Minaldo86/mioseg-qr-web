@@ -16,7 +16,14 @@ import { supabase } from "@/lib/supabase";
 import styles from "../../dashboard/dashboard.module.css";
 
 type PublicLocale = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
-const PUBLIC_TEXT = {
+
+function normalizeQrCopy<const T>(copy: T): T {
+  return JSON.parse(
+    JSON.stringify(copy).replaceAll("QR-X", "QR-Code"),
+  ) as T;
+}
+
+const PUBLIC_TEXT = normalizeQrCopy({
   "de": {
     "navAria": "QR-X Navigation",
     "transfer": "Transfer",
@@ -833,7 +840,7 @@ const PUBLIC_TEXT = {
       "open": "Apri →"
     }
   }
-} as const;
+} as const);
 function normalizePublicLocale(value:string):PublicLocale{return ["de","en","tr","pl","ar","fr","es","it"].includes(value)?value as PublicLocale:"de";}
 
 type BusinessCategory =

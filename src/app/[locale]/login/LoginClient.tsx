@@ -84,7 +84,13 @@ type LoginCopy = {
   hidePassword: string;
 };
 
-const LOGIN_COPY: Record<AccountLanguage, LoginCopy> = {
+function normalizeQrCopy<T>(copy: T): T {
+  return JSON.parse(
+    JSON.stringify(copy).replaceAll("QR-X", "QR-Code"),
+  ) as T;
+}
+
+const LOGIN_COPY: Record<AccountLanguage, LoginCopy> = normalizeQrCopy({
   de: {
     navHome: "Startseite", kicker: "Mioseg qr Konto", title: "Anmelden und QR-X im Browser verwalten.", subtitle: "Nutze denselben Account wie in der App. QR-X, Credits und gespeicherte Inhalte bleiben synchron.", formTitle: "Einloggen", formSubtitle: "Melde dich mit deiner E-Mail und deinem Passwort an.", email: "E-Mail", password: "Passwort", submit: "Einloggen", loading: "Wird angemeldet ...", noAccount: "Noch kein Konto?", register: "Jetzt registrieren", forgotPassword: "Passwort vergessen?", resetSent: "Wenn die E-Mail registriert ist, erhältst du einen Link zum Zurücksetzen des Passworts.", feature1Title: "Ein Konto", feature1Text: "Web und App nutzen denselben Supabase-Account.", feature2Title: "Synchron", feature2Text: "QR-X und Credits sind überall synchron verfügbar.", feature3Title: "Dashboard", feature3Text: "Verwalte QR-X, Scans, Credits und Support im Browser.", invalidCredentials: "E-Mail oder Passwort ist nicht korrekt.", emailNotConfirmed: "Bitte bestätige zuerst deine E-Mail-Adresse.", loginFailed: "Anmeldung fehlgeschlagen. Bitte versuche es erneut.", emailRequired: "Bitte gib zuerst deine E-Mail-Adresse ein.", resetFailed: "Passwort-Link konnte nicht gesendet werden.",
     resetTitle: "Passwort zurücksetzen", resetDescription: "Gib die E-Mail-Adresse deines Kontos ein. Wir senden dir einen Link, mit dem du ein neues Passwort festlegen kannst.", resetSend: "Reset-Link senden", resetSending: "Wird gesendet …", cancel: "Abbrechen", showPassword: "Passwort anzeigen", hidePassword: "Passwort verbergen",
@@ -117,7 +123,7 @@ const LOGIN_COPY: Record<AccountLanguage, LoginCopy> = {
     navHome: "Home", kicker: "Account Mioseg qr", title: "Accedi e gestisci i tuoi QR-X nel browser.", subtitle: "Usa lo stesso account dell’app. QR-X, crediti e contenuti salvati rimangono sincronizzati.", formTitle: "Accedi", formSubtitle: "Accedi con e-mail e password.", email: "E-mail", password: "Password", submit: "Accedi", loading: "Accesso in corso ...", noAccount: "Non hai ancora un account?", register: "Crea account", forgotPassword: "Password dimenticata?", resetSent: "Se l’e-mail è registrata, riceverai un link per reimpostare la password.", feature1Title: "Un solo account", feature1Text: "Web e app utilizzano lo stesso account Supabase.", feature2Title: "Sincronizzato", feature2Text: "QR-X e crediti rimangono sincronizzati ovunque.", feature3Title: "Dashboard", feature3Text: "Gestisci QR-X, scansioni, crediti e supporto nel browser.", invalidCredentials: "E-mail o password non corretti.", emailNotConfirmed: "Conferma prima il tuo indirizzo e-mail.", loginFailed: "Accesso non riuscito. Riprova.", emailRequired: "Inserisci prima il tuo indirizzo e-mail.", resetFailed: "Non è stato possibile inviare il link per reimpostare la password.",
     resetTitle: "Reimposta password", resetDescription: "Inserisci l’indirizzo e-mail del tuo account. Ti invieremo un link per impostare una nuova password.", resetSend: "Invia link", resetSending: "Invio …", cancel: "Annulla", showPassword: "Mostra password", hidePassword: "Nascondi password",
   },
-};
+});
 
 function getAuthErrorMessage(message: string, locale: string) {
   const lower = message.toLowerCase();

@@ -22,62 +22,68 @@ type GetAppCopy = {
   appBenefit1:string; appBenefit2:string; appBenefit3:string; appBenefit4:string; appBenefit5:string; appBenefit6:string;
 };
 
-const GET_APP_COPY: Record<string, GetAppCopy> = {
+function normalizeQrCopy<T>(copy: T): T {
+  return JSON.parse(
+    JSON.stringify(copy).replaceAll("QR-X", "QR-Code"),
+  ) as T;
+}
+
+const GET_APP_COPY: Record<string, GetAppCopy> = normalizeQrCopy({
   de: {
-    badge:"mioseg qr · App herunterladen",
-    title1:"mioseg qr im vollen",
-    title2:"Umfang nutzen.",
-    intro:"Lade die mioseg qr App herunter und mache mehr aus jedem QR-X. Scanne, speichere und organisiere QR-Codes und QR-X, folge interessanten QR-X und erhalte wichtige Aktualisierungen direkt in der App.",
+    badge:"mioseg qr · Deine QR-App",
+    title1:"Scannen. Speichern.",
+    title2:"Immer wiederfinden.",
+    intro:"Mit mioseg qr behältst du wichtige QR-Codes dauerhaft im Blick. Speichere sie in eigenen Ordnern, finde Orte auf der Karte wieder und erhalte Updates, sobald sich Inhalte ändern.",
     storeAppleSmall:"Laden im", storeGoogleSmall:"Jetzt bei", appStoreButton:"Im App Store", playButton:"Bei Google Play",
-    factScan:"Speichern", factScanText:"QR-Codes und QR-X dauerhaft behalten und in eigenen Ordnern organisieren",
-    factQrxText:"QR-X folgen und wichtige Aktualisierungen direkt mitbekommen",
-    factBusinessText:"Eigene QR-X erstellen, verwalten und professionell einsetzen",
+    factScan:"Wiederfinden", factScanText:"Wichtige QR-Codes dauerhaft speichern und in eigenen Ordnern organisieren",
+    factQrxText:"Dynamischen QR-Codes folgen und wichtige Aktualisierungen direkt erhalten",
+    factBusinessText:"Eigene dynamische QR-Codes erstellen, aktualisieren und professionell einsetzen",
     phoneSubtitle:"Speichern, organisieren, folgen und wiederfinden",
-    phoneOverline:"Die App im Überblick", phoneTitle:"Deine QR-X an einem Ort",
-    phoneText:"Scans, gespeicherte QR-X, eigene Inhalte, Updates und Standorte übersichtlich in einer App.",
+    phoneOverline:"Alles an einem Ort", phoneTitle:"Deine QR-Codes. Dauerhaft griffbereit.",
+    phoneText:"Gespeicherte Scans, eigene Inhalte, Updates und Standorte übersichtlich in einer App.",
     phoneScanText:"Speichern & wiederfinden", phoneQrxText:"Folgen & Updates erhalten", chipScan:"Scannen", chipSave:"Speichern",
-    noticeTitle:"Ohne App sofort öffnen. Mit App mehr daraus machen.",
-    noticeText:"Jeder öffentliche QR-X lässt sich direkt im Browser öffnen. Mit der mioseg qr App kannst du ihn zusätzlich speichern, organisieren, verfolgen und später jederzeit wiederfinden.",
-    insightsEyebrow:"Deine Vorteile in der App",
-    insightsTitle:"Aus einem Scan wird etwas, das bei dir bleibt",
-    insightsText:"Die App macht aus QR-Codes und QR-X mehr als einen einmaligen Scan: Inhalte speichern, ordnen, wiederfinden und bei wichtigen Änderungen auf dem Laufenden bleiben.",
+    noticeTitle:"Sofort öffnen. Mit der App dauerhaft behalten.",
+    noticeText:"Jeder öffentliche QR-Code funktioniert direkt im Browser. In der mioseg qr App kannst du ihn zusätzlich speichern, ordnen, verfolgen und später mit wenigen Klicks wiederfinden.",
+    insightsEyebrow:"Warum mioseg qr?",
+    insightsTitle:"Nie wieder einen wichtigen QR-Code verlieren",
+    insightsText:"Was heute nur ein kurzer Scan ist, bleibt morgen noch auffindbar: organisiert, mit Standort und auf Wunsch mit aktuellen Informationen.",
     cardScanBadge:"Scannen & Speichern", cardScanTitle:"Scannen, speichern und wiederfinden",
-    cardScanText:"Erfasse QR-Codes und QR-X, speichere sie dauerhaft und organisiere sie in deinen eigenen Ordnern.",
+    cardScanText:"Erfasse QR-Codes, speichere sie dauerhaft und organisiere sie in deinen eigenen Ordnern.",
     cardMapBadge:"Karte", cardMapTitle:"Orte später wiederfinden",
-    cardMapText:"Gespeicherte und eigene QR-X mit Standort auf deiner persönlichen Karte sehen und direkt wiederfinden.",
-    cardCreateBadge:"Erstellen & Verwalten", cardCreateTitle:"Eigene QR-X erstellen",
-    cardCreateText:"Erstelle eigene QR-X mit Texten, Bildern, Dateien und weiteren Inhalten und aktualisiere sie jederzeit.",
+    cardMapText:"Gespeicherte und eigene QR-Codes mit Standort auf deiner persönlichen Karte sehen und direkt wiederfinden.",
+    cardCreateBadge:"Erstellen & Aktualisieren", cardCreateTitle:"Eigene dynamische QR-Codes erstellen",
+    cardCreateText:"Verbinde Texte, Bilder und Dateien mit einem QR-Code und aktualisiere die Inhalte später, ohne den gedruckten Code auszutauschen.",
     expectEyebrow:"Der Unterschied",
-    expectTitle:"Ohne App zugänglich. Mit App verbunden.",
-    expectText:"QR-X bleiben bewusst ohne App erreichbar. Die App erweitert sie um die Funktionen, die aus einem einzelnen Aufruf eine dauerhafte Verbindung machen.",
+    expectTitle:"Ein Scan für heute. Eine Verbindung für später.",
+    expectText:"Dynamische QR-Codes bleiben ohne App erreichbar. Die App ergänzt genau das, was danach zählt: speichern, ordnen, folgen und wiederfinden.",
     strongLabel:"Mit mioseg qr App", strongTitle:"Mehr als ansehen",
-    strongText:"Speichere wichtige QR-X, ordne sie, folge ihnen und erhalte Aktualisierungen. So bleiben Informationen nicht nur erreichbar, sondern auch bei dir.",
-    bullet1:"QR-Codes & QR-X speichern und in Ordnern organisieren",
-    bullet2:"QR-X folgen und Updates mitbekommen",
+    strongText:"Speichere wichtige QR-Codes, ordne sie und erhalte Aktualisierungen. So verschwinden wertvolle Informationen nicht nach dem ersten Scan.",
+    bullet1:"QR-Codes speichern und in eigenen Ordnern organisieren",
+    bullet2:"Dynamischen QR-Codes folgen und Updates erhalten",
     bullet3:"Standorte auf der Karte wiederfinden",
     scanSaveTitle:"Scannen, Speichern & Ordnen",
-    scanSaveText:"Scanne QR-Codes und QR-X, speichere sie dauerhaft und sortiere sie übersichtlich in eigenen Ordnern.",
-    ownQrxTitle:"Eigene QR-X",
-    ownQrxText:"Erstelle und verwalte eigene QR-X mit Texten, Bildern, PDFs, MP3 oder MP4 und halte die Inhalte flexibel aktuell.",
-    businessText:"Nutze Business QR-X mit professioneller Webansicht, Kontaktfunktionen, Medien, Standort und flexibler Verwaltung.",
+    scanSaveText:"Scanne QR-Codes, speichere sie dauerhaft und sortiere sie übersichtlich in eigenen Ordnern.",
+    ownQrxTitle:"Eigene dynamische QR-Codes",
+    ownQrxText:"Erstelle eigene QR-Seiten mit Texten, Bildern, PDFs, MP3 oder MP4 und halte ihre Inhalte jederzeit aktuell.",
+    businessText:"Präsentiere Unternehmen, Produkte und Orte mit professioneller Webansicht, Kontaktfunktionen, Medien und Standort.",
     availabilityEyebrow:"Download & Verfügbarkeit",
-    availabilityTitle:"mioseg qr App",
-    availabilityText:"Die App wird für iPhone und Android verfügbar sein. Nach Veröffentlichung führen dich die Buttons direkt zum jeweiligen Store.",
-    availabilitySubText:"Bis zum offiziellen Start zeigen wir hier den aktuellen Veröffentlichungsstatus.",
+    availabilityTitle:"mioseg qr kommt für iPhone und Android",
+    availabilityText:"Die App befindet sich in Vorbereitung. Sobald sie veröffentlicht ist, führen dich die Store-Buttons direkt zum Download.",
+    availabilitySubText:"Bis dahin kannst du öffentliche dynamische QR-Codes bereits ohne Installation im Browser öffnen.",
     statusLabel:"Aktueller Status", statusValue:"Demnächst verfügbar", home:"Startseite", privacy:"Datenschutz", terms:"Nutzungsbedingungen",
-    heroPromise:"Ohne App sofort öffnen. Mit App mehr daraus machen.",
+    heroPromise:"Ein Konto für App und Web · Keine Abo-Pflicht",
     compareEyebrow:"Warum die App?",
-    compareTitle:"QR-X öffnen kann jeder. Die App macht sie persönlich.",
-    compareText:"Ein QR-X funktioniert direkt im Browser. Wenn du ihn aber behalten, ordnen, verfolgen oder später wiederfinden möchtest, spielt die App ihre Stärke aus.",
+    compareTitle:"Öffnen kann jeder. Wiederfinden kannst du mit der App.",
+    compareText:"Ein dynamischer QR-Code funktioniert direkt im Browser. Wenn du ihn behalten, ordnen, verfolgen oder später wiederfinden möchtest, zeigt die App ihre Stärke.",
     withoutAppTitle:"Ohne App",
-    withoutAppText:"QR-X direkt scannen, öffnen und alle freigegebenen Inhalte sofort ansehen – ohne Installation.",
+    withoutAppText:"QR-Code direkt scannen, öffnen und alle freigegebenen Inhalte sofort ansehen – ohne Installation.",
     withAppTitle:"Mit mioseg qr App",
-    withAppText:"QR-X speichern, in Ordnern organisieren, folgen, Updates erhalten, Standorte wiederfinden und eigene QR-X verwalten.",
-    appBenefit1:"QR-X speichern", appBenefit2:"Eigene Ordner", appBenefit3:"Folgen & Updates",
-    appBenefit4:"Persönliche Karte", appBenefit5:"Explore nutzen", appBenefit6:"Eigene QR-X verwalten"
+    withAppText:"QR-Codes speichern, in Ordnern organisieren, Updates erhalten, Standorte wiederfinden und eigene dynamische QR-Codes verwalten.",
+    appBenefit1:"QR-Codes speichern", appBenefit2:"Eigene Ordner", appBenefit3:"Folgen & Updates",
+    appBenefit4:"Persönliche Karte", appBenefit5:"Explore entdecken", appBenefit6:"Eigene QR-Codes verwalten"
   },
   en: {
-    badge:"{ui.badge}", title1:"Get the mioseg qr app", title2:"for iPhone and Android.",
+    badge:"mioseg qr · Get the app", title1:"Scan. Save.", title2:"Find it again.",
     intro:"Scan QR codes, save content, create your own QR-X and use Business QR-X with professional web views, contact functions, media and flexible management.",
     storeAppleSmall:"Download on the", storeGoogleSmall:"Get it on", appStoreButton:"On the App Store", playButton:"On Google Play",
     factScan:"Scan", factScanText:"Save QR codes instead of searching for them again later", factQrxText:"Change content later without a new code", factBusinessText:"Professional presence with contact and media",
@@ -307,7 +313,7 @@ const GET_APP_COPY: Record<string, GetAppCopy> = {
     appBenefit4:"Personal map", appBenefit5:"Explore", appBenefit6:"Manage your QR-X"
 
   }
-};
+});
 
 
 export default async function GetAppPage({ params }: Props) {
@@ -351,11 +357,12 @@ export default async function GetAppPage({ params }: Props) {
 
               <div className={styles.storeBadgeRow}>
                 <a
-                  href={appStoreUrl}
+                  href={isAppStoreLive ? appStoreUrl : undefined}
                   className={`${styles.storeBadge} ${
                     !isAppStoreLive ? styles.storeBadgeDisabled : ""
                   }`}
                   aria-disabled={!isAppStoreLive}
+                  tabIndex={isAppStoreLive ? 0 : -1}
                 >
                   <span className={styles.storeBadgeIcon}></span>
                   <span className={styles.storeBadgeTextWrap}>
@@ -365,39 +372,18 @@ export default async function GetAppPage({ params }: Props) {
                 </a>
 
                 <a
-                  href={googlePlayUrl}
+                  href={isGooglePlayLive ? googlePlayUrl : undefined}
                   className={`${styles.storeBadge} ${
                     !isGooglePlayLive ? styles.storeBadgeDisabled : ""
                   }`}
                   aria-disabled={!isGooglePlayLive}
+                  tabIndex={isGooglePlayLive ? 0 : -1}
                 >
                   <span className={styles.storeBadgePlay}>▶</span>
                   <span className={styles.storeBadgeTextWrap}>
                     <span className={styles.storeBadgeSmall}>{ui.storeGoogleSmall}</span>
                     <span className={styles.storeBadgeBig}>Google Play</span>
                   </span>
-                </a>
-              </div>
-
-              <div className={styles.buttonRow}>
-                <a
-                  href={appStoreUrl}
-                  className={`${styles.primaryButton} ${
-                    !isAppStoreLive ? styles.buttonDisabled : ""
-                  }`}
-                  aria-disabled={!isAppStoreLive}
-                >
-                  {ui.appStoreButton}
-                </a>
-
-                <a
-                  href={googlePlayUrl}
-                  className={`${styles.secondaryButton} ${
-                    !isGooglePlayLive ? styles.buttonDisabled : ""
-                  }`}
-                  aria-disabled={!isGooglePlayLive}
-                >
-                  {ui.playButton}
                 </a>
               </div>
 
@@ -410,7 +396,7 @@ export default async function GetAppPage({ params }: Props) {
                 </div>
 
                 <div className={styles.factCard}>
-                  <strong className={styles.factTitle}>QR-X</strong>
+                  <strong className={styles.factTitle}>Updates</strong>
                   <span className={styles.factText}>
                     {ui.factQrxText}
                   </span>
@@ -475,7 +461,7 @@ export default async function GetAppPage({ params }: Props) {
                     </div>
 
                     <div className={styles.phoneMiniCard}>
-                      <div className={styles.phoneMiniTitle}>QR-X</div>
+                      <div className={styles.phoneMiniTitle}>Updates</div>
                       <div className={styles.phoneMiniText}>
                         {ui.phoneQrxText}
                       </div>
@@ -588,7 +574,7 @@ export default async function GetAppPage({ params }: Props) {
               <h3 className={styles.compareCardTitle}>{ui.withoutAppTitle}</h3>
               <p className={styles.compareCardText}>{ui.withoutAppText}</p>
               <div className={styles.compareSimpleList}>
-                <span>✓ QR-X</span>
+                <span>✓ QR-Code</span>
                 <span>✓ Browser</span>
                 <span>✓ Sofort zugänglich</span>
               </div>
@@ -659,7 +645,7 @@ export default async function GetAppPage({ params }: Props) {
               </div>
 
               <div className={styles.card}>
-                <h3 className={styles.cardTitle}>Business QR-X</h3>
+                <h3 className={styles.cardTitle}>Für Unternehmen</h3>
                 <p className={styles.cardText}>
                   {ui.businessText}
                 </p>
