@@ -7,7 +7,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   de: {
     title: "Impressum",
     subtitle:
-      "Anbieterkennzeichnung für die App und Webplattform von mioseg qr / QR-X.",
+      "Anbieterkennzeichnung für die App und Webplattform von mioseg qr.",
     sections: [
       {
         title: "Angaben gemäß § 5 TMG",
@@ -74,7 +74,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Geltungsbereich",
         content: [
-          "Dieses Impressum gilt für die mobile App „mioseg qr“ / „QR-X“, die zugehörige Webplattform sowie öffentlich erreichbare QR-X-Webansichten.",
+          "Dieses Impressum gilt für die mobile App „mioseg qr“, die zugehörige Webplattform sowie öffentlich erreichbare Mioseg QR-Webansichten.",
         ],
       },
     ],
@@ -83,7 +83,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   tr: {
     title: "Yasal Bildirim",
     subtitle:
-      "mioseg qr / QR-X uygulaması ve web platformu için sağlayıcı bilgileri.",
+      "mioseg qr uygulaması ve web platformu için sağlayıcı bilgileri.",
     sections: [
       {
         title: "§ 5 TMG uyarınca bilgiler",
@@ -156,7 +156,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Kapsam",
         content: [
-          "Bu Yasal Bildirim, „mioseg qr“ / „QR-X“ mobil uygulaması, ilgili web platformu ve herkese açık QR-X web görünümleri için geçerlidir.",
+          "Bu Yasal Bildirim, „mioseg qr“ mobil uygulaması, ilgili web platformu ve herkese açık Mioseg QR web görünümleri için geçerlidir.",
         ],
       },
     ],
@@ -164,7 +164,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   pl: {
     title: "Impressum",
     subtitle:
-      "Informacje o usługodawcy aplikacji i platformy internetowej mioseg qr / QR-X.",
+      "Informacje o usługodawcy aplikacji i platformy internetowej mioseg qr.",
     sections: [
       {
         title: "Informacje zgodnie z § 5 TMG",
@@ -237,7 +237,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Zakres obowiązywania",
         content: [
-          "Niniejsze informacje prawne dotyczą aplikacji mobilnej „mioseg qr” / „QR-X”, powiązanej platformy internetowej oraz publicznie dostępnych widoków internetowych QR-X.",
+          "Niniejsze informacje prawne dotyczą aplikacji mobilnej „mioseg qr” / „Mioseg QR”, powiązanej platformy internetowej oraz publicznie dostępnych widoków internetowych Mioseg QR.",
         ],
       },
     ],
@@ -245,7 +245,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   ar: {
     title: "البيانات القانونية",
     subtitle:
-      "معلومات مقدم الخدمة لتطبيق mioseg qr / QR-X والمنصة الإلكترونية.",
+      "معلومات مقدم الخدمة لتطبيق mioseg qr والمنصة الإلكترونية.",
     sections: [
       {
         title: "المعلومات وفق § 5 TMG",
@@ -318,7 +318,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "نطاق التطبيق",
         content: [
-          "ينطبق هذا Impressum على تطبيق «mioseg qr» / «QR-X» للهاتف المحمول والمنصة الإلكترونية المرتبطة به وصفحات QR-X العامة المتاحة عبر الويب.",
+          "ينطبق هذا Impressum على تطبيق «mioseg qr» / «Mioseg QR» للهاتف المحمول والمنصة الإلكترونية المرتبطة به وصفحات Mioseg QR العامة المتاحة عبر الويب.",
         ],
       },
     ],
@@ -326,7 +326,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   fr: {
     title: "Mentions légales",
     subtitle:
-      "Informations sur le prestataire de l’application mioseg qr / QR-X et de la plateforme web.",
+      "Informations sur le prestataire de l’application mioseg qr et de la plateforme web.",
     sections: [
       {
         title: "Informations conformément au § 5 TMG",
@@ -399,7 +399,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Champ d’application",
         content: [
-          "Les présentes Mentions légales s’appliquent à l’application mobile « mioseg qr » / « QR-X », à la plateforme web associée et aux vues web publiques de QR-X.",
+          "Les présentes Mentions légales s’appliquent à l’application mobile « mioseg qr » / « Mioseg QR », à la plateforme web associée et aux vues web publiques de Mioseg QR.",
         ],
       },
     ],
@@ -407,7 +407,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   es: {
     title: "Aviso legal",
     subtitle:
-      "Información del proveedor de la aplicación mioseg qr / QR-X y de la plataforma web.",
+      "Información del proveedor de la aplicación mioseg qr y de la plataforma web.",
     sections: [
       {
         title: "Información conforme al § 5 TMG",
@@ -480,7 +480,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Ámbito de aplicación",
         content: [
-          "Este Impressum se aplica a la aplicación móvil «mioseg qr» / «QR-X», a la plataforma web asociada y a las vistas web públicas de QR-X.",
+          "Este Impressum se aplica a la aplicación móvil «mioseg qr» / «Mioseg QR», a la plataforma web asociada y a las vistas web públicas de Mioseg QR.",
         ],
       },
     ],
@@ -488,7 +488,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   it: {
     title: "Impressum",
     subtitle:
-      "Informazioni sul fornitore dell’app mioseg qr / QR-X e della piattaforma web.",
+      "Informazioni sul fornitore dell’app mioseg qr e della piattaforma web.",
     sections: [
       {
         title: "Informazioni ai sensi del § 5 TMG",
@@ -561,7 +561,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Ambito di applicazione",
         content: [
-          "Il presente Impressum si applica all’app mobile «mioseg qr» / «QR-X», alla relativa piattaforma web e alle visualizzazioni web pubbliche dei QR-X.",
+          "Il presente Impressum si applica all’app mobile «mioseg qr» / «Mioseg QR», alla relativa piattaforma web e alle visualizzazioni web pubbliche dei Mioseg QR.",
         ],
       },
     ],
@@ -569,7 +569,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   en: {
     title: "Legal Notice",
     subtitle:
-      "Provider information for the app and web platform of mioseg qr / QR-X.",
+      "Provider information for the app and web platform of mioseg qr.",
     sections: [
       {
         title: "Information according to § 5 TMG",
@@ -636,7 +636,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Scope",
         content: [
-          "This legal notice applies to the mobile app “mioseg qr” / “QR-X”, the associated web platform, and publicly accessible QR-X web views.",
+          "This legal notice applies to the mobile app “mioseg qr”, the associated web platform, and publicly accessible Mioseg QR web views.",
         ],
       },
     ],

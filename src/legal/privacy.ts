@@ -7,7 +7,7 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   de: {
     title: "Datenschutzerklärung",
     subtitle:
-      "Informationen zur Verarbeitung personenbezogener Daten in der App und Webplattform von mioseg qr / QR-X.",
+      "Informationen zur Verarbeitung personenbezogener Daten in der App und Webplattform von mioseg qr.",
     sections: [
       {
         title: "1. Verantwortlicher",
@@ -38,13 +38,13 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
-        title: "4. Nutzung der App und QR-X Funktionen",
+        title: "4. Nutzung der App und Mioseg QR Funktionen",
         content: [
           "Bei Nutzung der App können insbesondere folgende Daten verarbeitet werden:",
-          "– erstellte QR-X Inhalte",
+          "– erstellte Mioseg QR Inhalte",
           "– gespeicherte und verwaltete QR-Codes",
           "– Zeitstempel, Änderungen und technische Metadaten",
-          "– Inhalte in normalen QR-X und Business QR-X",
+          "– Inhalte in normalen Mioseg QR und Business-QR",
           "Zweck der Verarbeitung ist die Bereitstellung, Verwaltung und Nutzung der Funktionen der App und Webplattform.",
         ],
       },
@@ -63,9 +63,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "6. Standortdaten",
         content: [
           "Die App kann Standortdaten erfassen, wenn der Nutzer dies aktiv erlaubt.",
-          "Dies geschieht insbesondere beim Scannen eines QR-Codes oder beim Erstellen eines QR-X.",
+          "Dies geschieht insbesondere beim Scannen eines QR-Codes oder beim Erstellen eines Mioseg QR.",
           "Standortdaten werden nur verarbeitet oder gespeichert, wenn der Nutzer im jeweiligen Vorgang zustimmt.",
-          "Zweck der Verarbeitung kann insbesondere die Dokumentation des Scan-Standorts oder die Verwaltung standortbezogener QR-X Inhalte sein.",
+          "Zweck der Verarbeitung kann insbesondere die Dokumentation des Scan-Standorts oder die Verwaltung standortbezogener Mioseg QR Inhalte sein.",
         ],
       },
       {
@@ -142,7 +142,7 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   tr: {
     title: "Gizlilik Politikası",
     subtitle:
-      "mioseg qr / QR-X uygulaması ve web platformunda kişisel verilerin işlenmesine ilişkin bilgiler.",
+      "mioseg qr uygulaması ve web platformunda kişisel verilerin işlenmesine ilişkin bilgiler.",
     sections: [
       {
         title: "1. Veri sorumlusu",
@@ -173,13 +173,13 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
-        title: "4. Uygulamanın ve QR-X işlevlerinin kullanımı",
+        title: "4. Uygulamanın ve Mioseg QR işlevlerinin kullanımı",
         content: [
           "Uygulama kullanılırken özellikle aşağıdaki veriler işlenebilir:",
-          "– oluşturulan QR-X içerikleri",
+          "– oluşturulan Mioseg QR içerikleri",
           "– kaydedilen ve yönetilen QR kodları",
           "– zaman damgaları, değişiklikler ve teknik meta veriler",
-          "– standart QR-X ve Business QR-X içerikleri",
+          "– standart Mioseg QR ve Business-QR içerikleri",
           "İşlemenin amacı uygulama ve web platformu işlevlerinin sağlanması, yönetilmesi ve kullanılabilmesidir.",
         ],
       },
@@ -198,9 +198,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "6. Konum verileri",
         content: [
           "Uygulama, kullanıcı buna aktif olarak izin verdiğinde konum verilerini işleyebilir.",
-          "Bu özellikle bir QR kodu taranırken veya bir QR-X oluşturulurken gerçekleşebilir.",
+          "Bu özellikle bir QR kodu taranırken veya bir Mioseg QR oluşturulurken gerçekleşebilir.",
           "Konum verileri yalnızca kullanıcı ilgili işlemde onay verdiğinde işlenir veya kaydedilir.",
-          "İşlemenin amacı özellikle tarama konumunun belgelenmesi veya konuma bağlı QR-X içeriklerinin yönetilmesi olabilir.",
+          "İşlemenin amacı özellikle tarama konumunun belgelenmesi veya konuma bağlı Mioseg QR içeriklerinin yönetilmesi olabilir.",
         ],
       },
       {
@@ -279,7 +279,7 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   pl: {
     title: "Polityka prywatności",
     subtitle:
-      "Informacje o przetwarzaniu danych osobowych w aplikacji i platformie internetowej mioseg qr / QR-X.",
+      "Informacje o przetwarzaniu danych osobowych w aplikacji i platformie internetowej mioseg qr.",
     sections: [
       {
         title: "1. Administrator danych",
@@ -310,13 +310,13 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
-        title: "4. Korzystanie z aplikacji i funkcji QR-X",
+        title: "4. Korzystanie z aplikacji i funkcji Mioseg QR",
         content: [
           "Podczas korzystania z aplikacji mogą być przetwarzane w szczególności następujące dane:",
-          "– utworzone treści QR-X",
+          "– utworzone treści Mioseg QR",
           "– zapisane i zarządzane kody QR",
           "– znaczniki czasu, zmiany i metadane techniczne",
-          "– treści w zwykłych QR-X i Business QR-X",
+          "– treści w zwykłych Mioseg QR i Business-QR",
           "Celem przetwarzania jest udostępnianie, zarządzanie i korzystanie z funkcji aplikacji i platformy internetowej.",
         ],
       },
@@ -335,9 +335,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "6. Dane lokalizacyjne",
         content: [
           "Aplikacja może pobierać dane lokalizacyjne, jeżeli użytkownik aktywnie na to zezwoli.",
-          "Dotyczy to w szczególności skanowania kodu QR lub tworzenia QR-X.",
+          "Dotyczy to w szczególności skanowania kodu QR lub tworzenia Mioseg QR.",
           "Dane lokalizacyjne są przetwarzane lub zapisywane tylko wtedy, gdy użytkownik wyrazi zgodę w danym procesie.",
-          "Celem przetwarzania może być w szczególności dokumentowanie lokalizacji skanu lub zarządzanie treściami QR-X związanymi z lokalizacją.",
+          "Celem przetwarzania może być w szczególności dokumentowanie lokalizacji skanu lub zarządzanie treściami Mioseg QR związanymi z lokalizacją.",
         ],
       },
       {
@@ -414,7 +414,7 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   ar: {
     title: "سياسة الخصوصية",
     subtitle:
-      "معلومات حول معالجة البيانات الشخصية في تطبيق ومنصة الويب mioseg qr / QR-X.",
+      "معلومات حول معالجة البيانات الشخصية في تطبيق ومنصة الويب mioseg qr.",
     sections: [
       {
         title: "1. المسؤول عن معالجة البيانات",
@@ -445,13 +445,13 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
-        title: "4. استخدام التطبيق ووظائف QR-X",
+        title: "4. استخدام التطبيق ووظائف Mioseg QR",
         content: [
           "عند استخدام التطبيق قد تتم معالجة البيانات التالية على وجه الخصوص:",
-          "– محتويات QR-X التي تم إنشاؤها",
+          "– محتويات Mioseg QR التي تم إنشاؤها",
           "– رموز QR المحفوظة والمدارة",
           "– الطوابع الزمنية والتغييرات والبيانات الوصفية التقنية",
-          "– المحتويات في QR-X العادية وBusiness QR-X",
+          "– المحتويات في Mioseg QR العادية وBusiness-QR",
           "الغرض من المعالجة هو توفير وظائف التطبيق ومنصة الويب وإدارتها واستخدامها.",
         ],
       },
@@ -470,9 +470,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "6. بيانات الموقع",
         content: [
           "يمكن للتطبيق جمع بيانات الموقع إذا سمح المستخدم بذلك بشكل صريح.",
-          "يحدث ذلك على وجه الخصوص عند مسح رمز QR أو إنشاء QR-X.",
+          "يحدث ذلك على وجه الخصوص عند مسح رمز QR أو إنشاء Mioseg QR.",
           "لا تتم معالجة بيانات الموقع أو تخزينها إلا إذا وافق المستخدم في العملية المعنية.",
-          "قد يكون الغرض من المعالجة، على وجه الخصوص، توثيق موقع المسح أو إدارة محتويات QR-X المرتبطة بالموقع.",
+          "قد يكون الغرض من المعالجة، على وجه الخصوص، توثيق موقع المسح أو إدارة محتويات Mioseg QR المرتبطة بالموقع.",
         ],
       },
       {
@@ -549,7 +549,7 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   fr: {
     title: "Politique de confidentialité",
     subtitle:
-      "Informations sur le traitement des données à caractère personnel dans l’application et la plateforme web mioseg qr / QR-X.",
+      "Informations sur le traitement des données à caractère personnel dans l’application et la plateforme web mioseg qr.",
     sections: [
       {
         title: "1. Responsable du traitement",
@@ -580,13 +580,13 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
-        title: "4. Utilisation de l’application et des fonctions QR-X",
+        title: "4. Utilisation de l’application et des fonctions Mioseg QR",
         content: [
           "Lors de l’utilisation de l’application, les données suivantes peuvent notamment être traitées :",
-          "– contenus QR-X créés",
+          "– contenus Mioseg QR créés",
           "– codes QR enregistrés et gérés",
           "– horodatages, modifications et métadonnées techniques",
-          "– contenus dans les QR-X standards et Business QR-X",
+          "– contenus dans les Mioseg QR standards et Business-QR",
           "Le traitement a pour finalité la mise à disposition, la gestion et l’utilisation des fonctions de l’application et de la plateforme web.",
         ],
       },
@@ -605,9 +605,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "6. Données de localisation",
         content: [
           "L’application peut collecter des données de localisation si l’utilisateur l’autorise expressément.",
-          "Cela se produit notamment lors du scan d’un code QR ou de la création d’un QR-X.",
+          "Cela se produit notamment lors du scan d’un code QR ou de la création d’un Mioseg QR.",
           "Les données de localisation ne sont traitées ou enregistrées que si l’utilisateur y consent dans l’opération concernée.",
-          "Le traitement peut notamment avoir pour finalité la documentation du lieu du scan ou la gestion de contenus QR-X liés à une localisation.",
+          "Le traitement peut notamment avoir pour finalité la documentation du lieu du scan ou la gestion de contenus Mioseg QR liés à une localisation.",
         ],
       },
       {
@@ -684,7 +684,7 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   es: {
     title: "Política de privacidad",
     subtitle:
-      "Información sobre el tratamiento de datos personales en la aplicación y la plataforma web mioseg qr / QR-X.",
+      "Información sobre el tratamiento de datos personales en la aplicación y la plataforma web mioseg qr.",
     sections: [
       {
         title: "1. Responsable del tratamiento",
@@ -715,13 +715,13 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
-        title: "4. Uso de la aplicación y funciones QR-X",
+        title: "4. Uso de la aplicación y funciones Mioseg QR",
         content: [
           "Al utilizar la aplicación pueden tratarse, en particular, los siguientes datos:",
-          "– contenidos QR-X creados",
+          "– contenidos Mioseg QR creados",
           "– códigos QR guardados y gestionados",
           "– marcas de tiempo, cambios y metadatos técnicos",
-          "– contenidos en QR-X normales y Business QR-X",
+          "– contenidos en Mioseg QR normales y Business-QR",
           "La finalidad del tratamiento es proporcionar, gestionar y utilizar las funciones de la aplicación y la plataforma web.",
         ],
       },
@@ -740,9 +740,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "6. Datos de ubicación",
         content: [
           "La aplicación puede recopilar datos de ubicación si el usuario lo permite expresamente.",
-          "Esto sucede, en particular, al escanear un código QR o al crear un QR-X.",
+          "Esto sucede, en particular, al escanear un código QR o al crear un Mioseg QR.",
           "Los datos de ubicación solo se tratan o almacenan si el usuario da su consentimiento en el proceso correspondiente.",
-          "La finalidad del tratamiento puede ser, en particular, documentar la ubicación del escaneo o gestionar contenidos QR-X relacionados con una ubicación.",
+          "La finalidad del tratamiento puede ser, en particular, documentar la ubicación del escaneo o gestionar contenidos Mioseg QR relacionados con una ubicación.",
         ],
       },
       {
@@ -819,7 +819,7 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   it: {
     title: "Informativa sulla privacy",
     subtitle:
-      "Informazioni sul trattamento dei dati personali nell’app e nella piattaforma web mioseg qr / QR-X.",
+      "Informazioni sul trattamento dei dati personali nell’app e nella piattaforma web mioseg qr.",
     sections: [
       {
         title: "1. Titolare del trattamento",
@@ -850,13 +850,13 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
-        title: "4. Utilizzo dell’app e delle funzioni QR-X",
+        title: "4. Utilizzo dell’app e delle funzioni Mioseg QR",
         content: [
           "Durante l’utilizzo dell’app possono essere trattati in particolare i seguenti dati:",
-          "– contenuti QR-X creati",
+          "– contenuti Mioseg QR creati",
           "– codici QR salvati e gestiti",
           "– timestamp, modifiche e metadati tecnici",
-          "– contenuti nei QR-X normali e Business QR-X",
+          "– contenuti nei Mioseg QR normali e Business-QR",
           "La finalità del trattamento è fornire, gestire e utilizzare le funzioni dell’app e della piattaforma web.",
         ],
       },
@@ -875,9 +875,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "6. Dati di localizzazione",
         content: [
           "L’app può raccogliere dati di localizzazione se l’utente lo consente espressamente.",
-          "Ciò avviene in particolare durante la scansione di un codice QR o la creazione di un QR-X.",
+          "Ciò avviene in particolare durante la scansione di un codice QR o la creazione di un Mioseg QR.",
           "I dati di localizzazione vengono trattati o memorizzati solo se l’utente acconsente nell’operazione interessata.",
-          "La finalità del trattamento può essere, in particolare, documentare il luogo della scansione o gestire contenuti QR-X collegati alla posizione.",
+          "La finalità del trattamento può essere, in particolare, documentare il luogo della scansione o gestire contenuti Mioseg QR collegati alla posizione.",
         ],
       },
       {
@@ -954,7 +954,7 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
   en: {
     title: "Privacy Policy",
     subtitle:
-      "Information on the processing of personal data in the app and web platform of mioseg qr / QR-X.",
+      "Information on the processing of personal data in the app and web platform of mioseg qr.",
     sections: [
       {
         title: "1. Controller",
@@ -985,13 +985,13 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
-        title: "4. App usage and QR-X functions",
+        title: "4. App usage and Mioseg QR functions",
         content: [
           "When using the app, the following data may be processed in particular:",
-          "– created QR-X content",
+          "– created Mioseg QR content",
           "– saved and managed QR codes",
           "– timestamps, updates, and technical metadata",
-          "– content in standard QR-X and Business QR-X",
+          "– content in standard Mioseg QR and Business-QR",
           "The purpose is to provide, manage, and operate the app and web platform features.",
         ],
       },
@@ -1010,9 +1010,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "6. Location data",
         content: [
           "The app may process location data if the user actively grants permission.",
-          "This may occur in particular when scanning a QR code or creating a QR-X.",
+          "This may occur in particular when scanning a QR code or creating a Mioseg QR.",
           "Location data is only processed or stored if the user consents in the respective action.",
-          "The purpose may include documenting scan locations or managing location-based QR-X content.",
+          "The purpose may include documenting scan locations or managing location-based Mioseg QR content.",
         ],
       },
       {
