@@ -326,7 +326,21 @@
   }
 
   .cta {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 7px 11px;
+    border-radius: 10px;
+    font-size: 0;
+    line-height: 1;
+    box-sizing: border-box;
+  }
+
+  .cta::after {
+    content: "App";
+    font-size: 12px;
+    font-weight: 900;
   }
 }
 
@@ -334,15 +348,40 @@
   .inner {
     padding-left: 12px;
     padding-right: 12px;
+    gap: 7px;
   }
 
   .logo {
-    width: 108px;
+    width: 92px;
+  }
+
+  .rightSide {
+    gap: 4px;
   }
 
   .navLink,
   .loginLink {
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 12px;
+  }
+
+  .avatarButton {
+    width: 38px;
+    height: 38px;
+  }
+
+  .languageControl {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .languageControl select {
+    width: 36px;
+  }
+
+  .cta {
+    min-height: 36px;
+    padding: 6px 9px;
   }
 }
