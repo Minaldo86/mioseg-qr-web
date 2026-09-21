@@ -400,15 +400,15 @@ export default async function Home({ params }: Props) {
     featureCloud:["Bilder","PDF & Dateien","Standort","Kontakt","News","Updates","Follow","Sammlungen","Passwort"],
     coreText:"Ein dauerhaft verwaltbarer digitaler Informationspunkt für reale Dinge, Orte und Projekte.",
     statement:"Einmal verbinden. Dauerhaft aktuell halten.",
-    exploreEyebrow:"Explore verbindet beide Seiten", exploreTitle:"Entdecken für Nutzer. Sichtbarkeit für Unternehmen.",
-    exploreIntro:"Explore macht dynamische QR-Codes auf der Karte auffindbar und zeigt, was sich an realen Orten befindet.",
-    users:"Für Nutzer", userExploreTitle:"Entdecke, was um dich herum interessant ist.",
-    userExploreText:"Finde dynamische QR-Codes in deiner Nähe, öffne Orte und Angebote, speichere interessante Einträge und navigiere direkt dorthin.",
-    exploreTags:["In meiner Nähe","Kategorien","Speichern","Navigation"],
-    businesses:"Für Unternehmen", businessExploreTitle:"Zeige, wo dein Unternehmen aktiv ist.",
-    businessExploreText:"Ein Immobilienunternehmen kann seine angebotenen Objekte auf Explore sichtbar machen. Interessenten sehen, wo sie liegen, öffnen den passenden QR-Code und gelangen direkt zu Informationen, Kontakt und Navigation.",
-    businessExploreSmall:"Dasselbe Prinzip funktioniert für Projekte, Filialen, Standorte und Servicepunkte.",
-    exploreCta:"Explore ansehen",
+    exploreEyebrow:"Explore macht die Umgebung digital", exploreTitle:"Nicht nur scannen. Entdecken, was um dich herum passiert.",
+    exploreIntro:"Explore bringt öffentliche dynamische QR-Codes auf eine Karte. So werden Orte, Angebote und Projekte genau dort sichtbar, wo sie wirklich zu finden sind.",
+    users:"Für Nutzer", userExploreTitle:"Finde mehr als einen Link – finde den passenden Ort.",
+    userExploreText:"Entdecke Restaurants, Veranstaltungen, Sehenswürdigkeiten, Immobilien und Services in deiner Nähe. Öffne Informationen, speichere interessante Einträge, folge Aktualisierungen oder starte direkt die Navigation.",
+    exploreTags:["In meiner Nähe","Kategorien","Kartenansicht","Speichern","Folgen","Navigation"],
+    businesses:"Für Unternehmen", businessExploreTitle:"Werde dort gefunden, wo dein Angebot stattfindet.",
+    businessExploreText:"Mache öffentliche QR-Codes als reale Standorte sichtbar. Interessenten entdecken Objekte, Filialen, Projekte oder Angebote auf der Karte und gelangen ohne Umwege zu Informationen, Kontakt und Navigation.",
+    businessExploreSmall:"Du entscheidest, welche QR-Codes öffentlich erscheinen. Ideal für Immobilien, Gastronomie, Events, Tourismus, Handwerk und lokale Services.",
+    exploreCta:"Explore jetzt entdecken",
     followEyebrow:"Scannen ist nur der Anfang", followTitle:"Folge einem dynamischen QR-Code und bleib auf dem Laufenden.",
     followText:"Speichere einen dynamischen QR-Code oder folge ihm. Wenn der Ersteller wichtige Inhalte aktualisiert, kann Mioseg qr dich darüber informieren.",
     followExamples:["🏠 Preis geändert","📄 Neues Dokument","🔧 Wartung aktualisiert","🎟️ Termin geändert"],
@@ -434,15 +434,15 @@ export default async function Home({ params }: Props) {
     featureCloud:["Images","PDF & files","Location","Contact","News","Updates","Follow","Collections","Password"],
     coreText:"A permanently manageable digital information point for real objects, places and projects.",
     statement:"Connect once. Keep it up to date.",
-    exploreEyebrow:"Explore connects both sides", exploreTitle:"Discovery for users. Visibility for businesses.",
-    exploreIntro:"Explore makes dynamic QR codes discoverable on the map and shows what is available at real locations.",
-    users:"For users", userExploreTitle:"Discover what is interesting around you.",
-    userExploreText:"Find dynamic QR codes nearby, open places and offers, save interesting entries and navigate directly to them.",
-    exploreTags:["Near me","Categories","Save","Navigation"],
-    businesses:"For businesses", businessExploreTitle:"Show where your business is active.",
-    businessExploreText:"A real estate company can make its listed properties visible in Explore. Interested users can see where they are, open the relevant QR code and go directly to information, contact options and navigation.",
-    businessExploreSmall:"The same principle works for projects, branches, locations and service points.",
-    exploreCta:"View Explore",
+    exploreEyebrow:"Explore turns places digital", exploreTitle:"Do more than scan. Discover what is happening around you.",
+    exploreIntro:"Explore puts public dynamic QR codes on a map, making places, offers and projects visible exactly where they can be found.",
+    users:"For users", userExploreTitle:"Find more than a link – find the right place.",
+    userExploreText:"Discover restaurants, events, attractions, properties and services nearby. Open information, save interesting entries, follow updates or start navigation immediately.",
+    exploreTags:["Nearby","Categories","Map view","Save","Follow","Navigation"],
+    businesses:"For businesses", businessExploreTitle:"Get discovered where your offer actually happens.",
+    businessExploreText:"Make public QR codes visible as real locations. People discover properties, branches, projects or offers on the map and go directly to information, contact options and navigation.",
+    businessExploreSmall:"You decide which QR codes appear publicly. Ideal for real estate, restaurants, events, tourism, trades and local services.",
+    exploreCta:"Discover Explore now",
     followEyebrow:"Scanning is only the beginning", followTitle:"Follow a dynamic QR code and stay up to date.",
     followText:"Save a dynamic QR code or follow it. When its creator updates important content, Mioseg qr can let you know.",
     followExamples:["🏠 Price changed","📄 New document","🔧 Maintenance updated","🎟️ Date changed"],
@@ -466,7 +466,7 @@ export default async function Home({ params }: Props) {
       normalQr:"Normal QR kodu", oneScan:"Bir tarama → bir bağlantı", becomes:"dönüşür", statement:"Bir kez bağla. Sürekli güncel tut.",
       exploreEyebrow:"Explore iki tarafı birleştirir", exploreTitle:"Kullanıcılar için keşif. İşletmeler için görünürlük.", exploreIntro:"Explore, QR'leri haritada bulunabilir hale getirir ve gerçek konumlarda neler olduğunu gösterir.",
       users:"Kullanıcılar için", userExploreTitle:"Çevrende ilginç olanları keşfet.", userExploreText:"Yakınındaki QR'leri bul, yerleri ve teklifleri aç, ilginç kayıtları kaydet ve doğrudan oraya git.",
-      businesses:"İşletmeler için", businessExploreTitle:"İşletmenin nerede aktif olduğunu göster.", businessExploreSmall:"Aynı prensip projeler, şubeler, konumlar ve servis noktaları için de çalışır.", exploreCta:"Explore'u görüntüle",
+      exploreTags:["Yakınımda","Kategoriler","Harita","Kaydet","Takip et","Navigasyon"], businesses:"İşletmeler için", businessExploreTitle:"İşletmenin nerede aktif olduğunu göster.", businessExploreText:"Herkese açık QR kodlarını gerçek konumlar olarak görünür kıl. İnsanlar haritada şubeleri, projeleri ve teklifleri keşfederek doğrudan bilgi, iletişim ve navigasyona ulaşır.", businessExploreSmall:"Aynı prensip projeler, şubeler, konumlar ve servis noktaları için de çalışır.", exploreCta:"Explore'u görüntüle",
       followEyebrow:"Tarama sadece başlangıç", followTitle:"Bir QR'i takip et ve güncel kal.", followText:"Önemli içerikler değiştiğinde Mioseg qr sana haber verebilir. QR aynı kalır; yalnızca arkasındaki bilgiler güncellenir.",
       trustEyebrow:"Profesyonel kullanım için", trustTitle:"Bir kodun arkasındaki içerikten daha fazlası.", trustText:"QR, bilgileri profesyonel kullanımda da önemli olan işlevlerle birleştirir.",
       creditsNeverExpire:"Credits'in süresi dolmaz", fullCostControl:"Gizli ücret olmadan tam maliyet kontrolü" },
@@ -477,7 +477,7 @@ export default async function Home({ params }: Props) {
       normalQr:"Zwykły kod QR", oneScan:"Jeden skan → jeden link", becomes:"staje się", statement:"Połącz raz. Utrzymuj stale aktualne.",
       exploreEyebrow:"Explore łączy obie strony", exploreTitle:"Odkrywanie dla użytkowników. Widoczność dla firm.", exploreIntro:"Explore sprawia, że QR można znaleźć na mapie i pokazuje, co znajduje się w rzeczywistych lokalizacjach.",
       users:"Dla użytkowników", userExploreTitle:"Odkrywaj to, co ciekawe wokół Ciebie.", userExploreText:"Znajduj QR w pobliżu, otwieraj miejsca i oferty, zapisuj ciekawe wpisy i nawiguj bezpośrednio do nich.",
-      businesses:"Dla firm", businessExploreTitle:"Pokaż, gdzie działa Twoja firma.", businessExploreSmall:"Ta sama zasada działa dla projektów, oddziałów, lokalizacji i punktów serwisowych.", exploreCta:"Zobacz Explore",
+      exploreTags:["W pobliżu","Kategorie","Mapa","Zapisz","Obserwuj","Nawigacja"], businesses:"Dla firm", businessExploreTitle:"Pokaż, gdzie działa Twoja firma.", businessExploreText:"Udostępnij publiczne kody QR jako rzeczywiste lokalizacje. Użytkownicy odkrywają na mapie oddziały, projekty i oferty oraz przechodzą bezpośrednio do informacji, kontaktu i nawigacji.", businessExploreSmall:"Ta sama zasada działa dla projektów, oddziałów, lokalizacji i punktów serwisowych.", exploreCta:"Zobacz Explore",
       followEyebrow:"Skanowanie to dopiero początek", followTitle:"Obserwuj QR i bądź na bieżąco.", followText:"Gdy ważne treści się zmienią, Mioseg qr może Cię o tym poinformować. QR pozostaje ten sam – aktualizują się tylko informacje.",
       trustEyebrow:"Do zastosowań profesjonalnych", trustTitle:"Więcej niż treść za kodem.", trustText:"QR łączy informacje z funkcjami ważnymi również w zastosowaniach profesjonalnych.",
       creditsNeverExpire:"Credits nie wygasają", fullCostControl:"Pełna kontrola kosztów bez ukrytych opłat" },
@@ -488,7 +488,7 @@ export default async function Home({ params }: Props) {
       normalQr:"QR code classique", oneScan:"Un scan → un lien", becomes:"devient", statement:"Connectez une fois. Gardez toujours à jour.",
       exploreEyebrow:"Explore relie les deux côtés", exploreTitle:"Découverte pour les utilisateurs. Visibilité pour les entreprises.", exploreIntro:"Explore rend les QR visibles sur la carte et montre ce qui se trouve dans des lieux réels.",
       users:"Pour les utilisateurs", userExploreTitle:"Découvrez ce qui est intéressant autour de vous.", userExploreText:"Trouvez des QR à proximité, ouvrez lieux et offres, enregistrez les entrées intéressantes et naviguez directement vers elles.",
-      businesses:"Pour les entreprises", businessExploreTitle:"Montrez où votre entreprise est active.", businessExploreSmall:"Le même principe fonctionne pour les projets, agences, sites et points de service.", exploreCta:"Voir Explore",
+      exploreTags:["À proximité","Catégories","Carte","Enregistrer","Suivre","Navigation"], businesses:"Pour les entreprises", businessExploreTitle:"Montrez où votre entreprise est active.", businessExploreText:"Rendez vos QR publics visibles comme des lieux réels. Les utilisateurs découvrent agences, projets et offres sur la carte et accèdent directement aux informations, au contact et à la navigation.", businessExploreSmall:"Le même principe fonctionne pour les projets, agences, sites et points de service.", exploreCta:"Voir Explore",
       followEyebrow:"Le scan n'est que le début", followTitle:"Suivez un QR et restez à jour.", followText:"Lorsque des contenus importants changent, Mioseg qr peut vous en informer. Le QR reste le même, seules les informations évoluent.",
       trustEyebrow:"Pour un usage professionnel", trustTitle:"Bien plus que du contenu derrière un code.", trustText:"QR associe les informations à des fonctions importantes pour un usage professionnel.",
       creditsNeverExpire:"Les Credits n'expirent pas", fullCostControl:"Contrôle total des coûts sans frais cachés" },
@@ -499,7 +499,7 @@ export default async function Home({ params }: Props) {
       normalQr:"Código QR normal", oneScan:"Un escaneo → un enlace", becomes:"se convierte en", statement:"Conecta una vez. Manténlo siempre actualizado.",
       exploreEyebrow:"Explore conecta ambos lados", exploreTitle:"Descubrimiento para usuarios. Visibilidad para empresas.", exploreIntro:"Explore hace que los QR se puedan encontrar en el mapa y muestra lo que existe en ubicaciones reales.",
       users:"Para usuarios", userExploreTitle:"Descubre lo interesante que hay a tu alrededor.", userExploreText:"Encuentra QR cercanos, abre lugares y ofertas, guarda entradas interesantes y navega directamente hasta ellas.",
-      businesses:"Para empresas", businessExploreTitle:"Muestra dónde está activa tu empresa.", businessExploreSmall:"El mismo principio funciona para proyectos, sucursales, ubicaciones y puntos de servicio.", exploreCta:"Ver Explore",
+      exploreTags:["Cerca de mí","Categorías","Mapa","Guardar","Seguir","Navegación"], businesses:"Para empresas", businessExploreTitle:"Muestra dónde está activa tu empresa.", businessExploreText:"Haz visibles los QR públicos como ubicaciones reales. Los usuarios descubren sucursales, proyectos y ofertas en el mapa y acceden directamente a información, contacto y navegación.", businessExploreSmall:"El mismo principio funciona para proyectos, sucursales, ubicaciones y puntos de servicio.", exploreCta:"Ver Explore",
       followEyebrow:"Escanear es solo el principio", followTitle:"Sigue un QR y mantente al día.", followText:"Cuando cambia contenido importante, Mioseg qr puede avisarte. El QR sigue siendo el mismo; solo se actualiza la información.",
       trustEyebrow:"Para uso profesional", trustTitle:"Mucho más que contenido detrás de un código.", trustText:"QR combina la información con funciones importantes también para el uso profesional.",
       creditsNeverExpire:"Los Credits no caducan", fullCostControl:"Control total de costes sin cargos ocultos" },
@@ -510,7 +510,7 @@ export default async function Home({ params }: Props) {
       normalQr:"QR code normale", oneScan:"Una scansione → un link", becomes:"diventa", statement:"Collega una volta. Mantieni sempre aggiornato.",
       exploreEyebrow:"Explore collega entrambi i lati", exploreTitle:"Scoperta per gli utenti. Visibilità per le aziende.", exploreIntro:"Explore rende i QR visibili sulla mappa e mostra cosa si trova nei luoghi reali.",
       users:"Per gli utenti", userExploreTitle:"Scopri cosa c'è di interessante intorno a te.", userExploreText:"Trova QR nelle vicinanze, apri luoghi e offerte, salva gli elementi interessanti e naviga direttamente fino a loro.",
-      businesses:"Per le aziende", businessExploreTitle:"Mostra dove è attiva la tua azienda.", businessExploreSmall:"Lo stesso principio funziona per progetti, filiali, sedi e punti di assistenza.", exploreCta:"Visualizza Explore",
+      exploreTags:["Nelle vicinanze","Categorie","Mappa","Salva","Segui","Navigazione"], businesses:"Per le aziende", businessExploreTitle:"Mostra dove è attiva la tua azienda.", businessExploreText:"Rendi visibili i QR pubblici come luoghi reali. Gli utenti scoprono filiali, progetti e offerte sulla mappa e accedono direttamente a informazioni, contatti e navigazione.", businessExploreSmall:"Lo stesso principio funziona per progetti, filiali, sedi e punti di assistenza.", exploreCta:"Visualizza Explore",
       followEyebrow:"La scansione è solo l'inizio", followTitle:"Segui un QR e resta aggiornato.", followText:"Quando cambiano contenuti importanti, Mioseg qr può informarti. Il QR resta lo stesso; cambiano solo le informazioni collegate.",
       trustEyebrow:"Per uso professionale", trustTitle:"Molto più che contenuti dietro un codice.", trustText:"QR combina le informazioni con funzioni importanti anche nell'uso professionale.",
       creditsNeverExpire:"I Credits non scadono", fullCostControl:"Pieno controllo dei costi senza spese nascoste" },
@@ -521,7 +521,7 @@ export default async function Home({ params }: Props) {
       normalQr:"رمز QR عادي", oneScan:"مسح واحد ← رابط واحد", becomes:"يصبح", statement:"اربط مرة واحدة. وحافظ على التحديث دائمًا.",
       exploreEyebrow:"Explore يربط الجانبين", exploreTitle:"اكتشاف للمستخدمين. وظهور للشركات.", exploreIntro:"يجعل Explore رموز QR قابلة للاكتشاف على الخريطة ويعرض ما يوجد في المواقع الحقيقية.",
       users:"للمستخدمين", userExploreTitle:"اكتشف ما يثير اهتمامك من حولك.", userExploreText:"اعثر على QR بالقرب منك وافتح الأماكن والعروض واحفظ العناصر المهمة وانتقل إليها مباشرة.",
-      businesses:"للشركات", businessExploreTitle:"أظهر أين تنشط شركتك.", businessExploreSmall:"ينطبق المبدأ نفسه على المشاريع والفروع والمواقع ونقاط الخدمة.", exploreCta:"عرض Explore",
+      exploreTags:["بالقرب مني","الفئات","الخريطة","حفظ","متابعة","التنقل"], businesses:"للشركات", businessExploreTitle:"أظهر أين تنشط شركتك.", businessExploreText:"اجعل رموز QR العامة مرئية كمواقع حقيقية. يكتشف المستخدمون الفروع والمشاريع والعروض على الخريطة وينتقلون مباشرة إلى المعلومات ووسائل الاتصال والتنقل.", businessExploreSmall:"ينطبق المبدأ نفسه على المشاريع والفروع والمواقع ونقاط الخدمة.", exploreCta:"عرض Explore",
       followEyebrow:"المسح مجرد البداية", followTitle:"تابع QR وابقَ على اطلاع.", followText:"عندما يتغير محتوى مهم، يمكن لـ Mioseg qr إبلاغك. يبقى QR نفسه وتتحدث المعلومات المرتبطة به فقط.",
       trustEyebrow:"للاستخدام المهني", trustTitle:"أكثر من مجرد محتوى خلف رمز.", trustText:"يجمع QR المعلومات مع وظائف مهمة أيضًا للاستخدام المهني.",
       creditsNeverExpire:"لا تنتهي صلاحية Credits", fullCostControl:"تحكم كامل بالتكاليف دون رسوم مخفية" }
@@ -711,6 +711,48 @@ export default async function Home({ params }: Props) {
           <div id="live-examples">
             <HomeAudienceDemos locale={publicLanguage} />
           </div>
+
+          <section id="explore" className="landingBExploreValue" aria-labelledby="explore-value-title">
+            <div className="landingBSectionHeader">
+              <span className="landingBEyebrow">{masterCopy.exploreEyebrow}</span>
+              <h2 id="explore-value-title">{masterCopy.exploreTitle}</h2>
+              <p>{masterCopy.exploreIntro}</p>
+            </div>
+
+            <div className="landingBExploreValueGrid">
+              <div className="landingBExplorePhone">
+                <Image
+                  src={landingImages.appExplore}
+                  alt={showcaseCopy.exploreTitle}
+                  width={945}
+                  height={2048}
+                  className="landingBExploreShot"
+                />
+              </div>
+
+              <div className="landingBExploreValueCards">
+                <article>
+                  <span className="landingBAudienceBadge">{masterCopy.users}</span>
+                  <h3>{masterCopy.userExploreTitle}</h3>
+                  <p>{masterCopy.userExploreText}</p>
+                  <div className="landingBExploreTags">
+                    {masterCopy.exploreTags.map((tag) => <span key={tag}>{tag}</span>)}
+                  </div>
+                </article>
+
+                <article className="landingBExploreBusinessCard">
+                  <span className="landingBAudienceBadge">{masterCopy.businesses}</span>
+                  <h3>{masterCopy.businessExploreTitle}</h3>
+                  <p>{masterCopy.businessExploreText}</p>
+                  <small>{masterCopy.businessExploreSmall}</small>
+                </article>
+              </div>
+            </div>
+
+            <div className="landingBExploreAction">
+              <Link href={`/${locale}/explore`} className="landingBPrimary">{masterCopy.exploreCta}</Link>
+            </div>
+          </section>
         </>
       )}
 
