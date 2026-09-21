@@ -306,6 +306,7 @@ export default function SiteHeader() {
   const dashboardHref = `/${locale}/dashboard`;
   const supportHref = `/${locale}/dashboard/support`;
   const exploreHref = `/${locale}/explore`;
+  const getAppHref = `/${locale}/get-app`;
 
   const currentLabel = useMemo(() => {
     if (!headerUser) return "";
@@ -377,6 +378,10 @@ export default function SiteHeader() {
         <div className={styles.rightSide}>
           {headerUser ? (
             <>
+              <Link href={getAppHref} className={styles.cta}>
+                {ui.getApp}
+              </Link>
+
               <nav className={styles.userNav} aria-label={ui.accountMenu}>
                 <Link href={dashboardHref} className={`${styles.navLink} ${styles.dashboardLink}`}>
                   {ui.dashboard}
@@ -434,6 +439,14 @@ export default function SiteHeader() {
                       onClick={() => setMenuOpen(false)}
                     >
                       {ui.support}
+                    </Link>
+                    <Link
+                      href={getAppHref}
+                      className={styles.menuLink}
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {ui.getApp}
                     </Link>
 
                     <button
@@ -497,7 +510,7 @@ export default function SiteHeader() {
             </div>
           ) : (
             <div className={styles.guestActions}>
-              <Link href={`/${locale}/get-app`} className={styles.cta}>
+              <Link href={getAppHref} className={styles.cta}>
                 {ui.getApp}
               </Link>
               <Link href={`/${locale}/login`} className={styles.loginLink}>
