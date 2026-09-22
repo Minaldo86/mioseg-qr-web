@@ -72,8 +72,8 @@ export default function DashboardClient({
     ]);
 
     if (creditsRes.error) console.warn("Dashboard credits error:", creditsRes.error.message);
-    if (createdRes.error) console.warn("Dashboard created QR-X error:", createdRes.error.message);
-    if (savedQrxRes.error) console.warn("Dashboard saved QR-X error:", savedQrxRes.error.message);
+    if (createdRes.error) console.warn("Dashboard created Mioseg QR error:", createdRes.error.message);
+    if (savedQrxRes.error) console.warn("Dashboard saved Mioseg QR error:", savedQrxRes.error.message);
     if (savedQrRes.error) console.warn("Dashboard saved QR error:", savedQrRes.error.message);
 
     setCredits(Number(creditsRes.data?.credits ?? 0));
