@@ -25,12 +25,12 @@ export default function QrxHeroSection({
   isBusiness,
   categoryMeta,
   verified,
-  labels = { business: "Business QR-X", normal: "Normaler QR-X", verified: "Verifiziert" },
+  labels = { business: "Business Mioseg QR", normal: "Normaler Mioseg QR", verified: "Verifiziert" },
 }: Props) {
   return (
     <div style={coverStyle}>
       {cover ? <img src={cover} alt={title} style={coverImageStyle} /> : null}
-      {!cover ? <div style={coverPlaceholderStyle}>QR-X</div> : null}
+      {!cover ? <div style={coverPlaceholderStyle}>Mioseg QR</div> : null}
       <div style={coverOverlayStyle} />
 
       <div style={coverContentStyle}>

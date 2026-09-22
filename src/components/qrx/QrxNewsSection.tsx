@@ -12,7 +12,7 @@ type Props = {
 };
 
 export default function QrxNewsSection({ items, formatDate, labels = {
-  title: "News & Updates", hint: "Aktuelle Informationen und Änderungen dieses QR-X.",
+  title: "News & Updates", hint: "Aktuelle Informationen und Änderungen dieses Mioseg QR.",
   count: "{{count}} Updates", empty: "Noch keine Updates vorhanden.",
   emptyHint: "Wenn der Ersteller neue Informationen hinzufügt, erscheinen sie hier.",
 } }: Props) {

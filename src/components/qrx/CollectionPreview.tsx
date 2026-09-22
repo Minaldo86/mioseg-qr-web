@@ -54,7 +54,7 @@ export default function CollectionPreview({
   routeMode = "localized",
   collectionTitle = null,
   collectionDescription = null,
-  labels = { untitled:"Unbenannter QR-X", business:"Business QR-X", normal:"Normaler QR-X", collection:"Sammlung", one:"Eintrag", many:"Einträge", verified:"Verifiziert", part:"Sammlung", open:"Öffnen →" },
+  labels = { untitled:"Unbenannter Mioseg QR", business:"Business Mioseg QR", normal:"Normaler Mioseg QR", collection:"Sammlung", one:"Eintrag", many:"Einträge", verified:"Verifiziert", part:"Sammlung", open:"Öffnen →" },
 }: CollectionPreviewProps) {
   if (items.length === 0) return null;
 

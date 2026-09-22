@@ -29,7 +29,7 @@ export default function QrxMediaSection({
   onImageOpen,
   onFileOpen,
   onFileDownload,
-  labels = { title:"Medien", hint:"Bilder und Dateien dieses QR-X.", count:"{{count}} Medien", images:"Bilder", imageAlt:"QR-X Bild", files:"Dateien", openFile:"Datei öffnen", open:"Öffnen", download:"Herunterladen" },
+  labels = { title:"Medien", hint:"Bilder und Dateien dieses Mioseg QR.", count:"{{count}} Medien", images:"Bilder", imageAlt:"Mioseg QR Bild", files:"Dateien", openFile:"Datei öffnen", open:"Öffnen", download:"Herunterladen" },
 }: Props) {
   if (imageItems.length === 0 && fileItems.length === 0) return null;
 
