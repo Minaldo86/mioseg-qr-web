@@ -6,14 +6,14 @@ import { useEffect, useRef } from "react";
 
 type MapLanguage = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
 const MAP_TEXT = {
- de:{verified:"Verifiziert",open:"QR-X öffnen →",selected:"Marker ausgewählt · Ergebnisse unten aktualisiert",yourLocation:"Dein Standort",currentArea:"Aktueller Kartenausschnitt",noArea:"Keine Treffer im Ausschnitt"},
- en:{verified:"Verified",open:"Open QR-X →",selected:"Marker selected · Results below updated",yourLocation:"Your location",currentArea:"Current map area",noArea:"No results in area"},
- tr:{verified:"Doğrulandı",open:"QR-X'i aç →",selected:"İşaretçi seçildi · Aşağıdaki sonuçlar güncellendi",yourLocation:"Konumun",currentArea:"Geçerli harita alanı",noArea:"Bu alanda sonuç yok"},
- pl:{verified:"Zweryfikowano",open:"Otwórz QR-X →",selected:"Wybrano znacznik · Wyniki poniżej zaktualizowano",yourLocation:"Twoja lokalizacja",currentArea:"Bieżący obszar mapy",noArea:"Brak wyników w obszarze"},
- ar:{verified:"موثّق",open:"فتح QR-X ←",selected:"تم تحديد العلامة · تم تحديث النتائج أدناه",yourLocation:"موقعك",currentArea:"نطاق الخريطة الحالي",noArea:"لا توجد نتائج في النطاق"},
- fr:{verified:"Vérifié",open:"Ouvrir le QR-X →",selected:"Marqueur sélectionné · Résultats mis à jour ci-dessous",yourLocation:"Votre position",currentArea:"Zone actuelle de la carte",noArea:"Aucun résultat dans la zone"},
- es:{verified:"Verificado",open:"Abrir QR-X →",selected:"Marcador seleccionado · Resultados actualizados abajo",yourLocation:"Tu ubicación",currentArea:"Área actual del mapa",noArea:"Sin resultados en el área"},
- it:{verified:"Verificato",open:"Apri QR-X →",selected:"Marker selezionato · Risultati aggiornati sotto",yourLocation:"La tua posizione",currentArea:"Area corrente della mappa",noArea:"Nessun risultato nell’area"}
+ de:{verified:"Verifiziert",open:"Mioseg QR öffnen →",selected:"Marker ausgewählt · Ergebnisse unten aktualisiert",yourLocation:"Dein Standort",currentArea:"Aktueller Kartenausschnitt",noArea:"Keine Treffer im Ausschnitt"},
+ en:{verified:"Verified",open:"Open Mioseg QR →",selected:"Marker selected · Results below updated",yourLocation:"Your location",currentArea:"Current map area",noArea:"No results in area"},
+ tr:{verified:"Doğrulandı",open:"Mioseg QR'ı aç →",selected:"İşaretçi seçildi · Aşağıdaki sonuçlar güncellendi",yourLocation:"Konumun",currentArea:"Geçerli harita alanı",noArea:"Bu alanda sonuç yok"},
+ pl:{verified:"Zweryfikowano",open:"Otwórz Mioseg QR →",selected:"Wybrano znacznik · Wyniki poniżej zaktualizowano",yourLocation:"Twoja lokalizacja",currentArea:"Bieżący obszar mapy",noArea:"Brak wyników w obszarze"},
+ ar:{verified:"موثّق",open:"فتح Mioseg QR ←",selected:"تم تحديد العلامة · تم تحديث النتائج أدناه",yourLocation:"موقعك",currentArea:"نطاق الخريطة الحالي",noArea:"لا توجد نتائج في النطاق"},
+ fr:{verified:"Vérifié",open:"Ouvrir Mioseg QR →",selected:"Marqueur sélectionné · Résultats mis à jour ci-dessous",yourLocation:"Votre position",currentArea:"Zone actuelle de la carte",noArea:"Aucun résultat dans la zone"},
+ es:{verified:"Verificado",open:"Abrir Mioseg QR →",selected:"Marcador seleccionado · Resultados actualizados abajo",yourLocation:"Tu ubicación",currentArea:"Área actual del mapa",noArea:"Sin resultados en el área"},
+ it:{verified:"Verificato",open:"Apri Mioseg QR →",selected:"Marker selezionato · Risultati aggiornati sotto",yourLocation:"La tua posizione",currentArea:"Area corrente della mappa",noArea:"Nessun risultato nell’area"}
 } as const;
 function normalizeMapLanguage(value:string):MapLanguage{const base=value.trim().toLowerCase().split(/[-_]/)[0];return (["de","en","tr","pl","ar","fr","es","it"] as const).includes(base as MapLanguage)?base as MapLanguage:"de";}
 
@@ -389,7 +389,7 @@ html: `
         if (!marker) return;
 
         // Wichtig:
-        // Hover über Ergebnis-Karten darf NICHT den aktiven QR-X-Bereich ändern.
+        // Hover über Ergebnis-Karten darf NICHT den aktiven Mioseg-QR-Bereich ändern.
         // Sonst entsteht unten im Bereich "Gerade auf der Karte ausgewählt"
         // ein Flimmern/Wechseln, sobald die Maus über Karten bewegt wird.
         // Deshalb hier nur den Marker optisch hervorheben.
@@ -461,7 +461,7 @@ html: `
 
       if (activeBox && visibleCard) {
         activeBox.style.display = "";
-        if (activeTitle) activeTitle.textContent = visibleCard.getAttribute("data-visible-title") || "QR-X ausgewählt";
+        if (activeTitle) activeTitle.textContent = visibleCard.getAttribute("data-visible-title") || "Mioseg QR ausgewählt";
 
         const category = visibleCard.getAttribute("data-visible-category") || "";
         const followers = visibleCard.getAttribute("data-visible-followers-label") || "";
@@ -537,7 +537,7 @@ html: `
       const id = currentTarget.getAttribute("data-focus-marker");
       if (!id) return;
 
-      // Sofort den ausgewählten QR-X optisch hervorheben.
+      // Sofort den ausgewählten Mioseg QR optisch hervorheben.
       setActiveCard(id, false);
 
       // Einmal zur Karte scrollen. focusMarker bewegt anschließend nur die Karte
