@@ -194,7 +194,7 @@ export default function AdminMediaTraffic() {
             "Traffic plus Storage",
           ],
           [
-            "QR-X / Medien",
+            "Mioseg QR / Medien",
             `${formatNumber(summary?.qrxCount)} / ${formatNumber(summary?.mediaCount)}`,
             "Erfasste Objekte",
           ],
@@ -219,7 +219,7 @@ export default function AdminMediaTraffic() {
 
       <div style={styles.sectionGrid}>
         <div style={styles.panel}>
-          <h3 style={styles.title}>Top QR-X</h3>
+          <h3 style={styles.title}>Top Mioseg QR</h3>
           <div style={styles.list}>
             {(data?.topQrx ?? []).slice(0, 8).map((item) => (
               <button
@@ -239,7 +239,7 @@ export default function AdminMediaTraffic() {
               </button>
             ))}
             {(data?.topQrx ?? []).length === 0 ? (
-              <div style={styles.hint}>Noch keine QR-X-Trafficdaten.</div>
+              <div style={styles.hint}>Noch keine Mioseg QR-Trafficdaten.</div>
             ) : null}
           </div>
         </div>

@@ -66,7 +66,7 @@ export default function AdminMediaStorage({
             <input
               value={storageMediaSearch}
               onChange={(event) => setStorageMediaSearch(event.target.value)}
-              placeholder="Dateiname oder QR-X-ID…"
+              placeholder="Dateiname oder Mioseg QR-ID…"
               style={sx("storageFilterInput")}
             />
           </label>

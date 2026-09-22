@@ -233,13 +233,13 @@ export default function AdminMediaJobs() {
         {error ? <div style={styles.error}>⚠️ {error}</div> : null}
 
         <div style={styles.filterGrid}>
-          <label style={styles.labelWrap}>Suche<input value={jobSearch} onChange={(event) => setJobSearch(event.target.value)} placeholder="Job, Medium, QR-X, Fehler…" style={styles.input} /></label>
+          <label style={styles.labelWrap}>Suche<input value={jobSearch} onChange={(event) => setJobSearch(event.target.value)} placeholder="Job, Medium, Mioseg QR, Fehler…" style={styles.input} /></label>
           <label style={styles.labelWrap}>Status<select value={jobFilter} onChange={(event) => setJobFilter(event.target.value as JobFilter)} style={styles.input}><option value="all">Alle</option><option value="queued">Wartet</option><option value="processing">In Verarbeitung</option><option value="done">Erledigt</option><option value="failed">Fehlgeschlagen</option></select></label>
         </div>
 
         <div style={styles.tableWrap}>
           <table style={styles.table}>
-            <thead><tr><th style={styles.th}>Job</th><th style={styles.th}>Media</th><th style={styles.th}>QR-X</th><th style={styles.th}>Status</th><th style={styles.th}>Versuche</th><th style={styles.th}>Grund / Fehler</th><th style={styles.th}>Erstellt</th><th style={styles.th}>Aktionen</th></tr></thead>
+            <thead><tr><th style={styles.th}>Job</th><th style={styles.th}>Media</th><th style={styles.th}>Mioseg QR</th><th style={styles.th}>Status</th><th style={styles.th}>Versuche</th><th style={styles.th}>Grund / Fehler</th><th style={styles.th}>Erstellt</th><th style={styles.th}>Aktionen</th></tr></thead>
             <tbody>
               {filteredJobs.slice(0, 50).map((job) => (
                 <tr key={job.id}>
@@ -272,7 +272,7 @@ export default function AdminMediaJobs() {
           <label style={styles.labelWrap}>Typ<select value={bulkType} onChange={(event) => setBulkType(event.target.value)} style={styles.input}><option value="image">Bilder</option><option value="logo">Logos</option><option value="all">Alle optimierbaren Medien</option></select></label>
           <label style={styles.labelWrap}>Status<select value={bulkStatus} onChange={(event) => setBulkStatus(event.target.value)} style={styles.input}><option value="failed">Fehlgeschlagen</option><option value="ready">Optimiert</option><option value="queued">Wartet</option><option value="all">Alle</option></select></label>
           <label style={styles.labelWrap}>Mindestgröße (MB)<input value={bulkMinMb} onChange={(event) => setBulkMinMb(event.target.value)} inputMode="decimal" style={styles.input} /></label>
-          <label style={styles.labelWrap}>Suche<input value={bulkSearch} onChange={(event) => setBulkSearch(event.target.value)} placeholder="Dateiname oder QR-X-ID…" style={styles.input} /></label>
+          <label style={styles.labelWrap}>Suche<input value={bulkSearch} onChange={(event) => setBulkSearch(event.target.value)} placeholder="Dateiname oder Mioseg QR-ID…" style={styles.input} /></label>
           <label style={styles.labelWrap}>Limit<input value={bulkLimit} onChange={(event) => setBulkLimit(event.target.value)} inputMode="numeric" style={styles.input} /></label>
         </div>
 
@@ -285,7 +285,7 @@ export default function AdminMediaJobs() {
               <div key={item.id} style={styles.card}>
                 <div style={styles.label}>{item.type || "Medium"} · {item.processing_status || "–"}</div>
                 <div style={{ ...styles.value, fontSize: 14 }}>{item.filename || item.id}</div>
-                <div style={styles.hint}>QR-X: {item.qrx_id || "–"} · {formatBytes(item.original_bytes)}</div>
+                <div style={styles.hint}>Mioseg QR: {item.qrx_id || "–"} · {formatBytes(item.original_bytes)}</div>
               </div>
             ))}
           </div>

@@ -584,18 +584,18 @@ const ADMIN_I18N = {
 
     admin_title: "Admin – Kommandozentrale",
     admin_subtitle:
-      "Prüfe Business-QR-X, verwalte Verifizierungen und buche Credits bei Kulanz oder Erstattung.",
+      "Prüfe Business-Mioseg QR, verwalte Verifizierungen und buche Credits bei Kulanz oder Erstattung.",
 
     tab_overview: "Übersicht",
     tab_overview_hint: "Kennzahlen und wichtigste offene Punkte",
     tab_verifications: "Verifizierungen",
-    tab_verifications_hint: "Business-QR-X Nachweise prüfen",
+    tab_verifications_hint: "Business-Mioseg QR Nachweise prüfen",
     tab_reports: "Meldungen",
-    tab_reports_hint: "Gemeldete und gesperrte QR-X moderieren",
+    tab_reports_hint: "Gemeldete und gesperrte Mioseg QR moderieren",
     tab_support: "Support",
     tab_support_hint: "Tickets und Reklamationen bearbeiten",
     tab_users: "Nutzer",
-    tab_users_hint: "Nutzer suchen und QR-X zuordnen",
+    tab_users_hint: "Nutzer suchen und Mioseg QR zuordnen",
     tab_credits: "Credits",
     tab_credits_hint: "Gutschriften und Credit-Historie",
     tab_finance: "Finanzen",
@@ -609,7 +609,7 @@ const ADMIN_I18N = {
     problem_verification_waiting: "Verifizierung hängt",
     problem_upload_problem: "Upload Problem",
     problem_transfer_problem: "Transfer Problem",
-    problem_qrx_report: "QR-X Meldung",
+    problem_qrx_report: "Mioseg QR Meldung",
     problem_other: "Sonstiges",
 
     ticket_status_open: "Offen",
@@ -629,10 +629,10 @@ const ADMIN_I18N = {
     admin_action_support_ticket_in_review: "Supportfall in Prüfung",
     admin_action_support_ticket_resolved: "Supportfall gelöst",
     admin_action_support_ticket_open: "Supportfall geöffnet",
-    admin_action_verification_approved: "QR-X verifiziert",
-    admin_action_verification_rejected: "QR-X abgelehnt",
-    admin_action_qrx_soft_deleted: "QR-X gelöscht",
-    admin_action_qrx_restored: "QR-X wiederhergestellt",
+    admin_action_verification_approved: "Mioseg QR verifiziert",
+    admin_action_verification_rejected: "Mioseg QR abgelehnt",
+    admin_action_qrx_soft_deleted: "Mioseg QR gelöscht",
+    admin_action_qrx_restored: "Mioseg QR wiederhergestellt",
 
     purchase_status_paid: "Bezahlt",
     purchase_status_pending: "Offen",
@@ -644,16 +644,16 @@ const ADMIN_I18N = {
 
     section_reports_title: "Meldungen / Moderation",
     section_reports_hint:
-      "Prüfe gemeldete QR-X, markiere geprüfte Einträge oder sperre problematische Inhalte.",
+      "Prüfe gemeldete Mioseg QR, markiere geprüfte Einträge oder sperre problematische Inhalte.",
     section_support_title: "Support / Tickets",
     section_support_hint:
       "Lege Supportfälle an, prüfe Reklamationen und buche bei Bedarf Credits zurück.",
     section_users_title: "Nutzerverwaltung",
     section_users_hint:
-      "Suche Nutzer per User-ID, QR-X-ID oder E-Mail und prüfe zugehörige QR-X.",
-    section_qrx_status_title: "QR-X Status prüfen",
+      "Suche Nutzer per User-ID, Mioseg QR-ID oder E-Mail und prüfe zugehörige Mioseg QR.",
+    section_qrx_status_title: "Mioseg QR Status prüfen",
     section_qrx_status_hint:
-      "Lade einzelne QR-X, sperre sie, stelle sie wieder her oder markiere sie als geprüft.",
+      "Lade einzelne Mioseg QR, sperre sie, stelle sie wieder her oder markiere sie als geprüft.",
 
     btn_refresh: "Aktualisieren",
     btn_load: "Laden",
@@ -672,11 +672,11 @@ const ADMIN_I18N = {
     btn_set_in_review: "In Prüfung setzen",
     btn_resolve: "Als gelöst markieren",
     btn_refund_credits: "Credits erstatten",
-    btn_suspend_qrx: "QR-X sperren",
-    btn_show_all_qrx: "Alle QR-X anzeigen",
-    btn_hide_qrx: "QR-X ausblenden",
+    btn_suspend_qrx: "Mioseg QR sperren",
+    btn_show_all_qrx: "Alle Mioseg QR anzeigen",
+    btn_hide_qrx: "Mioseg QR ausblenden",
 
-    table_qrx: "QR-X",
+    table_qrx: "Mioseg QR",
     table_title: "Titel",
     table_user: "Nutzer",
     table_status: "Status",
@@ -699,19 +699,19 @@ const ADMIN_I18N = {
     table_note: "Notiz",
     table_date: "Datum",
 
-    input_search_reports_placeholder: "QR-X, Titel, Firma, User-ID oder Grund suchen…",
-    input_user_lookup_placeholder: "User-ID, QR-X-ID oder E-Mail eingeben…",
-    input_qrx_lookup_placeholder: "QR-X-ID eingeben…",
+    input_search_reports_placeholder: "Mioseg QR, Titel, Firma, User-ID oder Grund suchen…",
+    input_user_lookup_placeholder: "User-ID, Mioseg QR-ID oder E-Mail eingeben…",
+    input_qrx_lookup_placeholder: "Mioseg QR-ID eingeben…",
     input_suspend_reason_placeholder: "Sperr-/Löschgrund eintragen…",
     input_ticket_title_placeholder: "Kurzer Titel für den Supportfall…",
     input_ticket_description_placeholder: "Beschreibung / interne Notiz…",
     input_refund_credits_placeholder: "Credits",
 
-    label_reported_qrx: "Gemeldete QR-X",
+    label_reported_qrx: "Gemeldete Mioseg QR",
     label_auto_suspended: "Automatisch gesperrt",
     label_open_tickets: "Offene Tickets",
     label_recent_tickets: "Letzte Tickets",
-    label_recent_qrx: "Letzte QR-X",
+    label_recent_qrx: "Letzte Mioseg QR",
     label_user_blocked: "Nutzer gesperrt",
     label_user_active: "Nutzer aktiv",
     label_suspended: "Gesperrt",
@@ -724,14 +724,14 @@ const ADMIN_I18N = {
     label_all: "Alle",
     label_all_actions: "Alle Aktionen",
 
-    empty_reports: "Keine gemeldeten QR-X vorhanden.",
+    empty_reports: "Keine gemeldeten Mioseg QR vorhanden.",
     empty_tickets: "Keine Supportfälle vorhanden.",
     empty_user_result: "Noch kein Nutzer geladen.",
-    empty_qrx_result: "Noch kein QR-X geladen.",
+    empty_qrx_result: "Noch kein Mioseg QR geladen.",
     loading_reports: "Meldungen werden geladen…",
     loading_tickets: "Supportfälle werden geladen…",
     loading_user: "Nutzer wird geladen…",
-    loading_qrx: "QR-X wird geladen…",
+    loading_qrx: "Mioseg QR wird geladen…",
 
     qrx_report_count: "{{count}} Meldung(en)",
     qrx_report_score: "Report-Score: {{score}}",
@@ -750,15 +750,15 @@ const ADMIN_I18N = {
     user_lookup_title: "Nutzer suchen",
     user_lookup_summary: "Nutzerübersicht",
     user_current_credits: "Aktuelle Credits",
-    user_qrx_count: "QR-X gesamt",
-    user_business_qrx_count: "Business QR-X",
+    user_qrx_count: "Mioseg QR gesamt",
+    user_business_qrx_count: "Business Mioseg QR",
     user_verified_qrx_count: "Verifiziert",
     user_open_tickets_count: "Offene Tickets",
     user_open_verifications_count: "Offene Verifizierungen",
     user_ban: "Nutzer sperren",
     user_unban: "Nutzer entsperren",
-    user_suspend_all_qrx: "Alle QR-X sperren",
-    user_unsuspend_all_qrx: "Alle QR-X freigeben",
+    user_suspend_all_qrx: "Alle Mioseg QR sperren",
+    user_unsuspend_all_qrx: "Alle Mioseg QR freigeben",
 
     filter_all: "Alle",
     filter_open: "Offen",
@@ -771,9 +771,9 @@ const ADMIN_I18N = {
     ticket_no_user_id: "Dieser Supportfall hat keine User-ID. Bitte User-ID im Ticket hinterlegen.",
     ticket_refund_amount_invalid: "Bitte eine gültige Credit-Anzahl für die Erstattung eintragen.",
     ticket_refund_max: "Maximal 100 Credits pro Erstattung erlaubt.",
-    ticket_no_qrx_id: "Dieses Ticket hat keine QR-X-ID.",
-    qrx_suspend_failed: "QR-X konnte nicht gesperrt werden.",
-    qrx_suspended_success: "QR-X wurde gesperrt.",
+    ticket_no_qrx_id: "Dieses Ticket hat keine Mioseg QR-ID.",
+    qrx_suspend_failed: "Mioseg QR konnte nicht gesperrt werden.",
+    qrx_suspended_success: "Mioseg QR wurde gesperrt.",
 
     ticket_title_required: "Bitte einen kurzen Titel für den Supportfall eintragen.",
     finance_title: "Finanzübersicht",
@@ -809,7 +809,7 @@ const ADMIN_I18N = {
 
 
     logs_title: "Admin-Aktionslog",
-    logs_hint: "Durchsuche kritische Änderungen: Preise, Credits, QR-X Sperren, Support und Verifizierungen.",
+    logs_hint: "Durchsuche kritische Änderungen: Preise, Credits, Mioseg QR Sperren, Support und Verifizierungen.",
     logs_refresh: "Aktionen aktualisieren",
     logs_loaded_actions: "Geladene Aktionen",
     logs_today: "Heute",
@@ -817,17 +817,17 @@ const ADMIN_I18N = {
     logs_loaded_hint: "Aktuell geladene Einträge aus dem Admin-Log.",
     logs_today_hint: "Admin-Aktionen am heutigen Tag.",
     logs_filtered_hint: "Einträge passend zu Suche und Filter.",
-    logs_search_placeholder: "Suche nach User-ID, QR-X-ID, Notiz, Aktion…",
+    logs_search_placeholder: "Suche nach User-ID, Mioseg QR-ID, Notiz, Aktion…",
     logs_action_label: "Aktion",
     logs_open_user: "Nutzer öffnen",
-    logs_open_qrx: "QR-X öffnen",
+    logs_open_qrx: "Mioseg QR öffnen",
     logs_load_moderation: "In Moderation laden",
-    admin_action_all_qrx_unsuspended: "Alle QR-X freigegeben",
-    admin_action_all_qrx_suspended: "Alle QR-X gesperrt",
+    admin_action_all_qrx_unsuspended: "Alle Mioseg QR freigegeben",
+    admin_action_all_qrx_suspended: "Alle Mioseg QR gesperrt",
     admin_action_user_unbanned: "Nutzer entsperrt",
     admin_action_user_banned: "Nutzer gesperrt",
-    admin_action_qrx_suspended: "QR-X gesperrt",
-    admin_action_qrx_unsuspended: "QR-X freigegeben",
+    admin_action_qrx_suspended: "Mioseg QR gesperrt",
+    admin_action_qrx_unsuspended: "Mioseg QR freigegeben",
     admin_action_pricing_updated: "Preis aktualisiert",
     admin_action_launch_discount_updated: "Launch-Rabatt geändert",
     admin_action_refund_created: "Erstattung erstellt",
@@ -865,18 +865,18 @@ const ADMIN_I18N = {
 
     admin_title: "Admin – Command Center",
     admin_subtitle:
-      "Review Business QR-X requests, manage verifications and grant credits for goodwill or refunds.",
+      "Review Business Mioseg QR requests, manage verifications and grant credits for goodwill or refunds.",
 
     tab_overview: "Overview",
     tab_overview_hint: "Key metrics and most important open items",
     tab_verifications: "Verifications",
-    tab_verifications_hint: "Review Business QR-X proof documents",
+    tab_verifications_hint: "Review Business Mioseg QR proof documents",
     tab_reports: "Reports",
-    tab_reports_hint: "Moderate reported and suspended QR-X",
+    tab_reports_hint: "Moderate reported and suspended Mioseg QR",
     tab_support: "Support",
     tab_support_hint: "Handle tickets and complaints",
     tab_users: "Users",
-    tab_users_hint: "Search users and assign QR-X",
+    tab_users_hint: "Search users and assign Mioseg QR",
     tab_credits: "Credits",
     tab_credits_hint: "Credit grants and credit history",
     tab_finance: "Finance",
@@ -890,7 +890,7 @@ const ADMIN_I18N = {
     problem_verification_waiting: "Verification pending too long",
     problem_upload_problem: "Upload problem",
     problem_transfer_problem: "Transfer problem",
-    problem_qrx_report: "QR-X report",
+    problem_qrx_report: "Mioseg QR report",
     problem_other: "Other",
 
     ticket_status_open: "Open",
@@ -910,10 +910,10 @@ const ADMIN_I18N = {
     admin_action_support_ticket_in_review: "Support ticket in review",
     admin_action_support_ticket_resolved: "Support ticket resolved",
     admin_action_support_ticket_open: "Support ticket reopened",
-    admin_action_verification_approved: "QR-X verified",
-    admin_action_verification_rejected: "QR-X rejected",
-    admin_action_qrx_soft_deleted: "QR-X deleted",
-    admin_action_qrx_restored: "QR-X restored",
+    admin_action_verification_approved: "Mioseg QR verified",
+    admin_action_verification_rejected: "Mioseg QR rejected",
+    admin_action_qrx_soft_deleted: "Mioseg QR deleted",
+    admin_action_qrx_restored: "Mioseg QR restored",
 
     purchase_status_paid: "Paid",
     purchase_status_pending: "Pending",
@@ -925,16 +925,16 @@ const ADMIN_I18N = {
 
     section_reports_title: "Reports / Moderation",
     section_reports_hint:
-      "Review reported QR-X, mark entries as reviewed or suspend problematic content.",
+      "Review reported Mioseg QR, mark entries as reviewed or suspend problematic content.",
     section_support_title: "Support / Tickets",
     section_support_hint:
       "Create support cases, review complaints and refund credits when needed.",
     section_users_title: "User management",
     section_users_hint:
-      "Search users by user ID, QR-X ID or email and review their QR-X.",
-    section_qrx_status_title: "Check QR-X status",
+      "Search users by user ID, Mioseg QR ID or email and review their Mioseg QR.",
+    section_qrx_status_title: "Check Mioseg QR status",
     section_qrx_status_hint:
-      "Load individual QR-X, suspend them, restore them or mark them as reviewed.",
+      "Load individual Mioseg QR, suspend them, restore them or mark them as reviewed.",
 
     btn_refresh: "Refresh",
     btn_load: "Load",
@@ -953,11 +953,11 @@ const ADMIN_I18N = {
     btn_set_in_review: "Set in review",
     btn_resolve: "Mark resolved",
     btn_refund_credits: "Refund credits",
-    btn_suspend_qrx: "Suspend QR-X",
-    btn_show_all_qrx: "Show all QR-X",
-    btn_hide_qrx: "Hide QR-X",
+    btn_suspend_qrx: "Suspend Mioseg QR",
+    btn_show_all_qrx: "Show all Mioseg QR",
+    btn_hide_qrx: "Hide Mioseg QR",
 
-    table_qrx: "QR-X",
+    table_qrx: "Mioseg QR",
     table_title: "Title",
     table_user: "User",
     table_status: "Status",
@@ -980,19 +980,19 @@ const ADMIN_I18N = {
     table_note: "Note",
     table_date: "Date",
 
-    input_search_reports_placeholder: "Search QR-X, title, company, user ID or reason…",
-    input_user_lookup_placeholder: "Enter user ID, QR-X ID or email…",
-    input_qrx_lookup_placeholder: "Enter QR-X ID…",
+    input_search_reports_placeholder: "Search Mioseg QR, title, company, user ID or reason…",
+    input_user_lookup_placeholder: "Enter user ID, Mioseg QR ID or email…",
+    input_qrx_lookup_placeholder: "Enter Mioseg QR ID…",
     input_suspend_reason_placeholder: "Enter suspension/deletion reason…",
     input_ticket_title_placeholder: "Short title for the support case…",
     input_ticket_description_placeholder: "Description / internal note…",
     input_refund_credits_placeholder: "Credits",
 
-    label_reported_qrx: "Reported QR-X",
+    label_reported_qrx: "Reported Mioseg QR",
     label_auto_suspended: "Automatically suspended",
     label_open_tickets: "Open tickets",
     label_recent_tickets: "Recent tickets",
-    label_recent_qrx: "Recent QR-X",
+    label_recent_qrx: "Recent Mioseg QR",
     label_user_blocked: "User blocked",
     label_user_active: "User active",
     label_suspended: "Suspended",
@@ -1005,14 +1005,14 @@ const ADMIN_I18N = {
     label_all: "All",
     label_all_actions: "All actions",
 
-    empty_reports: "No reported QR-X available.",
+    empty_reports: "No reported Mioseg QR available.",
     empty_tickets: "No support cases available.",
     empty_user_result: "No user loaded yet.",
-    empty_qrx_result: "No QR-X loaded yet.",
+    empty_qrx_result: "No Mioseg QR loaded yet.",
     loading_reports: "Loading reports…",
     loading_tickets: "Loading support cases…",
     loading_user: "Loading user…",
-    loading_qrx: "Loading QR-X…",
+    loading_qrx: "Loading Mioseg QR…",
 
     qrx_report_count: "{{count}} report(s)",
     qrx_report_score: "Report score: {{score}}",
@@ -1031,15 +1031,15 @@ const ADMIN_I18N = {
     user_lookup_title: "Search user",
     user_lookup_summary: "User overview",
     user_current_credits: "Current credits",
-    user_qrx_count: "QR-X total",
-    user_business_qrx_count: "Business QR-X",
+    user_qrx_count: "Mioseg QR total",
+    user_business_qrx_count: "Business Mioseg QR",
     user_verified_qrx_count: "Verified",
     user_open_tickets_count: "Open tickets",
     user_open_verifications_count: "Open verifications",
     user_ban: "Ban user",
     user_unban: "Unban user",
-    user_suspend_all_qrx: "Suspend all QR-X",
-    user_unsuspend_all_qrx: "Release all QR-X",
+    user_suspend_all_qrx: "Suspend all Mioseg QR",
+    user_unsuspend_all_qrx: "Release all Mioseg QR",
 
     filter_all: "All",
     filter_open: "Open",
@@ -1052,9 +1052,9 @@ const ADMIN_I18N = {
     ticket_no_user_id: "This support case has no user ID. Please add a user ID to the ticket.",
     ticket_refund_amount_invalid: "Please enter a valid credit amount for the refund.",
     ticket_refund_max: "Maximum 100 credits per refund allowed.",
-    ticket_no_qrx_id: "This ticket has no QR-X ID.",
-    qrx_suspend_failed: "QR-X could not be suspended.",
-    qrx_suspended_success: "QR-X has been suspended.",
+    ticket_no_qrx_id: "This ticket has no Mioseg QR ID.",
+    qrx_suspend_failed: "Mioseg QR could not be suspended.",
+    qrx_suspended_success: "Mioseg QR has been suspended.",
 
     ticket_title_required: "Please enter a short title for the support case.",
     finance_title: "Finance overview",
@@ -1090,7 +1090,7 @@ const ADMIN_I18N = {
 
 
     logs_title: "Admin action log",
-    logs_hint: "Search critical changes: prices, credits, QR-X suspensions, support and verifications.",
+    logs_hint: "Search critical changes: prices, credits, Mioseg QR suspensions, support and verifications.",
     logs_refresh: "Refresh actions",
     logs_loaded_actions: "Loaded actions",
     logs_today: "Today",
@@ -1098,17 +1098,17 @@ const ADMIN_I18N = {
     logs_loaded_hint: "Currently loaded entries from the admin log.",
     logs_today_hint: "Admin actions today.",
     logs_filtered_hint: "Entries matching search and filters.",
-    logs_search_placeholder: "Search by user ID, QR-X ID, note, action…",
+    logs_search_placeholder: "Search by user ID, Mioseg QR ID, note, action…",
     logs_action_label: "Action",
     logs_open_user: "Open user",
-    logs_open_qrx: "Open QR-X",
+    logs_open_qrx: "Open Mioseg QR",
     logs_load_moderation: "Load in moderation",
-    admin_action_all_qrx_unsuspended: "All QR-X released",
-    admin_action_all_qrx_suspended: "All QR-X suspended",
+    admin_action_all_qrx_unsuspended: "All Mioseg QR released",
+    admin_action_all_qrx_suspended: "All Mioseg QR suspended",
     admin_action_user_unbanned: "User unbanned",
     admin_action_user_banned: "User banned",
-    admin_action_qrx_suspended: "QR-X suspended",
-    admin_action_qrx_unsuspended: "QR-X released",
+    admin_action_qrx_suspended: "Mioseg QR suspended",
+    admin_action_qrx_unsuspended: "Mioseg QR released",
     admin_action_pricing_updated: "Pricing updated",
     admin_action_launch_discount_updated: "Launch discount changed",
     admin_action_refund_created: "Refund created",
@@ -2935,7 +2935,7 @@ export default function AdminPage() {
 
       const payload = {
         free_storage_mb: parsePricingConfigNumber("free_storage_mb", "Freier Speicher", 0),
-        qrx_creation_credit_cost: parsePricingConfigNumber("qrx_creation_credit_cost", "QR-X Erstellung", 0),
+        qrx_creation_credit_cost: parsePricingConfigNumber("qrx_creation_credit_cost", "Mioseg QR Erstellung", 0),
         storage_pack_mb: parsePricingConfigNumber("storage_pack_mb", "Speicherpaket-Größe", 1),
         storage_pack_credit_cost: parsePricingConfigNumber("storage_pack_credit_cost", "Speicherpaket-Kosten", 1),
         max_upload_mb: parsePricingConfigNumber("max_upload_mb", "Max. Upload", 1),
@@ -2945,7 +2945,7 @@ export default function AdminPage() {
       };
 
       const confirmed = window.confirm(
-        `Plattform-Konfiguration wirklich speichern?\n\nFreier Speicher: ${payload.free_storage_mb} MB\nQR-X Erstellung: ${payload.qrx_creation_credit_cost} Credit(s)\nSpeicherpaket: ${payload.storage_pack_mb} MB = ${payload.storage_pack_credit_cost} Credit(s)`
+        `Plattform-Konfiguration wirklich speichern?\n\nFreier Speicher: ${payload.free_storage_mb} MB\nMioseg QR Erstellung: ${payload.qrx_creation_credit_cost} Credit(s)\nSpeicherpaket: ${payload.storage_pack_mb} MB = ${payload.storage_pack_credit_cost} Credit(s)`
       );
 
       if (!confirmed) return;
@@ -3048,7 +3048,7 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Gemeldete QR-X konnten nicht geladen werden.");
+        throw new Error(data?.error || "Gemeldete Mioseg QR konnten nicht geladen werden.");
       }
 
       setReportedQrx(Array.isArray(data?.qrx) ? data.qrx : []);
@@ -3598,7 +3598,7 @@ if (refundAmount && refundAmount > 0) {
     const templates = {
       general: `${greeting}\n\nvielen Dank für deine Support-Anfrage.\n\n\n\nViele Grüße\nMioseg qr Support`,
       screenshot: `${greeting}\n\nvielen Dank für deine Anfrage. Bitte sende uns einen Screenshot des Problems und beschreibe kurz, bei welchem Schritt es auftritt.\n\nViele Grüße\nMioseg qr Support`,
-      qrx_link: `${greeting}\n\nvielen Dank für deine Anfrage. Bitte sende uns den Link oder die genaue Bezeichnung des betroffenen QR-X.\n\nViele Grüße\nMioseg qr Support`,
+      qrx_link: `${greeting}\n\nvielen Dank für deine Anfrage. Bitte sende uns den Link oder die genaue Bezeichnung des betroffenen Mioseg QR.\n\nViele Grüße\nMioseg qr Support`,
       credits: `${greeting}\n\nwir haben die vereinbarte Credit-Gutschrift deinem Mioseg-qr-Konto hinzugefügt. Bitte aktualisiere die Credits-Ansicht und prüfe den neuen Stand.\n\nViele Grüße\nMioseg qr Support`,
       resolved: `${greeting}\n\nwir haben dein Anliegen geprüft. Das Problem sollte jetzt behoben sein. Bitte teste die Funktion erneut.\n\nViele Grüße\nMioseg qr Support`,
     };
@@ -3617,7 +3617,7 @@ if (refundAmount && refundAmount > 0) {
             template === "screenshot"
               ? "E-Mail vorbereitet: Screenshot angefordert"
               : template === "qrx_link"
-                ? "E-Mail vorbereitet: QR-X-Link angefordert"
+                ? "E-Mail vorbereitet: Mioseg QR-Link angefordert"
                 : template === "credits"
                   ? "E-Mail vorbereitet: Credit-Gutschrift bestätigt"
                   : template === "resolved"
@@ -3663,7 +3663,7 @@ if (refundAmount && refundAmount > 0) {
 
       const reason =
         ticket.title?.trim() ||
-        "QR-X wurde aufgrund einer Support-/Nutzermeldung zur Prüfung gesperrt.";
+        "Mioseg QR wurde aufgrund einer Support-/Nutzermeldung zur Prüfung gesperrt.";
 
       const res = await fetch("/api/admin/qrx-status", {
         method: "PATCH",
@@ -3703,7 +3703,7 @@ if (refundAmount && refundAmount > 0) {
       const query = userLookupQuery.trim();
 
       if (!query) {
-        throw new Error("Bitte User-ID, QR-X-ID oder E-Mail eingeben.");
+        throw new Error("Bitte User-ID, Mioseg QR-ID oder E-Mail eingeben.");
       }
 
       setUserLookupLoading(true);
@@ -3751,8 +3751,8 @@ if (refundAmount && refundAmount > 0) {
           : action === "unban_user"
             ? "Nutzer entsperren"
             : action === "suspend_all_qrx"
-              ? "Alle QR-X sperren"
-              : "Alle QR-X freigeben";
+              ? "Alle Mioseg QR sperren"
+              : "Alle Mioseg QR freigeben";
 
       const confirmed = window.confirm(
         `${actionLabel} wirklich durchführen?`
@@ -3811,7 +3811,7 @@ if (refundAmount && refundAmount > 0) {
       const qrxId = (forcedId || qrxLookupId).trim();
 
       if (!qrxId) {
-        throw new Error("Bitte eine QR-X-ID eingeben.");
+        throw new Error("Bitte eine Mioseg QR-ID eingeben.");
       }
 
       setActiveAdminTab("reports");
@@ -3826,7 +3826,7 @@ if (refundAmount && refundAmount > 0) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "QR-X konnte nicht geladen werden.");
+        throw new Error(data?.error || "Mioseg QR konnte nicht geladen werden.");
       }
 
       let loadedQrx = (data.qrx ?? null) as QrxAdminItem | null;
@@ -3856,7 +3856,7 @@ if (refundAmount && refundAmount > 0) {
       setQrxSuspendReason(loadedQrx?.suspended_reason || "");
     } catch (error: unknown) {
       console.error("handleQrxLookup error:", error);
-      alert(error instanceof Error ? error.message : "QR-X konnte nicht geladen werden.");
+      alert(error instanceof Error ? error.message : "Mioseg QR konnte nicht geladen werden.");
     } finally {
       setQrxLookupLoading(false);
     }
@@ -3880,7 +3880,7 @@ if (refundAmount && refundAmount > 0) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "QR-X konnte nicht als geprüft markiert werden.");
+        throw new Error(data?.error || "Mioseg QR konnte nicht als geprüft markiert werden.");
       }
 
       setQrxAdminItem(data.qrx);
@@ -3893,10 +3893,10 @@ if (refundAmount && refundAmount > 0) {
       await fetchTickets();
       await fetchAdminActions();
 
-      alert("QR-X wurde als geprüft markiert.");
+      alert("Mioseg QR wurde als geprüft markiert.");
     } catch (error: unknown) {
       console.error("handleMarkQrxReviewed error:", error);
-      alert(error instanceof Error ? error.message : "QR-X konnte nicht als geprüft markiert werden.");
+      alert(error instanceof Error ? error.message : "Mioseg QR konnte nicht als geprüft markiert werden.");
     } finally {
       setReviewingQrxId(null);
     }
@@ -3905,17 +3905,17 @@ if (refundAmount && refundAmount > 0) {
   const handleSetQrxOriginalQuality = async (forceOriginalQuality: boolean) => {
     try {
       if (!qrxAdminItem?.id) {
-        throw new Error("Bitte zuerst einen QR-X laden.");
+        throw new Error("Bitte zuerst einen Mioseg QR laden.");
       }
 
       const confirmed = window.confirm(
         forceOriginalQuality
-          ? `Originalqualität für diesen QR-X erzwingen?
+          ? `Originalqualität für diesen Mioseg QR erzwingen?
 
 Nur für Ausnahmefälle verwenden. Explore, Karten und Listen bleiben weiterhin optimiert. Detailansicht, Galerie und Vollbild bevorzugen danach Originalbilder.`
-          : `Originalqualität für diesen QR-X wieder ausschalten?
+          : `Originalqualität für diesen Mioseg QR wieder ausschalten?
 
-Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
+Danach nutzt der Mioseg QR wieder die normale optimierte Bildauslieferung.`
       );
 
       if (!confirmed) return;
@@ -3961,8 +3961,8 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
 
       setQrxQualityMessage(
         nextValue
-          ? "Originalqualität ist für diesen QR-X aktiv."
-          : "Optimierte Bildauslieferung ist für diesen QR-X wieder aktiv."
+          ? "Originalqualität ist für diesen Mioseg QR aktiv."
+          : "Optimierte Bildauslieferung ist für diesen Mioseg QR wieder aktiv."
       );
 
       await fetchAdminActions();
@@ -3977,7 +3977,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
   const handleSetQrxSuspended = async (suspended: boolean) => {
     try {
       if (!qrxAdminItem?.id) {
-        throw new Error("Bitte zuerst einen QR-X laden.");
+        throw new Error("Bitte zuerst einen Mioseg QR laden.");
       }
 
       if (suspended && !qrxSuspendReason.trim()) {
@@ -4001,7 +4001,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "QR-X Status konnte nicht geändert werden.");
+        throw new Error(data?.error || "Mioseg QR Status konnte nicht geändert werden.");
       }
 
       setQrxAdminItem(data.qrx);
@@ -4011,7 +4011,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
       await fetchAdminActions();
     } catch (error: unknown) {
       console.error("handleSetQrxSuspended error:", error);
-      alert(error instanceof Error ? error.message : "QR-X Status konnte nicht geändert werden.");
+      alert(error instanceof Error ? error.message : "Mioseg QR Status konnte nicht geändert werden.");
     } finally {
       setQrxActionWorking(false);
     }
@@ -4020,7 +4020,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
   const handleSetQrxDeleted = async (deleteAction: "soft_delete" | "restore") => {
     try {
       if (!qrxAdminItem?.id) {
-        throw new Error("Bitte zuerst einen QR-X laden.");
+        throw new Error("Bitte zuerst einen Mioseg QR laden.");
       }
 
       const isDelete = deleteAction === "soft_delete";
@@ -4031,8 +4031,8 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
 
       const confirmed = window.confirm(
         isDelete
-          ? "Diesen QR-X wirklich löschen? Er wird öffentlich ausgeblendet, bleibt aber in der Datenbank und kann wiederhergestellt werden."
-          : "Diesen QR-X wirklich wiederherstellen?"
+          ? "Diesen Mioseg QR wirklich löschen? Er wird öffentlich ausgeblendet, bleibt aber in der Datenbank und kann wiederhergestellt werden."
+          : "Diesen Mioseg QR wirklich wiederherstellen?"
       );
 
       if (!confirmed) return;
@@ -4056,7 +4056,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
       if (!res.ok) {
         throw new Error(
           data?.error ||
-            (isDelete ? "QR-X konnte nicht gelöscht werden." : "QR-X konnte nicht wiederhergestellt werden.")
+            (isDelete ? "Mioseg QR konnte nicht gelöscht werden." : "Mioseg QR konnte nicht wiederhergestellt werden.")
         );
       }
 
@@ -4067,10 +4067,10 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
       await fetchReportedQrx();
       await fetchAdminActions();
 
-      alert(isDelete ? "QR-X wurde gelöscht." : "QR-X wurde wiederhergestellt.");
+      alert(isDelete ? "Mioseg QR wurde gelöscht." : "Mioseg QR wurde wiederhergestellt.");
     } catch (error: unknown) {
       console.error("handleSetQrxDeleted error:", error);
-      alert(error instanceof Error ? error.message : "QR-X Aktion konnte nicht durchgeführt werden.");
+      alert(error instanceof Error ? error.message : "Mioseg QR Aktion konnte nicht durchgeführt werden.");
     } finally {
       setQrxActionWorking(false);
     }
@@ -4080,7 +4080,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
   const handleSaveQrxStatsBoost = async () => {
     try {
       if (!qrxAdminItem?.id) {
-        throw new Error("Bitte zuerst einen QR-X laden.");
+        throw new Error("Bitte zuerst einen Mioseg QR laden.");
       }
 
       const manualFollowerBoost = Number(qrxStatsFollowerBoost);
@@ -4099,7 +4099,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
       }
 
       const confirmed = window.confirm(
-        `Statistik-Boost für diesen QR-X speichern?\n\n+${manualFollowerBoost} Follower\n+${manualViewBoost} Aufrufe\n+${manualUniqueViewBoost} eindeutige Aufrufe`
+        `Statistik-Boost für diesen Mioseg QR speichern?\n\n+${manualFollowerBoost} Follower\n+${manualViewBoost} Aufrufe\n+${manualUniqueViewBoost} eindeutige Aufrufe`
       );
 
       if (!confirmed) return;
@@ -4124,7 +4124,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "QR-X Statistik-Boost konnte nicht gespeichert werden.");
+        throw new Error(data?.error || "Mioseg QR Statistik-Boost konnte nicht gespeichert werden.");
       }
 
       setQrxAdminItem(data.qrx);
@@ -4133,7 +4133,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
       await fetchAdminActions();
     } catch (error: unknown) {
       console.error("handleSaveQrxStatsBoost error:", error);
-      alert(error instanceof Error ? error.message : "QR-X Statistik-Boost konnte nicht gespeichert werden.");
+      alert(error instanceof Error ? error.message : "Mioseg QR Statistik-Boost konnte nicht gespeichert werden.");
     } finally {
       setQrxStatsWorking(false);
     }
@@ -4264,7 +4264,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
                       {item.filename || item.id}
                     </button>
                     <div style={{ ...styles.storageMetricHint, marginTop: 4 }}>
-                      {item.qrx_id ? `QR-X: ${item.qrx_id}` : "Ohne QR-X-ID"}
+                      {item.qrx_id ? `Mioseg QR: ${item.qrx_id}` : "Ohne Mioseg QR-ID"}
                     </div>
                   </td>
                   <td style={styles.storageTableTd}>{item.type || "–"}</td>
@@ -4323,15 +4323,15 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
                             type="button"
                             onClick={() => handleOpenStorageMediaQrx(item)}
                             style={styles.storageIconButton}
-                            title="QR-X im Web öffnen"
+                            title="Mioseg QR im Web öffnen"
                           >
-                            QR-X
+                            Mioseg QR
                           </button>
                           <button
                             type="button"
                             onClick={() => void handleLoadStorageMediaModeration(item)}
                             style={styles.storageWarningButton}
-                            title="QR-X in Moderation laden"
+                            title="Mioseg QR in Moderation laden"
                           >
                             Moderation
                           </button>
@@ -4530,7 +4530,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
 
   const handleOpenStorageMediaQrx = (media: StorageMediaItem) => {
     if (!media.qrx_id) {
-      alert("Dieses Medium hat keine QR-X-ID.");
+      alert("Dieses Medium hat keine Mioseg QR-ID.");
       return;
     }
 
@@ -4539,7 +4539,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
 
   const handleLoadStorageMediaModeration = async (media: StorageMediaItem) => {
     if (!media.qrx_id) {
-      alert("Dieses Medium hat keine QR-X-ID.");
+      alert("Dieses Medium hat keine Mioseg QR-ID.");
       return;
     }
 
@@ -4560,7 +4560,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
             <div>
               <h3 style={styles.storageDetailTitle}>Media Detailpanel</h3>
               <p style={styles.storageDetailSub}>
-                Wähle in der Tabelle eine Datei über „Details“ aus, um Speicherwerte, QR-X-ID und Status genauer zu prüfen.
+                Wähle in der Tabelle eine Datei über „Details“ aus, um Speicherwerte, Mioseg QR-ID und Status genauer zu prüfen.
               </p>
             </div>
           </div>
@@ -4582,7 +4582,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
             <p style={styles.storageDetailSub}>
               Media-ID: {selectedStorageMedia.id}
               <br />
-              QR-X-ID: {selectedStorageMedia.qrx_id || "–"}
+              Mioseg QR-ID: {selectedStorageMedia.qrx_id || "–"}
             </p>
           </div>
 
@@ -4830,7 +4830,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
           <input
             value={bulkMediaSearch}
             onChange={(event) => setBulkMediaSearch(event.target.value)}
-            placeholder="Dateiname oder QR-X-ID…"
+            placeholder="Dateiname oder Mioseg QR-ID…"
             style={styles.storageFilterInput}
           />
         </label>
@@ -4866,7 +4866,7 @@ Danach nutzt der QR-X wieder die normale optimierte Bildauslieferung.`
                 <th style={styles.storageTableTh}>Typ</th>
                 <th style={styles.storageTableTh}>Status</th>
                 <th style={styles.storageTableTh}>Original</th>
-                <th style={styles.storageTableTh}>QR-X</th>
+                <th style={styles.storageTableTh}>Mioseg QR</th>
               </tr>
             </thead>
             <tbody>
@@ -5144,7 +5144,7 @@ const handleWarningOpenMediaJobs = async () => {
     const healthStatus = summary?.healthStatus ?? "empty";
     const healthLabel =
       healthStatus === "critical"
-        ? "Kritisch · ein QR-X dominiert den Traffic"
+        ? "Kritisch · ein Mioseg QR dominiert den Traffic"
         : healthStatus === "watch"
           ? "Beobachten · Traffic konzentriert sich stark"
           : healthStatus === "healthy"
@@ -5185,7 +5185,7 @@ const handleWarningOpenMediaJobs = async () => {
         hint: "Monatswert als Grundlage für Kostenkontrolle.",
       },
       {
-        label: "Top QR-X",
+        label: "Top Mioseg QR",
         value: topQrxOne ? formatBytes(topQrxOne.totalBytes) : "–",
         hint: topQrxOne ? topQrxOne.companyName || topQrxOne.title || topQrxOne.qrxId || "Unbekannt" : "Noch keine Daten.",
       },
@@ -5242,7 +5242,7 @@ const handleWarningOpenMediaJobs = async () => {
       {
         label: "Traffic Health",
         value: healthLabel,
-        hint: `${summary?.largestQrxSharePercent ?? 0}% Anteil beim größten QR-X.`,
+        hint: `${summary?.largestQrxSharePercent ?? 0}% Anteil beim größten Mioseg QR.`,
       },
     ];
 
@@ -5252,7 +5252,7 @@ const handleWarningOpenMediaJobs = async () => {
           <div>
             <h3 style={styles.storagePanelTitle}>Top-Traffic Dashboard</h3>
             <p style={{ ...styles.storageMetricHint, marginTop: -4 }}>
-              Phase 2D.5.1: Zeigt Traffic, Speicherverbrauch, Kosten, Health-Empfehlungen und aktive Warnungen nach QR-X und Medien. So erkennst du früh,
+              Phase 2D.5.1: Zeigt Traffic, Speicherverbrauch, Kosten, Health-Empfehlungen und aktive Warnungen nach Mioseg QR und Medien. So erkennst du früh,
               welche Profile, Bilder oder Varianten später deine Betriebskosten treiben.
             </p>
           </div>
@@ -5281,7 +5281,7 @@ const handleWarningOpenMediaJobs = async () => {
         <div style={{ ...styles.storageDetailHintBox, borderColor: "#854d0e", background: "#2c1806", color: "#fed7aa" }}>
           <strong style={{ color: "#fde68a" }}>Traffic Health:</strong>{" "}
           {summary?.eventCount
-            ? `${healthLabel}. Es wurden ${formatNumber(summary.eventCount)} Media-Events erfasst. Der größte QR-X verursacht ${topQrxOne ? formatBytes(topQrxOne.totalBytes) : "0 B"} (${summary.largestQrxSharePercent ?? 0}%).`
+            ? `${healthLabel}. Es wurden ${formatNumber(summary.eventCount)} Media-Events erfasst. Der größte Mioseg QR verursacht ${topQrxOne ? formatBytes(topQrxOne.totalBytes) : "0 B"} (${summary.largestQrxSharePercent ?? 0}%).`
             : "Noch keine echten Media-Traffic-Daten vorhanden. Werte erscheinen, sobald App/Web die Tracking-API beim Bildladen aufrufen."}
         </div>
 
@@ -5351,7 +5351,7 @@ const handleWarningOpenMediaJobs = async () => {
         onClick={() => handleWarningOpenQrx(item.qrxId)}
         style={styles.storageIconButton}
       >
-        QR-X öffnen
+        Mioseg QR öffnen
       </button>
 
       <button
@@ -5397,7 +5397,7 @@ const handleWarningOpenMediaJobs = async () => {
 </div>
                   {item.qrxId || item.mediaId ? (
                     <div style={styles.storageMetricHint}>
-                      {item.qrxId ? `QR-X: ${item.qrxId}` : ""}
+                      {item.qrxId ? `Mioseg QR: ${item.qrxId}` : ""}
                       {item.qrxId && item.mediaId ? " · " : ""}
                       {item.mediaId ? `Medium: ${item.mediaId}` : ""}
                     </div>
@@ -5447,13 +5447,13 @@ const handleWarningOpenMediaJobs = async () => {
 
         <div style={styles.storageDetailGrid}>
           <div>
-            <h3 style={styles.storagePanelTitle}>Top QR-X nach Traffic</h3>
+            <h3 style={styles.storagePanelTitle}>Top Mioseg QR nach Traffic</h3>
             <div style={styles.storageTableWrap}>
               <table style={styles.storageTable}>
                 <thead>
                   <tr>
                     <th style={styles.storageTableTh}>Rang</th>
-                    <th style={styles.storageTableTh}>QR-X</th>
+                    <th style={styles.storageTableTh}>Mioseg QR</th>
                     <th style={styles.storageTableTh}>Traffic</th>
                     <th style={styles.storageTableTh}>7 Tage</th>
                     <th style={styles.storageTableTh}>Heute</th>
@@ -5541,7 +5541,7 @@ const handleWarningOpenMediaJobs = async () => {
 
         <div style={styles.storageDetailGrid}>
           <div style={styles.storageMiniCard}>
-            <div style={styles.storageMiniLabel}>Wochen-Spitzenreiter QR-X</div>
+            <div style={styles.storageMiniLabel}>Wochen-Spitzenreiter Mioseg QR</div>
             <div style={styles.storageMiniValue}>{topQrxWeekOne ? formatBytes(topQrxWeekOne.weekBytes) : "–"}</div>
             <div style={styles.storageMetricHint}>
               {topQrxWeekOne ? topQrxWeekOne.companyName || topQrxWeekOne.title || topQrxWeekOne.qrxId || "Unbekannt" : "Noch keine Wochendaten."}
@@ -5563,13 +5563,13 @@ const handleWarningOpenMediaJobs = async () => {
 
         <div style={styles.storageDetailGrid}>
           <div>
-            <h3 style={styles.storagePanelTitle}>Top QR-X nach geschätzten Kosten</h3>
+            <h3 style={styles.storagePanelTitle}>Top Mioseg QR nach geschätzten Kosten</h3>
             <div style={styles.storageTableWrap}>
               <table style={styles.storageTable}>
                 <thead>
                   <tr>
                     <th style={styles.storageTableTh}>Rang</th>
-                    <th style={styles.storageTableTh}>QR-X</th>
+                    <th style={styles.storageTableTh}>Mioseg QR</th>
                     <th style={styles.storageTableTh}>Gesamt</th>
                     <th style={styles.storageTableTh}>Traffic</th>
                     <th style={styles.storageTableTh}>Storage</th>
@@ -5645,7 +5645,7 @@ const handleWarningOpenMediaJobs = async () => {
 
         <div style={styles.storageDetailGrid}>
           <div style={styles.storageMiniCard}>
-            <div style={styles.storageMiniLabel}>Teuerster QR-X</div>
+            <div style={styles.storageMiniLabel}>Teuerster Mioseg QR</div>
             <div style={styles.storageMiniValue}>{topCostQrxOne ? formatCost(topCostQrxOne.estimatedTotalCostCents) : "–"}</div>
             <div style={styles.storageMetricHint}>
               {topCostQrxOne ? topCostQrxOne.companyName || topCostQrxOne.title || topCostQrxOne.qrxId || "Unbekannt" : "Noch keine Kostendaten."}
@@ -5705,9 +5705,9 @@ const handleWarningOpenMediaJobs = async () => {
             <div style={styles.storageMiniValue}>{healthLabel}</div>
             <div style={styles.storageMetricHint}>
               {healthStatus === "critical"
-                ? "Prüfe den größten QR-X zeitnah. Ein einzelnes Profil verursacht den Großteil des Traffics."
+                ? "Prüfe den größten Mioseg QR zeitnah. Ein einzelnes Profil verursacht den Großteil des Traffics."
                 : healthStatus === "watch"
-                  ? "Behalte die Top-QR-X im Blick. Der Traffic ist noch nicht kritisch, aber konzentriert."
+                  ? "Behalte die Top-Mioseg QR im Blick. Der Traffic ist noch nicht kritisch, aber konzentriert."
                   : healthStatus === "healthy"
                     ? "Die Traffic-Verteilung sieht aktuell gesund aus."
                     : "Sobald Tracking-Events ankommen, erscheint hier eine automatische Bewertung."}
@@ -5727,7 +5727,7 @@ const handleWarningOpenMediaJobs = async () => {
             <div style={styles.storageMiniLabel}>Tracking-Abdeckung</div>
             <div style={styles.storageMiniValue}>{formatNumber(summary?.mediaCount)} Medien</div>
             <div style={styles.storageMetricHint}>
-              {formatNumber(summary?.qrxCount)} QR-X mit mindestens einem Traffic-Event.
+              {formatNumber(summary?.qrxCount)} Mioseg QR mit mindestens einem Traffic-Event.
             </div>
           </div>
         </div>
@@ -5912,7 +5912,7 @@ const handleWarningOpenMediaJobs = async () => {
             <div style={styles.metricCard}>
               <div style={styles.metricLabel}>Offene Verifizierungen</div>
               <div style={styles.metricValue}>{loading ? "…" : requests.length}</div>
-              <div style={styles.metricHint}>Business-QR-X, die noch geprüft werden müssen.</div>
+              <div style={styles.metricHint}>Business-Mioseg QR, die noch geprüft werden müssen.</div>
               <button
                 type="button"
                 onClick={() => setActiveAdminTab("verifications")}
@@ -6290,14 +6290,14 @@ const handleWarningOpenMediaJobs = async () => {
         <div style={{ ...styles.commandPanel, marginBottom: 18, display: activeAdminTab === "users" ? "block" : "none" }}>
           <h2 style={styles.panelTitle}>Nutzer-Suche</h2>
           <p style={{ ...styles.subtleText, marginTop: 0 }}>
-            Suche nach User-ID, QR-X-ID oder E-Mail. Danach kannst du direkt Credits buchen, Historie laden oder ein Ticket anlegen.
+            Suche nach User-ID, Mioseg QR-ID oder E-Mail. Danach kannst du direkt Credits buchen, Historie laden oder ein Ticket anlegen.
           </p>
 
           <div style={styles.actionsRow}>
             <input
               value={userLookupQuery}
               onChange={(e) => setUserLookupQuery(e.target.value)}
-              placeholder="User-ID, QR-X-ID oder E-Mail"
+              placeholder="User-ID, Mioseg QR-ID oder E-Mail"
               style={styles.searchInput}
             />
             <button
@@ -6368,7 +6368,7 @@ const handleWarningOpenMediaJobs = async () => {
                     opacity: userModerationWorking ? 0.65 : 1,
                   }}
                 >
-                  Alle QR-X sperren
+                  Alle Mioseg QR sperren
                 </button>
 
                 <button
@@ -6380,12 +6380,12 @@ const handleWarningOpenMediaJobs = async () => {
                     opacity: userModerationWorking ? 0.65 : 1,
                   }}
                 >
-                  Alle QR-X freigeben
+                  Alle Mioseg QR freigeben
                 </button>
               </div>
 
               <div style={{ ...styles.historyNote, marginBottom: 14 }}>
-                Hinweis: „Nutzer entsperren“ gibt nur den Zugang frei. QR-X bleiben gesperrt, bis du sie separat über „Alle QR-X freigeben“ wieder aktivierst.
+                Hinweis: „Nutzer entsperren“ gibt nur den Zugang frei. Mioseg QR bleiben gesperrt, bis du sie separat über „Alle Mioseg QR freigeben“ wieder aktivierst.
               </div>
 
               <div style={styles.lookupGrid}>
@@ -6402,14 +6402,14 @@ const handleWarningOpenMediaJobs = async () => {
                     textAlign: "left",
                   }}
                 >
-                  <div style={styles.lookupMiniLabel}>QR-X gesamt</div>
+                  <div style={styles.lookupMiniLabel}>Mioseg QR gesamt</div>
                   <div style={styles.lookupMiniValue}>{userLookupResult.qrxCount}</div>
                   <div style={styles.ticketMeta}>
                     {showUserQrxList ? "Liste ausblenden" : "Liste anzeigen"}
                   </div>
                 </button>
                 <div style={styles.lookupMiniCard}>
-                  <div style={styles.lookupMiniLabel}>Business QR-X</div>
+                  <div style={styles.lookupMiniLabel}>Business Mioseg QR</div>
                   <div style={styles.lookupMiniValue}>{userLookupResult.businessQrxCount}</div>
                 </div>
                 <div style={styles.lookupMiniCard}>
@@ -6428,10 +6428,10 @@ const handleWarningOpenMediaJobs = async () => {
 
               {showUserQrxList ? (
                 <div style={{ marginTop: 14 }}>
-                  <h3 style={styles.panelTitle}>Alle QR-X dieses Nutzers</h3>
+                  <h3 style={styles.panelTitle}>Alle Mioseg QR dieses Nutzers</h3>
 
                   {userLookupResult.qrxList.length === 0 ? (
-                    <div style={styles.stateCard}>Dieser Nutzer hat keine QR-X.</div>
+                    <div style={styles.stateCard}>Dieser Nutzer hat keine Mioseg QR.</div>
                   ) : (
                     <div style={styles.ticketList}>
                       {userLookupResult.qrxList.map((qrx) => (
@@ -6443,7 +6443,7 @@ const handleWarningOpenMediaJobs = async () => {
                                 {qrx.type || "normal"} · {qrx.verified ? "verifiziert" : "nicht verifiziert"} · {qrx.suspended ? "gesperrt" : "aktiv"}
                               </div>
                               <div style={styles.ticketMeta}>
-                                QR-X ID: {qrx.id}
+                                Mioseg QR ID: {qrx.id}
                               </div>
                               {qrx.company_name ? (
                                 <div style={styles.ticketMeta}>Firma: {qrx.company_name}</div>
@@ -6465,7 +6465,7 @@ const handleWarningOpenMediaJobs = async () => {
                               rel="noreferrer"
                               style={styles.qrxButton}
                             >
-                              QR-X öffnen
+                              Mioseg QR öffnen
                             </a>
                             <button
                               type="button"
@@ -6513,7 +6513,7 @@ const handleWarningOpenMediaJobs = async () => {
         </div>
 
         <div style={{ ...styles.commandPanel, marginBottom: 18, display: activeAdminTab === "reports" ? "block" : "none" }}>
-          <h2 style={styles.panelTitle}>QR-X sperren / entsperren</h2>
+          <h2 style={styles.panelTitle}>Mioseg QR sperren / entsperren</h2>
           <p style={{ ...styles.subtleText, marginTop: 0 }}>
             Für Fake, Spam, gemeldete Inhalte oder Soft Delete. Beim Löschen bleiben die Daten erhalten und können wiederhergestellt werden.
           </p>
@@ -6522,7 +6522,7 @@ const handleWarningOpenMediaJobs = async () => {
             <input
               value={qrxLookupId}
               onChange={(e) => setQrxLookupId(e.target.value)}
-              placeholder="QR-X-ID"
+              placeholder="Mioseg QR-ID"
               style={styles.searchInput}
             />
             <button
@@ -6534,7 +6534,7 @@ const handleWarningOpenMediaJobs = async () => {
                 opacity: qrxLookupLoading ? 0.65 : 1,
               }}
             >
-              {qrxLookupLoading ? "Lade…" : "QR-X laden"}
+              {qrxLookupLoading ? "Lade…" : "Mioseg QR laden"}
             </button>
           </div>
 
@@ -6549,7 +6549,7 @@ const handleWarningOpenMediaJobs = async () => {
                     {qrxAdminItem.type || "normal"} · {qrxAdminItem.company_name || "Keine Firma"} · User: {qrxAdminItem.owner_user_id}
                   </div>
                   <div style={styles.ticketMeta}>
-                    QR-X: {qrxAdminItem.id}
+                    Mioseg QR: {qrxAdminItem.id}
                   </div>
                 </div>
                 <div style={qrxAdminItem.deleted_at ? styles.ticketStatusOpen : qrxAdminItem.suspended ? styles.ticketStatusOpen : styles.ticketStatusResolved}>
@@ -6574,7 +6574,7 @@ const handleWarningOpenMediaJobs = async () => {
                   <div style={{ maxWidth: 760 }}>
                     <h3 style={styles.qualityExceptionTitle}>Bildqualität Ausnahme</h3>
                     <p style={styles.qualityExceptionText}>
-                      Standard ist die optimierte Bildauslieferung. Aktiviere Originalqualität nur bei besonderen QR-X,
+                      Standard ist die optimierte Bildauslieferung. Aktiviere Originalqualität nur bei besonderen Mioseg QR,
                       z. B. wenn ein Premium-Unternehmen hochwertige Fotos ohne Qualitätsverlust in Detailansicht,
                       Galerie und Vollbild wünscht. Explore, Karten und Listen bleiben weiterhin Thumbnail-sicher.
                     </p>
@@ -6626,7 +6626,7 @@ const handleWarningOpenMediaJobs = async () => {
                   padding: 16,
                 }}
               >
-                <h3 style={{ ...styles.panelTitle, marginBottom: 6 }}>QR-X Statistik Boost</h3>
+                <h3 style={{ ...styles.panelTitle, marginBottom: 6 }}>Mioseg QR Statistik Boost</h3>
                 <p style={{ ...styles.subtleText, marginTop: 0 }}>
                   Diese Werte werden nur addiert. Echte Saves, echte Views und Analytics bleiben unverändert.
                 </p>
@@ -6835,7 +6835,7 @@ const handleWarningOpenMediaJobs = async () => {
                       opacity: qrxActionWorking ? 0.65 : 1,
                     }}
                   >
-                    {qrxActionWorking ? "Bitte warten…" : "QR-X sperren"}
+                    {qrxActionWorking ? "Bitte warten…" : "Mioseg QR sperren"}
                   </button>
 
                   <button
@@ -6847,7 +6847,7 @@ const handleWarningOpenMediaJobs = async () => {
                       opacity: qrxActionWorking ? 0.65 : 1,
                     }}
                   >
-                    {qrxActionWorking ? "Bitte warten…" : "QR-X entsperren"}
+                    {qrxActionWorking ? "Bitte warten…" : "Mioseg QR entsperren"}
                   </button>
 
                   {!qrxAdminItem.deleted_at ? (
@@ -6860,7 +6860,7 @@ const handleWarningOpenMediaJobs = async () => {
                         opacity: qrxActionWorking ? 0.65 : 1,
                       }}
                     >
-                      {qrxActionWorking ? "Bitte warten…" : "QR-X löschen"}
+                      {qrxActionWorking ? "Bitte warten…" : "Mioseg QR löschen"}
                     </button>
                   ) : (
                     <button
@@ -6872,7 +6872,7 @@ const handleWarningOpenMediaJobs = async () => {
                         opacity: qrxActionWorking ? 0.65 : 1,
                       }}
                     >
-                      {qrxActionWorking ? "Bitte warten…" : "QR-X wiederherstellen"}
+                      {qrxActionWorking ? "Bitte warten…" : "Mioseg QR wiederherstellen"}
                     </button>
                   )}
 
@@ -6909,7 +6909,7 @@ const handleWarningOpenMediaJobs = async () => {
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Suchen nach Firma, Titel, User-ID, QR-X-ID..."
+                placeholder="Suchen nach Firma, Titel, User-ID, Mioseg QR-ID..."
                 style={styles.searchInput}
               />
 
@@ -7187,18 +7187,18 @@ const handleWarningOpenMediaJobs = async () => {
             <div>
               <h2 style={styles.panelTitle}>{tAdmin("label_reported_qrx")}</h2>
               <p style={{ ...styles.subtleText, marginTop: 0, marginBottom: 10 }}>
-                QR-X mit Meldungen oder automatischer Moderation. Hier kannst du direkt öffnen, sperren oder nach Prüfung zurücksetzen.
+                Mioseg QR mit Meldungen oder automatischer Moderation. Hier kannst du direkt öffnen, sperren oder nach Prüfung zurücksetzen.
               </p>
             </div>
             <button type="button" onClick={fetchReportedQrx} style={styles.secondaryLink}>
-              Gemeldete QR-X aktualisieren
+              Gemeldete Mioseg QR aktualisieren
             </button>
           </div>
 
           {reportedQrxLoading ? (
-            <div style={styles.stateCard}>Lade gemeldete QR-X…</div>
+            <div style={styles.stateCard}>Lade gemeldete Mioseg QR…</div>
           ) : reportedQrx.length === 0 ? (
-            <div style={styles.stateCard}>Keine gemeldeten QR-X mit offenem Moderationsstatus.</div>
+            <div style={styles.stateCard}>Keine gemeldeten Mioseg QR mit offenem Moderationsstatus.</div>
           ) : (
             <div style={styles.ticketList}>
               {reportedQrx.map((qrx) => {
@@ -7223,7 +7223,7 @@ const handleWarningOpenMediaJobs = async () => {
                       <div style={styles.ticketMeta}>
                         {qrx.type || "normal"} · {qrx.company_name || "Keine Firma"} · User: {qrx.owner_user_id}
                       </div>
-                      <div style={styles.ticketMeta}>QR-X: {qrx.id}</div>
+                      <div style={styles.ticketMeta}>Mioseg QR: {qrx.id}</div>
                     </div>
                     <div style={getModerationBadgeStyle(qrx.moderation_status)}>
                       {formatModerationStatus(qrx.moderation_status, tAdmin)}
@@ -7310,7 +7310,7 @@ const handleWarningOpenMediaJobs = async () => {
                         fontSize: 12,
                       }}
                     >
-                      Zu diesem QR-X wurde keine detaillierte Meldungsbeschreibung geladen.
+                      Zu diesem Mioseg QR wurde keine detaillierte Meldungsbeschreibung geladen.
                     </div>
                   )}
 
@@ -7321,7 +7321,7 @@ const handleWarningOpenMediaJobs = async () => {
                       rel="noreferrer"
                       style={styles.qrxButton}
                     >
-                      QR-X öffnen
+                      Mioseg QR öffnen
                     </a>
 
                     <button
@@ -7391,7 +7391,7 @@ const handleWarningOpenMediaJobs = async () => {
               <input
                 value={ticketQrxId}
                 onChange={(e) => setTicketQrxId(e.target.value)}
-                placeholder="QR-X ID optional"
+                placeholder="Mioseg QR ID optional"
                 style={styles.input}
               />
 
@@ -7481,9 +7481,9 @@ const handleWarningOpenMediaJobs = async () => {
                         </div>
 
                         <div style={styles.stateCard}>
-                          <strong style={{ color: "#f8fafc" }}>QR-X</strong>
+                          <strong style={{ color: "#f8fafc" }}>Mioseg QR</strong>
                           <div style={{ ...styles.ticketMeta, marginTop: 6 }}>
-                            {ticket.qrx_title || "Kein QR-X zugeordnet"}
+                            {ticket.qrx_title || "Kein Mioseg QR zugeordnet"}
                           </div>
                           {ticket.qrx_id ? (
                             <div style={{ ...styles.ticketMeta, marginTop: 4, wordBreak: "break-all" }}>
@@ -7506,7 +7506,7 @@ const handleWarningOpenMediaJobs = async () => {
                           Screenshot anfordern
                         </button>
                         <button type="button" onClick={() => handlePrepareTicketEmail(ticket, "qrx_link")} disabled={!ticket.user_email} style={ticket.user_email ? styles.presetButton : styles.disabledSmallButton}>
-                          QR-X-Link anfordern
+                          Mioseg QR-Link anfordern
                         </button>
                         <button type="button" onClick={() => handlePrepareTicketEmail(ticket, "credits")} disabled={!ticket.user_email} style={ticket.user_email ? styles.presetButton : styles.disabledSmallButton}>
                           Credits gutgeschrieben
@@ -7542,7 +7542,7 @@ const handleWarningOpenMediaJobs = async () => {
                             rel="noreferrer"
                             style={styles.qrxButton}
                           >
-                            QR-X öffnen
+                            Mioseg QR öffnen
                           </a>
 
                           <button
@@ -7558,7 +7558,7 @@ const handleWarningOpenMediaJobs = async () => {
                             onClick={() => handleSuspendTicketQrx(ticket)}
                             style={styles.rejectButton}
                           >
-                            QR-X sperren
+                            Mioseg QR sperren
                           </button>
                         </div>
                       ) : null}
@@ -7799,15 +7799,15 @@ const handleWarningOpenMediaJobs = async () => {
                 </div>
 
                 <div style={styles.metricCard}>
-                  <div style={styles.metricLabel}>QR-X Erstellung</div>
+                  <div style={styles.metricLabel}>Mioseg QR Erstellung</div>
                   <div style={styles.metricValue}>{pricingData.pricingConfig?.qrx_creation_credit_cost ?? 1} Credit</div>
-                  <div style={styles.metricHint}>Kosten für die Erstellung eines QR-X.</div>
+                  <div style={styles.metricHint}>Kosten für die Erstellung eines Mioseg QR.</div>
                 </div>
 
                 <div style={styles.metricCard}>
                   <div style={styles.metricLabel}>Freier Speicher</div>
                   <div style={styles.metricValue}>{pricingData.pricingConfig?.free_storage_mb ?? 2} MB</div>
-                  <div style={styles.metricHint}>Kostenloser Speicher pro QR-X vor Zusatzpaketen.</div>
+                  <div style={styles.metricHint}>Kostenloser Speicher pro Mioseg QR vor Zusatzpaketen.</div>
                 </div>
 
                 <div style={styles.metricCard}>
@@ -7826,7 +7826,7 @@ const handleWarningOpenMediaJobs = async () => {
                   <div>
                     <div style={styles.ticketTitle}>Plattform-Konfiguration</div>
                     <div style={styles.ticketMeta}>
-                      Zentrale Werte für QR-X-Erstellung, freien Speicher, Speicherpakete und Upload-Limits.
+                      Zentrale Werte für Mioseg QR-Erstellung, freien Speicher, Speicherpakete und Upload-Limits.
                     </div>
                   </div>
                   <div style={styles.ticketStatusReview}>Zentral</div>
@@ -7845,7 +7845,7 @@ const handleWarningOpenMediaJobs = async () => {
                     </label>
 
                     <label style={styles.filterLabel}>
-                      QR-X Erstellung in Credits
+                      Mioseg QR Erstellung in Credits
                       <input
                         value={pricingConfigDraft.qrx_creation_credit_cost}
                         onChange={(e) => handlePricingConfigDraftChange("qrx_creation_credit_cost", e.target.value)}
@@ -7885,7 +7885,7 @@ const handleWarningOpenMediaJobs = async () => {
                     </label>
 
                     <label style={styles.filterLabel}>
-                      Max. Bilder pro QR-X
+                      Max. Bilder pro Mioseg QR
                       <input
                         value={pricingConfigDraft.max_images_per_qrx}
                         onChange={(e) => handlePricingConfigDraftChange("max_images_per_qrx", e.target.value)}
@@ -7895,7 +7895,7 @@ const handleWarningOpenMediaJobs = async () => {
                     </label>
 
                     <label style={styles.filterLabel}>
-                      Max. Dateien pro QR-X
+                      Max. Dateien pro Mioseg QR
                       <input
                         value={pricingConfigDraft.max_documents_per_qrx}
                         onChange={(e) => handlePricingConfigDraftChange("max_documents_per_qrx", e.target.value)}
@@ -8045,7 +8045,7 @@ const handleWarningOpenMediaJobs = async () => {
             <div>
               <h2 style={styles.panelTitle}>{tAdmin("logs_title")}</h2>
               <p style={{ ...styles.subtleText, marginTop: 0, marginBottom: 10 }}>
-                Durchsuche kritische Änderungen: Preise, Credits, QR-X Sperren, Support und Verifizierungen.
+                Durchsuche kritische Änderungen: Preise, Credits, Mioseg QR Sperren, Support und Verifizierungen.
               </p>
             </div>
             <button type="button" onClick={fetchAdminActions} style={styles.secondaryLink}>
@@ -8133,7 +8133,7 @@ const handleWarningOpenMediaJobs = async () => {
                       <div style={styles.ticketMeta}>
                         {new Date(entry.created_at).toLocaleString("de-DE")}
                         {entry.target_user_id ? ` · User: ${entry.target_user_id}` : ""}
-                        {entry.qrx_id ? ` · QR-X: ${entry.qrx_id}` : ""}
+                        {entry.qrx_id ? ` · Mioseg QR: ${entry.qrx_id}` : ""}
                       </div>
                     </div>
 
@@ -8164,7 +8164,7 @@ const handleWarningOpenMediaJobs = async () => {
                           rel="noreferrer"
                           style={styles.qrxButton}
                         >
-                          QR-X öffnen
+                          Mioseg QR öffnen
                         </a>
 
                         <button
@@ -8208,7 +8208,7 @@ const handleWarningOpenMediaJobs = async () => {
                     <div style={styles.leftCol}>
                       <div style={styles.panel}>
                         <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
-                          <h2 style={{ ...styles.panelTitle, marginBottom: 0 }}>QR-X Übersicht</h2>
+                          <h2 style={{ ...styles.panelTitle, marginBottom: 0 }}>Mioseg QR Übersicht</h2>
                           <div style={styles.waitBadge}>{`${item.waiting_days} ${item.waiting_days === 1 ? "Tag" : "Tage"} in Prüfung`}</div>
                         </div>
 
@@ -8234,7 +8234,7 @@ const handleWarningOpenMediaJobs = async () => {
                             <div style={styles.infoValue}>{item.id}</div>
                           </div>
                           <div style={styles.infoRow}>
-                            <div style={styles.infoLabel}>QR-X ID</div>
+                            <div style={styles.infoLabel}>Mioseg QR ID</div>
                             <div style={styles.infoValue}>{item.qrx_id}</div>
                           </div>
                           <div style={styles.infoRow}>
@@ -8264,7 +8264,7 @@ const handleWarningOpenMediaJobs = async () => {
                               rel="noreferrer"
                               style={styles.qrxButton}
                             >
-                              QR-X öffnen
+                              Mioseg QR öffnen
                             </a>
                           ) : null}
 

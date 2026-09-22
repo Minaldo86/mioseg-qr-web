@@ -225,7 +225,7 @@ export default function AdminMediaWarnings({
                       onClick={() => openQrx(item.qrxId)}
                       style={styles.button}
                     >
-                      QR-X öffnen
+                      Mioseg QR öffnen
                     </button>
                   ) : null}
                   {item.mediaId ? (
@@ -269,7 +269,7 @@ export default function AdminMediaWarnings({
                     onClick={() => openQrx(item.qrxId)}
                     style={styles.button}
                   >
-                    QR-X öffnen
+                    Mioseg QR öffnen
                   </button>
                 ) : null}
                 {item.mediaId ? (
