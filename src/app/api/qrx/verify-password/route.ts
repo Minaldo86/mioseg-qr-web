@@ -98,12 +98,12 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (error) {
-      return json({ error: "QR-X konnte nicht geladen werden", details: error.message }, 500);
+      return json({ error: "Mioseg QR konnte nicht geladen werden", details: error.message }, 500);
     }
 
-    if (!entry) return json({ error: "QR-X nicht gefunden" }, 404);
-    if (entry.deleted_at) return json({ error: "QR-X nicht verfügbar" }, 410);
-    if (entry.suspended === true) return json({ error: "QR-X gesperrt" }, 423);
+    if (!entry) return json({ error: "Mioseg QR nicht gefunden" }, 404);
+    if (entry.deleted_at) return json({ error: "Mioseg QR nicht verfügbar" }, 410);
+    if (entry.suspended === true) return json({ error: "Mioseg QR gesperrt" }, 423);
 
     if (!entry.password_protected) {
       return json({ ok: true, protected: false, accessGranted: true });

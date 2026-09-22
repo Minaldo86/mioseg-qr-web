@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
 
     if (!isNonEmptyString(payload.qrx_id, 80) || !isUuid(payload.qrx_id)) {
       return NextResponse.json(
-        { error: "Ungültige QR-X-ID." },
+        { error: "Ungültige Mioseg-QR-ID." },
         { status: 400 },
       );
     }

@@ -206,7 +206,7 @@ export async function POST(request: Request) {
 
       if (qrxError || !qrx) {
         return NextResponse.json(
-          { error: "Der ausgewählte QR-X gehört nicht zu deinem Konto." },
+          { error: "Der ausgewählte Mioseg QR gehört nicht zu deinem Konto." },
           { status: 400 },
         );
       }

@@ -249,7 +249,7 @@ async function updateQrxModerationState(input: {
       actionType: "qrx_auto_suspended_by_reports",
       targetUserId: input.ownerUserId,
       qrxId: input.qrxId,
-      note: `QR-X automatisch gesperrt. Meldungen: ${input.reportCount}, Score: ${input.reportScore}`,
+      note: `Mioseg QR automatisch gesperrt. Meldungen: ${input.reportCount}, Score: ${input.reportScore}`,
     });
 
     return;
@@ -276,7 +276,7 @@ async function updateQrxModerationState(input: {
       actionType: "qrx_flagged_by_reports",
       targetUserId: input.ownerUserId,
       qrxId: input.qrxId,
-      note: `QR-X zur Prüfung markiert. Meldungen: ${input.reportCount}, Score: ${input.reportScore}`,
+      note: `Mioseg QR zur Prüfung markiert. Meldungen: ${input.reportCount}, Score: ${input.reportScore}`,
     });
 
     return;
@@ -310,7 +310,7 @@ export async function POST(req: Request) {
     const descriptionHash = createDescriptionHash(description);
 
     if (!qrxId || !isUuid(qrxId)) {
-      return Response.json({ error: "Ungültige QR-X-ID" }, { status: 400 });
+      return Response.json({ error: "Ungültige Mioseg-QR-ID" }, { status: 400 });
     }
 
     if (description.length < 20) {
@@ -335,7 +335,7 @@ export async function POST(req: Request) {
 
     if (qrxError || !qrx) {
       return Response.json(
-        { error: "QR-X wurde nicht gefunden." },
+        { error: "Mioseg QR wurde nicht gefunden." },
         { status: 404 }
       );
     }
@@ -364,7 +364,7 @@ export async function POST(req: Request) {
       return Response.json(
         {
           error:
-            "Für diesen QR-X wurde von diesem Gerät bzw. dieser E-Mail bereits eine Meldung abgegeben.",
+            "Für diesen Mioseg QR wurde von diesem Gerät bzw. dieser E-Mail bereits eine Meldung abgegeben.",
         },
         { status: 429 }
       );
@@ -392,7 +392,7 @@ export async function POST(req: Request) {
     const publicQrxUrl = `https://mioseg-qr.com/qrx/${qrx.id}`;
 
     const fullDescription = [
-      "Öffentliche QR-X Meldung",
+      "Öffentliche Mioseg-QR-Meldung",
       `Grund: ${reasonLabel}`,
       `Basis-Gewichtung: ${baseReportWeight}`,
       `Tatsächliche Gewichtung: ${reportWeight}`,
@@ -401,10 +401,10 @@ export async function POST(req: Request) {
       `Gleiche Beschreibung bisher: ${duplicateDescriptionCount}`,
       `Meldungen eindeutig: ${reportCount}`,
       `Melde-Score: ${reportScore}`,
-      `QR-X Titel: ${qrx.title || "Ohne Titel"}`,
+      `Mioseg-QR-Titel: ${qrx.title || "Ohne Titel"}`,
       qrx.company_name ? `Firma: ${qrx.company_name}` : null,
-      `QR-X ID: ${qrx.id}`,
-      `QR-X öffnen: ${publicQrxUrl}`,
+      `Mioseg-QR-ID: ${qrx.id}`,
+      `Mioseg QR öffnen: ${publicQrxUrl}`,
       reporterEmail
         ? `Reporter E-Mail: ${reporterEmail}`
         : "Reporter E-Mail: nicht angegeben",
@@ -423,7 +423,7 @@ export async function POST(req: Request) {
         qrx_id: qrx.id,
         problem_type: "qrx_report",
         status: "open",
-        title: `QR-X Meldung: ${reasonLabel}`,
+        title: `Mioseg-QR-Meldung: ${reasonLabel}`,
         description: fullDescription,
         report_reason: reason,
         reporter_email: reporterEmail,
@@ -448,7 +448,7 @@ export async function POST(req: Request) {
       actionType: "qrx_report_created",
       targetUserId: qrx.owner_user_id,
       qrxId: qrx.id,
-      note: `${ticketNumber}: QR-X Meldung (${reasonLabel}), Gewicht: ${reportWeight}, Score: ${reportScore}${spamReasons.length > 0 ? `, Cluster: ${spamReasons.join(" | ")}` : ""}`,
+      note: `${ticketNumber}: Mioseg-QR-Meldung (${reasonLabel}), Gewicht: ${reportWeight}, Score: ${reportScore}${spamReasons.length > 0 ? `, Cluster: ${spamReasons.join(" | ")}` : ""}`,
     });
 
     await updateQrxModerationState({
