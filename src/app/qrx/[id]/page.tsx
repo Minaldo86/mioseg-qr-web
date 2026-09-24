@@ -1495,7 +1495,7 @@ variant={isBusiness ? "business" : "normal"}
           <QrxReportForm qrxId={qrxId} locale={publicLocale} />
         </section>
 
-        <div className={styles.footer}>mioseg qr • QR-X Web</div>
+        <div className={styles.footer}>mioseg qr • Webansicht</div>
       </QrxPasswordGate>
     </main>
   );
