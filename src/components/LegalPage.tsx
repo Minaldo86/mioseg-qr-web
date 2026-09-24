@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import React from "react";
-import LanguageSwitcher from "./LanguageSwitcher";
 import type { LegalDocument, LegalLocale } from "../legal/types";
 
 type LegalPageProps = {
@@ -153,33 +152,169 @@ export default function LegalPage({
   const ui = LEGAL_UI[locale];
 
   return (
-    <main style={styles.page} dir={locale === "ar" ? "rtl" : "ltr"}>
-      <section style={styles.heroSection}>
-        <div style={styles.container}>
-          <div style={styles.languageRow}>
-            <LanguageSwitcher currentLocale={locale} />
-          </div>
+    <main
+      style={styles.page}
+      dir={locale === "ar" ? "rtl" : "ltr"}
+      data-legal-page
+    >
+      <style jsx global>{`
+        @media (max-width: 768px) {
+          [data-legal-page] {
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: hidden !important;
+            background: linear-gradient(
+              180deg,
+              #08111d 0,
+              #0d1726 430px,
+              #f8fafc 430px,
+              #f8fafc 100%
+            ) !important;
+          }
 
-          <span style={styles.eyebrow}>{eyebrow}</span>
-          <h1 style={styles.title}>{document.title}</h1>
-          <p style={styles.subtitle}>{document.subtitle}</p>
+          [data-legal-container],
+          [data-legal-content-wrap] {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            padding-left: 16px !important;
+            padding-right: 16px !important;
+          }
+
+          [data-legal-hero] {
+            padding: 32px 0 30px !important;
+          }
+
+          [data-legal-eyebrow] {
+            margin-bottom: 12px !important;
+            padding: 7px 11px !important;
+            font-size: 11px !important;
+          }
+
+          [data-legal-title] {
+            max-width: 100% !important;
+            margin-bottom: 12px !important;
+            font-size: clamp(34px, 10vw, 44px) !important;
+            line-height: 1.08 !important;
+            letter-spacing: -0.8px !important;
+            overflow-wrap: anywhere !important;
+          }
+
+          [data-legal-subtitle] {
+            margin-bottom: 22px !important;
+            font-size: 16px !important;
+            line-height: 1.55 !important;
+          }
+
+          [data-legal-meta-row] {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+          }
+
+          [data-legal-meta-card] {
+            min-width: 0 !important;
+            padding: 13px 14px !important;
+            border-radius: 16px !important;
+          }
+
+          [data-legal-meta-card]:last-child {
+            grid-column: 1 / -1 !important;
+          }
+
+          [data-legal-content-section] {
+            padding: 22px 0 48px !important;
+          }
+
+          [data-legal-content-wrap] {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 16px !important;
+          }
+
+          [data-legal-sidebar] {
+            position: static !important;
+            width: 100% !important;
+            min-width: 0 !important;
+          }
+
+          [data-legal-sidebar-card] {
+            width: 100% !important;
+            max-height: 330px !important;
+            overflow-y: auto !important;
+            box-sizing: border-box !important;
+            padding: 18px !important;
+            border-radius: 20px !important;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          [data-legal-main-column] {
+            width: 100% !important;
+            min-width: 0 !important;
+            gap: 14px !important;
+          }
+
+          [data-legal-section-card] {
+            width: 100% !important;
+            min-width: 0 !important;
+            box-sizing: border-box !important;
+            padding: 20px 18px !important;
+            border-radius: 20px !important;
+            scroll-margin-top: 90px !important;
+          }
+
+          [data-legal-section-title] {
+            max-width: 100% !important;
+            margin-bottom: 12px !important;
+            font-size: 21px !important;
+            line-height: 1.28 !important;
+            letter-spacing: -0.2px !important;
+            overflow-wrap: anywhere !important;
+          }
+
+          [data-legal-paragraph] {
+            max-width: 100% !important;
+            margin-bottom: 12px !important;
+            font-size: 15px !important;
+            line-height: 1.72 !important;
+            overflow-wrap: anywhere !important;
+            word-break: normal !important;
+          }
+        }
+
+        @media (max-width: 380px) {
+          [data-legal-meta-row] {
+            grid-template-columns: 1fr !important;
+          }
+
+          [data-legal-meta-card]:last-child {
+            grid-column: auto !important;
+          }
+        }
+      `}</style>
+
+      <section style={styles.heroSection} data-legal-hero>
+        <div style={styles.container} data-legal-container>
+          <span style={styles.eyebrow} data-legal-eyebrow>{eyebrow}</span>
+          <h1 style={styles.title} data-legal-title>{document.title}</h1>
+          <p style={styles.subtitle} data-legal-subtitle>{document.subtitle}</p>
 
           {document.fallbackNotice ? (
             <p style={styles.fallbackNotice}>{document.fallbackNotice}</p>
           ) : null}
 
-          <div style={styles.metaRow}>
-            <div style={styles.metaCard}>
+          <div style={styles.metaRow} data-legal-meta-row>
+            <div style={styles.metaCard} data-legal-meta-card>
               <span style={styles.metaLabel}>{ui.documentLabel}</span>
               <strong style={styles.metaValue}>{ui.currentVersion}</strong>
             </div>
 
-            <div style={styles.metaCard}>
+            <div style={styles.metaCard} data-legal-meta-card>
               <span style={styles.metaLabel}>{ui.validityLabel}</span>
               <strong style={styles.metaValue}>{ui.validityValue}</strong>
             </div>
 
-            <div style={styles.metaCard}>
+            <div style={styles.metaCard} data-legal-meta-card>
               <span style={styles.metaLabel}>{ui.languageLabel}</span>
               <strong style={styles.metaValue}>{ui.languageName}</strong>
             </div>
@@ -187,10 +322,10 @@ export default function LegalPage({
         </div>
       </section>
 
-      <section style={styles.contentSection}>
-        <div style={styles.contentWrap}>
-          <aside style={styles.sidebar}>
-            <div style={styles.sidebarCard}>
+      <section style={styles.contentSection} data-legal-content-section>
+        <div style={styles.contentWrap} data-legal-content-wrap>
+          <aside style={styles.sidebar} data-legal-sidebar>
+            <div style={styles.sidebarCard} data-legal-sidebar-card>
               <p style={styles.sidebarTitle}>{ui.contents}</p>
 
               <nav style={styles.nav}>
@@ -227,19 +362,23 @@ export default function LegalPage({
             </div>
           </aside>
 
-          <div style={styles.mainColumn}>
+          <div style={styles.mainColumn} data-legal-main-column>
             {document.sections.map((section, sectionIndex) => (
               <section
                 key={`${sectionId(sectionIndex)}-${section.title}`}
                 id={sectionId(sectionIndex)}
                 style={styles.sectionCard}
+                data-legal-section-card
               >
-                <h2 style={styles.sectionTitle}>{section.title}</h2>
+                <h2 style={styles.sectionTitle} data-legal-section-title>
+                  {section.title}
+                </h2>
 
                 {section.content.map((paragraph, index) => (
                   <p
                     key={`${sectionId(sectionIndex)}-p-${index}`}
                     style={styles.paragraph}
+                    data-legal-paragraph
                   >
                     {paragraph}
                   </p>
@@ -256,6 +395,10 @@ export default function LegalPage({
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
+    width: "100%",
+    maxWidth: "100%",
+    overflowX: "hidden",
+    colorScheme: "only light",
     background:
       "linear-gradient(180deg, #08111d 0%, #0d1726 24%, #f8fafc 24%, #f8fafc 100%)",
   },
@@ -263,11 +406,6 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: 1180,
     margin: "0 auto",
     padding: "0 24px",
-  },
-  languageRow: {
-    display: "flex",
-    justifyContent: "flex-end",
-    marginBottom: 18,
   },
   heroSection: {
     padding: "72px 0 44px",
