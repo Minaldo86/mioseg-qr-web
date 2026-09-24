@@ -5,7 +5,7 @@ import SiteHeader from "../components/SiteHeader";
 
 export const metadata: Metadata = {
   title: "mioseg qr",
-  description: "QR-X Viewer",
+  description: "Mioseg QR Webansicht",
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "mioseg qr",
-    description: "QR-X Viewer",
+    description: "Mioseg QR Webansicht",
     images: [
       {
         url: "/og-image-v2.png",
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "mioseg qr",
-    description: "QR-X Viewer",
+    description: "Mioseg QR Webansicht",
     images: ["/og-image-v2.png"],
   },
 };

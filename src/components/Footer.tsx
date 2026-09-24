@@ -2,8 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const SUPPORTED = ["de", "en", "tr", "pl", "ar", "fr", "es", "it"] as const;
+type FooterLocale = (typeof SUPPORTED)[number];
+
+function normalizeLocale(value: string | null | undefined): FooterLocale | null {
+  const normalized = value?.trim().toLowerCase().split("-")[0] ?? "";
+  return SUPPORTED.includes(normalized as FooterLocale)
+    ? (normalized as FooterLocale)
+    : null;
+}
 
 const FOOTER_TEXT: Record<string, {
   description: string;
@@ -26,7 +35,21 @@ const FOOTER_TEXT: Record<string, {
 export default function Footer() {
   const pathname = usePathname() || "/";
   const firstSegment = pathname.split("/").filter(Boolean)[0] || "";
-  const locale = SUPPORTED.includes(firstSegment as (typeof SUPPORTED)[number]) ? firstSegment : "en";
+  const pathLocale = normalizeLocale(firstSegment);
+  const [queryLocale, setQueryLocale] = useState<FooterLocale | null>(null);
+  const currentSearch = typeof window === "undefined" ? "" : window.location.search;
+
+  useEffect(() => {
+    if (pathLocale) {
+      setQueryLocale(null);
+      return;
+    }
+
+    const params = new URLSearchParams(currentSearch);
+    setQueryLocale(normalizeLocale(params.get("lang")));
+  }, [currentSearch, pathLocale]);
+
+  const locale = pathLocale ?? queryLocale ?? "de";
   const ui = FOOTER_TEXT[locale] ?? FOOTER_TEXT.en;
 
   return (
