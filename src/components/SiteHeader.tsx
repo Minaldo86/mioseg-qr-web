@@ -516,6 +516,26 @@ export default function SiteHeader() {
               <Link href={`/${locale}/login`} className={styles.loginLink}>
                 {ui.login}
               </Link>
+
+              <label className={styles.languageControl}>
+                <span aria-hidden="true" className={styles.languageIcon}>🌐</span>
+                <select
+                  aria-label="Language"
+                  value={locale}
+                  disabled={savingLanguage}
+                  onChange={(event) => {
+                    const nextLocale = normalizeLocale(event.target.value);
+                    if (nextLocale) void handleLanguageChange(nextLocale);
+                  }}
+                >
+                  {HEADER_LANGUAGES.map((item) => (
+                    <option key={item.code} value={item.code}>
+                      {item.short} · {item.label}
+                    </option>
+                  ))}
+                </select>
+                <span aria-hidden="true" className={styles.languageChevron}>▼</span>
+              </label>
             </div>
           )}
         </div>
