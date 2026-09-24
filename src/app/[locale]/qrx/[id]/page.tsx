@@ -19,7 +19,7 @@ type PublicLocale = "de" | "en" | "tr" | "pl" | "ar" | "fr" | "es" | "it";
 
 function normalizeQrCopy<const T>(copy: T): T {
   return JSON.parse(
-    JSON.stringify(copy).replaceAll("QR-X", "QR-Code"),
+    JSON.stringify(copy).replaceAll("QR-X", "Mioseg QR"),
   ) as T;
 }
 

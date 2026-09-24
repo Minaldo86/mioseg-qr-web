@@ -79,7 +79,18 @@ const coverImageStyle: CSSProperties = {
 const coverPlaceholderStyle: CSSProperties = { minHeight: 360, display: "grid", placeItems: "center", color: "rgba(255,255,255,0.18)", fontSize: 72, fontWeight: 950 };
 const coverOverlayStyle: CSSProperties = { position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(6,12,21,0.1) 0%, rgba(6,12,21,0.88) 100%)" };
 const coverContentStyle: CSSProperties = { position: "absolute", left: 24, right: 24, bottom: 24, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" };
-const logoStyle: CSSProperties = { width: 92, height: 92, objectFit: "cover", borderRadius: 24, border: "1px solid rgba(255,255,255,0.24)", background: "#fff" };
+const logoStyle: CSSProperties = {
+  width: 92,
+  height: 92,
+  objectFit: "contain",
+  boxSizing: "border-box",
+  padding: 10,
+  borderRadius: 24,
+  border: "1px solid rgba(255,255,255,0.24)",
+  background: "#fff",
+  display: "block",
+  flexShrink: 0,
+};
 const badgeRowStyle: CSSProperties = { display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 };
 function badgeStyle(isBusiness: boolean): CSSProperties {
   return { minHeight: 32, display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "0 10px", background: isBusiness ? "#fff7ed" : "#ecfdf3", color: isBusiness ? "#9a4f00" : "#166534", fontSize: 12, fontWeight: 950, border: isBusiness ? "1px solid #fed7aa" : "1px solid #bbf7d0" };
