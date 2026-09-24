@@ -127,7 +127,7 @@ function resolveLegacyQrxLocale(acceptLanguage: string | null): LegacyQrxLocale 
   return "de";
 }
 
-const LEGACY_QRX_TEXT = {
+const LEGACY_QRX_TEXT_SOURCE = {
   de: {
     notFound: "QR-X wurde nicht gefunden oder wurde gelöscht.", unavailableTitle: "QR-X nicht verfügbar", unavailable: "Dieser QR-X ist nicht mehr verfügbar.",
     restrictedOwnerTitle: "QR-X eingeschränkt", restrictedOwnerText: "Dieser QR-X wurde aufgrund einer Moderationsentscheidung eingeschränkt und ist derzeit nicht öffentlich verfügbar.", restrictedPublicText: "Dieser QR-X ist derzeit nicht verfügbar.",
@@ -229,6 +229,12 @@ const LEGACY_QRX_TEXT = {
     categories:{praxis_gesundheit:"Studio & Salute",gastronomie:"Ristorazione",unternehmen:"Azienda",dienstleistung:"Servizio",handwerk:"Artigianato",event:"Evento",verein:"Associazione",wohltaetigkeit:"Beneficenza",sehenswuerdigkeit:"Attrazione",sonstiges:"Altro"},
   },
 } as const;
+
+// Only the visible product name changes. Technical qrx identifiers, routes,
+// database fields and API parameters intentionally remain untouched.
+const LEGACY_QRX_TEXT: typeof LEGACY_QRX_TEXT_SOURCE = JSON.parse(
+  JSON.stringify(LEGACY_QRX_TEXT_SOURCE).replaceAll("QR-X", "Mioseg QR"),
+);
 
 function legacyInterpolate(value: string, values: Record<string, string>) {
   return Object.entries(values).reduce(
@@ -559,8 +565,8 @@ export default async function QrxPage({
 
     const description = [
       "Antrag auf Überprüfung einer Moderationsentscheidung aus der Webplattform.",
-      `QR-X: ${qrxId}`,
-      `Titel: ${ownedQrx.title ?? "QR-X"}`,
+      `Mioseg QR: ${qrxId}`,
+      `Titel: ${ownedQrx.title ?? "Mioseg QR"}`,
       `Angezeigter Sperrgrund: ${ownedQrx.suspended_reason?.trim() || "Kein Grund angegeben"}`,
       "",
       "Der Nutzer bittet um erneute Prüfung der Moderationsentscheidung.",
@@ -1479,7 +1485,7 @@ const sectionCardStyle: CSSProperties = {
           </p>
         </section>
 
-        {/* 12. QR-X Code */}
+        {/* 12. Mioseg QR Code */}
         <section style={{ ...sectionCardStyle, textAlign: "center" }}>
           <QrxCodeCanvas
             value={publicQrxUrl}

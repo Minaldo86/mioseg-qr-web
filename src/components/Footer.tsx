@@ -37,7 +37,6 @@ export default function Footer() {
   const firstSegment = pathname.split("/").filter(Boolean)[0] || "";
   const pathLocale = normalizeLocale(firstSegment);
   const [queryLocale, setQueryLocale] = useState<FooterLocale | null>(null);
-  const currentSearch = typeof window === "undefined" ? "" : window.location.search;
 
   useEffect(() => {
     if (pathLocale) {
@@ -45,9 +44,28 @@ export default function Footer() {
       return;
     }
 
-    const params = new URLSearchParams(currentSearch);
-    setQueryLocale(normalizeLocale(params.get("lang")));
-  }, [currentSearch, pathLocale]);
+    const syncLocaleFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setQueryLocale(normalizeLocale(params.get("lang")));
+    };
+
+    const handleLanguageChange = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLSelectElement)) return;
+      if (target.getAttribute("aria-label") !== "Language") return;
+
+      setQueryLocale(normalizeLocale(target.value));
+    };
+
+    syncLocaleFromUrl();
+    window.addEventListener("popstate", syncLocaleFromUrl);
+    document.addEventListener("change", handleLanguageChange);
+
+    return () => {
+      window.removeEventListener("popstate", syncLocaleFromUrl);
+      document.removeEventListener("change", handleLanguageChange);
+    };
+  }, [pathLocale]);
 
   const locale = pathLocale ?? queryLocale ?? "de";
   const ui = FOOTER_TEXT[locale] ?? FOOTER_TEXT.en;

@@ -25,22 +25,22 @@ const QR_CODE_UI: Record<SupportedLocale, {
   alt: string;
 }> = {
   de: {
-  title: "QR-X Code",
+  title: "Mioseg QR Code",
   description: "Dieser QR-Code wird direkt im Web erstellt und enthält das mioseg qr Logo in der Mitte.",
-  loading: "QR-X Code wird erstellt …",
+  loading: "Mioseg QR Code wird erstellt …",
   saveImage: "⇩ QR-Code als Bild speichern",
   copied: "✓ Link kopiert",
   copyLink: "Link kopieren",
-  copyPrompt: "QR-X Link kopieren",
-  alt: "QR-X Code",
+  copyPrompt: "Mioseg QR Link kopieren",
+  alt: "Mioseg QR Code",
 },
-  en: { title: "QR-X code", description: "This QR code is generated directly on the web and contains the mioseg qr logo in the center.", loading: "Creating QR-X code …", saveImage: "⇩ Save QR code as image", copied: "✓ Link copied", copyLink: "Copy link", copyPrompt: "Copy QR-X link", alt: "QR-X code" },
-  tr: { title: "QR-X kodu", description: "Bu QR kodu doğrudan web üzerinde oluşturulur ve ortasında mioseg qr logosu bulunur.", loading: "QR-X kodu oluşturuluyor …", saveImage: "⇩ QR kodunu görsel olarak kaydet", copied: "✓ Bağlantı kopyalandı", copyLink: "Bağlantıyı kopyala", copyPrompt: "QR-X bağlantısını kopyala", alt: "QR-X kodu" },
-  pl: { title: "Kod QR-X", description: "Ten kod QR jest generowany bezpośrednio w przeglądarce i zawiera logo mioseg qr pośrodku.", loading: "Tworzenie kodu QR-X …", saveImage: "⇩ Zapisz kod QR jako obraz", copied: "✓ Link skopiowany", copyLink: "Kopiuj link", copyPrompt: "Kopiuj link QR-X", alt: "Kod QR-X" },
-  ar: { title: "رمز QR-X", description: "يتم إنشاء رمز QR هذا مباشرة على الويب ويتضمن شعار mioseg qr في المنتصف.", loading: "جارٍ إنشاء رمز QR-X …", saveImage: "⇩ حفظ رمز QR كصورة", copied: "✓ تم نسخ الرابط", copyLink: "نسخ الرابط", copyPrompt: "نسخ رابط QR-X", alt: "رمز QR-X" },
-  fr: { title: "Code QR-X", description: "Ce code QR est généré directement sur le Web et contient le logo mioseg qr au centre.", loading: "Création du code QR-X …", saveImage: "⇩ Enregistrer le code QR comme image", copied: "✓ Lien copié", copyLink: "Copier le lien", copyPrompt: "Copier le lien QR-X", alt: "Code QR-X" },
-  es: { title: "Código QR-X", description: "Este código QR se genera directamente en la web e incluye el logotipo de mioseg qr en el centro.", loading: "Creando código QR-X …", saveImage: "⇩ Guardar código QR como imagen", copied: "✓ Enlace copiado", copyLink: "Copiar enlace", copyPrompt: "Copiar enlace QR-X", alt: "Código QR-X" },
-  it: { title: "Codice QR-X", description: "Questo codice QR viene generato direttamente sul Web e contiene il logo mioseg qr al centro.", loading: "Creazione del codice QR-X …", saveImage: "⇩ Salva il codice QR come immagine", copied: "✓ Link copiato", copyLink: "Copia link", copyPrompt: "Copia link QR-X", alt: "Codice QR-X" },
+  en: { title: "Mioseg QR code", description: "This QR code is generated directly on the web and contains the mioseg qr logo in the center.", loading: "Creating Mioseg QR code …", saveImage: "⇩ Save QR code as image", copied: "✓ Link copied", copyLink: "Copy link", copyPrompt: "Copy Mioseg QR link", alt: "Mioseg QR code" },
+  tr: { title: "Mioseg QR kodu", description: "Bu QR kodu doğrudan web üzerinde oluşturulur ve ortasında mioseg qr logosu bulunur.", loading: "Mioseg QR kodu oluşturuluyor …", saveImage: "⇩ QR kodunu görsel olarak kaydet", copied: "✓ Bağlantı kopyalandı", copyLink: "Bağlantıyı kopyala", copyPrompt: "Mioseg QR bağlantısını kopyala", alt: "Mioseg QR kodu" },
+  pl: { title: "Kod Mioseg QR", description: "Ten kod QR jest generowany bezpośrednio w przeglądarce i zawiera logo mioseg qr pośrodku.", loading: "Tworzenie kodu Mioseg QR …", saveImage: "⇩ Zapisz kod QR jako obraz", copied: "✓ Link skopiowany", copyLink: "Kopiuj link", copyPrompt: "Kopiuj link Mioseg QR", alt: "Kod Mioseg QR" },
+  ar: { title: "رمز Mioseg QR", description: "يتم إنشاء رمز QR هذا مباشرة على الويب ويتضمن شعار mioseg qr في المنتصف.", loading: "جارٍ إنشاء رمز Mioseg QR …", saveImage: "⇩ حفظ رمز QR كصورة", copied: "✓ تم نسخ الرابط", copyLink: "نسخ الرابط", copyPrompt: "نسخ رابط Mioseg QR", alt: "رمز Mioseg QR" },
+  fr: { title: "Code Mioseg QR", description: "Ce code QR est généré directement sur le Web et contient le logo mioseg qr au centre.", loading: "Création du code Mioseg QR …", saveImage: "⇩ Enregistrer le code QR comme image", copied: "✓ Lien copié", copyLink: "Copier le lien", copyPrompt: "Copier le lien Mioseg QR", alt: "Code Mioseg QR" },
+  es: { title: "Código Mioseg QR", description: "Este código QR se genera directamente en la web e incluye el logotipo de mioseg qr en el centro.", loading: "Creando código Mioseg QR …", saveImage: "⇩ Guardar código QR como imagen", copied: "✓ Enlace copiado", copyLink: "Copiar enlace", copyPrompt: "Copiar enlace Mioseg QR", alt: "Código Mioseg QR" },
+  it: { title: "Codice Mioseg QR", description: "Questo codice QR viene generato direttamente sul Web e contiene il logo mioseg qr al centro.", loading: "Creazione del codice Mioseg QR …", saveImage: "⇩ Salva il codice QR come immagine", copied: "✓ Link copiato", copyLink: "Copia link", copyPrompt: "Copia link Mioseg QR", alt: "Codice Mioseg QR" },
 };
 
 function drawRoundedRect(
@@ -82,7 +82,7 @@ export default function QrxCodeCanvas({
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const ui = QR_CODE_UI[locale] ?? QR_CODE_UI.de;
-  const label = variant === "business" ? "BUSINESS" : "QR-X";
+  const label = variant === "business" ? "BUSINESS" : "MIOSEG QR";
 
   const filename = useMemo(() => `mioseg-qrx-${qrxId}.png`, [qrxId]);
 
