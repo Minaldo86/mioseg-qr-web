@@ -1,5 +1,8 @@
 "use client";
 
+import { normalizeMediaDeliveryUrl } from "@/lib/media";
+
+
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
@@ -125,8 +128,8 @@ export default function CollectionSelector({
                 item.title?.trim() ||
                 ui.untitled;
               const image =
-                item.logo_url?.trim() ||
-                item.cover_image_url?.trim() ||
+                normalizeMediaDeliveryUrl(item.logo_url) ||
+                normalizeMediaDeliveryUrl(item.cover_image_url) ||
                 null;
 
               return (
@@ -214,8 +217,8 @@ export default function CollectionSelector({
                   item.title?.trim() ||
                   ui.untitled;
                 const image =
-                  item.logo_url?.trim() ||
-                  item.cover_image_url?.trim() ||
+                  normalizeMediaDeliveryUrl(item.logo_url) ||
+                  normalizeMediaDeliveryUrl(item.cover_image_url) ||
                   null;
 
                 return (

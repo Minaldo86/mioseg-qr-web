@@ -1,5 +1,8 @@
 "use client";
 
+import { normalizeMediaDeliveryUrl } from "@/lib/media";
+
+
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -1052,7 +1055,7 @@ function MediaCard({
     >
       <div style={{ height: 150, background: "#e2e8f0", overflow: "hidden" }}>
         <img
-          src={item.url}
+          src={normalizeMediaDeliveryUrl(item.url) || undefined}
           alt={item.filename}
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
@@ -1062,7 +1065,7 @@ function MediaCard({
         <strong style={{ color: "#ffffff", fontSize: 14, wordBreak: "break-word" }}>{item.filename}</strong>
         <span style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850 }}>{formatBytes(item.bytes)}</span>
         <MediaItemAnalytics analytics={analytics} kind="image" ui={ui} locale={locale} />
-        <a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontSize: 12, fontWeight: 900 }}>
+        <a href={normalizeMediaDeliveryUrl(item.url) || ""} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontSize: 12, fontWeight: 900 }}>
           {ui.openImage}
         </a>
         <DeleteButton deleting={deletingId === item.id} onDelete={onDelete} ui={ui} />
@@ -1103,7 +1106,7 @@ function FileRow({
         <strong style={{ color: "#ffffff", wordBreak: "break-word" }}>📄 {item.filename}</strong>
         <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 850, marginTop: 4 }}>{formatBytes(item.bytes)}</div>
         <MediaItemAnalytics analytics={analytics} kind="file" ui={ui} locale={locale} />
-        <a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontSize: 12, fontWeight: 900 }}>
+        <a href={normalizeMediaDeliveryUrl(item.url) || ""} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontSize: 12, fontWeight: 900 }}>
           {ui.openFile}
         </a>
       </div>

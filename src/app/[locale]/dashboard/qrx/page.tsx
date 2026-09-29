@@ -1,5 +1,8 @@
 "use client";
 
+import { normalizeMediaDeliveryUrl } from "@/lib/media";
+
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -688,10 +691,10 @@ function getQrxText(entry: QrxEntry, fallback = "Mioseg QR auf mioseg qr") {
 function getQrxCardImage(entry: QrxEntry) {
   const cover = getBestMediaUrl(entry.cover_media, "card");
   if (cover) return cover;
-  if (entry.cover_image_url?.trim()) return entry.cover_image_url.trim();
+  if (normalizeMediaDeliveryUrl(entry.cover_image_url)) return normalizeMediaDeliveryUrl(entry.cover_image_url);
   const logo = getBestMediaUrl(entry.logo_media, "card");
   if (logo) return logo;
-  return entry.logo_url?.trim() || null;
+  return normalizeMediaDeliveryUrl(entry.logo_url) || null;
 }
 
 function formatNumber(value: number | null | undefined) {

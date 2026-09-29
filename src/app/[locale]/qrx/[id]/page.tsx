@@ -1,5 +1,8 @@
 "use client";
 
+import { normalizeMediaDeliveryUrl } from "@/lib/media";
+
+
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import type { CSSProperties } from "react";
@@ -1474,7 +1477,7 @@ function PublicQrxDetailPageContent() {
   // The create/edit flow writes the final positioned 16:9 cover here.
   // A stale cover_media_id may otherwise point to an older media image and override it.
   const cover =
-    entry?.cover_image_url?.trim() ||
+    normalizeMediaDeliveryUrl(entry?.cover_image_url) ||
     getBestMediaUrl({
       media: coverMedia,
       purpose: "hero",
@@ -1487,7 +1490,7 @@ function PublicQrxDetailPageContent() {
       purpose: "medium",
       forceOriginal: forceOriginalQuality,
     }) ||
-    entry?.logo_url?.trim() ||
+    normalizeMediaDeliveryUrl(entry?.logo_url) ||
     null;
   const isBusiness = entry?.type === "business";
   const website = normalizeUrl(entry?.cta_website ?? null);
@@ -1509,7 +1512,7 @@ function PublicQrxDetailPageContent() {
       item.large_url,
       item.medium_url,
       item.thumb_url,
-    ];
+    ].map(normalizeMediaDeliveryUrl);
     return (
       item.type === "image" &&
       !isLogoById &&
@@ -1536,29 +1539,29 @@ function PublicQrxDetailPageContent() {
   const imageDisplayItems: QrxMediaDisplayItem[] = imageMedia.map((item) => ({
     id: item.id,
     type: item.type,
-    url: item.url,
+    url: normalizeMediaDeliveryUrl(item.url) || "",
     filename: item.filename,
     displayUrl:
       getBestMediaUrl({
         media: item,
         purpose: "gallery",
         forceOriginal: forceOriginalQuality,
-      }) || item.url,
+      }) || normalizeMediaDeliveryUrl(item.url) || "",
     fullscreenUrl:
       getBestMediaUrl({
         media: item,
         purpose: "fullscreen",
         forceOriginal: forceOriginalQuality,
-      }) || item.url,
+      }) || normalizeMediaDeliveryUrl(item.url) || "",
   }));
 
   const fileDisplayItems: QrxMediaDisplayItem[] = fileMedia.map((item) => ({
     id: item.id,
     type: item.type,
-    url: item.url,
+    url: normalizeMediaDeliveryUrl(item.url) || "",
     filename: item.filename,
-    displayUrl: item.url,
-    fullscreenUrl: item.url,
+    displayUrl: normalizeMediaDeliveryUrl(item.url) || "",
+    fullscreenUrl: normalizeMediaDeliveryUrl(item.url) || "",
   }));
 
   const stats = [

@@ -1,3 +1,4 @@
+import { normalizeMediaDeliveryUrl } from "@/lib/media";
 import Link from "next/link";
 import styles from "../home-page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -197,13 +198,13 @@ function getExploreImage(entry: ExploreEntry, purpose: "card" | "map" | "hero" =
   const coverFromMedia = getBestMediaUrl(entry.cover_media, purpose);
   if (coverFromMedia) return coverFromMedia;
 
-  const legacyCover = entry.cover_image_url?.trim();
+  const legacyCover = normalizeMediaDeliveryUrl(entry.cover_image_url);
   if (legacyCover) return legacyCover;
 
   const logoFromMedia = getBestMediaUrl(entry.logo_media, purpose);
   if (logoFromMedia) return logoFromMedia;
 
-  const legacyLogo = entry.logo_url?.trim();
+  const legacyLogo = normalizeMediaDeliveryUrl(entry.logo_url);
   if (legacyLogo) return legacyLogo;
 
   return null;

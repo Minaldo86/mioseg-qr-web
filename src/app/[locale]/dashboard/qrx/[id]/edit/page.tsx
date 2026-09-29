@@ -1,5 +1,8 @@
 "use client";
 
+import { normalizeMediaDeliveryUrl } from "@/lib/media";
+
+
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { ChangeEvent, CSSProperties, FormEvent } from "react";
@@ -4061,7 +4064,7 @@ export default function EditQrxPage() {
           <div style={mediaGridStyle}>
             <div style={mediaUploadBoxStyle}>
               <h3 style={mediaTitleStyle}>{ui.logo}</h3>
-              {logoUrl ? <img src={logoUrl} alt={ui.currentLogoAlt} style={logoPreviewStyle} /> : <p style={emptyTextStyle}>{ui.noLogo}</p>}
+              {logoUrl ? <img src={normalizeMediaDeliveryUrl(logoUrl) || undefined} alt={ui.currentLogoAlt} style={logoPreviewStyle} /> : <p style={emptyTextStyle}>{ui.noLogo}</p>}
               {logoFile ? <p style={selectedFileTextStyle}>{ui.newSelected}: {logoFile.name} · {formatBytes(logoFile.size)}</p> : null}
               <div style={mediaActionRowStyle}>
                 <label style={fileButtonStyle}>
@@ -4080,7 +4083,7 @@ export default function EditQrxPage() {
                   <canvas ref={coverPreviewCanvasRef} aria-label={ui.coverPreviewAlt} style={coverPreviewCanvasStyle} />
                 </div>
               ) : coverUrl ? (
-                <img src={coverUrl} alt={ui.currentCoverAlt} style={coverPreviewStyle} />
+                <img src={normalizeMediaDeliveryUrl(coverUrl) || undefined} alt={ui.currentCoverAlt} style={coverPreviewStyle} />
               ) : (
                 <p style={emptyTextStyle}>{ui.noCover}</p>
               )}
@@ -4139,7 +4142,7 @@ export default function EditQrxPage() {
                 <div style={mediaCardGridStyle}>
                   {visibleImageMedia.map((item) => (
                     <div key={item.id} style={mediaCardStyle}>
-                      <img src={item.url} alt={item.filename} style={mediaImageStyle} />
+                      <img src={normalizeMediaDeliveryUrl(item.url) || undefined} alt={item.filename} style={mediaImageStyle} />
                       <strong style={mediaFilenameStyle}>{item.filename}</strong>
                       <span style={mediaSubTextStyle}>{formatBytes(item.bytes)}</span>
                       <button type="button" onClick={() => handleDeleteMedia(item)} style={miniDangerButtonStyle}>{ui.delete}</button>
@@ -4172,7 +4175,7 @@ export default function EditQrxPage() {
                 <div style={pendingListStyle}>
                   {visibleFileMedia.map((item) => (
                     <div key={item.id} style={selectedDocumentStyle}>
-                      <a href={item.url} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontWeight: 950, textDecoration: "none" }}>
+                      <a href={normalizeMediaDeliveryUrl(item.url) || ""} target="_blank" rel="noreferrer" style={{ color: "#bfdbfe", fontWeight: 950, textDecoration: "none" }}>
                         {item.filename}
                       </a>
                       <span>{formatBytes(item.bytes)}</span>

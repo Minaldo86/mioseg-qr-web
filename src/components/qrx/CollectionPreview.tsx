@@ -1,5 +1,8 @@
 "use client";
 
+import { normalizeMediaDeliveryUrl } from "@/lib/media";
+
+
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
@@ -80,8 +83,8 @@ export default function CollectionPreview({
         {items.map((item) => {
           const title = getDisplayTitle(item, labels.untitled);
           const image =
-            item.cover_image_url?.trim() ||
-            item.logo_url?.trim() ||
+            normalizeMediaDeliveryUrl(item.cover_image_url) ||
+            normalizeMediaDeliveryUrl(item.logo_url) ||
             null;
 
           const detailPath =
