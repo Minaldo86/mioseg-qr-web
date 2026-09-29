@@ -1,3 +1,5 @@
+import { normalizeMediaDeliveryUrl } from "@/lib/media";
+
 import { NextRequest, NextResponse } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -68,6 +70,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  const deliveryUrl = normalizeMediaDeliveryUrl(data.url) || data.url;
+  const target = new URL(deliveryUrl);
+  if (target.origin === "https://mioseg-qr-media.mioseg-qr-minh.workers.dev") {
+    target.searchParams.set("download", "1");
+    target.searchParams.set("filename", sanitizeFilename(requestedFilename || data.filename));
+    const response = NextResponse.redirect(target, 307);
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+    return response;
+  }
+
+  // Keep the existing download behavior for older Supabase media.
   let sourceResponse: Response;
 
   try {

@@ -1,3 +1,19 @@
+const LEGACY_R2_ORIGIN = "https://pub-efb8f861f7c046989ccd990f1a77c1b9.r2.dev";
+const MEDIA_WORKER_ORIGIN = "https://mioseg-qr-media.mioseg-qr-minh.workers.dev";
+
+// Only this bucket's public URLs are rewritten. Supabase and local URIs stay intact.
+export function normalizeMediaDeliveryUrl(value: string | null | undefined): string | null {
+  const trimmed = typeof value === "string" ? value.trim() : "";
+  if (!trimmed) return null;
+  try {
+    const url = new URL(trimmed);
+    if (url.origin === LEGACY_R2_ORIGIN && !url.username && !url.password) {
+      return MEDIA_WORKER_ORIGIN + url.pathname + url.search + url.hash;
+    }
+  } catch { /* Relative and local URIs remain supported. */ }
+  return trimmed;
+}
+
 // src/lib/media.ts
 // Zentrale Media Engine Hilfsfunktionen für Mioseg QR.
 // Smart Image Delivery:
@@ -50,7 +66,7 @@ export function normalizeMedia<T extends MediaLike>(media: T | T[] | null | unde
 function firstUrl(...values: Array<string | null | undefined>) {
   for (const value of values) {
     const trimmed = typeof value === "string" ? value.trim() : "";
-    if (trimmed.length > 0) return trimmed;
+    if (trimmed.length > 0) return normalizeMediaDeliveryUrl(trimmed);
   }
   return null;
 }

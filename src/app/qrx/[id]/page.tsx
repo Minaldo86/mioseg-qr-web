@@ -90,6 +90,10 @@ type QrxMedia = {
   url: string;
   filename: string;
   bytes?: number | null;
+  original_url?: string | null;
+  large_url?: string | null;
+  medium_url?: string | null;
+  thumb_url?: string | null;
 };
 
 type TransferHistoryItem = {
@@ -405,7 +409,9 @@ export default async function QrxPage({
 
   const { data: media, error: mediaErr } = await supabase
     .from("qr_x_media")
-    .select("id, qrx_id, type, url, filename, bytes")
+    .select(
+      "id, qrx_id, type, url, filename, bytes, original_url, large_url, medium_url, thumb_url",
+    )
     .eq("qrx_id", qrxId)
     .returns<QrxMedia[]>();
 
@@ -1296,26 +1302,37 @@ const sectionCardStyle: CSSProperties = {
             <p style={mutedTextStyle}>{ui.noImages}</p>
           ) : (
             <div style={imageGridStyle}>
-              {galleryImages.map((img) => (
-                <MediaInteractionLink
-                  key={img.id}
-                  qrxId={qrxId}
-                  mediaId={img.id}
-                  mediaType="image"
-                  eventType="image_view"
-                  variant="original"
-                  source="public_qrx_gallery"
-                  href={img.url}
-                  mode="open"
-                  style={imageItemStyle}
-                  ariaLabel={legacyInterpolate(ui.imageOpenAria, { name: img.filename })}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={img.url} alt={img.filename} style={imageThumbStyle} />
-                  <span style={imageCaptionStyle}>{img.filename}</span>
-                  <span style={imageOpenHintStyle}>{ui.tapImage}</span>
-                </MediaInteractionLink>
-              ))}
+              {galleryImages.map((img) => {
+                const previewUrl = img.thumb_url || img.medium_url || img.large_url || img.url;
+                const openUrl = img.large_url || img.medium_url || img.original_url || img.url;
+
+                return (
+                  <MediaInteractionLink
+                    key={img.id}
+                    qrxId={qrxId}
+                    mediaId={img.id}
+                    mediaType="image"
+                    eventType="image_view"
+                    variant={img.large_url ? "large" : img.medium_url ? "medium" : "original"}
+                    source="public_qrx_gallery"
+                    href={openUrl}
+                    mode="open"
+                    style={imageItemStyle}
+                    ariaLabel={legacyInterpolate(ui.imageOpenAria, { name: img.filename })}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={previewUrl}
+                      alt={img.filename}
+                      style={imageThumbStyle}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <span style={imageCaptionStyle}>{img.filename}</span>
+                    <span style={imageOpenHintStyle}>{ui.tapImage}</span>
+                  </MediaInteractionLink>
+                );
+              })}
             </div>
           )}
         </section>
