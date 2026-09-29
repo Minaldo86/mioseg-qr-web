@@ -1,3 +1,4 @@
+import { normalizeMediaDeliveryUrl } from "@/lib/media";
 import type { CSSProperties } from "react";
 import styles from "./page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -469,8 +470,8 @@ export default async function QrxPage({
       company_name: child.company_name ?? null,
       description: child.description ?? null,
       type: child.type ?? null,
-      logo_url: child.logo_url ?? null,
-      cover_image_url: child.cover_image_url ?? null,
+      logo_url: normalizeMediaDeliveryUrl(child.logo_url),
+      cover_image_url: normalizeMediaDeliveryUrl(child.cover_image_url),
       location_name: child.location_name ?? null,
       verified: child.verified ?? null,
       custom_title: row.custom_title ?? null,
@@ -809,13 +810,13 @@ export default async function QrxPage({
 
   const isBusiness = entry.type === "business";
   const companyName = entry.company_name?.trim() || entry.title;
-  const logoUrl = entry.logo_url?.trim() || null;
-  const coverUrl = entry.cover_image_url?.trim() || null;
+  const logoUrl = normalizeMediaDeliveryUrl(entry.logo_url);
+  const coverUrl = normalizeMediaDeliveryUrl(entry.cover_image_url);
 
   const galleryImages = images.filter((img) => {
     if (!img.url) return false;
-    if (logoUrl && img.url === logoUrl) return false;
-    if (coverUrl && img.url === coverUrl) return false;
+    if (logoUrl && normalizeMediaDeliveryUrl(img.url) === logoUrl) return false;
+    if (coverUrl && normalizeMediaDeliveryUrl(img.url) === coverUrl) return false;
     return true;
   });
 
@@ -1303,8 +1304,8 @@ const sectionCardStyle: CSSProperties = {
           ) : (
             <div style={imageGridStyle}>
               {galleryImages.map((img) => {
-                const previewUrl = img.thumb_url || img.medium_url || img.large_url || img.url;
-                const openUrl = img.large_url || img.medium_url || img.original_url || img.url;
+                const previewUrl = normalizeMediaDeliveryUrl(img.thumb_url || img.medium_url || img.large_url || img.url) || "";
+                const openUrl = normalizeMediaDeliveryUrl(img.large_url || img.medium_url || img.original_url || img.url) || "";
 
                 return (
                   <MediaInteractionLink
@@ -1357,7 +1358,7 @@ const sectionCardStyle: CSSProperties = {
                       eventType="file_open"
                       variant="original"
                       source="public_qrx_files"
-                      href={f.url}
+                      href={normalizeMediaDeliveryUrl(f.url) || ""}
                       mode="open"
                       style={fileActionButtonStyle}
                       ariaLabel={legacyInterpolate(ui.fileOpenAria, { name: f.filename })}
@@ -1372,7 +1373,7 @@ const sectionCardStyle: CSSProperties = {
                       eventType="file_download"
                       variant="original"
                       source="public_qrx_files"
-                      href={f.url}
+                      href={normalizeMediaDeliveryUrl(f.url) || ""}
                       mode="download"
                       filename={f.filename}
                       style={fileDownloadButtonStyle}
