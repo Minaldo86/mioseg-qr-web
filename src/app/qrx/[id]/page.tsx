@@ -2380,8 +2380,12 @@ export default async function QrxPage({
             {transferHistory.length === 0 ? (
               <div style={emptyTransferStyle}>↔ {ui.noTransfer}</div>
             ) : (
-              <div style={transferListStyle}>
-                {transferHistory.map((item, index) => (
+              <details style={transferDetailsStyle}>
+                <summary style={transferSummaryStyle}>
+                  ↔ {ui.transfer} ({transferHistory.length})
+                </summary>
+                <div style={{ ...transferListStyle, marginTop: 12 }}>
+                  {transferHistory.map((item, index) => (
                   <div
                     key={
                       item.id ??
@@ -2422,8 +2426,9 @@ export default async function QrxPage({
                       </span>
                     ) : null}
                   </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </details>
             )}
           </section>
         ) : null}
@@ -2965,6 +2970,20 @@ const emptyTransferStyle: CSSProperties = {
   border: "1px solid rgba(65,84,103,0.75)",
   color: "#9aa7b5",
   fontSize: 17,
+};
+
+const transferDetailsStyle: CSSProperties = {
+  marginTop: 12,
+};
+
+const transferSummaryStyle: CSSProperties = {
+  cursor: "pointer",
+  fontWeight: 800,
+  padding: "14px 16px",
+  borderRadius: 14,
+  background: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(148,163,184,0.18)",
+  userSelect: "none",
 };
 
 const transferListStyle: CSSProperties = {
