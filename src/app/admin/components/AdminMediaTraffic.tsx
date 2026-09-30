@@ -1,4 +1,5 @@
 "use client";
+import AdminMediaGuard from "./AdminMediaGuard";
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import type { CostReport } from "@/lib/cloudflare-cost-monitor";
 import type { CostSettings } from "@/lib/media-cost-model";
@@ -36,7 +37,7 @@ export default function AdminMediaTraffic() {
  ] : [];
  return <section style={box}>
   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}><h2 style={{ margin: 0 }}>Cloudflare: Verbrauch & Kostenwarnungen</h2><button disabled={busy} onClick={() => void load("refresh")}>{busy ? "Wird geladen …" : "Messwerte aktualisieren"}</button></div>
-  <p>Betreiberüberwachung für den Media-Bucket und Worker. Keine automatische Sperre oder Credit-Abbuchung. Eine Zuordnung zu einzelnen QR-Codes ist hier nicht verfügbar.</p>
+  <p>Gesamtüberwachung für den Media-Bucket und Worker. Die QR-bezogenen Limits und Zustimmungen werden im separaten Abrufschutz darunter verwaltet.</p>
   {error && <p role="alert" style={{ color: "#fca5a5" }}>{error}</p>}{message && <p role="status" style={{ color: "#86efac" }}>{message}</p>}
   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 12 }}>{cards.map(([label, value]) => <div key={label} style={box}><div style={{ color: "#94a3b8", marginBottom: 8 }}>{label}</div><strong style={{ fontSize: 22 }}>{value}</strong></div>)}</div>
   {report && <>
@@ -45,7 +46,7 @@ export default function AdminMediaTraffic() {
    <details><summary>Berechnung und Grenzen der Messung*</summary><ul>{report.notes.map(n => <li key={n} style={{ marginTop: 8 }}>{n}</li>)}</ul></details>
   </>}
   {settings && <form onSubmit={e => { e.preventDefault(); void load("save", settings); }} style={{ marginTop: 24 }}>
-   <h3>Warnungen einstellen</h3><p>Der Teilbetrag wird ohne gemeinsame Freibeträge geschätzt. Worker-CPU und weitere Dienste fehlen. Die Cloudflare-Rechnung bleibt maßgeblich.</p>
+   <h3>Warnungen einstellen</h3><p>Der Teilbetrag wird ohne gemeinsame Freibeträge geschätzt. Worker-CPU, Durable Objects des Abrufschutzes und weitere Dienste fehlen. Die Cloudflare-Rechnung bleibt maßgeblich.</p>
    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
     <label>Monatliches Vergleichsbudget (EUR)<input style={input} required type="number" min="0.01" max="100000" step="0.01" value={settings.budget_eur} onChange={e => update("budget_eur", Number(e.target.value))}/></label>
     <label>Warnschwelle (%)<input style={input} required type="number" min="1" max="99" value={settings.warn_percent} onChange={e => update("warn_percent", Number(e.target.value))}/></label>
@@ -59,5 +60,6 @@ export default function AdminMediaTraffic() {
    <p>Warnungen: Warnschwelle, kritische Schwelle und 100 %. Je erreichte Schwelle einmal pro Monat. Bei einem Sprung wird die höchste erreichte Schwelle gemeldet. Automatische Prüfung täglich nach Einrichtung des Cronjobs.</p>
    <button disabled={busy} type="submit">Einstellungen speichern</button>
   </form>}
+ <AdminMediaGuard/>
  </section>;
 }

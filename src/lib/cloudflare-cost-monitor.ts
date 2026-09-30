@@ -112,8 +112,8 @@ export async function readCostReport(force = false): Promise<CostReport> {
     "Messwerte können verzögert oder statistisch hochgerechnet sein. Abrechnungszeitraum: Kalendermonat UTC.",
     "Die Bandbreitenstatistik enthält keine Übertragungen unter 100 KiB. Sie misst R2-Downloads, nicht garantiert vollständig beim Nutzer empfangene Bytes.",
     "Kosten sind ein Brutto-Teilbetrag ohne Freibeträge: R2-Operationen seit Monatsbeginn plus aktueller Speicher auf einen ganzen Monat hochgerechnet; bei Paid zusätzlich Worker-Grundpreis und Anfragen.",
-    "Worker-CPU, andere Buckets/Worker, Supabase, Vercel, Steuern und Abrechnungsrundung fehlen. Keine Gesamtrechnung oder Kostenobergrenze. Hohe Abrufzahlen können weiterhin Operationskosten verursachen.",
-    "Budgetwarnungen beziehen sich auf diesen Teilbetrag und begrenzen die Rechnung nicht. Es werden keine Nutzer-Credits abgebucht.",
+    "Worker-CPU, Durable Objects des Abrufschutzes, andere Buckets/Worker, Supabase, Vercel, Steuern und Abrechnungsrundung fehlen. Keine Gesamtrechnung oder Kostenobergrenze. Hohe Abrufzahlen können weiterhin Operationskosten verursachen.",
+    "Budgetwarnungen beziehen sich auf diesen Teilbetrag und begrenzen die Rechnung nicht. Diese Gesamtmessung löst keine Nutzer-Abbuchung aus. Der separate Abrufschutz kann mit ausdrücklicher Zustimmung Zusatzpakete buchen.",
   ];
   if (settings.worker_plan === "unknown") notes.push("Worker-Tarif noch auswählen: Worker-Kosten sind bis dahin nicht enthalten.");
   if (metrics.operations?.unknown) notes.push("Unbekannte R2-Operationen vorsorglich mit dem Class-A-Preis geschätzt.");
@@ -128,7 +128,7 @@ export async function sendCostAlert(report: CostReport) {
   const reached = [settings.warn_percent, settings.critical_percent, 100].filter(x => costs.budgetPercent >= x);
   if (!reached.length) return { sent: false, reason: "below_threshold" };
   const threshold = Math.max(...reached), period_start = metrics.periodStart, claimed_at = new Date().toISOString();
-  let emailPayload = { from, to: [settings.email_to], subject: `Mioseg QR: Kostenwarnung ab ${threshold} %`, text: `Die Kosten-Teilschätzung liegt bei ${costs.subtotalEur.toFixed(2)} EUR (${costs.budgetPercent.toFixed(1)} % des Budgets von ${settings.budget_eur} EUR).\n\nDies ist keine Gesamtrechnung und kein Kostenlimit. Worker-CPU und weitere Dienste sind nicht enthalten. Öffne den Admin-Bereich und prüfe die aktuelle Cloudflare-Abrechnung. Nutzer-Credits wurden nicht abgebucht.` };
+  let emailPayload = { from, to: [settings.email_to], subject: `Mioseg QR: Kostenwarnung ab ${threshold} %`, text: `Die Kosten-Teilschätzung liegt bei ${costs.subtotalEur.toFixed(2)} EUR (${costs.budgetPercent.toFixed(1)} % des Budgets von ${settings.budget_eur} EUR).\n\nDies ist keine Gesamtrechnung und kein Kostenlimit. Worker-CPU und weitere Dienste sind nicht enthalten. Öffne den Admin-Bereich und prüfe die aktuelle Cloudflare-Abrechnung. Diese Betreiberwarnung löst keine Credit-Abbuchung aus. Der separate Abrufschutz wird unabhängig davon verwaltet.` };
   const { error: insertError } = await supabaseAdmin.from("qrx_media_cost_alerts").insert({ period_start, threshold, status: "processing", claimed_at, email_payload: emailPayload });
   if (insertError) {
     if (insertError.code !== "23505") throw new Error("Warnung konnte nicht reserviert werden.");
