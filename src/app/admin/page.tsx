@@ -5829,6 +5829,7 @@ const handleWarningOpenMediaJobs = async () => {
         </div>
       </div>
 
+      <p style={{ color: "#fbbf24", marginBottom: 12 }}>Cloudflare-Messwerte sind unter „Traffic“ verfügbar. Die Übersicht ist keine Gesamtkostenabrechnung; nicht verfügbare Werte können dort als 0 erscheinen. Einzelne QR-Codes werden hier nicht nach Abrufkosten ausgewertet.</p>
       <AdminMediaDashboard
         styles={styles}
         activeSection={mediaDashboardSection}

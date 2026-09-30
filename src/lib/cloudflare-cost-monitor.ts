@@ -86,7 +86,7 @@ export async function readCostReport(force = false): Promise<CostReport> {
       errors.push(`${label}: ${result.reason instanceof Error ? result.reason.message : "nicht verfügbar"}`); return null;
     };
     const r2 = section(0, "R2"), workers = section(1, "Worker"), bw = section(2, "Bandbreite");
-    if (r2?.operations?.length >= 100) { errors.push("R2: Ergebnislimit erreicht; Kosten unvollständig."); }
+   if ((r2?.operations?.length ?? 0) >= 100) { errors.push("R2: Ergebnislimit erreicht; Kosten unvollständig."); }
     const storageRow = r2?.storage?.[0];
     const bandwidthRows = bw?.bandwidth;
     const bytesAfter = (start: number) => bandwidthRows?.reduce((sum, r) => new Date(r.dimensions?.datetimeHour ?? "").getTime() >= start ? sum + nonnegative(r.sum?.bytesDownload) : sum, 0) ?? 0;
