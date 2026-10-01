@@ -80,20 +80,38 @@ function berlinLocalMidnightToUtc(year: number, month: number, day: number) {
   return new Date(guess);
 }
 
-type CountQuery = ReturnType<
-  ReturnType<typeof supabaseAdmin.from>["select"]
->;
-
-async function exactCount(
-  table: string,
-  configure?: (query: CountQuery) => CountQuery,
+async function countProfiles(
+  startIso?: string,
+  endIso?: string,
 ) {
   let query = supabaseAdmin
-    .from(table)
+    .from("profiles")
     .select("id", { count: "exact", head: true });
 
-  if (configure) {
-    query = configure(query);
+  if (startIso) {
+    query = query.gte("created_at", startIso);
+  }
+
+  if (endIso) {
+    query = query.lt("created_at", endIso);
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  return count ?? 0;
+}
+
+async function countQrx(type?: "normal" | "business") {
+  let query = supabaseAdmin
+    .from("qr_x_entries")
+    .select("id", { count: "exact", head: true });
+
+  if (type) {
+    query = query.eq("type", type);
   }
 
   const { count, error } = await query;
@@ -181,22 +199,22 @@ export async function GET(req: Request) {
       qrxBusiness,
       cityRows,
     ] = await Promise.all([
-      exactCount("profiles"),
-      exactCount("profiles", (q) =>
-        q.gte("created_at", todayStart.toISOString())
-          .lt("created_at", tomorrowStart.toISOString()),
+      countProfiles(),
+      countProfiles(
+        todayStart.toISOString(),
+        tomorrowStart.toISOString(),
       ),
-      exactCount("profiles", (q) =>
-        q.gte("created_at", sevenDaysStart.toISOString())
-          .lt("created_at", tomorrowStart.toISOString()),
+      countProfiles(
+        sevenDaysStart.toISOString(),
+        tomorrowStart.toISOString(),
       ),
-      exactCount("profiles", (q) =>
-        q.gte("created_at", monthStart.toISOString())
-          .lt("created_at", tomorrowStart.toISOString()),
+      countProfiles(
+        monthStart.toISOString(),
+        tomorrowStart.toISOString(),
       ),
-      exactCount("qr_x_entries"),
-      exactCount("qr_x_entries", (q) => q.eq("type", "normal")),
-      exactCount("qr_x_entries", (q) => q.eq("type", "business")),
+      countQrx(),
+      countQrx("normal"),
+      countQrx("business"),
       loadAllProfileCities(),
     ]);
 
