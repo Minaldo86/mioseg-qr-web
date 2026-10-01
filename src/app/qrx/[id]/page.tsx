@@ -1701,11 +1701,11 @@ export default async function QrxPage({
     ? `mailto:${entry.cta_email.trim()}`
     : null;
   const socialLinks = [
-    { key: "instagram", label: "Instagram", url: normalizeSocialUrl("instagram", entry.social_instagram), icon: "◎" },
-    { key: "tiktok", label: "TikTok", url: normalizeSocialUrl("tiktok", entry.social_tiktok), icon: "♪" },
-    { key: "youtube", label: "YouTube", url: normalizeSocialUrl("youtube", entry.social_youtube), icon: "▶" },
-    { key: "facebook", label: "Facebook", url: normalizeSocialUrl("facebook", entry.social_facebook), icon: "f" },
-    { key: "linkedin", label: "LinkedIn", url: normalizeSocialUrl("linkedin", entry.social_linkedin), icon: "in" },
+    { key: "instagram", label: "Instagram", url: normalizeSocialUrl("instagram", entry.social_instagram) },
+    { key: "tiktok", label: "TikTok", url: normalizeSocialUrl("tiktok", entry.social_tiktok) },
+    { key: "youtube", label: "YouTube", url: normalizeSocialUrl("youtube", entry.social_youtube) },
+    { key: "facebook", label: "Facebook", url: normalizeSocialUrl("facebook", entry.social_facebook) },
+    { key: "linkedin", label: "LinkedIn", url: normalizeSocialUrl("linkedin", entry.social_linkedin) },
   ].filter((item) => Boolean(item.url));
 
   const categoryMeta = getBusinessCategoryMeta(entry.category, ui.categories);
@@ -2194,7 +2194,30 @@ export default async function QrxPage({
                   aria-label={social.label}
                   title={social.label}
                 >
-                  {social.icon}
+                  {social.key === "instagram" ? (
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2" />
+                      <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
+                    </svg>
+                  ) : social.key === "tiktok" ? (
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M15.6 3c.35 2.1 1.55 3.45 3.4 4.15v3.05c-1.35-.05-2.55-.4-3.55-1.05v6.1c0 3.55-2.45 5.75-5.55 5.75C6.7 21 4.5 18.6 4.5 15.65c0-3.25 2.55-5.75 6.2-5.45v3.15c-1.75-.25-3.05.75-3.05 2.3 0 1.3.95 2.25 2.2 2.25 1.45 0 2.45-.95 2.45-2.9V3h3.3Z" />
+                    </svg>
+                  ) : social.key === "youtube" ? (
+                    <svg width="23" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M21.3 7.1a2.8 2.8 0 0 0-2-2C17.55 4.6 12 4.6 12 4.6s-5.55 0-7.3.5a2.8 2.8 0 0 0-2 2A29 29 0 0 0 2.2 12a29 29 0 0 0 .5 4.9 2.8 2.8 0 0 0 2 2c1.75.5 7.3.5 7.3.5s5.55 0 7.3-.5a2.8 2.8 0 0 0 2-2 29 29 0 0 0 .5-4.9 29 29 0 0 0-.5-4.9Z" fill="currentColor" />
+                      <path d="m10 15.2 5-3.2-5-3.2v6.4Z" fill="#0f172a" />
+                    </svg>
+                  ) : social.key === "facebook" ? (
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M13.8 21v-8h2.7l.4-3h-3.1V8.1c0-.87.24-1.46 1.55-1.46H17V4a22 22 0 0 0-2.4-.12c-2.38 0-4 1.45-4 4.12v2H8v3h2.6v8h3.2Z" />
+                    </svg>
+                  ) : (
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M5.2 8.1H2V21h3.2V8.1ZM3.6 3A1.85 1.85 0 1 0 3.6 6.7 1.85 1.85 0 0 0 3.6 3ZM21 13.6c0-3.9-2.08-5.72-4.86-5.72-2.24 0-3.24 1.23-3.8 2.1V8.1H9.15V21h3.2v-6.38c0-1.68.32-3.3 2.4-3.3 2.05 0 2.08 1.92 2.08 3.4V21H20l1-.02V13.6Z" />
+                    </svg>
+                  )}
                 </a>
               ))}
             </div>
