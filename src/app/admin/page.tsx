@@ -28,6 +28,27 @@ type VerificationRequest = {
 type SortMode = "oldest" | "newest" | "company" | "title";
 type WaitFilter = "all" | "7" | "14";
 
+type AdminStatsResult = {
+  users: {
+    total: number;
+    today: number;
+    last7Days: number;
+    thisMonth: number;
+  };
+  qrx: {
+    total: number;
+    normal: number;
+    business: number;
+  };
+  cities: Array<{
+    city: string;
+    count: number;
+    percent: number;
+  }>;
+  usersWithCity: number;
+  updatedAt: string;
+};
+
 type AdminTab =
   | "overview"
   | "verifications"
@@ -2598,6 +2619,9 @@ export default function AdminPage() {
   };
 
   const [activeAdminTab, setActiveAdminTab] = useState<AdminTab>("overview");
+  const [adminStats, setAdminStats] = useState<AdminStatsResult | null>(null);
+  const [adminStatsLoading, setAdminStatsLoading] = useState(false);
+  const [adminStatsError, setAdminStatsError] = useState<string | null>(null);
 
   const [adminLanguage, setAdminLanguage] = useState<AdminLanguage>("de");
   const tAdmin = (
@@ -3142,6 +3166,29 @@ export default function AdminPage() {
     }
   };
 
+  const fetchAdminStats = async () => {
+    try {
+      setAdminStatsLoading(true);
+      setAdminStatsError(null);
+
+      const res = await fetch("/api/admin/stats", { cache: "no-store" });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Statistiken konnten nicht geladen werden.");
+      }
+
+      setAdminStats(data as AdminStatsResult);
+    } catch (error: unknown) {
+      console.error("fetchAdminStats error:", error);
+      setAdminStatsError(
+        error instanceof Error ? error.message : "Statistiken konnten nicht geladen werden."
+      );
+    } finally {
+      setAdminStatsLoading(false);
+    }
+  };
+
   const fetchAdminActions = async () => {
     try {
       setAdminActionsLoading(true);
@@ -3161,6 +3208,7 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
+    fetchAdminStats();
     fetchRequests();
     fetchTickets();
     fetchReportedQrx();
@@ -5907,6 +5955,92 @@ const handleWarningOpenMediaJobs = async () => {
         </div>
 
         <div style={{ display: activeAdminTab === "overview" ? "block" : "none" }}>
+          <div style={{ ...styles.commandPanel, marginBottom: 18 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start", flexWrap: "wrap", marginBottom: 14 }}>
+              <div>
+                <h2 style={styles.panelTitle}>Nutzer & Mioseg QR</h2>
+                <div style={styles.metricHint}>
+                  Registrierungen und erstellte Mioseg QR auf einen Blick.
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={fetchAdminStats}
+                disabled={adminStatsLoading}
+                style={styles.secondaryLink}
+              >
+                {adminStatsLoading ? "Aktualisiere…" : "Statistik aktualisieren"}
+              </button>
+            </div>
+
+            {adminStatsError ? (
+              <div style={{ ...styles.metricHint, color: "#fca5a5", marginBottom: 12 }}>
+                {adminStatsError}
+              </div>
+            ) : null}
+
+            <div style={styles.dashboardGrid}>
+              {[
+                ["Anmeldungen gesamt", adminStats?.users.total, "Alle registrierten Nutzer"],
+                ["Heute", adminStats?.users.today, "Registrierungen heute"],
+                ["Letzte 7 Tage", adminStats?.users.last7Days, "Registrierungen der letzten 7 Tage"],
+                ["Dieser Monat", adminStats?.users.thisMonth, "Registrierungen im laufenden Monat"],
+                ["Mioseg QR gesamt", adminStats?.qrx.total, "Alle erstellten Mioseg QR"],
+                ["Normale QR", adminStats?.qrx.normal, 'Typ "normal"'],
+                ["Business QR", adminStats?.qrx.business, 'Typ "business"'],
+              ].map(([label, value, hint]) => (
+                <div key={String(label)} style={styles.metricCard}>
+                  <div style={styles.metricLabel}>{label}</div>
+                  <div style={styles.metricValue}>
+                    {adminStatsLoading && !adminStats ? "…" : Number(value ?? 0).toLocaleString("de-DE")}
+                  </div>
+                  <div style={styles.metricHint}>{hint}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ ...styles.commandPanel, marginTop: 14, marginBottom: 0 }}>
+              <h3 style={{ ...styles.panelTitle, fontSize: 18 }}>Registrierungen nach Stadt</h3>
+              <div style={styles.metricHint}>
+                Grundlage: Stadtangabe im Nutzerprofil · Nutzer mit Stadtangabe: {adminStats?.usersWithCity ?? 0}
+              </div>
+
+              <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
+                {adminStatsLoading && !adminStats ? (
+                  <div style={styles.metricHint}>Städte werden geladen…</div>
+                ) : adminStats?.cities?.length ? (
+                  adminStats.cities.map((item, index) => (
+                    <div
+                      key={`${item.city}-${index}`}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "minmax(140px, 1fr) 80px 90px",
+                        gap: 12,
+                        alignItems: "center",
+                        padding: "10px 12px",
+                        borderRadius: 14,
+                        border: "1px solid #243044",
+                        background: "#111827",
+                      }}
+                    >
+                      <div style={{ color: "#f8fafc", fontWeight: 850 }}>
+                        {index + 1}. {item.city}
+                      </div>
+                      <div style={{ color: "#cbd5e1", textAlign: "right" }}>
+                        {item.count.toLocaleString("de-DE")}
+                      </div>
+                      <div style={{ color: "#93a5bd", textAlign: "right" }}>
+                        {item.percent.toLocaleString("de-DE", { maximumFractionDigits: 1 })} %
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={styles.metricHint}>Noch keine Stadtangaben vorhanden.</div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {renderStorageAndMediaDashboard()}
 
           <div style={styles.dashboardGrid}>
