@@ -340,8 +340,8 @@ const APP_SHOWCASE_COPY: Record<PublicLocale, {
   it: { eyebrow:"Schermate reali dell’app", title:"Ecco come appare davvero Mioseg qr.", text:"Niente grafiche demo: queste schermate provengono direttamente dall’app e mostrano le funzioni principali nell’uso reale.", exploreTitle:"Explore e mappa", exploreText:"Scopri QR nelle vicinanze e ritrova i luoghi direttamente sulla mappa.", scansTitle:"Organizza le scansioni", scansText:"Cerca, filtra e organizza QR code e QR salvati in cartelle.", businessTitle:"Business QR", businessText:"Le aziende ottengono un profilo professionale con categoria, azioni di contatto e verifica opzionale.", collectionTitle:"Custom Collection", collectionText:"Collega più QR indipendenti in una raccolta, ideale per prodotti, immobili, eventi, mostre o sedi.", collectionBadge:"Funzione QR distintiva" },
 };
 
-const PROMO_VIDEO_DE_SRC = "/landing/mioseg-qr-promo-de.mp4";
-const PROMO_VIDEO_EN_SRC = "/landing/mioseg-qr-promo-en.mp4";
+const PROMO_VIDEO_DE_SRC = "https://mioseg-qr-media.mioseg-qr-minh.workers.dev/landing/mioseg-qr-promo-de.mp4";
+const PROMO_VIDEO_EN_SRC = "https://mioseg-qr-media.mioseg-qr-minh.workers.dev/landing/mioseg-qr-promo-en.mp4";
 
 function publicLocale(value: string): PublicLocale {
   return PUBLIC_LOCALES.includes(value as PublicLocale) ? (value as PublicLocale) : "en";
