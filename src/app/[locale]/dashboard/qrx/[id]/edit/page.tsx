@@ -2058,6 +2058,11 @@ type QrxEntry = {
   cta_website: string | null;
   cta_email: string | null;
   cta_navigation: string | null;
+  social_instagram: string | null;
+  social_tiktok: string | null;
+  social_youtube: string | null;
+  social_facebook: string | null;
+  social_linkedin: string | null;
   verified: boolean | null;
   suspended: boolean | null;
   password_protected: boolean | null;
@@ -2328,6 +2333,11 @@ export default function EditQrxPage() {
   const [ctaWebsite, setCtaWebsite] = useState("");
   const [ctaEmail, setCtaEmail] = useState("");
   const [ctaNavigation, setCtaNavigation] = useState("");
+  const [socialInstagram, setSocialInstagram] = useState("");
+  const [socialTiktok, setSocialTiktok] = useState("");
+  const [socialYoutube, setSocialYoutube] = useState("");
+  const [socialFacebook, setSocialFacebook] = useState("");
+  const [socialLinkedin, setSocialLinkedin] = useState("");
 
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [passwordWasProtected, setPasswordWasProtected] = useState(false);
@@ -3018,7 +3028,7 @@ export default function EditQrxPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,category,description,news,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb,collection_title,collection_description",
+          "id,owner_user_id,title,company_name,category,description,news,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,social_instagram,social_tiktok,social_youtube,social_facebook,social_linkedin,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb,collection_title,collection_description",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -3046,6 +3056,11 @@ export default function EditQrxPage() {
       setCtaWebsite(data.cta_website ?? "");
       setCtaEmail(data.cta_email ?? "");
       setCtaNavigation(data.cta_navigation ?? "");
+      setSocialInstagram(data.social_instagram ?? "");
+      setSocialTiktok(data.social_tiktok ?? "");
+      setSocialYoutube(data.social_youtube ?? "");
+      setSocialFacebook(data.social_facebook ?? "");
+      setSocialLinkedin(data.social_linkedin ?? "");
       setPasswordProtected(isProtected);
       setPasswordWasProtected(isProtected);
       setQrxPassword("");
@@ -3131,6 +3146,11 @@ export default function EditQrxPage() {
           cta_website: qrxType === "business" ? toNullable(ctaWebsite) : null,
           cta_email: qrxType === "business" ? toNullable(ctaEmail) : null,
           cta_navigation: qrxType === "business" ? toNullable(ctaNavigation) : null,
+          social_instagram: qrxType === "business" ? toNullable(socialInstagram) : null,
+          social_tiktok: qrxType === "business" ? toNullable(socialTiktok) : null,
+          social_youtube: qrxType === "business" ? toNullable(socialYoutube) : null,
+          social_facebook: qrxType === "business" ? toNullable(socialFacebook) : null,
+          social_linkedin: qrxType === "business" ? toNullable(socialLinkedin) : null,
           collection_title:
             selectedCollectionQrxIds.length > 0
               ? toNullable(collectionTitle)
@@ -3825,6 +3845,38 @@ export default function EditQrxPage() {
                 <label style={labelStyle}>
                   Navigation
                   <input value={ctaNavigation} onChange={(event) => setCtaNavigation(event.target.value)} style={inputStyle} placeholder={ui.addressPlaceholder} />
+                </label>
+
+                <div style={{ marginTop: 8 }}>
+                  <h3 style={{ margin: "0 0 6px", color: "#ffffff", fontSize: 18 }}>Social Media</h3>
+                  <p style={{ margin: "0 0 14px", color: "#94a3b8", lineHeight: 1.55 }}>
+                    Optional · @Benutzername oder vollständige Profil-URL
+                  </p>
+                </div>
+
+                <label style={labelStyle}>
+                  Instagram
+                  <input value={socialInstagram} onChange={(event) => setSocialInstagram(event.target.value)} style={inputStyle} placeholder="@benutzername oder Profil-URL" />
+                </label>
+
+                <label style={labelStyle}>
+                  TikTok
+                  <input value={socialTiktok} onChange={(event) => setSocialTiktok(event.target.value)} style={inputStyle} placeholder="@benutzername oder Profil-URL" />
+                </label>
+
+                <label style={labelStyle}>
+                  YouTube
+                  <input value={socialYoutube} onChange={(event) => setSocialYoutube(event.target.value)} style={inputStyle} placeholder="@kanal oder Profil-URL" />
+                </label>
+
+                <label style={labelStyle}>
+                  Facebook
+                  <input value={socialFacebook} onChange={(event) => setSocialFacebook(event.target.value)} style={inputStyle} placeholder="@seite oder Profil-URL" />
+                </label>
+
+                <label style={labelStyle}>
+                  LinkedIn
+                  <input value={socialLinkedin} onChange={(event) => setSocialLinkedin(event.target.value)} style={inputStyle} placeholder="Profil- oder Unternehmens-URL" />
                 </label>
               </>
             ) : null}
