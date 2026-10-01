@@ -80,15 +80,28 @@ function berlinLocalMidnightToUtc(year: number, month: number, day: number) {
   return new Date(guess);
 }
 
+type CountQuery = ReturnType<
+  ReturnType<typeof supabaseAdmin.from>["select"]
+>;
+
 async function exactCount(
   table: string,
-  configure?: (query: any) => any,
+  configure?: (query: CountQuery) => CountQuery,
 ) {
-  let query = supabaseAdmin.from(table).select("id", { count: "exact", head: true });
-  if (configure) query = configure(query);
+  let query = supabaseAdmin
+    .from(table)
+    .select("id", { count: "exact", head: true });
+
+  if (configure) {
+    query = configure(query);
+  }
 
   const { count, error } = await query;
-  if (error) throw error;
+
+  if (error) {
+    throw error;
+  }
+
   return count ?? 0;
 }
 
