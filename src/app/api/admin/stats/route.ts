@@ -108,7 +108,8 @@ async function countProfiles(
 async function countQrx(type?: "normal" | "business") {
   let query = supabaseAdmin
     .from("qr_x_entries")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true })
+    .is("deleted_at", null);
 
   if (type) {
     query = query.eq("type", type);
