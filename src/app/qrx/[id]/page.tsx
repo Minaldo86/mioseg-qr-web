@@ -74,6 +74,11 @@ type QrxEntry = {
   cta_website: string | null;
   cta_email: string | null;
   cta_navigation: string | null;
+  social_instagram: string | null;
+  social_tiktok: string | null;
+  social_youtube: string | null;
+  social_facebook: string | null;
+  social_linkedin: string | null;
   company_name: string | null;
   suspended: boolean | null;
   suspended_reason: string | null;
@@ -1074,6 +1079,27 @@ function normalizeWebsite(url: string | null | undefined): string | null {
   return `https://${trimmed}`;
 }
 
+type SocialPlatform = "instagram" | "tiktok" | "youtube" | "facebook" | "linkedin";
+
+function normalizeSocialUrl(platform: SocialPlatform, value: string | null | undefined): string | null {
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw)) return raw;
+
+  const username = raw.replace(/^@+/, "").replace(/^\/+|\/+$/g, "");
+  if (!username) return null;
+
+  const bases: Record<SocialPlatform, string> = {
+    instagram: "https://www.instagram.com/",
+    tiktok: "https://www.tiktok.com/@",
+    youtube: "https://www.youtube.com/@",
+    facebook: "https://www.facebook.com/",
+    linkedin: "https://www.linkedin.com/in/",
+  };
+
+  return `${bases[platform]}${username}`;
+}
+
 function normalizeNavigation(value: string | null | undefined): string | null {
   const trimmed = String(value || "").trim();
   if (!trimmed) return null;
@@ -1150,6 +1176,7 @@ async function loadCachedPublicQrxData(qrxId: string) {
             id, owner_user_id, title, description, news, location_name,
             location_lat, location_lng, logo_url, type, category, verified,
             cover_image_url, cta_phone, cta_website, cta_email, cta_navigation,
+            social_instagram, social_tiktok, social_youtube, social_facebook, social_linkedin,
             company_name, suspended, suspended_reason, deleted_at, deleted_reason,
             deleted_by_admin, password_protected, views_total, follower_count,
             created_at, collection_title, collection_description
@@ -1673,6 +1700,14 @@ export default async function QrxPage({
   const emailUrl = entry.cta_email?.trim()
     ? `mailto:${entry.cta_email.trim()}`
     : null;
+  const socialLinks = [
+    { key: "instagram", label: "Instagram", url: normalizeSocialUrl("instagram", entry.social_instagram), icon: "◎" },
+    { key: "tiktok", label: "TikTok", url: normalizeSocialUrl("tiktok", entry.social_tiktok), icon: "♪" },
+    { key: "youtube", label: "YouTube", url: normalizeSocialUrl("youtube", entry.social_youtube), icon: "▶" },
+    { key: "facebook", label: "Facebook", url: normalizeSocialUrl("facebook", entry.social_facebook), icon: "f" },
+    { key: "linkedin", label: "LinkedIn", url: normalizeSocialUrl("linkedin", entry.social_linkedin), icon: "in" },
+  ].filter((item) => Boolean(item.url));
+
   const categoryMeta = getBusinessCategoryMeta(entry.category, ui.categories);
   const newsItems = normalizeNewsItems(entry.news);
   const transferHistory = (
@@ -1830,6 +1865,29 @@ export default async function QrxPage({
     ...actionChipStyle,
     background: "#ffffff",
     color: "#0f172a",
+  };
+
+  const socialActionsStyle: CSSProperties = {
+    display: "flex",
+    gap: 10,
+    flexWrap: "wrap",
+    marginTop: 12,
+  };
+
+  const socialIconStyle: CSSProperties = {
+    width: 44,
+    height: 44,
+    borderRadius: "50%",
+    background: "rgba(255,255,255,0.07)",
+    border: "1px solid rgba(255,255,255,0.09)",
+    color: "#ffffff",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    textDecoration: "none",
+    fontWeight: 900,
+    fontSize: 18,
+    lineHeight: 1,
   };
 
   const cardTitleStyle: CSSProperties = {
@@ -2123,6 +2181,24 @@ export default async function QrxPage({
               </a>
             ) : null}
           </div>
+
+          {socialLinks.length > 0 ? (
+            <div style={socialActionsStyle} aria-label="Social Media">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.key}
+                  style={socialIconStyle}
+                  href={social.url!}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={social.label}
+                  title={social.label}
+                >
+                  {social.icon}
+                </a>
+              ))}
+            </div>
+          ) : null}
 
           {showDownloadHint ? (
             <p className={styles.muted} style={{ marginTop: 14 }}>
