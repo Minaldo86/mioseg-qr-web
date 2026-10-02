@@ -2166,6 +2166,11 @@ type NewQrxDraft = {
   ctaWebsite: string;
   ctaEmail: string;
   ctaNavigation: string;
+  socialInstagram: string;
+  socialTiktok: string;
+  socialYoutube: string;
+  socialFacebook: string;
+  socialLinkedin: string;
   passwordProtected: boolean;
   wantsVerification: boolean;
   collectionTitle: string;
@@ -2248,6 +2253,12 @@ export default function NewQrxPage() {
   const [ctaWebsite, setCtaWebsite] = useState("");
   const [ctaEmail, setCtaEmail] = useState("");
   const [ctaNavigation, setCtaNavigation] = useState("");
+  const [socialInstagram, setSocialInstagram] = useState("");
+  const [socialTiktok, setSocialTiktok] = useState("");
+  const [socialYoutube, setSocialYoutube] = useState("");
+  const [socialFacebook, setSocialFacebook] = useState("");
+  const [socialLinkedin, setSocialLinkedin] = useState("");
+  const [socialMediaExpanded, setSocialMediaExpanded] = useState(false);
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [qrxPassword, setQrxPassword] = useState("");
   const [qrxPasswordRepeat, setQrxPasswordRepeat] = useState("");
@@ -2447,6 +2458,11 @@ export default function NewQrxPage() {
       if (typeof draft.ctaEmail === "string") setCtaEmail(draft.ctaEmail);
       if (typeof draft.ctaNavigation === "string")
         setCtaNavigation(draft.ctaNavigation);
+      if (typeof draft.socialInstagram === "string") setSocialInstagram(draft.socialInstagram);
+      if (typeof draft.socialTiktok === "string") setSocialTiktok(draft.socialTiktok);
+      if (typeof draft.socialYoutube === "string") setSocialYoutube(draft.socialYoutube);
+      if (typeof draft.socialFacebook === "string") setSocialFacebook(draft.socialFacebook);
+      if (typeof draft.socialLinkedin === "string") setSocialLinkedin(draft.socialLinkedin);
       if (typeof draft.passwordProtected === "boolean")
         setPasswordProtected(draft.passwordProtected);
       if (typeof draft.wantsVerification === "boolean")
@@ -2507,6 +2523,11 @@ export default function NewQrxPage() {
         ctaWebsite,
         ctaEmail,
         ctaNavigation,
+        socialInstagram,
+        socialTiktok,
+        socialYoutube,
+        socialFacebook,
+        socialLinkedin,
         passwordProtected,
         wantsVerification,
         collectionTitle,
@@ -2528,6 +2549,11 @@ export default function NewQrxPage() {
           ctaWebsite.trim().length > 0 ||
           ctaEmail.trim().length > 0 ||
           ctaNavigation.trim().length > 0 ||
+          socialInstagram.trim().length > 0 ||
+          socialTiktok.trim().length > 0 ||
+          socialYoutube.trim().length > 0 ||
+          socialFacebook.trim().length > 0 ||
+          socialLinkedin.trim().length > 0 ||
           qrxType !== "normal" ||
           passwordProtected ||
           wantsVerification ||
@@ -2571,6 +2597,11 @@ export default function NewQrxPage() {
     ctaWebsite,
     ctaEmail,
     ctaNavigation,
+    socialInstagram,
+    socialTiktok,
+    socialYoutube,
+    socialFacebook,
+    socialLinkedin,
     passwordProtected,
     wantsVerification,
     collectionTitle,
@@ -3515,6 +3546,11 @@ export default function NewQrxPage() {
         cta_email: qrxType === "business" ? toNullable(ctaEmail) : null,
         cta_navigation:
           qrxType === "business" ? toNullable(ctaNavigation) : null,
+        social_instagram: qrxType === "business" ? toNullable(socialInstagram) : null,
+        social_tiktok: qrxType === "business" ? toNullable(socialTiktok) : null,
+        social_youtube: qrxType === "business" ? toNullable(socialYoutube) : null,
+        social_facebook: qrxType === "business" ? toNullable(socialFacebook) : null,
+        social_linkedin: qrxType === "business" ? toNullable(socialLinkedin) : null,
         verified: false,
         suspended: false,
         password_protected: false,
@@ -3555,6 +3591,11 @@ export default function NewQrxPage() {
           cta_phone: insertPayload.cta_phone,
           cta_website: insertPayload.cta_website,
           cta_navigation: insertPayload.cta_navigation,
+          social_instagram: insertPayload.social_instagram,
+          social_tiktok: insertPayload.social_tiktok,
+          social_youtube: insertPayload.social_youtube,
+          social_facebook: insertPayload.social_facebook,
+          social_linkedin: insertPayload.social_linkedin,
           verified: insertPayload.verified,
           suspended: insertPayload.suspended,
           password_protected: insertPayload.password_protected,
@@ -4526,6 +4567,76 @@ export default function NewQrxPage() {
                   placeholder={ui.addressPlaceholder}
                 />
               </label>
+
+              <div
+                style={{
+                  border: "1px solid rgba(148,163,184,0.22)",
+                  borderRadius: 14,
+                  background: "rgba(15,23,42,0.45)",
+                  overflow: "hidden",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setSocialMediaExpanded((current) => !current)}
+                  aria-expanded={socialMediaExpanded}
+                  style={{
+                    width: "100%",
+                    border: 0,
+                    background: "transparent",
+                    color: "#f8fafc",
+                    padding: "13px 14px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <span>
+                    <strong style={{ display: "block", fontSize: 14 }}>Social Media</strong>
+                    <span style={{ display: "block", marginTop: 3, color: "#94a3b8", fontSize: 12 }}>
+                      Instagram, TikTok, YouTube, Facebook & LinkedIn · optional
+                    </span>
+                  </span>
+                  <span aria-hidden="true" style={{ fontSize: 18, color: "#94a3b8" }}>
+                    {socialMediaExpanded ? "⌃" : "⌄"}
+                  </span>
+                </button>
+
+                {socialMediaExpanded ? (
+                  <div
+                    style={{
+                      padding: "0 14px 14px",
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                      gap: 12,
+                    }}
+                  >
+                    <label style={labelStyle}>
+                      Instagram
+                      <input value={socialInstagram} onChange={(event) => setSocialInstagram(event.target.value)} style={inputStyle} placeholder="@benutzername oder Profil-URL" />
+                    </label>
+                    <label style={labelStyle}>
+                      TikTok
+                      <input value={socialTiktok} onChange={(event) => setSocialTiktok(event.target.value)} style={inputStyle} placeholder="@benutzername oder Profil-URL" />
+                    </label>
+                    <label style={labelStyle}>
+                      YouTube
+                      <input value={socialYoutube} onChange={(event) => setSocialYoutube(event.target.value)} style={inputStyle} placeholder="@kanal oder Kanal-URL" />
+                    </label>
+                    <label style={labelStyle}>
+                      Facebook
+                      <input value={socialFacebook} onChange={(event) => setSocialFacebook(event.target.value)} style={inputStyle} placeholder="@seite oder Profil-URL" />
+                    </label>
+                    <label style={labelStyle}>
+                      LinkedIn
+                      <input value={socialLinkedin} onChange={(event) => setSocialLinkedin(event.target.value)} style={inputStyle} placeholder="Profil- oder Unternehmens-URL" />
+                    </label>
+                  </div>
+                ) : null}
+              </div>
             </>
           ) : null}
 
