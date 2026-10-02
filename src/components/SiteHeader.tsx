@@ -315,7 +315,7 @@ export default function SiteHeader() {
   const dashboardHref = `/${locale}/dashboard`;
   const supportHref = `/${locale}/dashboard/support`;
   const exploreHref = `/${locale}/explore`;
-  const helpHref = locale === "de" ? "/de/hilfe" : "/de/hilfe";
+  const helpHref = locale === "en" ? "/en/help" : "/de/hilfe";
   const getAppHref = `/${locale}/get-app`;
 
   const currentLabel = useMemo(() => {
