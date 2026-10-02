@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'أنشئ رمز QR. اربطه مرة واحدة. وحافظ على تحديثه. | Mioseg QR', description: 'أنشئ رموز Mioseg QR ديناميكية للأشياء والأماكن والمنتجات والمشاريع، وحدّث المحتوى المرتبط بها لاحقًا.',
- alternates: { canonical: '/ar/qr-code-generator', languages: { "de-DE": '/de/qr-code-generator', "ar": '/ar/qr-code-generator', "x-default": "/en/qr-code-generator" } },
+ alternates: {
+      canonical: "/ar/qr-code-generator",
+      languages: {
+        "de-DE": "/de/qr-code-generator",
+        "en": "/en/qr-code-generator",
+        "tr": "/tr/qr-kod-olusturucu",
+        "pl": "/pl/generator-kodow-qr",
+        "ar": "/ar/qr-code-generator",
+        "fr": "/fr/generateur-qr-code",
+        "es": "/es/generador-codigo-qr",
+        "it": "/it/generatore-codice-qr",
+        "x-default": "/en/qr-code-generator",
+      },
+    },
  openGraph: { title: 'أنشئ رمز QR. اربطه مرة واحدة. وحافظ على تحديثه. | Mioseg QR', description: 'أنشئ رموز Mioseg QR ديناميكية للأشياء والأماكن والمنتجات والمشاريع، وحدّث المحتوى المرتبط بها لاحقًا.', url: '/ar/qr-code-generator', type:"website" }
 };
 

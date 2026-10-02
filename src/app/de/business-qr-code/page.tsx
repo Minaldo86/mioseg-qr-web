@@ -5,7 +5,20 @@ export const metadata: Metadata = {
   title: "Business QR-Code für Unternehmen | Mioseg QR",
   description:
     "Business QR mit Mioseg QR: Unternehmensprofil, Kontakt, Standort, Social Media, Updates und optionale Sichtbarkeit in Explore über einen dynamischen QR-Code.",
-  alternates: { canonical: "/de/business-qr-code" },
+  alternates: {
+      canonical: "/de/business-qr-code",
+      languages: {
+        "de-DE": "/de/business-qr-code",
+        "en": "/en/business-qr-code",
+        "tr": "/tr/business-qr-code",
+        "pl": "/pl/business-qr-code",
+        "ar": "/ar/business-qr-code",
+        "fr": "/fr/qr-code-business",
+        "es": "/es/codigo-qr-business",
+        "it": "/it/business-qr-code",
+        "x-default": "/en/business-qr-code",
+      },
+    },
   openGraph: {
     title: "Business QR-Code für Unternehmen | Mioseg QR",
     description:

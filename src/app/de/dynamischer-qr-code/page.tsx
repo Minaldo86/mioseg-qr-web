@@ -5,7 +5,20 @@ export const metadata: Metadata = {
   title: "Dynamischer QR-Code: Inhalte später ändern | Mioseg QR",
   description:
     "Was ist ein dynamischer QR-Code? Erfahre, wie du Inhalte später aktualisierst, während derselbe QR-Code bestehen bleibt – mit Mioseg QR.",
-  alternates: { canonical: "/de/dynamischer-qr-code" },
+  alternates: {
+      canonical: "/de/dynamischer-qr-code",
+      languages: {
+        "de-DE": "/de/dynamischer-qr-code",
+        "en": "/en/dynamic-qr-code",
+        "tr": "/tr/dinamik-qr-kod",
+        "pl": "/pl/dynamiczny-kod-qr",
+        "ar": "/ar/dynamic-qr-code",
+        "fr": "/fr/qr-code-dynamique",
+        "es": "/es/codigo-qr-dinamico",
+        "it": "/it/codice-qr-dinamico",
+        "x-default": "/en/dynamic-qr-code",
+      },
+    },
   openGraph: {
     title: "Dynamischer QR-Code | Mioseg QR",
     description:

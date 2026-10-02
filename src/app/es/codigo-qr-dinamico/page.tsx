@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'El QR permanece. La información puede evolucionar. | Mioseg QR', description: 'Sigue utilizando el mismo código QR aunque cambie la información. Mioseg QR permite actualizar el contenido digital vinculado.',
- alternates: { canonical: '/es/codigo-qr-dinamico', languages: { "de-DE": '/de/dynamischer-qr-code', "es": '/es/codigo-qr-dinamico', "x-default": "/en/dynamic-qr-code" } },
+ alternates: {
+      canonical: "/es/codigo-qr-dinamico",
+      languages: {
+        "de-DE": "/de/dynamischer-qr-code",
+        "en": "/en/dynamic-qr-code",
+        "tr": "/tr/dinamik-qr-kod",
+        "pl": "/pl/dynamiczny-kod-qr",
+        "ar": "/ar/dynamic-qr-code",
+        "fr": "/fr/qr-code-dynamique",
+        "es": "/es/codigo-qr-dinamico",
+        "it": "/it/codice-qr-dinamico",
+        "x-default": "/en/dynamic-qr-code",
+      },
+    },
  openGraph: { title: 'El QR permanece. La información puede evolucionar. | Mioseg QR', description: 'Sigue utilizando el mismo código QR aunque cambie la información. Mioseg QR permite actualizar el contenido digital vinculado.', url: '/es/codigo-qr-dinamico', type:"website" }
 };
 

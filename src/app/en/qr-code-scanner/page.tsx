@@ -6,13 +6,19 @@ export const metadata: Metadata = {
   description:
     "Scan QR codes with Mioseg QR, recognize them from images and screenshots, save them, organize them in folders and find them again later.",
   alternates: {
-    canonical: "/en/qr-code-scanner",
-    languages: {
-      "de-DE": "/de/qr-code-scanner",
-      "en": "/en/qr-code-scanner",
-      "x-default": "/en/qr-code-scanner",
+      canonical: "/en/qr-code-scanner",
+      languages: {
+        "de-DE": "/de/qr-code-scanner",
+        "en": "/en/qr-code-scanner",
+        "tr": "/tr/qr-kod-tarayici",
+        "pl": "/pl/skaner-kodow-qr",
+        "ar": "/ar/qr-code-scanner",
+        "fr": "/fr/scanner-qr-code",
+        "es": "/es/escaner-codigo-qr",
+        "it": "/it/scanner-codice-qr",
+        "x-default": "/en/qr-code-scanner",
+      },
     },
-  },
   openGraph: {
     title: "QR Code Scanner | Mioseg QR",
     description:

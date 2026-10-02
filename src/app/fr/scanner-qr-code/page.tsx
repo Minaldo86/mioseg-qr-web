@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'Scannez. Enregistrez. Retrouvez. | Mioseg QR', description: 'Scannez des QR codes avec Mioseg QR, détectez-les dans des images, enregistrez-les, classez-les et retrouvez-les plus tard.',
- alternates: { canonical: '/fr/scanner-qr-code', languages: { "de-DE": '/de/qr-code-scanner', "fr": '/fr/scanner-qr-code', "x-default": "/en/qr-code-scanner" } },
+ alternates: {
+      canonical: "/fr/scanner-qr-code",
+      languages: {
+        "de-DE": "/de/qr-code-scanner",
+        "en": "/en/qr-code-scanner",
+        "tr": "/tr/qr-kod-tarayici",
+        "pl": "/pl/skaner-kodow-qr",
+        "ar": "/ar/qr-code-scanner",
+        "fr": "/fr/scanner-qr-code",
+        "es": "/es/escaner-codigo-qr",
+        "it": "/it/scanner-codice-qr",
+        "x-default": "/en/qr-code-scanner",
+      },
+    },
  openGraph: { title: 'Scannez. Enregistrez. Retrouvez. | Mioseg QR', description: 'Scannez des QR codes avec Mioseg QR, détectez-les dans des images, enregistrez-les, classez-les et retrouvez-les plus tard.', url: '/fr/scanner-qr-code', type:"website" }
 };
 

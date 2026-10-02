@@ -5,9 +5,19 @@ export const metadata: Metadata = {
   title: 'Dynamic QR Code: Update Content Later | Mioseg QR',
   description: 'Learn how a dynamic QR code works and how Mioseg QR lets you update connected information while keeping the same QR code.',
   alternates: {
-    canonical: '/en/dynamic-qr-code',
-    languages: { "de-DE": '/de/dynamischer-qr-code', "en": '/en/dynamic-qr-code', "x-default": '/en/dynamic-qr-code' },
-  },
+      canonical: "/en/dynamic-qr-code",
+      languages: {
+        "de-DE": "/de/dynamischer-qr-code",
+        "en": "/en/dynamic-qr-code",
+        "tr": "/tr/dinamik-qr-kod",
+        "pl": "/pl/dynamiczny-kod-qr",
+        "ar": "/ar/dynamic-qr-code",
+        "fr": "/fr/qr-code-dynamique",
+        "es": "/es/codigo-qr-dinamico",
+        "it": "/it/codice-qr-dinamico",
+        "x-default": "/en/dynamic-qr-code",
+      },
+    },
   openGraph: { title: 'Dynamic QR Code: Update Content Later | Mioseg QR', description: 'Learn how a dynamic QR code works and how Mioseg QR lets you update connected information while keeping the same QR code.', url: '/en/dynamic-qr-code', type: "website" },
 };
 

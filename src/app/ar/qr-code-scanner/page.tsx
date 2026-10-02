@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'امسح. احفظ. واعثر عليه مجددًا. | Mioseg QR', description: 'امسح رموز QR باستخدام Mioseg QR، وتعرّف عليها من الصور، واحفظها ونظّمها واعثر عليها لاحقًا.',
- alternates: { canonical: '/ar/qr-code-scanner', languages: { "de-DE": '/de/qr-code-scanner', "ar": '/ar/qr-code-scanner', "x-default": "/en/qr-code-scanner" } },
+ alternates: {
+      canonical: "/ar/qr-code-scanner",
+      languages: {
+        "de-DE": "/de/qr-code-scanner",
+        "en": "/en/qr-code-scanner",
+        "tr": "/tr/qr-kod-tarayici",
+        "pl": "/pl/skaner-kodow-qr",
+        "ar": "/ar/qr-code-scanner",
+        "fr": "/fr/scanner-qr-code",
+        "es": "/es/escaner-codigo-qr",
+        "it": "/it/scanner-codice-qr",
+        "x-default": "/en/qr-code-scanner",
+      },
+    },
  openGraph: { title: 'امسح. احفظ. واعثر عليه مجددًا. | Mioseg QR', description: 'امسح رموز QR باستخدام Mioseg QR، وتعرّف عليها من الصور، واحفظها ونظّمها واعثر عليها لاحقًا.', url: '/ar/qr-code-scanner', type:"website" }
 };
 

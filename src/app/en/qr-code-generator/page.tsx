@@ -5,9 +5,19 @@ export const metadata: Metadata = {
   title: 'QR Code Generator: Create Dynamic QR Codes | Mioseg QR',
   description: 'Create a dynamic QR code with Mioseg QR and connect it with content you can update later without replacing the QR code.',
   alternates: {
-    canonical: '/en/qr-code-generator',
-    languages: { "de-DE": '/de/qr-code-generator', "en": '/en/qr-code-generator', "x-default": '/en/qr-code-generator' },
-  },
+      canonical: "/en/qr-code-generator",
+      languages: {
+        "de-DE": "/de/qr-code-generator",
+        "en": "/en/qr-code-generator",
+        "tr": "/tr/qr-kod-olusturucu",
+        "pl": "/pl/generator-kodow-qr",
+        "ar": "/ar/qr-code-generator",
+        "fr": "/fr/generateur-qr-code",
+        "es": "/es/generador-codigo-qr",
+        "it": "/it/generatore-codice-qr",
+        "x-default": "/en/qr-code-generator",
+      },
+    },
   openGraph: { title: 'QR Code Generator: Create Dynamic QR Codes | Mioseg QR', description: 'Create a dynamic QR code with Mioseg QR and connect it with content you can update later without replacing the QR code.', url: '/en/qr-code-generator', type: "website" },
 };
 

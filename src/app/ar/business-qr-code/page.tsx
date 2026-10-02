@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'نشاطك التجاري. رمز QR واحد. وصول مباشر. | Mioseg QR', description: 'اجمع معلومات الشركة ووسائل الاتصال والموقع الإلكتروني والموقع الجغرافي وحسابات التواصل في Business QR ديناميكي.',
- alternates: { canonical: '/ar/business-qr-code', languages: { "de-DE": '/de/business-qr-code', "ar": '/ar/business-qr-code', "x-default": "/en/business-qr-code" } },
+ alternates: {
+      canonical: "/ar/business-qr-code",
+      languages: {
+        "de-DE": "/de/business-qr-code",
+        "en": "/en/business-qr-code",
+        "tr": "/tr/business-qr-code",
+        "pl": "/pl/business-qr-code",
+        "ar": "/ar/business-qr-code",
+        "fr": "/fr/qr-code-business",
+        "es": "/es/codigo-qr-business",
+        "it": "/it/business-qr-code",
+        "x-default": "/en/business-qr-code",
+      },
+    },
  openGraph: { title: 'نشاطك التجاري. رمز QR واحد. وصول مباشر. | Mioseg QR', description: 'اجمع معلومات الشركة ووسائل الاتصال والموقع الإلكتروني والموقع الجغرافي وحسابات التواصل في Business QR ديناميكي.', url: '/ar/business-qr-code', type:"website" }
 };
 

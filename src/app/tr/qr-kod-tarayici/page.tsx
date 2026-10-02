@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'QR kodu tara. Kaydet. Tekrar bul. | Mioseg QR', description: 'Mioseg QR ile QR kodları tara, görsellerden algıla, kaydet, klasörlerde düzenle ve daha sonra tekrar bul.',
- alternates: { canonical: '/tr/qr-kod-tarayici', languages: { "de-DE": '/de/qr-code-scanner', "tr": '/tr/qr-kod-tarayici', "x-default": "/en/qr-code-scanner" } },
+ alternates: {
+      canonical: "/tr/qr-kod-tarayici",
+      languages: {
+        "de-DE": "/de/qr-code-scanner",
+        "en": "/en/qr-code-scanner",
+        "tr": "/tr/qr-kod-tarayici",
+        "pl": "/pl/skaner-kodow-qr",
+        "ar": "/ar/qr-code-scanner",
+        "fr": "/fr/scanner-qr-code",
+        "es": "/es/escaner-codigo-qr",
+        "it": "/it/scanner-codice-qr",
+        "x-default": "/en/qr-code-scanner",
+      },
+    },
  openGraph: { title: 'QR kodu tara. Kaydet. Tekrar bul. | Mioseg QR', description: 'Mioseg QR ile QR kodları tara, görsellerden algıla, kaydet, klasörlerde düzenle ve daha sonra tekrar bul.', url: '/tr/qr-kod-tarayici', type:"website" }
 };
 

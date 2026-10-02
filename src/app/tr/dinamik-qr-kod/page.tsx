@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'QR kod aynı kalır. Bilgiler gelişebilir. | Mioseg QR', description: 'Bilgiler değişse bile aynı QR kodunu kullanmaya devam et. Mioseg QR ile bağlı dijital içerikleri sonradan güncelleyebilirsin.',
- alternates: { canonical: '/tr/dinamik-qr-kod', languages: { "de-DE": '/de/dynamischer-qr-code', "tr": '/tr/dinamik-qr-kod', "x-default": "/en/dynamic-qr-code" } },
+ alternates: {
+      canonical: "/tr/dinamik-qr-kod",
+      languages: {
+        "de-DE": "/de/dynamischer-qr-code",
+        "en": "/en/dynamic-qr-code",
+        "tr": "/tr/dinamik-qr-kod",
+        "pl": "/pl/dynamiczny-kod-qr",
+        "ar": "/ar/dynamic-qr-code",
+        "fr": "/fr/qr-code-dynamique",
+        "es": "/es/codigo-qr-dinamico",
+        "it": "/it/codice-qr-dinamico",
+        "x-default": "/en/dynamic-qr-code",
+      },
+    },
  openGraph: { title: 'QR kod aynı kalır. Bilgiler gelişebilir. | Mioseg QR', description: 'Bilgiler değişse bile aynı QR kodunu kullanmaya devam et. Mioseg QR ile bağlı dijital içerikleri sonradan güncelleyebilirsin.', url: '/tr/dinamik-qr-kod', type:"website" }
 };
 

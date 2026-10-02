@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'Crea un QR. Collegalo una volta. Tienilo aggiornato. | Mioseg QR', description: 'Crea i tuoi Mioseg QR dinamici per oggetti, luoghi, prodotti o progetti e aggiorna i contenuti in seguito.',
- alternates: { canonical: '/it/generatore-codice-qr', languages: { "de-DE": '/de/qr-code-generator', "it": '/it/generatore-codice-qr', "x-default": "/en/qr-code-generator" } },
+ alternates: {
+      canonical: "/it/generatore-codice-qr",
+      languages: {
+        "de-DE": "/de/qr-code-generator",
+        "en": "/en/qr-code-generator",
+        "tr": "/tr/qr-kod-olusturucu",
+        "pl": "/pl/generator-kodow-qr",
+        "ar": "/ar/qr-code-generator",
+        "fr": "/fr/generateur-qr-code",
+        "es": "/es/generador-codigo-qr",
+        "it": "/it/generatore-codice-qr",
+        "x-default": "/en/qr-code-generator",
+      },
+    },
  openGraph: { title: 'Crea un QR. Collegalo una volta. Tienilo aggiornato. | Mioseg QR', description: 'Crea i tuoi Mioseg QR dinamici per oggetti, luoghi, prodotti o progetti e aggiorna i contenuti in seguito.', url: '/it/generatore-codice-qr', type:"website" }
 };
 

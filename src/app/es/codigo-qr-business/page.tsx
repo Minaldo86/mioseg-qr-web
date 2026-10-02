@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'Tu empresa. Un código QR. Acceso directo. | Mioseg QR', description: 'Reúne información de empresa, contacto, web, ubicación y redes sociales en un Business QR dinámico.',
- alternates: { canonical: '/es/codigo-qr-business', languages: { "de-DE": '/de/business-qr-code', "es": '/es/codigo-qr-business', "x-default": "/en/business-qr-code" } },
+ alternates: {
+      canonical: "/es/codigo-qr-business",
+      languages: {
+        "de-DE": "/de/business-qr-code",
+        "en": "/en/business-qr-code",
+        "tr": "/tr/business-qr-code",
+        "pl": "/pl/business-qr-code",
+        "ar": "/ar/business-qr-code",
+        "fr": "/fr/qr-code-business",
+        "es": "/es/codigo-qr-business",
+        "it": "/it/business-qr-code",
+        "x-default": "/en/business-qr-code",
+      },
+    },
  openGraph: { title: 'Tu empresa. Un código QR. Acceso directo. | Mioseg QR', description: 'Reúne información de empresa, contacto, web, ubicación y redes sociales en un Business QR dinámico.', url: '/es/codigo-qr-business', type:"website" }
 };
 

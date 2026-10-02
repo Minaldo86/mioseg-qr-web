@@ -3,7 +3,20 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
  title: 'İşletmen. Tek QR kod. Doğrudan erişim. | Mioseg QR', description: 'Şirket bilgilerini, iletişim seçeneklerini, web sitesini, konumu ve sosyal medyayı dinamik bir Business QR profilinde birleştir.',
- alternates: { canonical: '/tr/business-qr-code', languages: { "de-DE": '/de/business-qr-code', "tr": '/tr/business-qr-code', "x-default": "/en/business-qr-code" } },
+ alternates: {
+      canonical: "/tr/business-qr-code",
+      languages: {
+        "de-DE": "/de/business-qr-code",
+        "en": "/en/business-qr-code",
+        "tr": "/tr/business-qr-code",
+        "pl": "/pl/business-qr-code",
+        "ar": "/ar/business-qr-code",
+        "fr": "/fr/qr-code-business",
+        "es": "/es/codigo-qr-business",
+        "it": "/it/business-qr-code",
+        "x-default": "/en/business-qr-code",
+      },
+    },
  openGraph: { title: 'İşletmen. Tek QR kod. Doğrudan erişim. | Mioseg QR', description: 'Şirket bilgilerini, iletişim seçeneklerini, web sitesini, konumu ve sosyal medyayı dinamik bir Business QR profilinde birleştir.', url: '/tr/business-qr-code', type:"website" }
 };
 

@@ -5,7 +5,20 @@ export const metadata: Metadata = {
   title: "QR-Code-Scanner: scannen, speichern & wiederfinden | Mioseg QR",
   description:
     "QR-Codes mit Mioseg QR scannen, aus Bildern und Screenshots erkennen, speichern, in Ordnern organisieren und später wiederfinden.",
-  alternates: { canonical: "/de/qr-code-scanner" },
+  alternates: {
+      canonical: "/de/qr-code-scanner",
+      languages: {
+        "de-DE": "/de/qr-code-scanner",
+        "en": "/en/qr-code-scanner",
+        "tr": "/tr/qr-kod-tarayici",
+        "pl": "/pl/skaner-kodow-qr",
+        "ar": "/ar/qr-code-scanner",
+        "fr": "/fr/scanner-qr-code",
+        "es": "/es/escaner-codigo-qr",
+        "it": "/it/scanner-codice-qr",
+        "x-default": "/en/qr-code-scanner",
+      },
+    },
   openGraph: {
     title: "QR-Code-Scanner | Mioseg QR",
     description:

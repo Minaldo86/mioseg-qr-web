@@ -5,7 +5,20 @@ export const metadata: Metadata = {
   title: "QR-Code-Generator: dynamische QR-Codes erstellen | Mioseg QR",
   description:
     "Mit Mioseg QR eigene dynamische QR-Codes erstellen, Inhalte hinterlegen und später aktualisieren – ohne den QR-Code neu drucken zu müssen.",
-  alternates: { canonical: "/de/qr-code-generator" },
+  alternates: {
+      canonical: "/de/qr-code-generator",
+      languages: {
+        "de-DE": "/de/qr-code-generator",
+        "en": "/en/qr-code-generator",
+        "tr": "/tr/qr-kod-olusturucu",
+        "pl": "/pl/generator-kodow-qr",
+        "ar": "/ar/qr-code-generator",
+        "fr": "/fr/generateur-qr-code",
+        "es": "/es/generador-codigo-qr",
+        "it": "/it/generatore-codice-qr",
+        "x-default": "/en/qr-code-generator",
+      },
+    },
   openGraph: {
     title: "QR-Code-Generator | Mioseg QR",
     description:
