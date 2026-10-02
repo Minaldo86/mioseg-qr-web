@@ -27,6 +27,7 @@ type HeaderCopy = {
   login: string;
   dashboard: string;
   explore: string;
+  help: string;
   account: string;
   support: string;
   signOut: string;
@@ -41,6 +42,7 @@ const HEADER_TEXT: Record<HeaderLocale, HeaderCopy> = {
     login: "Anmelden",
     dashboard: "Dashboard",
     explore: "Explore",
+    help: "Hilfe",
     account: "Konto",
     support: "Support",
     signOut: "Abmelden",
@@ -53,6 +55,7 @@ const HEADER_TEXT: Record<HeaderLocale, HeaderCopy> = {
     login: "Sign in",
     dashboard: "Dashboard",
     explore: "Explore",
+    help: "Help",
     account: "Account",
     support: "Support",
     signOut: "Sign out",
@@ -65,6 +68,7 @@ const HEADER_TEXT: Record<HeaderLocale, HeaderCopy> = {
     login: "Giriş yap",
     dashboard: "Kontrol paneli",
     explore: "Keşfet",
+    help: "Yardım",
     account: "Hesap",
     support: "Destek",
     signOut: "Çıkış yap",
@@ -77,6 +81,7 @@ const HEADER_TEXT: Record<HeaderLocale, HeaderCopy> = {
     login: "Zaloguj się",
     dashboard: "Panel",
     explore: "Odkrywaj",
+    help: "Pomoc",
     account: "Konto",
     support: "Pomoc",
     signOut: "Wyloguj się",
@@ -89,6 +94,7 @@ const HEADER_TEXT: Record<HeaderLocale, HeaderCopy> = {
     login: "تسجيل الدخول",
     dashboard: "لوحة التحكم",
     explore: "استكشاف",
+    help: "المساعدة",
     account: "الحساب",
     support: "الدعم",
     signOut: "تسجيل الخروج",
@@ -101,6 +107,7 @@ const HEADER_TEXT: Record<HeaderLocale, HeaderCopy> = {
     login: "Se connecter",
     dashboard: "Tableau de bord",
     explore: "Explorer",
+    help: "Aide",
     account: "Compte",
     support: "Assistance",
     signOut: "Se déconnecter",
@@ -113,6 +120,7 @@ const HEADER_TEXT: Record<HeaderLocale, HeaderCopy> = {
     login: "Iniciar sesión",
     dashboard: "Panel",
     explore: "Explorar",
+    help: "Ayuda",
     account: "Cuenta",
     support: "Soporte",
     signOut: "Cerrar sesión",
@@ -125,6 +133,7 @@ const HEADER_TEXT: Record<HeaderLocale, HeaderCopy> = {
     login: "Accedi",
     dashboard: "Dashboard",
     explore: "Esplora",
+    help: "Aiuto",
     account: "Account",
     support: "Supporto",
     signOut: "Esci",
@@ -306,6 +315,7 @@ export default function SiteHeader() {
   const dashboardHref = `/${locale}/dashboard`;
   const supportHref = `/${locale}/dashboard/support`;
   const exploreHref = `/${locale}/explore`;
+  const helpHref = locale === "de" ? "/de/hilfe" : "/de/hilfe";
   const getAppHref = `/${locale}/get-app`;
 
   const currentLabel = useMemo(() => {
@@ -389,6 +399,9 @@ export default function SiteHeader() {
                 <Link href={exploreHref} className={styles.navLink}>
                   {ui.explore}
                 </Link>
+                <Link href={helpHref} className={styles.navLink}>
+                  {ui.help}
+                </Link>
               </nav>
 
               <div className={styles.accountMenuWrap} ref={menuRef}>
@@ -431,6 +444,14 @@ export default function SiteHeader() {
                       onClick={() => setMenuOpen(false)}
                     >
                       {ui.dashboard}
+                    </Link>
+                    <Link
+                      href={helpHref}
+                      className={styles.menuLink}
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {ui.help}
                     </Link>
                     <Link
                       href={supportHref}
