@@ -331,6 +331,40 @@ export default function SiteHeader() {
     return `${headerUser.displayName}${headerUser.email ? ` – ${headerUser.email}` : ""}`;
   }, [headerUser]);
 
+
+  const getLocalizedPath = (nextLocale: HeaderLocale) => {
+    const helpRoots: Record<HeaderLocale, string> = {
+      de: "hilfe",
+      en: "help",
+      tr: "yardim",
+      pl: "pomoc",
+      ar: "help",
+      fr: "aide",
+      es: "ayuda",
+      it: "aiuto",
+    };
+
+    const parts = pathname.split("/").filter(Boolean);
+    const currentLocale = normalizeLocale(parts[0]);
+
+    if (!currentLocale) {
+      return pathname;
+    }
+
+    const currentHelpRoot = helpRoots[currentLocale];
+    const isHelpPath = parts[1] === currentHelpRoot;
+
+    if (isHelpPath) {
+      // Article slugs are not guaranteed to match between languages.
+      // When switching language from a help article, go to the target
+      // language's Help Center instead of creating a broken URL.
+      return `/${nextLocale}/${helpRoots[nextLocale]}`;
+    }
+
+    parts[0] = nextLocale;
+    return `/${parts.join("/")}`;
+  };
+
   const handleLanguageChange = async (nextLocale: HeaderLocale) => {
     if (savingLanguage || nextLocale === locale) return;
 
@@ -349,11 +383,7 @@ export default function SiteHeader() {
       }
 
       if (pathLocale) {
-        const parts = pathname.split("/");
-        if (parts.length > 1) {
-          parts[1] = nextLocale;
-        }
-        router.replace(parts.join("/") || `/${nextLocale}`);
+        router.replace(getLocalizedPath(nextLocale));
       } else if (typeof window !== "undefined") {
         const params = new URLSearchParams(window.location.search);
         params.set("lang", nextLocale);
