@@ -1,146 +1,146 @@
-export type HelpArticle = { slug:string; category:string; title:string; description:string; intro:string; points:string[]; };
-export const helpArticles: HelpArticle[] = [
+export type HelpArticle={slug:string;category:string;title:string;description:string;intro:string;points:string[]};
+export const helpArticles:HelpArticle[]=[
   {
     "slug": "what-is-mioseg-qr",
     "category": "Getting started",
     "title": "What is Mioseg QR?",
     "description": "Mioseg QR connects the physical and digital world.",
-    "intro": "Mioseg QR connects the physical and digital world. With a Mioseg QR, you can make objects, places, products and projects digitally accessible. Add information, images, documents, contact details, locations or updates and change them later without replacing the QR code that is already in use.",
+    "intro": "Mioseg QR connects the physical and digital world.",
     "points": [
-      "At the same time, Mioseg QR is your QR manager: scan, save, organize and find QR codes again later.",
-      "A dynamic Mioseg QR stays the same as a QR code while the content behind it can be changed or expanded later.",
-      "Regular Mioseg QR are designed for general dynamic content. Business QR add a company profile, contact options, Explore and optional verification."
+      "Mioseg QR connects the physical and digital world.",
+      "Your dynamic QR codes can be updated without replacing the printed code.",
+      "Scanned QR codes can be saved, organized and found again later."
     ]
   },
   {
-    "slug": "create-account-sign-in",
+    "slug": "account",
     "category": "Getting started",
     "title": "Create an account and sign in",
-    "description": "Manage your Mioseg QR and personal features over time.",
-    "intro": "You need a Mioseg QR account to create and manage your own Mioseg QR, use Business features and keep personal content connected to your account.",
+    "description": "Register with the required details or sign in to your existing account.",
+    "intro": "Register with the required details or sign in to your existing account.",
     "points": [
-      "Open Mioseg QR and choose Register. Enter the required information and complete registration.",
-      "If you already have an account, choose Sign in and use your login details.",
-      "Available profile, billing and business information can be managed in the profile/account area."
+      "Register with the required details or sign in to your existing account.",
+      "Your account connects your own Mioseg QR, saved content, Credits and personal features.",
+      "Profile, billing and business information is managed in the account area."
     ]
   },
   {
     "slug": "scan-qr-code",
     "category": "Scan & organize",
     "title": "Scan a QR code with the camera",
-    "description": "Scan standard QR codes and Mioseg QR directly with your camera.",
-    "intro": "Open the scanner, point the camera at the QR code and wait for Mioseg QR to recognize it. You can then review, open or save the result.",
+    "description": "Open the scanner and point the camera at the QR code.",
+    "intro": "Open the scanner and point the camera at the QR code.",
     "points": [
-      "A saved scan can be found again later in My Scans.",
-      "Standard QR codes that were not created with Mioseg QR can also be scanned.",
-      "When a Mioseg QR is opened, additional dynamic content such as media, location information or updates may be displayed."
+      "Open the scanner and point the camera at the QR code.",
+      "Review the recognized result, then open or save it.",
+      "Standard QR codes not created with Mioseg QR can also be scanned."
     ]
   },
   {
-    "slug": "scan-qr-from-gallery",
+    "slug": "scan-from-gallery",
     "category": "Scan & organize",
     "title": "Scan a QR code from a photo or screenshot",
-    "description": "Recognize QR codes that are already stored on your phone.",
-    "intro": "A QR code does not have to be in front of the camera. Use Select from gallery to choose a photo or screenshot containing a QR code.",
+    "description": "Choose Select from gallery in the scanner.",
+    "intro": "Choose Select from gallery in the scanner.",
     "points": [
-      "Open the scanner and choose Select from gallery.",
-      "Choose the photo or screenshot containing the QR code.",
-      "After recognition, you can open or save the result. This is especially useful for QR codes received by email or messenger on the same phone."
+      "Choose Select from gallery in the scanner.",
+      "Select a photo or screenshot containing a QR code.",
+      "After recognition, open or save the result."
     ]
   },
   {
     "slug": "my-scans",
     "category": "Scan & organize",
     "title": "My Scans: save and find QR codes again",
-    "description": "A useful QR code should not disappear after a single scan.",
-    "intro": "My Scans is your personal collection of saved QR codes. It lets you reopen and manage content you scanned earlier.",
+    "description": "Saved scans are available in My Scans.",
+    "intro": "Saved scans are available in My Scans.",
     "points": [
-      "Scan → Save → Organize → Find again.",
-      "Saved scans can be assigned to folders and reopened later.",
-      "This turns Mioseg QR from a simple scanner into your personal QR manager."
+      "Saved scans are available in My Scans.",
+      "You can reopen and manage them there.",
+      "Scan → Save → Organize → Find again."
     ]
   },
   {
-    "slug": "folders-subfolders",
+    "slug": "folders",
     "category": "Scan & organize",
     "title": "Use folders and subfolders",
-    "description": "Organize QR codes in a structure that fits your needs.",
-    "intro": "Mioseg QR supports folders and nested subfolders across multiple levels, making both small personal collections and larger work structures easier to manage.",
+    "description": "Organize scans in folders and nested subfolders across multiple levels.",
+    "intro": "Organize scans in folders and nested subfolders across multiple levels.",
     "points": [
-      "Example: Company → Sites → Cologne → Project A → Electrical.",
-      "Entries can be assigned to available folders or moved between folders.",
-      "Map-related areas can take a folder and its nested subfolders into account."
+      "Organize scans in folders and nested subfolders across multiple levels.",
+      "Entries can be moved to other folders later.",
+      "This supports both personal collections and larger work projects."
     ]
   },
   {
     "slug": "create-mioseg-qr",
     "category": "Mioseg QR",
     "title": "Create your own Mioseg QR",
-    "description": "Create a digital information point you can manage over time.",
-    "intro": "With your own Mioseg QR, you create a dynamic QR code. The QR code can remain in place while you update the content behind it later.",
+    "description": "Choose a regular Mioseg QR or Business QR.",
+    "intro": "Choose a regular Mioseg QR or Business QR.",
     "points": [
-      "Choose a regular Mioseg QR or a Business QR.",
-      "Add a title and the content you need, such as text, media, files, location information or updates.",
-      "Review storage and Credit information, save your entry and generate the QR code."
+      "Choose a regular Mioseg QR or Business QR.",
+      "Add a title, text, media, files, location or updates.",
+      "Save the entry and generate the QR code for ongoing use."
     ]
   },
   {
     "slug": "edit-mioseg-qr",
     "category": "Mioseg QR",
     "title": "Edit and update a Mioseg QR",
-    "description": "Change content without replacing the printed QR code.",
-    "intro": "Your own Mioseg QR can be edited after creation. This is one of the key benefits of a dynamic QR code.",
+    "description": "Open your own Mioseg QR and enter edit mode.",
+    "intro": "Open your own Mioseg QR and enter edit mode.",
     "points": [
-      "Open your Mioseg QR and enter edit mode.",
-      "Update the available content and settings.",
-      "Save your changes. Due to technical caching, the public page may briefly show the previous version."
+      "Open your own Mioseg QR and enter edit mode.",
+      "Change content and settings, then save.",
+      "Normal content changes do not require replacing the printed QR code."
     ]
   },
   {
     "slug": "media-files-updates",
     "category": "Mioseg QR",
     "title": "Media, files and News & Updates",
-    "description": "Keep useful information together behind one QR code.",
-    "intro": "Mioseg QR can provide images, files, audio/video content and News & Updates.",
+    "description": "Images can be provided as a gallery.",
+    "intro": "Images can be provided as a gallery.",
     "points": [
-      "Images can be displayed in a gallery and opened by visitors.",
-      "Files can provide documents such as manuals or PDFs.",
-      "News & Updates are useful for changes, maintenance notices, dates or new documents. The current interface supports up to five update entries."
+      "Images can be provided as a gallery.",
+      "Files, audio and video can provide additional information.",
+      "News & Updates are useful for changes, dates or new documents; the current interface supports up to five update entries."
     ]
   },
   {
-    "slug": "location-map-navigation",
+    "slug": "location-map",
     "category": "Explore & map",
     "title": "Location, map and navigation",
-    "description": "Connect digital information to a real-world place.",
-    "intro": "A Mioseg QR can be linked to a location and a clear location label.",
+    "description": "A Mioseg QR can be linked to a location and location label.",
+    "intro": "A Mioseg QR can be linked to a location and location label.",
     "points": [
-      "If the app uses your device location, the relevant system permission is required.",
-      "The map can display your own Mioseg QR, saved Mioseg QR and regular scans.",
-      "Folder filters can include a main folder together with its nested subfolders."
+      "A Mioseg QR can be linked to a location and location label.",
+      "Using device location requires the relevant system permission.",
+      "The map can display owned, saved and regular scans and can use folder filters."
     ]
   },
   {
     "slug": "business-qr",
     "category": "Business QR",
     "title": "Create and manage a Business QR",
-    "description": "Combine dynamic QR content with a professional business profile.",
-    "intro": "Business QR extend Mioseg QR with business information and direct actions.",
+    "description": "Business QR add company name, logo, cover, category and contact details to dynamic content.",
+    "intro": "Business QR add company name, logo, cover, category and contact details to dynamic content.",
     "points": [
-      "Possible details include company name, logo, cover image, category, website, phone, email and location.",
-      "Social media profiles, media, files and updates can also be added.",
-      "Business information can be updated later without replacing the QR code."
+      "Business QR add company name, logo, cover, category and contact details to dynamic content.",
+      "Website, phone, email, location, social profiles, media and updates can be added.",
+      "Business information can be changed later without replacing the QR code."
     ]
   },
   {
     "slug": "social-media",
     "category": "Business QR",
     "title": "Social media in Business QR",
-    "description": "Link directly to your public business profiles.",
-    "intro": "Business QR can include profile links for Instagram, TikTok, YouTube, Facebook and LinkedIn.",
+    "description": "Business QR can link Instagram, TikTok, YouTube, Facebook and LinkedIn.",
+    "intro": "Business QR can link Instagram, TikTok, YouTube, Facebook and LinkedIn.",
     "points": [
-      "These are direct links to social profiles.",
-      "External social feeds or API synchronization are not currently part of this feature.",
+      "Business QR can link Instagram, TikTok, YouTube, Facebook and LinkedIn.",
+      "These are direct profile links, not feed or API synchronization.",
       "Social profile links themselves do not cost Credits."
     ]
   },
@@ -148,157 +148,158 @@ export const helpArticles: HelpArticle[] = [
     "slug": "explore",
     "category": "Explore & map",
     "title": "Explore and public discovery",
-    "description": "Discover public Business QR on the map.",
-    "intro": "Explore is Mioseg QR's public discovery area. Business QR that are enabled for Explore can appear there and, when a location is available, can be discovered on the map.",
+    "description": "Explore is the public discovery area for enabled Business QR.",
+    "intro": "Explore is the public discovery area for enabled Business QR.",
     "points": [
-      "Users can open public Business QR and, depending on available features, save, follow or use navigation.",
-      "Categories and the map help users browse and discover.",
-      "Businesses decide whether their Business QR should appear in Explore."
+      "Explore is the public discovery area for enabled Business QR.",
+      "With a location, they can be discovered on the map.",
+      "Users can open public profiles and, where available, save, follow or navigate."
     ]
   },
   {
     "slug": "show-in-explore",
     "category": "Explore & map",
     "title": "Use “Show in Explore”",
-    "description": "Choose whether your Business QR can be publicly discovered.",
-    "intro": "The Show in Explore setting is separate from simply adding a location.",
+    "description": "Enabled: the Business QR can appear in Explore.",
+    "intro": "Enabled: the Business QR can appear in Explore.",
     "points": [
-      "When enabled, the Business QR can be included in Explore.",
-      "When disabled, the Business QR remains accessible through its QR code or direct link but is not listed in Explore.",
-      "For new Business QR, Explore visibility is enabled by default and can be changed later."
+      "Enabled: the Business QR can appear in Explore.",
+      "Disabled: it remains accessible by QR code or direct link but is not listed in Explore.",
+      "For new Business QR, the setting is enabled by default and can be changed later."
     ]
   },
   {
     "slug": "save-follow",
     "category": "Mioseg QR",
     "title": "Save and follow Mioseg QR",
-    "description": "Stay connected to useful dynamic QR codes.",
-    "intro": "Public Mioseg QR can be saved or followed when the corresponding feature is available.",
+    "description": "Saving makes a Mioseg QR easier to find again.",
+    "intro": "Saving makes a Mioseg QR easier to find again.",
     "points": [
-      "Saving makes a Mioseg QR easier to find again in your account.",
-      "Follow creates an ongoing connection to a Mioseg QR and is intended for relevant future updates.",
-      "A regular saved scan and a saved/followed dynamic Mioseg QR serve different purposes."
+      "Saving makes a Mioseg QR easier to find again.",
+      "Follow creates an ongoing connection for relevant future updates.",
+      "A regular scan and a saved dynamic Mioseg QR serve different purposes."
     ]
   },
   {
-    "slug": "password-protection",
+    "slug": "password",
     "category": "Security",
     "title": "Protect a Mioseg QR with a password",
-    "description": "Prevent immediate public access to protected content.",
-    "intro": "Your own Mioseg QR can be protected with a password. Visitors must enter the correct password before opening protected content.",
+    "description": "Your own Mioseg QR can be protected with a password.",
+    "intro": "Your own Mioseg QR can be protected with a password.",
     "points": [
-      "Password protection is useful for content that should not be immediately visible to everyone.",
-      "It is not a complete rights or document-management system.",
-      "Explore visibility and password protection are separate controls."
+      "Your own Mioseg QR can be protected with a password.",
+      "Visitors must enter the correct password before opening protected content.",
+      "Password protection and Explore visibility are separate controls."
     ]
   },
   {
-    "slug": "business-verification",
+    "slug": "verification",
     "category": "Business QR",
     "title": "Business verification",
-    "description": "Show visitors a verified status.",
-    "intro": "Verification can be requested for a Business QR. It is intended to show that the information and supporting evidence submitted for that Business QR have been reviewed.",
+    "description": "Verification can be requested for a Business QR.",
+    "intro": "Verification can be requested for a Business QR.",
     "points": [
-      "Submit the verification request through the available Business function.",
+      "Verification can be requested for a Business QR.",
       "After successful review, the Business QR is marked as verified.",
-      "Under the current model, Business verification costs an additional 10 Credits."
+      "Under the current model, verification costs an additional 10 Credits."
     ]
   },
   {
-    "slug": "transfer-mioseg-qr",
+    "slug": "transfer",
     "category": "Share & transfer",
     "title": "Transfer a Mioseg QR",
-    "description": "Transfer an existing digital information point to another user.",
-    "intro": "Your own Mioseg QR can be transferred to another user while the physical QR code remains in place.",
+    "description": "Your own Mioseg QR can be transferred to another user.",
+    "intro": "Your own Mioseg QR can be transferred to another user.",
     "points": [
-      "Typical cases include a change of owner, project responsibility or business responsibility.",
-      "The detail view contains transfer status and transfer history.",
-      "Before transferring, review rights to the content and any confidential or personal information."
+      "Your own Mioseg QR can be transferred to another user.",
+      "The physical QR code can remain in place when ownership or responsibility changes.",
+      "Transfer status and transfer history are available in the detail view."
     ]
   },
   {
     "slug": "credits-storage",
     "category": "Credits & storage",
     "title": "Credits and storage",
-    "description": "Understand when Credits are required.",
-    "intro": "Mioseg QR uses Credits for selected creation, storage and additional functions. Under the current model, views, saving and Follow are free.",
+    "description": "First regular Mioseg QR is free; additional regular QR cost 5 Credits.",
+    "intro": "First regular Mioseg QR is free; additional regular QR cost 5 Credits.",
     "points": [
-      "First regular Mioseg QR: free; additional regular Mioseg QR: 5 Credits.",
-      "First Business QR: 2 Credits; additional Business QR: 7 Credits; verification: +10 Credits.",
-      "Each Mioseg QR includes 2 MB. Each additional 5 MB costs 1 Credit. Final storage calculation is performed server-side during upload."
+      "First regular Mioseg QR is free; additional regular QR cost 5 Credits.",
+      "First Business QR costs 2 Credits; additional Business QR 7 Credits; verification +10 Credits.",
+      "2 MB per QR is included; each additional 5 MB costs 1 Credit. Views, saving and Follow are free."
     ]
   },
   {
-    "slug": "manage-your-qrs",
+    "slug": "manage-qrs",
     "category": "Mioseg QR",
     "title": "Manage your own and saved Mioseg QR",
-    "description": "Keep your own entries separate from QR codes saved from other users.",
-    "intro": "Mioseg QR distinguishes between QR entries you own and Mioseg QR created by other users that you saved to your account.",
+    "description": "Mioseg QR distinguishes entries you own from QR codes created by others that you saved.",
+    "intro": "Mioseg QR distinguishes entries you own from QR codes created by others that you saved.",
     "points": [
-      "A personal alias can change how an entry appears in your own account without changing what the creator sees.",
-      "Your own Mioseg QR can be deleted.",
-      "A Mioseg QR created by someone else can be removed from your saved list without deleting the original Mioseg QR."
+      "Mioseg QR distinguishes entries you own from QR codes created by others that you saved.",
+      "A personal alias only changes your own display.",
+      "Owned QR can be deleted; saved third-party QR can be removed from your list."
     ]
   },
   {
-    "slug": "save-share-qr-code",
+    "slug": "save-share",
     "category": "Share & transfer",
     "title": "Save, share and place your QR code",
-    "description": "Bring digital information to the physical location.",
-    "intro": "The QR code generated for your Mioseg QR can be saved or shared and then used on a sticker, sign, document, product, device or other object.",
+    "description": "The generated QR code can be saved and shared.",
+    "intro": "The generated QR code can be saved and shared.",
     "points": [
-      "This connects a physical object or location to the digital Mioseg QR content.",
-      "Normal content updates do not require a new printed QR code."
+      "The generated QR code can be saved and shared.",
+      "It can be placed on stickers, signs, documents, products or devices.",
+      "Normal content updates do not require a new printed code."
     ]
   },
   {
-    "slug": "public-web-page",
+    "slug": "public-web",
     "category": "Mioseg QR",
     "title": "Public Mioseg QR page on the web",
-    "description": "Open shared content outside the app as well.",
-    "intro": "A Mioseg QR can be opened through its QR code or direct link as a public web page.",
+    "description": "Mioseg QR can be opened as a public web page by QR code or direct link.",
+    "intro": "Mioseg QR can be opened as a public web page by QR code or direct link.",
     "points": [
-      "Depending on the QR, visitors may see a title, description, Business profile, media, files, updates, location and contact actions.",
-      "Password-protected Mioseg QR display a password prompt before the protected content.",
-      "The exact presentation depends on the QR type and the content that has been added."
+      "Mioseg QR can be opened as a public web page by QR code or direct link.",
+      "Depending on the QR, visitors may see description, Business profile, media, files, updates, location and contacts.",
+      "Password-protected QR show the password prompt first."
     ]
   },
   {
     "slug": "use-cases",
     "category": "Getting started",
     "title": "Typical use cases",
-    "description": "From machines and real estate to a personal QR collection.",
-    "intro": "Mioseg QR can connect physical objects, places, products and projects with digital information that remains manageable over time.",
+    "description": "Machine: provide manuals, technical data, maintenance and service directly on the equipment.",
+    "intro": "Machine: provide manuals, technical data, maintenance and service directly on the equipment.",
     "points": [
-      "Machine: provide manuals, technical data, maintenance information and service contacts directly on the equipment.",
-      "Real estate: provide property information, images, documents, location and contact details.",
-      "Products, restaurants, construction projects or personal collections: keep information current or organize scanned QR codes so they can be found again."
+      "Machine: provide manuals, technical data, maintenance and service directly on the equipment.",
+      "Property or business: provide images, documents, location, contacts and updates.",
+      "Personal or work QR collections: scan, organize and find them again later."
     ]
   },
   {
     "slug": "troubleshooting",
     "category": "Troubleshooting",
     "title": "Troubleshooting",
-    "description": "Quick help for common questions.",
-    "intro": "Many common issues can be narrowed down with a few checks.",
+    "description": "If recognition fails, check lighting, distance and whether the full QR code is visible.",
+    "intro": "If recognition fails, check lighting, distance and whether the full QR code is visible.",
     "points": [
-      "QR code not recognized: check lighting, distance and whether the full code is visible; alternatively use a screenshot and the gallery scanner.",
-      "Business QR missing from Explore: check Show in Explore.",
-      "Change not visible yet: make sure it was saved and allow for brief technical caching. For location issues, check the device permission."
+      "If recognition fails, check lighting, distance and whether the full QR code is visible.",
+      "Alternatively use a screenshot/gallery; for location issues, check system permission.",
+      "If a Business QR is missing from Explore, check Show in Explore; saved changes may briefly be cached."
     ]
   },
   {
     "slug": "security-privacy",
     "category": "Security",
     "title": "Understand visibility, security and privacy",
-    "description": "Explore visibility and access protection are not the same thing.",
-    "intro": "Mioseg QR provides separate controls for discoverability and access.",
+    "description": "Explore visibility controls public discovery, not access protection.",
+    "intro": "Explore visibility controls public discovery, not access protection.",
     "points": [
-      "A Business QR that is hidden from Explore is not automatically private: anyone with the QR code or direct link may still be able to open the public page.",
-      "Password protection controls access to protected content.",
-      "Only publish content that you are authorized to make available."
+      "Explore visibility controls public discovery, not access protection.",
+      "A QR hidden from Explore may still be accessible through its QR code or direct link.",
+      "Password protection controls access to content; only publish content you are authorized to provide."
     ]
   }
 ];
-export const helpCategories = ["Getting started", "Scan & organize", "Mioseg QR", "Business QR", "Explore & map", "Share & transfer", "Security", "Credits & storage", "Troubleshooting"];
-export function getHelpArticle(slug:string){ return helpArticles.find(a=>a.slug===slug); }
+export const helpCategories=["Getting started", "Scan & organize", "Mioseg QR", "Business QR", "Explore & map", "Share & transfer", "Security", "Credits & storage", "Troubleshooting"];
+export function getHelpArticle(slug:string){return helpArticles.find(a=>a.slug===slug)}

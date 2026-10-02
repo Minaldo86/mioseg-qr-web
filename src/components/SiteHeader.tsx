@@ -315,7 +315,15 @@ export default function SiteHeader() {
   const dashboardHref = `/${locale}/dashboard`;
   const supportHref = `/${locale}/dashboard/support`;
   const exploreHref = `/${locale}/explore`;
-  const helpHref = locale === "en" ? "/en/help" : "/de/hilfe";
+  const helpHref =
+    locale === "de" ? "/de/hilfe" :
+    locale === "en" ? "/en/help" :
+    locale === "tr" ? "/tr/yardim" :
+    locale === "pl" ? "/pl/pomoc" :
+    locale === "ar" ? "/ar/help" :
+    locale === "fr" ? "/fr/aide" :
+    locale === "es" ? "/es/ayuda" :
+    "/it/aiuto";
   const getAppHref = `/${locale}/get-app`;
 
   const currentLabel = useMemo(() => {
