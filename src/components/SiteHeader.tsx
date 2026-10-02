@@ -344,6 +344,55 @@ export default function SiteHeader() {
       it: "aiuto",
     };
 
+    // The four SEO landing pages use localized slugs.
+    // Map every localized slug to one stable page type, then resolve
+    // the corresponding slug in the selected language.
+    const seoRoutes: Record<
+      "scanner" | "generator" | "dynamic" | "business",
+      Record<HeaderLocale, string>
+    > = {
+      scanner: {
+        de: "qr-code-scanner",
+        en: "qr-code-scanner",
+        tr: "qr-kod-tarayici",
+        pl: "skaner-kodow-qr",
+        ar: "qr-code-scanner",
+        fr: "scanner-qr-code",
+        es: "escaner-codigo-qr",
+        it: "scanner-codice-qr",
+      },
+      generator: {
+        de: "qr-code-generator",
+        en: "qr-code-generator",
+        tr: "qr-kod-olusturucu",
+        pl: "generator-kodow-qr",
+        ar: "qr-code-generator",
+        fr: "generateur-qr-code",
+        es: "generador-codigo-qr",
+        it: "generatore-codice-qr",
+      },
+      dynamic: {
+        de: "dynamischer-qr-code",
+        en: "dynamic-qr-code",
+        tr: "dinamik-qr-kod",
+        pl: "dynamiczny-kod-qr",
+        ar: "dynamic-qr-code",
+        fr: "qr-code-dynamique",
+        es: "codigo-qr-dinamico",
+        it: "codice-qr-dinamico",
+      },
+      business: {
+        de: "business-qr-code",
+        en: "business-qr-code",
+        tr: "business-qr-code",
+        pl: "business-qr-code",
+        ar: "business-qr-code",
+        fr: "qr-code-business",
+        es: "codigo-qr-business",
+        it: "business-qr-code",
+      },
+    };
+
     const parts = pathname.split("/").filter(Boolean);
     const currentLocale = normalizeLocale(parts[0]);
 
@@ -359,6 +408,20 @@ export default function SiteHeader() {
       // When switching language from a help article, go to the target
       // language's Help Center instead of creating a broken URL.
       return `/${nextLocale}/${helpRoots[nextLocale]}`;
+    }
+
+    // Keep users on the same SEO topic when changing language,
+    // even though the route slug itself is localized.
+    if (parts.length === 2) {
+      const currentSlug = parts[1];
+
+      const seoType = (
+        Object.keys(seoRoutes) as Array<keyof typeof seoRoutes>
+      ).find((type) => seoRoutes[type][currentLocale] === currentSlug);
+
+      if (seoType) {
+        return `/${nextLocale}/${seoRoutes[seoType][nextLocale]}`;
+      }
     }
 
     parts[0] = nextLocale;
