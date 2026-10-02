@@ -55,6 +55,7 @@ type ExploreEntry = {
   deleted_at: string | null;
   suspended: boolean | null;
   owner_user_id: string | null;
+  show_in_explore: boolean | null;
 };
 
 type SearchParams = Record<string, string | string[] | undefined>;
@@ -409,9 +410,10 @@ export default async function ExplorePage({
   const { data, error } = await supabase
     .from("qr_x_entries")
     .select(
-      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost, force_original_quality, deleted_at, suspended, owner_user_id"
+      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost, force_original_quality, deleted_at, suspended, owner_user_id, show_in_explore"
     )
     .eq("type", "business")
+    .eq("show_in_explore", true)
     .is("deleted_at", null)
     .or("suspended.is.null,suspended.eq.false")
     .order("created_at", { ascending: false })
@@ -421,7 +423,10 @@ export default async function ExplorePage({
   // Zweite Sicherheitsstufe: Auch wenn sich Query/RLS später ändert,
   // dürfen gelöschte oder gesperrte Mioseg QR niemals in Explore gelangen.
   const publicEntries = (data ?? []).filter(
-    (entry) => entry.deleted_at == null && entry.suspended !== true
+    (entry) =>
+      entry.deleted_at == null &&
+      entry.suspended !== true &&
+      entry.show_in_explore === true
   );
 
   const qrxIds = publicEntries.map((entry) => entry.id);
