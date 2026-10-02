@@ -2159,6 +2159,7 @@ type NewQrxDraft = {
   newsItems: NewsItem[];
   locationMode: LocationMode;
   locationName: string;
+  showInExplore: boolean;
   locationLat: string;
   locationLng: string;
   ctaPhone: string;
@@ -2206,6 +2207,18 @@ function normalizeDraftNewsItems(value: unknown): NewsItem[] {
     }));
 }
 
+
+const EXPLORE_VISIBILITY_TEXT: Record<QrxWebLocale, { title: string; hint: string }> = {
+  de: { title: "In Explore anzeigen", hint: "Dein Business QR kann in Explore und auf der Karte entdeckt werden. Für die Kartenanzeige ist ein Standort erforderlich." },
+  en: { title: "Show in Explore", hint: "Your Business QR can be discovered in Explore and on the map. A location is required for map display." },
+  tr: { title: "Explore'da göster", hint: "Business QR kodun Explore'da ve haritada keşfedilebilir. Haritada gösterim için konum gereklidir." },
+  pl: { title: "Pokaż w Explore", hint: "Twój Business QR może być widoczny w Explore i na mapie. Do wyświetlania na mapie wymagana jest lokalizacja." },
+  ar: { title: "إظهار في Explore", hint: "يمكن اكتشاف Business QR الخاص بك في Explore وعلى الخريطة. يلزم تحديد موقع للظهور على الخريطة." },
+  fr: { title: "Afficher dans Explore", hint: "Votre Business QR peut être découvert dans Explore et sur la carte. Un emplacement est requis pour l’affichage sur la carte." },
+  es: { title: "Mostrar en Explore", hint: "Tu Business QR puede descubrirse en Explore y en el mapa. Se requiere una ubicación para aparecer en el mapa." },
+  it: { title: "Mostra in Explore", hint: "Il tuo Business QR può essere scoperto in Explore e sulla mappa. Per apparire sulla mappa è necessaria una posizione." },
+};
+
 export default function NewQrxPage() {
   const router = useRouter();
   const params = useParams();
@@ -2227,6 +2240,7 @@ export default function NewQrxPage() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [locationMode, setLocationMode] = useState<LocationMode>("none");
   const [locationName, setLocationName] = useState("");
+  const [showInExplore, setShowInExplore] = useState(true);
   const [locationLat, setLocationLat] = useState("");
   const [locationLng, setLocationLng] = useState("");
   const [locationLoading, setLocationLoading] = useState(false);
@@ -2422,6 +2436,8 @@ export default function NewQrxPage() {
         setLocationMode(draft.locationMode);
       if (typeof draft.locationName === "string")
         setLocationName(draft.locationName);
+      if (typeof draft.showInExplore === "boolean")
+        setShowInExplore(draft.showInExplore);
       if (typeof draft.locationLat === "string")
         setLocationLat(draft.locationLat);
       if (typeof draft.locationLng === "string")
@@ -2484,6 +2500,7 @@ export default function NewQrxPage() {
         newsItems,
         locationMode,
         locationName,
+        showInExplore,
         locationLat,
         locationLng,
         ctaPhone,
@@ -2547,6 +2564,7 @@ export default function NewQrxPage() {
     newsItems,
     locationMode,
     locationName,
+    showInExplore,
     locationLat,
     locationLng,
     ctaPhone,
@@ -3486,6 +3504,7 @@ export default function NewQrxPage() {
         description: toNullable(description),
         news: newsItems.length > 0 ? newsItems : null,
         type: qrxType,
+        show_in_explore: qrxType === "business" ? showInExplore : false,
         location_name: toNullable(locationName),
         location_lat: lat,
         location_lng: lng,
@@ -3527,6 +3546,7 @@ export default function NewQrxPage() {
           description: insertPayload.description,
           news: insertPayload.news,
           type: insertPayload.type,
+          show_in_explore: insertPayload.show_in_explore,
           location_name: insertPayload.location_name,
           location_lat: insertPayload.location_lat,
           location_lng: insertPayload.location_lng,
@@ -4331,6 +4351,37 @@ export default function NewQrxPage() {
                 {ui.locationHint}
               </p>
             </div>
+
+            {qrxType === "business" ? (
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  padding: "12px 14px",
+                  border: "1px solid rgba(148,163,184,0.22)",
+                  borderRadius: 14,
+                  background: "rgba(15,23,42,0.45)",
+                  cursor: "pointer",
+                }}
+              >
+                <span style={{ minWidth: 0 }}>
+                  <strong style={{ display: "block", color: "#f8fafc", fontSize: 14 }}>
+                    {EXPLORE_VISIBILITY_TEXT[qrxLocale].title}
+                  </strong>
+                  <span style={{ display: "block", marginTop: 3, color: "#94a3b8", fontSize: 12, lineHeight: 1.45 }}>
+                    {EXPLORE_VISIBILITY_TEXT[qrxLocale].hint}
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={showInExplore}
+                  onChange={(event) => setShowInExplore(event.target.checked)}
+                  style={{ width: 20, height: 20, flex: "0 0 auto", accentColor: "#2563eb" }}
+                />
+              </label>
+            ) : null}
 
             <div
               style={{

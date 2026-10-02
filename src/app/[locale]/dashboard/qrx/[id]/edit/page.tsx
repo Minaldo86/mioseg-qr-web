@@ -2051,6 +2051,7 @@ type QrxEntry = {
   description: string | null;
   news: NewsItem[] | null;
   type: QrxType | string | null;
+  show_in_explore: boolean | null;
   location_name: string | null;
   location_lat: number | null;
   location_lng: number | null;
@@ -2305,6 +2306,18 @@ function getVerificationStatusText(args: {
   return ui.notVerified;
 }
 
+
+const EXPLORE_VISIBILITY_TEXT: Record<QrxWebLocale, { title: string; hint: string }> = {
+  de: { title: "In Explore anzeigen", hint: "Dein Business QR kann in Explore und auf der Karte entdeckt werden. Für die Kartenanzeige ist ein Standort erforderlich." },
+  en: { title: "Show in Explore", hint: "Your Business QR can be discovered in Explore and on the map. A location is required for map display." },
+  tr: { title: "Explore'da göster", hint: "Business QR kodun Explore'da ve haritada keşfedilebilir. Haritada gösterim için konum gereklidir." },
+  pl: { title: "Pokaż w Explore", hint: "Twój Business QR może być widoczny w Explore i na mapie. Do wyświetlania na mapie wymagana jest lokalizacja." },
+  ar: { title: "إظهار في Explore", hint: "يمكن اكتشاف Business QR الخاص بك في Explore وعلى الخريطة. يلزم تحديد موقع للظهور على الخريطة." },
+  fr: { title: "Afficher dans Explore", hint: "Votre Business QR peut être découvert dans Explore et sur la carte. Un emplacement est requis pour l’affichage sur la carte." },
+  es: { title: "Mostrar en Explore", hint: "Tu Business QR puede descubrirse en Explore y en el mapa. Se requiere una ubicación para aparecer en el mapa." },
+  it: { title: "Mostra in Explore", hint: "Il tuo Business QR può essere scoperto in Explore e sulla mappa. Per apparire sulla mappa è necessaria una posizione." },
+};
+
 export default function EditQrxPage() {
   const router = useRouter();
   const params = useParams();
@@ -2325,6 +2338,7 @@ export default function EditQrxPage() {
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [newsInput, setNewsInput] = useState("");
   const [locationName, setLocationName] = useState("");
+  const [showInExplore, setShowInExplore] = useState(true);
   const [locationLat, setLocationLat] = useState("");
   const [locationLng, setLocationLng] = useState("");
   const [locationMode, setLocationMode] = useState<LocationMode>("none");
@@ -3028,7 +3042,7 @@ export default function EditQrxPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,category,description,news,type,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,social_instagram,social_tiktok,social_youtube,social_facebook,social_linkedin,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb,collection_title,collection_description",
+          "id,owner_user_id,title,company_name,category,description,news,type,show_in_explore,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,social_instagram,social_tiktok,social_youtube,social_facebook,social_linkedin,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb,collection_title,collection_description",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -3049,6 +3063,7 @@ export default function EditQrxPage() {
       setNewsItems(normalizeNewsItems(data.news));
       setNewsInput("");
       setLocationName(data.location_name ?? "");
+      setShowInExplore(data.show_in_explore !== false);
       setLocationLat(formatOptionalNumber(data.location_lat));
       setLocationLng(formatOptionalNumber(data.location_lng));
       setLocationMode(data.location_name || data.location_lat != null || data.location_lng != null ? "manual" : "none");
@@ -3139,6 +3154,7 @@ export default function EditQrxPage() {
           description: toNullable(description),
           news: normalizeNewsItems(newsItems),
           type: qrxType,
+          show_in_explore: qrxType === "business" ? showInExplore : false,
           location_name: locationMode === "none" ? null : toNullable(locationName),
           location_lat: lat,
           location_lng: lng,
@@ -3763,6 +3779,37 @@ export default function EditQrxPage() {
                   {ui.locationHint}
                 </p>
               </div>
+
+              {qrxType === "business" ? (
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 16,
+                    padding: "12px 14px",
+                    border: "1px solid rgba(148,163,184,0.22)",
+                    borderRadius: 14,
+                    background: "rgba(15,23,42,0.45)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <span style={{ minWidth: 0 }}>
+                    <strong style={{ display: "block", color: "#f8fafc", fontSize: 14 }}>
+                      {EXPLORE_VISIBILITY_TEXT[qrxLocale].title}
+                    </strong>
+                    <span style={{ display: "block", marginTop: 3, color: "#94a3b8", fontSize: 12, lineHeight: 1.45 }}>
+                      {EXPLORE_VISIBILITY_TEXT[qrxLocale].hint}
+                    </span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={showInExplore}
+                    onChange={(event) => setShowInExplore(event.target.checked)}
+                    style={{ width: 20, height: 20, flex: "0 0 auto", accentColor: "#2563eb" }}
+                  />
+                </label>
+              ) : null}
 
               <div style={locationModeGridStyle}>
                 <button
