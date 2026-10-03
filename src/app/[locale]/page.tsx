@@ -669,11 +669,9 @@ export default async function Home({ params }: Props) {
               <div><strong>{heroCopy.miniImage}</strong><p>{heroCopy.miniImageText}</p></div>
             </div>
           </div>
-          <div className="landingBHeroMobileFeatures" aria-label="Mioseg QR Funktionen">
-            <span>⌗ <b>Scannen &amp; speichern</b></span>
-            <span>▧ <b>Aus Bildern scannen</b></span>
-            <span>□ <b>Updates folgen</b></span>
-            <span>⌖ <b>Business QR</b></span>
+          <div className="landingBHeroMobileCallouts" aria-label="Mioseg QR Funktionen">
+            <span className="landingBMobileCallout landingBMobileCalloutScan">⌗ <b>Scannen &amp; speichern</b></span>
+            <span className="landingBMobileCallout landingBMobileCalloutImage">▧ <b>Aus Bildern scannen</b></span>
           </div>
         </div>
       </section>
@@ -1063,6 +1061,142 @@ html{scroll-behavior:smooth;background:var(--b)}body{margin:0;background:var(--b
 .landingBHeroMobileFeatures b{color:#dce6f5;font-size:11px;font-weight:800}
 }
 @media(max-width:430px){.landingBHeroVisual{height:395px!important;min-height:395px!important}.landingBHeroPhone{height:380px!important;max-height:380px!important;max-width:74vw!important}}
+
+
+/* Dedicated mobile hero — intentionally separate from the desktop composition */
+.landingBHeroMobileCallouts{display:none}
+@media(max-width:720px){
+  .landingBHeroGrid{
+    width:min(100% - 32px,520px)!important;
+    margin:0 auto!important;
+    padding:34px 0 42px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:0!important;
+  }
+  .landingBHeroCopy{
+    order:1!important;
+    width:100%!important;
+    text-align:left!important;
+  }
+  .landingBHeroCopy h1{
+    max-width:100%!important;
+    font-size:clamp(40px,11.2vw,50px)!important;
+    line-height:.98!important;
+    letter-spacing:-2px!important;
+  }
+  .landingBHeroCopy h1 span{white-space:normal!important}
+  .landingBHeroCopy>p{
+    max-width:440px!important;
+    margin:20px 0 20px!important;
+    font-size:15px!important;
+    line-height:1.55!important;
+  }
+  .landingBActions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+    width:100%!important;
+    max-width:360px!important;
+  }
+  .landingBActions .landingBPrimary{
+    width:100%!important;
+    min-height:48px!important;
+    justify-content:center!important;
+  }
+  .landingBActions .landingBSecondary{display:none!important}
+  .landingBPromise{
+    margin-top:13px!important;
+    gap:5px 12px!important;
+    align-items:center!important;
+  }
+  .landingBPromise span{
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+    font-size:10px!important;
+    color:#91a4bd!important;
+  }
+  .landingBPromise span:first-child{display:none!important}
+
+  .landingBHeroVisual{
+    order:2!important;
+    width:100%!important;
+    height:350px!important;
+    min-height:350px!important;
+    margin:28px auto 0!important;
+    overflow:hidden!important;
+    border-radius:30px!important;
+    background:
+      radial-gradient(circle at 50% 36%,rgba(48,91,255,.17),transparent 47%),
+      linear-gradient(180deg,rgba(10,21,40,.58),rgba(5,13,26,.12))!important;
+    border:1px solid rgba(126,149,186,.10)!important;
+  }
+  .landingBHeroVisual .landingBOrb{display:none!important}
+  .landingBHeroVisual .landingBHeroFeature{display:none!important}
+  .landingBHeroPhoneFrame{
+    position:absolute!important;
+    z-index:3!important;
+    left:50%!important;
+    top:18px!important;
+    transform:translateX(-50%) rotate(1deg)!important;
+    width:225px!important;
+    height:auto!important;
+    padding:6px!important;
+    border-radius:31px!important;
+    box-shadow:0 24px 55px rgba(0,0,0,.42),0 0 0 6px rgba(12,24,42,.64)!important;
+  }
+  .landingBHeroPhone{
+    width:100%!important;
+    height:auto!important;
+    max-width:none!important;
+    max-height:none!important;
+    object-fit:initial!important;
+    border-radius:25px!important;
+  }
+
+  .landingBHeroMobileFeatures{display:none!important}
+  .landingBHeroMobileCallouts{
+    order:3!important;
+    display:flex!important;
+    position:relative!important;
+    z-index:5!important;
+    justify-content:center!important;
+    gap:8px!important;
+    width:calc(100% - 24px)!important;
+    margin:-23px auto 0!important;
+  }
+  .landingBMobileCallout{
+    flex:1 1 0!important;
+    min-width:0!important;
+    min-height:48px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:7px!important;
+    padding:10px 9px!important;
+    border-radius:15px!important;
+    border:1px solid rgba(112,139,190,.20)!important;
+    background:rgba(7,17,32,.96)!important;
+    box-shadow:0 12px 28px rgba(0,0,0,.26)!important;
+    color:#83a4ff!important;
+    font-size:13px!important;
+    text-align:center!important;
+  }
+  .landingBMobileCallout b{
+    color:#e7eef9!important;
+    font-size:10.5px!important;
+    line-height:1.25!important;
+    font-weight:850!important;
+  }
+}
+@media(max-width:390px){
+  .landingBHeroGrid{width:min(100% - 24px,520px)!important}
+  .landingBHeroVisual{height:330px!important}
+  .landingBHeroPhoneFrame{width:210px!important}
+  .landingBMobileCallout{padding:9px 7px!important}
+  .landingBMobileCallout b{font-size:10px!important}
+}
 
           `.trim(),
         }}
