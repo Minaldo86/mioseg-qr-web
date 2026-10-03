@@ -986,6 +986,36 @@ html{scroll-behavior:smooth;background:var(--b)}body{margin:0;background:var(--b
 @media(max-width:900px){.landingBOwnQrPossibilities{grid-template-columns:1fr 1fr}.landingBOwnQrBridgeCreative{padding:34px 28px}}
 @media(max-width:560px){.landingBOwnQrBridgeCreative{padding:28px 18px}.landingBOwnQrPossibilities{grid-template-columns:1fr}.landingBOwnQrPossibilities article{min-height:auto;padding:21px 18px}.landingBOwnQrCreativeIntro p{font-size:14px}.landingBOwnQrCreativeIntro p strong{font-size:15px}.landingBOwnQrClaim{padding:26px 18px}.landingBOwnQrClaim span{font-size:13px}}
 @media(max-width:720px){
+  /* Mobile Hero: message first, visual second and substantially more compact */
+  .landingBHeroContent{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:26px !important;
+  }
+  .landingBHeroCopy{
+    order:1 !important;
+    position:relative;
+    z-index:5;
+  }
+  .landingBHeroVisual{
+    order:2 !important;
+    min-height:0 !important;
+    height:440px !important;
+    margin-top:0 !important;
+    overflow:visible;
+  }
+  .landingBHeroPhone{
+    max-height:420px !important;
+    width:auto !important;
+    max-width:78vw !important;
+    object-fit:contain !important;
+  }
+  .landingBHeroFeature{
+    transform:scale(.72);
+    transform-origin:center;
+  }
+}
+@media(max-width:720px){
   .landingBProblemPathToday .landingBProblemSteps,
   .landingBProblemPathMioseg .landingBProblemSteps{
     grid-template-columns:1fr !important;
