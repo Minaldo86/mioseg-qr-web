@@ -4160,6 +4160,8 @@ export default function EditQrxPage() {
             </div>
           </div>
 
+          {qrxType === "business" ? (
+            <>
           <div style={mediaGridStyle}>
             <div style={mediaUploadBoxStyle}>
               <h3 style={mediaTitleStyle}>{ui.logo}</h3>
@@ -4216,6 +4218,8 @@ export default function EditQrxPage() {
               </div>
             </div>
           </div>
+            </>
+          ) : null}
 
           <div style={{ display: "grid", gap: 16, marginTop: 18 }}>
             <div style={mediaUploadBoxStyle}>
