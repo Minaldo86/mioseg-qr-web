@@ -669,6 +669,12 @@ export default async function Home({ params }: Props) {
               <div><strong>{heroCopy.miniImage}</strong><p>{heroCopy.miniImageText}</p></div>
             </div>
           </div>
+          <div className="landingBHeroMobileFeatures" aria-label="Mioseg QR Funktionen">
+            <span>⌗ <b>Scannen &amp; speichern</b></span>
+            <span>▧ <b>Aus Bildern scannen</b></span>
+            <span>□ <b>Updates folgen</b></span>
+            <span>⌖ <b>Business QR</b></span>
+          </div>
         </div>
       </section>
 
@@ -1044,6 +1050,20 @@ html{scroll-behavior:smooth;background:var(--b)}body{margin:0;background:var(--b
 .landingBSectionHeader h2,.landingBVideoCopy h2,.landingBPricingCopy h2,.landingBFinalCta h2{text-wrap:balance}.landingBSectionHeader p,.landingBVideoCopy p,.landingBPricingCopy p,.landingBFinalCta p{text-wrap:pretty}.landingBShowcaseCard{transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}.landingBShowcaseCard:hover{transform:translateY(-4px);border-color:rgba(111,145,209,.32);box-shadow:0 28px 64px rgba(0,0,0,.24)}
 @media(min-width:721px){.landingBHeroCopy h1 span:last-child{font-size:clamp(44px,3.65vw,58px);letter-spacing:-2px}}
 @media(max-width:720px){.landingBHeroCopy h1{font-size:clamp(42px,13vw,54px);line-height:1;letter-spacing:-2.4px}.landingBHeroCopy h1 span{white-space:normal}.landingBHeroCopy>p{font-size:16px;line-height:1.6}}
+
+.landingBHeroMobileFeatures{display:none}
+@media(max-width:720px){
+.landingBHeroContent{display:flex!important;flex-direction:column!important;gap:20px!important}
+.landingBHeroCopy{order:1!important;width:100%!important;position:relative!important;z-index:3!important}
+.landingBHeroVisual{order:2!important;width:100%!important;height:430px!important;min-height:430px!important;margin:6px auto 0!important;display:flex!important;align-items:flex-start!important;justify-content:center!important;overflow:hidden!important;position:relative!important}
+.landingBHeroPhone{width:auto!important;height:415px!important;max-height:415px!important;max-width:72vw!important;object-fit:contain!important;object-position:top center!important;margin:0 auto!important;transform:none!important}
+.landingBHeroVisual .landingBHeroFeature{display:none!important}
+.landingBHeroMobileFeatures{order:3;display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;margin-top:-4px}
+.landingBHeroMobileFeatures span{min-height:48px;display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:14px;border:1px solid rgba(126,149,186,.16);background:rgba(255,255,255,.035);color:#8eabff;font-size:12px;line-height:1.25}
+.landingBHeroMobileFeatures b{color:#dce6f5;font-size:11px;font-weight:800}
+}
+@media(max-width:430px){.landingBHeroVisual{height:395px!important;min-height:395px!important}.landingBHeroPhone{height:380px!important;max-height:380px!important;max-width:74vw!important}}
+
           `.trim(),
         }}
       />
