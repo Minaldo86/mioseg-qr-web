@@ -12,7 +12,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Angaben gemäß § 5 DDG",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Einzelunternehmen",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
@@ -29,12 +29,12 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       },
       {
         title: "Vertreten durch",
-        content: ["Minh Hoang Huynh"],
+        content: ["Minh Huynh"],
       },
       {
         title: "Verantwortlich für journalistisch-redaktionelle Inhalte gemäß § 18 Abs. 2 MStV",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
           "Deutschland",
@@ -88,7 +88,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "§ 5 DDG uyarınca bilgiler",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Şahıs işletmesi",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
@@ -110,13 +110,13 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Temsil eden",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
         ],
       },
       {
         title: "MStV § 18 fıkra 2 uyarınca gazetecilik ve editoryal içerikten sorumlu kişi",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
           "Almanya",
@@ -169,7 +169,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Informacje zgodnie z § 5 DDG",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Jednoosobowa działalność gospodarcza",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
@@ -191,13 +191,13 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Reprezentowany przez",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
         ],
       },
       {
         title: "Osoba odpowiedzialna za treści dziennikarsko-redakcyjne zgodnie z § 18 ust. 2 MStV",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
           "Niemcy",
@@ -250,7 +250,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "المعلومات وفق § 5 DDG",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "منشأة فردية",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
@@ -272,13 +272,13 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "يمثله",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
         ],
       },
       {
         title: "المسؤول عن المحتوى الصحفي والتحريري وفق § 18 الفقرة 2 MStV",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
           "ألمانيا",
@@ -331,7 +331,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Informations conformément au § 5 DDG",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Entreprise individuelle",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
@@ -353,13 +353,13 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Représenté par",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
         ],
       },
       {
         title: "Responsable du contenu journalistique et éditorial conformément au § 18 al. 2 MStV",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
           "Allemagne",
@@ -412,7 +412,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Información conforme al § 5 DDG",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Empresario individual",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
@@ -434,13 +434,13 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Representado por",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
         ],
       },
       {
         title: "Responsable del contenido periodístico-editorial conforme al § 18, apartado 2, MStV",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
           "Alemania",
@@ -493,7 +493,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Informazioni ai sensi del § 5 DDG",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Impresa individuale",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
@@ -515,13 +515,13 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Rappresentato da",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
         ],
       },
       {
         title: "Responsabile dei contenuti giornalistico-editoriali ai sensi del § 18 comma 2 MStV",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
           "Germania",
@@ -574,7 +574,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "Information according to § 5 DDG",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Sole proprietorship",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
@@ -591,12 +591,12 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       },
       {
         title: "Represented by",
-        content: ["Minh Hoang Huynh"],
+        content: ["Minh Huynh"],
       },
       {
         title: "Responsible for editorial content according to § 18 para. 2 MStV",
         content: [
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Konrad Adenauer Str. 170",
           "52511 Geilenkirchen",
           "Germany",

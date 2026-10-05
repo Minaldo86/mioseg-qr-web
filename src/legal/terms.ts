@@ -13,10 +13,8 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "1. Anbieter und Geltungsbereich",
         content: [
           "Vertragspartner und Anbieter der Dienste von „mioseg qr“ ist:",
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Einzelunternehmer",
-          "Konrad Adenauer Str. 170",
-          "52511 Geilenkirchen",
           "Deutschland",
           "E-Mail: info@mioseg-qr.com",
           "Diese Nutzungsbedingungen gelten für die Nutzung der mobilen App „mioseg qr“, der zugehörigen Webplattform, öffentlich erreichbarer Mioseg QR-Webansichten sowie der darüber angebotenen Funktionen und digitalen Leistungen.",
@@ -506,8 +504,7 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "30. Anbieter, Kontakt, Version und Inkrafttreten",
         content: [
           "Anbieter und Vertragspartner für die unter diesen Nutzungsbedingungen bereitgestellten Leistungen von mioseg qr ist, soweit im Zusammenhang mit einer bestimmten Leistung nicht ausdrücklich ein anderer Vertragspartner angegeben wird:",
-          "Minh Hoang Huynh, Einzelunternehmer",
-          "Konrad Adenauer Str. 170, 52511 Geilenkirchen",
+          "Minh Huynh, Einzelunternehmer",
           "Deutschland",
           "Weitere gesetzlich erforderliche Anbieterinformationen sowie gegebenenfalls Angaben zur Vertretungsberechtigung, Registrierung, Umsatzsteuer-Identifikation und weitere Pflichtangaben ergeben sich aus dem jeweils aktuellen Impressum.",
           "Nutzer können den Anbieter für vertragliche oder rechtliche Anliegen über die im Impressum beziehungsweise innerhalb von mioseg qr angegebenen Kontaktmöglichkeiten erreichen. Für allgemeine Supportanfragen können zusätzlich die innerhalb der Plattform vorgesehenen Supportfunktionen verwendet werden.",
@@ -531,7 +528,7 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "1. Sağlayıcı ve kapsam",
         content: [
-          "„mioseg qr“ hizmetlerinin sözleşme tarafı ve sağlayıcısı Minh Hoang Huynh, şahıs işletmesi, Konrad Adenauer Str. 170, 52511 Geilenkirchen, Almanya'dır. E-posta: info@mioseg-qr.com.",
+          "„mioseg qr“ hizmetlerinin sözleşme tarafı ve sağlayıcısı Minh Huynh, şahıs işletmesi, Almanya'dır. E-posta: info@mioseg-qr.com.",
           "Bu Kullanım Koşulları; „mioseg qr“ mobil uygulaması, ilgili web platformu, herkese açık Mioseg QR web görünümleri ve bunlar üzerinden sunulan işlevler ile dijital hizmetler için geçerlidir.",
           "Somut durumda uygulanacak hükümler, hizmetin yalnızca herkese açık olarak görüntülenmesine, kayıtlı bir kullanıcı hesabıyla kullanılmasına veya ücretli bir hizmetten yararlanılmasına bağlıdır.",
           "Belirli işlev veya hizmetler için ek koşullar geçerli olabilir. Kullanıcı bunlar hakkında kullanım veya sözleşmenin kurulmasından önce uygun şekilde bilgilendirilir. Bireysel anlaşmalar bu koşullara göre önceliklidir.",
@@ -833,8 +830,8 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "30. Sağlayıcı, iletişim, sürüm ve yürürlük tarihi",
         content: [
-          "Bu Kullanım Koşulları kapsamındaki mioseg qr hizmetlerinin sağlayıcısı ve sözleşme tarafı, belirli bir hizmet için açıkça başka bir sözleşme tarafı belirtilmedikçe Minh Hoang Huynh, şahıs işletmesidir.",
-          "Konrad Adenauer Str. 170, 52511 Geilenkirchen, Almanya.",
+          "Bu Kullanım Koşulları kapsamındaki mioseg qr hizmetlerinin sağlayıcısı ve sözleşme tarafı, belirli bir hizmet için açıkça başka bir sözleşme tarafı belirtilmedikçe Minh Huynh, şahıs işletmesidir.",
+          "Almanya.",
           "Kanunen gerekli diğer sağlayıcı bilgileri, temsil yetkisi, kayıt, KDV kimlik numarası ve zorunlu açıklamalar güncel Yasal Bildirimde (Impressum) yer alır.",
           "Kullanıcılar sözleşmesel veya hukuki konularda Impressum'daki veya mioseg qr içindeki iletişim seçeneklerini; genel destek için ayrıca platformun destek işlevlerini kullanabilir.",
           "Bu Kullanım Koşullarının geçerli sürümü sürüm numarası ve yürürlük tarihi ile belirtilir.",
@@ -854,7 +851,7 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "1. Usługodawca i zakres obowiązywania",
         content: [
-          "Stroną umowy i usługodawcą usług „mioseg qr“ jest Minh Hoang Huynh, jednoosobowa działalność gospodarcza, Konrad Adenauer Str. 170, 52511 Geilenkirchen, Niemcy. E-mail: info@mioseg-qr.com.",
+          "Stroną umowy i usługodawcą usług „mioseg qr“ jest Minh Huynh, jednoosobowa działalność gospodarcza, Niemcy. E-mail: info@mioseg-qr.com.",
           "Niniejsze Warunki korzystania mają zastosowanie do aplikacji mobilnej „mioseg qr“, powiązanej platformy internetowej, publicznych widoków internetowych Mioseg QR oraz funkcji i usług cyfrowych udostępnianych za ich pośrednictwem.",
           "Zakres mających zastosowanie postanowień zależy od tego, czy usługa jest jedynie publicznie przeglądana, używana za pośrednictwem zarejestrowanego konta użytkownika czy też wykorzystywana jako usługa odpłatna.",
           "Dla określonych funkcji lub usług mogą obowiązywać dodatkowe warunki. Użytkownik zostanie o nich odpowiednio poinformowany przed rozpoczęciem korzystania lub zawarciem umowy. Indywidualne uzgodnienia mają pierwszeństwo przed niniejszymi Warunkami korzystania.",
@@ -1157,8 +1154,8 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "30. Usługodawca, kontakt, wersja i data wejścia w życie",
         content: [
-          "Usługodawcą i stroną umowy w zakresie usług mioseg qr objętych niniejszymi Warunkami jest Minh Hoang Huynh, jednoosobowa działalność gospodarcza, chyba że dla określonej usługi wyraźnie wskazano inną stronę umowy.",
-          "Konrad Adenauer Str. 170, 52511 Geilenkirchen, Niemcy.",
+          "Usługodawcą i stroną umowy w zakresie usług mioseg qr objętych niniejszymi Warunkami jest Minh Huynh, jednoosobowa działalność gospodarcza, chyba że dla określonej usługi wyraźnie wskazano inną stronę umowy.",
+          "Niemcy.",
           "Dalsze wymagane prawem informacje o usługodawcy, reprezentacji, rejestracji, numerze VAT i obowiązkowych danych znajdują się w aktualnym Impressum.",
           "W sprawach umownych lub prawnych użytkownicy mogą korzystać z danych kontaktowych wskazanych w Impressum lub w mioseg qr; do ogólnego wsparcia dostępne są również funkcje pomocy platformy.",
           "Aktualna wersja niniejszych Warunków jest oznaczona numerem wersji i datą wejścia w życie.",
@@ -1178,7 +1175,7 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "1. مقدم الخدمة ونطاق التطبيق",
         content: [
-          "الطرف المتعاقد ومقدم خدمات «mioseg qr» هو Minh Hoang Huynh، منشأة فردية، Konrad Adenauer Str. 170، 52511 Geilenkirchen، ألمانيا. البريد الإلكتروني: info@mioseg-qr.com.",
+          "الطرف المتعاقد ومقدم خدمات «mioseg qr» هو Minh Huynh، منشأة فردية، ألمانيا. البريد الإلكتروني: info@mioseg-qr.com.",
           "تسري شروط الاستخدام هذه على تطبيق «mioseg qr» للهواتف المحمولة، والمنصة الإلكترونية المرتبطة به، وصفحات Mioseg QR العامة المتاحة عبر الويب، وكذلك الوظائف والخدمات الرقمية المقدمة من خلالها.",
           "تتحدد الأحكام المنطبقة بحسب ما إذا كانت الخدمة تُستخدم للعرض العام فقط، أو من خلال حساب مستخدم مسجل، أو باعتبارها خدمة مدفوعة.",
           "قد تنطبق شروط إضافية على وظائف أو خدمات معينة. وسيتم إبلاغ المستخدم بها قبل الاستخدام أو إبرام العقد. وتكون الاتفاقات الفردية مقدمة على شروط الاستخدام هذه.",
@@ -1481,8 +1478,8 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "30. مقدم الخدمة والاتصال والإصدار وتاريخ النفاذ",
         content: [
-          "مقدم الخدمة والطرف المتعاقد لخدمات mioseg qr بموجب شروط الاستخدام هذه هو Minh Hoang Huynh، منشأة فردية، ما لم يُحدد صراحة طرف متعاقد آخر لخدمة معينة.",
-          "Konrad Adenauer Str. 170، 52511 Geilenkirchen، ألمانيا.",
+          "مقدم الخدمة والطرف المتعاقد لخدمات mioseg qr بموجب شروط الاستخدام هذه هو Minh Huynh، منشأة فردية، ما لم يُحدد صراحة طرف متعاقد آخر لخدمة معينة.",
+          "ألمانيا.",
           "ترد المعلومات الأخرى المطلوبة قانونًا عن مقدم الخدمة والتمثيل والتسجيل ورقم ضريبة القيمة المضافة والإفصاحات الإلزامية في صفحة Impressum الحالية.",
           "يمكن للمستخدمين التواصل بشأن المسائل التعاقدية أو القانونية عبر بيانات الاتصال في Impressum أو داخل mioseg qr، كما يمكن استخدام وظائف الدعم العامة على المنصة.",
           "تُحدد النسخة السارية من شروط الاستخدام برقم إصدار وتاريخ نفاذ.",
@@ -1502,7 +1499,7 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "1. Prestataire et champ d’application",
         content: [
-          "Le cocontractant et prestataire des services « mioseg qr » est Minh Hoang Huynh, entreprise individuelle, Konrad Adenauer Str. 170, 52511 Geilenkirchen, Allemagne. E-mail : info@mioseg-qr.com.",
+          "Le cocontractant et prestataire des services « mioseg qr » est Minh Huynh, entreprise individuelle, Allemagne. E-mail : info@mioseg-qr.com.",
           "Les présentes Conditions d’utilisation s’appliquent à l’application mobile « mioseg qr », à la plateforme web associée, aux vues web publiques de Mioseg QR ainsi qu’aux fonctions et services numériques proposés par leur intermédiaire.",
           "Les dispositions applicables dépendent notamment du fait que le service soit uniquement consulté publiquement, utilisé avec un compte enregistré ou utilisé dans le cadre d’une prestation payante.",
           "Des conditions complémentaires peuvent s’appliquer à certaines fonctions ou prestations. L’utilisateur en est informé de manière appropriée avant l’utilisation ou la conclusion du contrat. Les accords individuels prévalent sur les présentes Conditions.",
@@ -1805,8 +1802,8 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "30. Prestataire, contact, version et date d’entrée en vigueur",
         content: [
-          "Le prestataire et cocontractant des services mioseg qr couverts par les présentes Conditions est Minh Hoang Huynh, entreprise individuelle, sauf indication expresse d’un autre cocontractant pour une prestation particulière.",
-          "Konrad Adenauer Str. 170, 52511 Geilenkirchen, Allemagne.",
+          "Le prestataire et cocontractant des services mioseg qr couverts par les présentes Conditions est Minh Huynh, entreprise individuelle, sauf indication expresse d’un autre cocontractant pour une prestation particulière.",
+          "Allemagne.",
           "Les autres informations exigées par la loi concernant le prestataire, la représentation, l’enregistrement, le numéro de TVA et autres mentions obligatoires figurent dans les Mentions légales (Impressum) actuelles.",
           "Pour les questions contractuelles ou juridiques, les utilisateurs peuvent utiliser les coordonnées figurant dans les Mentions légales ou dans mioseg qr ; les fonctions d’assistance de la plateforme peuvent également être utilisées pour le support général.",
           "La version applicable des présentes Conditions est identifiée par un numéro de version et une date d’entrée en vigueur.",
@@ -1826,7 +1823,7 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "1. Proveedor y ámbito de aplicación",
         content: [
-          "El socio contractual y proveedor de los servicios «mioseg qr» es Minh Hoang Huynh, empresario individual, Konrad Adenauer Str. 170, 52511 Geilenkirchen, Alemania. Correo electrónico: info@mioseg-qr.com.",
+          "El socio contractual y proveedor de los servicios «mioseg qr» es Minh Huynh, empresario individual, Alemania. Correo electrónico: info@mioseg-qr.com.",
           "Estas Condiciones de uso se aplican a la aplicación móvil «mioseg qr», a la plataforma web asociada, a las vistas web públicas de Mioseg QR y a las funciones y servicios digitales ofrecidos a través de ellas.",
           "Las disposiciones aplicables dependen, entre otras cosas, de si el servicio se utiliza únicamente de forma pública, mediante una cuenta de usuario registrada o como servicio de pago.",
           "Para determinadas funciones o servicios pueden aplicarse condiciones adicionales. Se informará de ellas adecuadamente antes de su uso o de la celebración del contrato. Los acuerdos individuales prevalecen sobre estas Condiciones de uso.",
@@ -2129,8 +2126,8 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "30. Proveedor, contacto, versión y fecha de entrada en vigor",
         content: [
-          "El proveedor y socio contractual de los servicios mioseg qr cubiertos por estas Condiciones es Minh Hoang Huynh, empresario individual, salvo que para un servicio concreto se indique expresamente otro socio contractual.",
-          "Konrad Adenauer Str. 170, 52511 Geilenkirchen, Alemania.",
+          "El proveedor y socio contractual de los servicios mioseg qr cubiertos por estas Condiciones es Minh Huynh, empresario individual, salvo que para un servicio concreto se indique expresamente otro socio contractual.",
+          "Alemania.",
           "Los demás datos legalmente exigidos sobre el proveedor, representación, registro, número de IVA y otras menciones obligatorias figuran en el Impressum vigente.",
           "Para cuestiones contractuales o jurídicas, los usuarios pueden utilizar los datos de contacto indicados en el Impressum o dentro de mioseg qr; para soporte general también pueden utilizarse las funciones de ayuda de la plataforma.",
           "La versión vigente de estas Condiciones se identifica mediante un número de versión y una fecha de entrada en vigor.",
@@ -2150,7 +2147,7 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "1. Fornitore e ambito di applicazione",
         content: [
-          "Il contraente e fornitore dei servizi «mioseg qr» è Minh Hoang Huynh, impresa individuale, Konrad Adenauer Str. 170, 52511 Geilenkirchen, Germania. E-mail: info@mioseg-qr.com.",
+          "Il contraente e fornitore dei servizi «mioseg qr» è Minh Huynh, impresa individuale, Germania. E-mail: info@mioseg-qr.com.",
           "Le presenti Condizioni d’uso si applicano all’app mobile «mioseg qr», alla relativa piattaforma web, alle visualizzazioni web pubbliche dei Mioseg QR e alle funzioni e ai servizi digitali offerti tramite tali strumenti.",
           "Le disposizioni applicabili dipendono, tra l’altro, dal fatto che il servizio venga soltanto consultato pubblicamente, utilizzato tramite un account registrato oppure fruito come servizio a pagamento.",
           "Per singole funzioni o servizi possono applicarsi condizioni aggiuntive. L’utente ne viene informato adeguatamente prima dell’utilizzo o della conclusione del contratto. Gli accordi individuali prevalgono sulle presenti Condizioni d’uso.",
@@ -2453,8 +2450,8 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "30. Fornitore, contatti, versione e data di entrata in vigore",
         content: [
-          "Il fornitore e contraente dei servizi mioseg qr disciplinati dalle presenti Condizioni è Minh Hoang Huynh, impresa individuale, salvo che per una determinata prestazione sia espressamente indicato un diverso contraente.",
-          "Konrad Adenauer Str. 170, 52511 Geilenkirchen, Germania.",
+          "Il fornitore e contraente dei servizi mioseg qr disciplinati dalle presenti Condizioni è Minh Huynh, impresa individuale, salvo che per una determinata prestazione sia espressamente indicato un diverso contraente.",
+          "Germania.",
           "Le ulteriori informazioni obbligatorie sul fornitore, rappresentanza, registrazione, numero IVA e altre indicazioni richieste dalla legge sono riportate nell’attuale Impressum.",
           "Per questioni contrattuali o legali, gli utenti possono utilizzare i contatti indicati nell’Impressum o all’interno di mioseg qr; per il supporto generale possono essere utilizzate anche le funzioni di assistenza della piattaforma.",
           "La versione vigente delle presenti Condizioni è identificata da un numero di versione e da una data di entrata in vigore.",
@@ -2475,10 +2472,8 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "1. Provider and Scope",
         content: [
           "The contractual partner and provider of the services of “mioseg qr” is:",
-          "Minh Hoang Huynh",
+          "Minh Huynh",
           "Sole proprietor",
-          "Konrad Adenauer Str. 170",
-          "52511 Geilenkirchen",
           "Germany",
           "Email: info@mioseg-qr.com",
           "These Terms of Use apply to the use of the mobile app “mioseg qr”, the associated web platform, publicly accessible Mioseg QR web views, and the functions and digital services offered through them.",
@@ -2967,8 +2962,7 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "30. Provider, Contact, Version, and Effective Date",
         content: [
           "The provider and contractual partner for the mioseg qr services provided under these Terms of Use is, unless a different contractual partner is expressly specified in connection with a particular service:",
-          "Minh Hoang Huynh, sole proprietor",
-          "Konrad Adenauer Str. 170, 52511 Geilenkirchen",
+          "Minh Huynh, sole proprietor",
           "Germany",
           "Further provider information required by law and, where applicable, information regarding authority to represent, registration, VAT identification, and other mandatory disclosures are set out in the current Legal Notice (Imprint).",
           "Users may contact the provider regarding contractual or legal matters through the contact options specified in the Legal Notice (Imprint) or within mioseg qr. For general support requests, the support functions provided within the platform may additionally be used.",
