@@ -10,7 +10,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       "Anbieterkennzeichnung für die App und Webplattform von mioseg qr.",
     sections: [
       {
-        title: "Angaben gemäß § 5 TMG",
+        title: "Angaben gemäß § 5 DDG",
         content: [
           "Minh Hoang Huynh",
           "Einzelunternehmen",
@@ -86,7 +86,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       "mioseg qr uygulaması ve web platformu için sağlayıcı bilgileri.",
     sections: [
       {
-        title: "§ 5 TMG uyarınca bilgiler",
+        title: "§ 5 DDG uyarınca bilgiler",
         content: [
           "Minh Hoang Huynh",
           "Şahıs işletmesi",
@@ -167,7 +167,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       "Informacje o usługodawcy aplikacji i platformy internetowej mioseg qr.",
     sections: [
       {
-        title: "Informacje zgodnie z § 5 TMG",
+        title: "Informacje zgodnie z § 5 DDG",
         content: [
           "Minh Hoang Huynh",
           "Jednoosobowa działalność gospodarcza",
@@ -248,7 +248,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       "معلومات مقدم الخدمة لتطبيق mioseg qr والمنصة الإلكترونية.",
     sections: [
       {
-        title: "المعلومات وفق § 5 TMG",
+        title: "المعلومات وفق § 5 DDG",
         content: [
           "Minh Hoang Huynh",
           "منشأة فردية",
@@ -329,7 +329,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       "Informations sur le prestataire de l’application mioseg qr et de la plateforme web.",
     sections: [
       {
-        title: "Informations conformément au § 5 TMG",
+        title: "Informations conformément au § 5 DDG",
         content: [
           "Minh Hoang Huynh",
           "Entreprise individuelle",
@@ -410,7 +410,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       "Información del proveedor de la aplicación mioseg qr y de la plataforma web.",
     sections: [
       {
-        title: "Información conforme al § 5 TMG",
+        title: "Información conforme al § 5 DDG",
         content: [
           "Minh Hoang Huynh",
           "Empresario individual",
@@ -491,7 +491,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       "Informazioni sul fornitore dell’app mioseg qr e della piattaforma web.",
     sections: [
       {
-        title: "Informazioni ai sensi del § 5 TMG",
+        title: "Informazioni ai sensi del § 5 DDG",
         content: [
           "Minh Hoang Huynh",
           "Impresa individuale",
@@ -572,7 +572,7 @@ const imprintDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       "Provider information for the app and web platform of mioseg qr.",
     sections: [
       {
-        title: "Information according to § 5 TMG",
+        title: "Information according to § 5 DDG",
         content: [
           "Minh Hoang Huynh",
           "Sole proprietorship",

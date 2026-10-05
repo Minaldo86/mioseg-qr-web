@@ -83,18 +83,24 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "8. Zahlungsabwicklung und In-App Käufe",
         content: [
-          "Digitale Käufe innerhalb der App erfolgen über den Apple App Store oder den Google Play Store.",
-          "Die Zahlungsabwicklung erfolgt ausschließlich über die jeweiligen Plattformbetreiber.",
-          "Wir selbst verarbeiten keine Zahlungsdaten wie Kreditkartennummern oder Bankdaten der Nutzer.",
+          "Käufe von Credits über die Webplattform können über Stripe abgewickelt werden. Dabei verarbeitet Stripe die für die Zahlung erforderlichen Zahlungs- und Transaktionsdaten in eigener beziehungsweise vertraglich festgelegter datenschutzrechtlicher Verantwortung.",
+          "Digitale Käufe innerhalb der mobilen App werden über den Apple App Store beziehungsweise Google Play abgewickelt. Für die technische Verwaltung und Validierung von In-App-Käufen wird RevenueCat eingesetzt.",
+          "mioseg qr erhält grundsätzlich nur die für die Zuordnung und Verbuchung des Kaufs erforderlichen Transaktions-, Produkt- und Statusinformationen; vollständige Kreditkarten- oder Bankdaten werden nicht durch mioseg qr gespeichert.",
         ],
       },
       {
         title: "9. Eingesetzte Dienstleister",
         content: [
-          "Zur technischen Bereitstellung unseres Angebots setzen wir externe Dienstleister ein.",
-          "Hierzu gehört insbesondere Supabase als Backend-, Datenbank-, Authentifizierungs- und Speicherlösung.",
-          "Zur Verwaltung und Validierung von In-App Käufen setzen wir RevenueCat ein.",
-          "Dabei können insbesondere App-User-ID, Kaufstatus und produktbezogene Informationen verarbeitet werden.",
+          "Für die technische Bereitstellung werden insbesondere folgende Dienstleister eingesetzt: Supabase für Backend, Datenbank und Authentifizierung; Cloudflare für R2-Medienspeicher, Auslieferung über Worker/CDN sowie Sicherheits- und Traffic-Schutz; Vercel für Hosting und Auslieferung der Webplattform; Stripe für Web-Zahlungen; RevenueCat zur Verwaltung und Validierung mobiler In-App-Käufe; Resend für transaktionale E-Mails.",
+          "Je nach Funktion können an diese Dienstleister insbesondere Account- und Nutzerkennungen, IP- und Verbindungsdaten, technische Metadaten, hochgeladene Medien, Transaktionsstatus, E-Mail-Adresse sowie die zur jeweiligen Leistung erforderlichen Daten übermittelt werden.",
+          "Soweit Dienstleister Daten außerhalb des Europäischen Wirtschaftsraums verarbeiten, erfolgt die Übermittlung nur unter Beachtung der anwendbaren datenschutzrechtlichen Voraussetzungen, insbesondere auf Grundlage eines Angemessenheitsbeschlusses oder geeigneter Garantien wie EU-Standardvertragsklauseln, soweit erforderlich.",
+        ],
+      },
+      {
+        title: "9a. Rechtsgrundlagen der Verarbeitung",
+        content: [
+          "Die Verarbeitung erfolgt je nach Vorgang insbesondere auf Grundlage von Art. 6 Abs. 1 lit. b DSGVO zur Durchführung des Nutzungsverhältnisses und Bereitstellung angeforderter Funktionen, Art. 6 Abs. 1 lit. c DSGVO zur Erfüllung rechtlicher Pflichten, Art. 6 Abs. 1 lit. f DSGVO für Sicherheit, Missbrauchsprävention, Fehleranalyse und den stabilen Betrieb sowie Art. 6 Abs. 1 lit. a DSGVO, soweit eine Einwilligung erforderlich ist.",
+          "Erteilte Einwilligungen können mit Wirkung für die Zukunft widerrufen werden. Die Rechtmäßigkeit der bis zum Widerruf erfolgten Verarbeitung bleibt unberührt.",
         ],
       },
       {
@@ -226,10 +232,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "9. Kullanılan hizmet sağlayıcıları",
         content: [
-          "Hizmetlerimizin teknik olarak sunulması için harici hizmet sağlayıcıları kullanırız.",
-          "Bunlar arasında özellikle backend, veritabanı, kimlik doğrulama ve depolama çözümü olarak Supabase yer alır.",
-          "Uygulama içi satın alımların yönetimi ve doğrulanması için RevenueCat kullanırız.",
-          "Bu kapsamda özellikle uygulama kullanıcı kimliği, satın alma durumu ve ürünle ilgili bilgiler işlenebilir.",
+          "Teknik hizmetler için özellikle Supabase (backend, veritabanı ve kimlik doğrulama), Cloudflare (R2 medya depolama, Worker/CDN ve trafik koruması), Vercel (web barındırma), Stripe (web ödemeleri), RevenueCat (mobil uygulama içi satın alma yönetimi) ve Resend (işlemsel e-postalar) kullanılır.",
+          "İşleve bağlı olarak hesap/kullanıcı kimlikleri, IP ve bağlantı verileri, teknik meta veriler, yüklenen medya, işlem durumu, e-posta adresi ve ilgili hizmet için gerekli diğer veriler bu sağlayıcılara aktarılabilir.",
+          "Avrupa Ekonomik Alanı dışında veri işlenmesi halinde aktarım, gerektiğinde yeterlilik kararı veya AB Standart Sözleşme Maddeleri gibi uygun güvenceler temelinde gerçekleştirilir.",
         ],
       },
       {
@@ -363,10 +368,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "9. Wykorzystywani usługodawcy",
         content: [
-          "Do technicznego świadczenia naszych usług korzystamy z zewnętrznych usługodawców.",
-          "Należy do nich w szczególności Supabase jako rozwiązanie backendowe, bazodanowe, uwierzytelniające i pamięci masowej.",
-          "Do zarządzania i weryfikacji zakupów w aplikacji korzystamy z RevenueCat.",
-          "W związku z tym mogą być przetwarzane w szczególności identyfikator użytkownika aplikacji, status zakupu i informacje dotyczące produktu.",
+          "Do świadczenia usług technicznych wykorzystujemy w szczególności Supabase (backend, baza danych i uwierzytelnianie), Cloudflare (pamięć mediów R2, Worker/CDN i ochrona ruchu), Vercel (hosting WWW), Stripe (płatności WWW), RevenueCat (obsługa zakupów mobilnych w aplikacji) oraz Resend (wiadomości transakcyjne).",
+          "W zależności od funkcji dostawcom tym mogą być przekazywane identyfikatory konta/użytkownika, dane IP i połączenia, metadane techniczne, przesłane media, status transakcji, adres e-mail oraz inne dane niezbędne do danej usługi.",
+          "Jeżeli dane są przetwarzane poza EOG, transfer odbywa się zgodnie z obowiązującymi wymogami, w szczególności na podstawie decyzji stwierdzającej odpowiedni stopień ochrony lub odpowiednich zabezpieczeń, takich jak standardowe klauzule umowne UE.",
         ],
       },
       {
@@ -498,10 +502,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "9. مزودو الخدمات المستخدمون",
         content: [
-          "نستخدم مزودي خدمات خارجيين لتوفير خدماتنا من الناحية التقنية.",
-          "ويشمل ذلك على وجه الخصوص Supabase كحل للواجهة الخلفية وقاعدة البيانات والمصادقة والتخزين.",
-          "نستخدم RevenueCat لإدارة المشتريات داخل التطبيق والتحقق منها.",
-          "وقد تتم في هذا السياق معالجة معرف مستخدم التطبيق وحالة الشراء والمعلومات المتعلقة بالمنتج.",
+          "نستخدم لتقديم الخدمات التقنية خصوصًا Supabase للخلفية وقاعدة البيانات والمصادقة، وCloudflare لتخزين وسائط R2 وWorker/CDN وحماية حركة البيانات، وVercel لاستضافة الويب، وStripe لمدفوعات الويب، وRevenueCat لإدارة مشتريات التطبيق المحمول، وResend لرسائل البريد الإلكتروني الخاصة بالمعاملات.",
+          "بحسب الوظيفة قد تُنقل إلى هذه الجهات معرفات الحساب والمستخدم وبيانات IP والاتصال والبيانات الوصفية التقنية والوسائط المرفوعة وحالة المعاملة وعنوان البريد الإلكتروني والبيانات الأخرى اللازمة للخدمة.",
+          "إذا تمت معالجة البيانات خارج المنطقة الاقتصادية الأوروبية، فيتم النقل وفق المتطلبات القانونية المطبقة، ولا سيما استنادًا إلى قرار كفاية أو ضمانات مناسبة مثل البنود التعاقدية القياسية للاتحاد الأوروبي عند الاقتضاء.",
         ],
       },
       {
@@ -633,10 +636,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "9. Prestataires utilisés",
         content: [
-          "Nous faisons appel à des prestataires externes pour la fourniture technique de notre service.",
-          "Il s’agit notamment de Supabase comme solution de backend, base de données, authentification et stockage.",
-          "Nous utilisons RevenueCat pour gérer et valider les achats intégrés.",
-          "Dans ce cadre, l’identifiant utilisateur de l’application, le statut d’achat et les informations relatives au produit peuvent notamment être traités.",
+          "Pour la fourniture technique, nous utilisons notamment Supabase (backend, base de données et authentification), Cloudflare (stockage média R2, Worker/CDN et protection du trafic), Vercel (hébergement web), Stripe (paiements web), RevenueCat (gestion des achats intégrés mobiles) et Resend (e-mails transactionnels).",
+          "Selon la fonction, des identifiants de compte/utilisateur, données IP et de connexion, métadonnées techniques, médias téléversés, statuts de transaction, adresse e-mail et autres données nécessaires au service peuvent être transmis à ces prestataires.",
+          "Lorsque des données sont traitées hors de l’EEE, le transfert est effectué conformément aux exigences applicables, notamment sur la base d’une décision d’adéquation ou de garanties appropriées telles que les clauses contractuelles types de l’UE lorsque nécessaire.",
         ],
       },
       {
@@ -768,10 +770,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "9. Proveedores de servicios utilizados",
         content: [
-          "Utilizamos proveedores de servicios externos para la prestación técnica de nuestro servicio.",
-          "Entre ellos se encuentra, en particular, Supabase como solución de backend, base de datos, autenticación y almacenamiento.",
-          "Utilizamos RevenueCat para gestionar y validar las compras dentro de la aplicación.",
-          "En este contexto pueden tratarse, en particular, el ID de usuario de la aplicación, el estado de la compra y la información relacionada con el producto.",
+          "Para la prestación técnica utilizamos en particular Supabase (backend, base de datos y autenticación), Cloudflare (almacenamiento de medios R2, Worker/CDN y protección del tráfico), Vercel (alojamiento web), Stripe (pagos web), RevenueCat (gestión de compras móviles dentro de la app) y Resend (correos transaccionales).",
+          "Según la función, pueden transmitirse a estos proveedores identificadores de cuenta/usuario, datos de IP y conexión, metadatos técnicos, medios cargados, estado de transacción, dirección de correo electrónico y otros datos necesarios para el servicio correspondiente.",
+          "Cuando se procesen datos fuera del EEE, la transferencia se realizará conforme a los requisitos aplicables, en particular sobre la base de una decisión de adecuación o garantías apropiadas como las cláusulas contractuales tipo de la UE cuando sea necesario.",
         ],
       },
       {
@@ -903,10 +904,9 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "9. Fornitori di servizi utilizzati",
         content: [
-          "Per la fornitura tecnica del nostro servizio utilizziamo fornitori esterni.",
-          "Tra questi rientra in particolare Supabase come soluzione di backend, database, autenticazione e archiviazione.",
-          "Utilizziamo RevenueCat per gestire e convalidare gli acquisti in-app.",
-          "In tale contesto possono essere trattati, in particolare, l’ID utente dell’app, lo stato dell’acquisto e le informazioni relative al prodotto.",
+          "Per la fornitura tecnica utilizziamo in particolare Supabase (backend, database e autenticazione), Cloudflare (archiviazione media R2, Worker/CDN e protezione del traffico), Vercel (hosting web), Stripe (pagamenti web), RevenueCat (gestione degli acquisti in-app mobili) e Resend (e-mail transazionali).",
+          "A seconda della funzione, a tali fornitori possono essere trasmessi identificativi di account/utente, dati IP e di connessione, metadati tecnici, media caricati, stato della transazione, indirizzo e-mail e altri dati necessari al servizio.",
+          "Qualora i dati siano trattati al di fuori del SEE, il trasferimento avviene nel rispetto dei requisiti applicabili, in particolare sulla base di una decisione di adeguatezza o di garanzie appropriate come le clausole contrattuali standard dell’UE, ove necessario.",
         ],
       },
       {
@@ -1030,18 +1030,24 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "8. Payment processing and in-app purchases",
         content: [
-          "Digital purchases within the app are processed via the Apple App Store or Google Play Store.",
-          "Payment processing takes place exclusively through the respective platform operators.",
-          "We do not process payment data such as credit card numbers or bank details ourselves.",
+          "Credit purchases on the web platform may be processed through Stripe. Stripe processes the payment and transaction data required for payment under its own or contractually defined data protection responsibilities.",
+          "Digital purchases in the mobile app are processed through the Apple App Store or Google Play. RevenueCat is used for the technical management and validation of in-app purchases.",
+          "mioseg qr generally receives only the transaction, product and status information required to allocate and book the purchase; full credit card or bank details are not stored by mioseg qr.",
         ],
       },
       {
         title: "9. Service providers used",
         content: [
-          "We use external service providers for the technical provision of our services.",
-          "This includes in particular Supabase as backend, database, authentication, and storage solution.",
-          "We use RevenueCat for managing and validating in-app purchases.",
-          "This may include processing app user ID, purchase status, and product-related information.",
+          "We use in particular the following service providers: Supabase for backend, database and authentication; Cloudflare for R2 media storage, delivery through Worker/CDN and security/traffic protection; Vercel for hosting and delivery of the web platform; Stripe for web payments; RevenueCat for management and validation of mobile in-app purchases; and Resend for transactional emails.",
+          "Depending on the function, account and user identifiers, IP and connection data, technical metadata, uploaded media, transaction status, email address and other data required for the respective service may be transferred to these providers.",
+          "Where providers process data outside the European Economic Area, transfers take place only in accordance with applicable data protection requirements, in particular on the basis of an adequacy decision or appropriate safeguards such as EU Standard Contractual Clauses where required.",
+        ],
+      },
+      {
+        title: "9a. Legal bases for processing",
+        content: [
+          "Depending on the processing activity, processing is based in particular on Art. 6(1)(b) GDPR for performance of the user relationship and requested functions, Art. 6(1)(c) GDPR for legal obligations, Art. 6(1)(f) GDPR for security, abuse prevention, error analysis and stable operation, and Art. 6(1)(a) GDPR where consent is required.",
+          "Consent may be withdrawn at any time with effect for the future. Processing carried out before withdrawal remains lawful.",
         ],
       },
       {

@@ -335,6 +335,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
+        title: "19a. Fair Use, Traffic und Schutz vor außergewöhnlicher Nutzung",
+        content: [
+          "Aufrufe öffentlicher Mioseg QR, Speichern und Follow sind nach dem jeweils angezeigten Leistungsmodell grundsätzlich ohne nutzungsabhängige Credit-Berechnung möglich. Daraus folgt jedoch kein Anspruch auf technisch unbegrenzte oder missbräuchliche Nutzung.",
+          "Zum Schutz der Plattform, anderer Nutzer und vor unverhältnismäßigen Infrastrukturkosten darf mioseg qr angemessene technische Schutzmaßnahmen einsetzen, insbesondere Rate-Limits, Bandbreiten-, Anfrage- oder Zugriffsbeschränkungen, Caching, Bot- und Missbrauchserkennung sowie vorübergehende Drosselungen.",
+          "Als außergewöhnliche oder missbräuchliche Nutzung gelten insbesondere automatisierte Massenabrufe, Scraping, Bot-Traffic, künstlich erzeugte Aufrufe, Umgehung technischer Schutzmaßnahmen, Angriffe auf die Infrastruktur oder eine Nutzung, die die Sicherheit, Stabilität oder wirtschaftlich zumutbare Bereitstellung des Dienstes erheblich gefährdet.",
+          "Bei einer solchen Nutzung darf mioseg qr den betroffenen Zugriff oder einzelne Inhalte vorübergehend begrenzen oder sperren, soweit dies zur Abwehr der Belastung oder Gefahr erforderlich und verhältnismäßig ist. Soweit möglich und zumutbar wird der betroffene Nutzer informiert.",
+          "Allein durch außergewöhnlich hohen Traffic entstehen dem Nutzer keine zusätzlichen Entgelte oder Credit-Abbuchungen, sofern der Nutzer einer solchen kostenpflichtigen Zusatzleistung nicht zuvor ausdrücklich zugestimmt hat. Gesetzliche Ansprüche und zwingende Verbraucherrechte bleiben unberührt.",
+        ],
+      },
+      {
         title: "20. Verfügbarkeit, Wartung und Störungen",
         content: [
           "mioseg qr ist bestrebt, die angebotenen Dienste im Rahmen der technischen, betrieblichen und wirtschaftlich zumutbaren Möglichkeiten zuverlässig und mit einer angemessenen Verfügbarkeit bereitzustellen. Eine ununterbrochene oder jederzeit vollständig fehlerfreie Verfügbarkeit wird jedoch nicht garantiert, soweit eine solche Verfügbarkeit nicht ausdrücklich gesondert vereinbart wurde.",
@@ -502,8 +512,8 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Weitere gesetzlich erforderliche Anbieterinformationen sowie gegebenenfalls Angaben zur Vertretungsberechtigung, Registrierung, Umsatzsteuer-Identifikation und weitere Pflichtangaben ergeben sich aus dem jeweils aktuellen Impressum.",
           "Nutzer können den Anbieter für vertragliche oder rechtliche Anliegen über die im Impressum beziehungsweise innerhalb von mioseg qr angegebenen Kontaktmöglichkeiten erreichen. Für allgemeine Supportanfragen können zusätzlich die innerhalb der Plattform vorgesehenen Supportfunktionen verwendet werden.",
           "Die jeweils geltende Fassung dieser Nutzungsbedingungen wird mit einer Versionsnummer und einem Standdatum gekennzeichnet.",
-          "Version: 1.0",
-          "Stand: 08.08.2026",
+          "Version: 1.1",
+          "Stand: 05.10.2026",
           "Für neue Nutzer gelten diese Nutzungsbedingungen ab dem Zeitpunkt ihrer wirksamen Einbeziehung in das jeweilige Nutzungsverhältnis.",
           "Für bestehende Nutzer treten spätere Änderungen dieser Nutzungsbedingungen nur nach Maßgabe von Abschnitt 28 und der jeweils anwendbaren gesetzlichen Vorschriften in Kraft.",
           "Soweit für bestimmte kostenpflichtige Leistungen, Business-Funktionen oder sonstige Zusatzangebote ergänzende Bedingungen gelten, werden diese dem Nutzer vor ihrer wirksamen Einbeziehung zugänglich gemacht.",
@@ -712,6 +722,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Yeni veya ek hizmetler ücretsiz ya da ücretli sunulabilir; ücretlilik önceden gösterilir.",
           "Tüketicilere sürekli sunulan dijital ürünlerde sözleşmeye uygunluğu korumak için gerekli olanın ötesindeki değişiklikler yalnızca yasal şartlar altında yapılır ve önemli olumsuz etki hâlinde kanunen gerekli bilgi ve fesih hakları sağlanır.",
           "Daha önce geçerli biçimde satın alınmış veya açılmış hizmetler yalnızca bu değişiklik maddesine dayanılarak geriye dönük geri alınmaz.",
+        ],
+      },
+      {
+        title: "19a. Adil kullanım, trafik ve olağanüstü kullanıma karşı koruma",
+        content: [
+          "Herkese açık Mioseg QR görüntülemeleri, kaydetme ve Follow, güncel hizmet modeline göre kullanım başına Credit ücreti olmadan sunulur. Bu, teknik olarak sınırsız veya kötüye kullanıma açık kullanım hakkı vermez.",
+          "Platformu, diğer kullanıcıları ve orantısız altyapı maliyetlerini korumak için mioseg qr makul teknik önlemler uygulayabilir; bunlara hız sınırları, bant genişliği, istek veya erişim sınırları, önbellekleme, bot/kötüye kullanım tespiti ve geçici yavaşlatma dahildir.",
+          "Olağanüstü veya kötüye kullanım; otomatik toplu istekler, scraping, bot trafiği, yapay görüntüleme, teknik korumaların aşılması, altyapıya saldırılar veya hizmetin güvenliğini, istikrarını ya da ekonomik olarak makul sunumunu ciddi biçimde tehlikeye atan kullanımları kapsar.",
+          "Bu durumlarda mioseg qr, yükü veya riski gidermek için gerekli ve orantılı ölçüde ilgili erişimi veya içeriği geçici olarak sınırlayabilir ya da engelleyebilir. Makul ölçüde mümkünse kullanıcı bilgilendirilir.",
+          "Yalnızca olağanüstü yüksek trafik nedeniyle kullanıcıdan ek ücret veya Credit alınmaz; bunun için kullanıcı önceden açıkça ücretli ek hizmeti kabul etmiş olmalıdır. Zorunlu yasal ve tüketici hakları saklıdır.",
         ],
       },
       {
@@ -1029,6 +1049,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
+        title: "19a. Uczciwe korzystanie, ruch i ochrona przed nadzwyczajnym użyciem",
+        content: [
+          "Wyświetlenia publicznych Mioseg QR, zapisywanie i Follow są co do zasady dostępne bez naliczania Credits zależnych od użycia zgodnie z aktualnie prezentowanym modelem. Nie oznacza to prawa do technicznie nieograniczonego ani nadużywającego korzystania.",
+          "W celu ochrony platformy, innych użytkowników i przed nieproporcjonalnymi kosztami infrastruktury mioseg qr może stosować rozsądne środki techniczne, w tym limity żądań, pasma lub dostępu, cache, wykrywanie botów i nadużyć oraz czasowe ograniczanie ruchu.",
+          "Nadzwyczajne lub nadużywające korzystanie obejmuje automatyczne masowe żądania, scraping, ruch botów, sztucznie generowane wyświetlenia, obchodzenie zabezpieczeń, ataki na infrastrukturę lub użycie istotnie zagrażające bezpieczeństwu, stabilności albo ekonomicznie uzasadnionemu świadczeniu usługi.",
+          "W takich przypadkach mioseg qr może czasowo ograniczyć lub zablokować dany dostęp lub treści w zakresie koniecznym i proporcjonalnym do usunięcia obciążenia lub zagrożenia. W miarę możliwości użytkownik zostanie poinformowany.",
+          "Sam wyjątkowo wysoki ruch nie powoduje dodatkowych opłat ani potrąceń Credits, chyba że użytkownik wcześniej wyraźnie zaakceptował płatną usługę dodatkową. Bezwzględnie obowiązujące prawa pozostają bez zmian.",
+        ],
+      },
+      {
         title: "20. Dostępność, konserwacja i zakłócenia",
         content: [
           "mioseg qr dąży do świadczenia usług w sposób niezawodny i odpowiednio dostępny w granicach rozsądnych możliwości technicznych, operacyjnych i ekonomicznych. O ile nie uzgodniono wyraźnie inaczej, nie gwarantuje się nieprzerwanej ani całkowicie bezbłędnej dostępności.",
@@ -1340,6 +1370,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "يمكن تقديم خدمات جديدة أو إضافية مجانًا أو بمقابل، ويُعلن عن أي تكلفة قبل الاستخدام المدفوع.",
           "بالنسبة للمنتجات الرقمية المقدمة للمستهلكين بصورة مستمرة، لا تُجرى التغييرات التي تتجاوز ما يلزم للحفاظ على المطابقة إلا وفق الشروط القانونية ومع المعلومات وحقوق الإنهاء المطلوبة.",
           "لا تُسحب الخدمات التي تم شراؤها أو فتحها بشكل صحيح بأثر رجعي لمجرد الاستناد إلى بند التغيير هذا.",
+        ],
+      },
+      {
+        title: "19أ. الاستخدام العادل وحركة البيانات والحماية من الاستخدام الاستثنائي",
+        content: [
+          "تتاح مشاهدات Mioseg QR العامة والحفظ وFollow من حيث المبدأ دون خصم Credits بحسب حجم الاستخدام وفق نموذج الخدمة المعروض. ولا ينشئ ذلك حقًا في استخدام تقني غير محدود أو مسيء.",
+          "لحماية المنصة والمستخدمين الآخرين ومن تكاليف البنية التحتية غير المتناسبة، يجوز لـ mioseg qr تطبيق تدابير تقنية معقولة، بما في ذلك حدود الطلبات أو النطاق الترددي أو الوصول والتخزين المؤقت واكتشاف الروبوتات وإساءة الاستخدام والتقييد المؤقت.",
+          "يشمل الاستخدام الاستثنائي أو المسيء خصوصًا الطلبات الآلية الجماعية وscraping وحركة الروبوتات والمشاهدات المصطنعة وتجاوز وسائل الحماية والهجمات على البنية التحتية أو الاستخدام الذي يهدد بشكل جوهري أمن الخدمة أو استقرارها أو إمكانية تشغيلها اقتصاديًا بصورة معقولة.",
+          "في هذه الحالات يجوز لـ mioseg qr تقييد أو حظر الوصول أو المحتوى المعني مؤقتًا بالقدر الضروري والمتناسب لمعالجة الحمل أو الخطر. ويُبلّغ المستخدم المعني متى كان ذلك ممكنًا ومعقولًا.",
+          "لا يؤدي ارتفاع حركة البيانات بصورة استثنائية وحده إلى رسوم إضافية أو خصم Credits من المستخدم ما لم يوافق مسبقًا وبشكل صريح على خدمة إضافية مدفوعة. وتبقى الحقوق القانونية الإلزامية دون مساس.",
         ],
       },
       {
@@ -1657,6 +1697,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
+        title: "19a. Utilisation équitable, trafic et protection contre les usages exceptionnels",
+        content: [
+          "Les consultations de Mioseg QR publics, l’enregistrement et Follow sont en principe disponibles sans facturation de Credits liée à l’usage selon le modèle affiché. Cela ne confère pas un droit à une utilisation techniquement illimitée ou abusive.",
+          "Pour protéger la plateforme, les autres utilisateurs et éviter des coûts d’infrastructure disproportionnés, mioseg qr peut appliquer des mesures techniques raisonnables, notamment des limites de requêtes, de bande passante ou d’accès, la mise en cache, la détection des bots et abus et un ralentissement temporaire.",
+          "Constituent notamment un usage exceptionnel ou abusif les requêtes automatisées massives, le scraping, le trafic de bots, les vues artificielles, le contournement des protections, les attaques contre l’infrastructure ou un usage menaçant sensiblement la sécurité, la stabilité ou l’exploitation économiquement raisonnable du service.",
+          "Dans ces cas, mioseg qr peut temporairement limiter ou bloquer l’accès ou certains contenus dans la mesure nécessaire et proportionnée. Lorsque cela est raisonnablement possible, l’utilisateur concerné est informé.",
+          "Un trafic exceptionnellement élevé ne génère pas à lui seul de frais supplémentaires ni de déduction de Credits, sauf accord préalable exprès de l’utilisateur pour un service additionnel payant. Les droits impératifs restent inchangés.",
+        ],
+      },
+      {
         title: "20. Disponibilité, maintenance et perturbations",
         content: [
           "mioseg qr s’efforce de fournir les services de manière fiable et avec une disponibilité raisonnable dans les limites techniquement, opérationnellement et économiquement raisonnables. Sauf accord exprès contraire, une disponibilité permanente ou totalement exempte d’erreurs n’est pas garantie.",
@@ -1971,6 +2021,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
+        title: "19a. Uso razonable, tráfico y protección frente a usos extraordinarios",
+        content: [
+          "Las visualizaciones de Mioseg QR públicos, guardar y Follow se ofrecen en principio sin cargos de Credits basados en el uso según el modelo mostrado. Esto no otorga un derecho a un uso técnicamente ilimitado o abusivo.",
+          "Para proteger la plataforma, a otros usuarios y frente a costes de infraestructura desproporcionados, mioseg qr puede aplicar medidas técnicas razonables, incluidos límites de solicitudes, ancho de banda o acceso, caché, detección de bots y abusos y limitación temporal del tráfico.",
+          "Se considera uso extraordinario o abusivo, entre otros, las solicitudes masivas automatizadas, scraping, tráfico de bots, visualizaciones artificiales, elusión de protecciones técnicas, ataques a la infraestructura o un uso que amenace de forma relevante la seguridad, estabilidad o prestación económicamente razonable del servicio.",
+          "En estos casos mioseg qr puede limitar o bloquear temporalmente el acceso afectado o determinados contenidos en la medida necesaria y proporcionada. Cuando sea razonablemente posible se informará al usuario afectado.",
+          "Un tráfico excepcionalmente alto por sí solo no genera cargos adicionales ni deducciones de Credits, salvo que el usuario haya aceptado expresamente de antemano un servicio adicional de pago. Los derechos legales imperativos permanecen intactos.",
+        ],
+      },
+      {
         title: "20. Disponibilidad, mantenimiento e incidencias",
         content: [
           "mioseg qr procura prestar sus servicios de forma fiable y con una disponibilidad adecuada dentro de lo técnica, operativa y económicamente razonable. Salvo acuerdo expreso, no se garantiza una disponibilidad permanente o completamente libre de errores.",
@@ -2282,6 +2342,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Nuovi servizi o servizi aggiuntivi possono essere offerti gratuitamente o a pagamento; l’eventuale costo viene indicato prima dell’utilizzo a pagamento.",
           "Per i prodotti digitali forniti continuativamente ai consumatori, le modifiche che vanno oltre quanto necessario a mantenere la conformità vengono effettuate solo nel rispetto dei requisiti di legge e con le informazioni e i diritti di risoluzione previsti.",
           "I servizi validamente acquistati o sbloccati non vengono revocati retroattivamente unicamente sulla base di questa clausola di modifica.",
+        ],
+      },
+      {
+        title: "19a. Uso corretto, traffico e protezione da utilizzi eccezionali",
+        content: [
+          "Le visualizzazioni dei Mioseg QR pubblici, il salvataggio e Follow sono in linea di principio disponibili senza addebiti di Credits basati sull’utilizzo secondo il modello mostrato. Ciò non attribuisce un diritto a un uso tecnicamente illimitato o abusivo.",
+          "Per proteggere la piattaforma, gli altri utenti e da costi infrastrutturali sproporzionati, mioseg qr può applicare misure tecniche ragionevoli, tra cui limiti di richieste, banda o accesso, caching, rilevamento di bot e abusi e limitazioni temporanee.",
+          "Per uso eccezionale o abusivo si intendono in particolare richieste massive automatizzate, scraping, traffico bot, visualizzazioni artificiali, elusione delle protezioni tecniche, attacchi all’infrastruttura o utilizzi che minaccino in modo significativo sicurezza, stabilità o sostenibilità economica del servizio.",
+          "In tali casi mioseg qr può limitare o bloccare temporaneamente l’accesso interessato o singoli contenuti nella misura necessaria e proporzionata. Ove ragionevolmente possibile, l’utente interessato viene informato.",
+          "Il solo traffico eccezionalmente elevato non comporta costi aggiuntivi o detrazioni di Credits, salvo che l’utente abbia espressamente accettato in anticipo un servizio aggiuntivo a pagamento. Restano salvi i diritti inderogabili.",
         ],
       },
       {
@@ -2726,6 +2796,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         ],
       },
       {
+        title: "19a. Fair Use, Traffic and Protection Against Exceptional Use",
+        content: [
+          "Views of public Mioseg QR, saving and Follow are generally available without usage-based Credit charges under the currently displayed service model. This does not create a right to technically unlimited or abusive use.",
+          "To protect the platform, other users and against disproportionate infrastructure costs, mioseg qr may apply reasonable technical safeguards, including rate limits, bandwidth, request or access limits, caching, bot and abuse detection, and temporary throttling.",
+          "Exceptional or abusive use includes automated mass requests, scraping, bot traffic, artificially generated views, circumvention of technical safeguards, attacks on infrastructure, or use that materially threatens the security, stability or economically reasonable operation of the service.",
+          "In such cases mioseg qr may temporarily restrict or block affected access or individual content to the extent necessary and proportionate to address the load or risk. Where reasonably possible, the affected user will be informed.",
+          "Exceptionally high traffic alone does not result in additional charges or Credit deductions for the user unless the user has expressly agreed in advance to a paid additional service. Mandatory statutory and consumer rights remain unaffected.",
+        ],
+      },
+      {
         title: "20. Availability, Maintenance, and Disruptions",
         content: [
           "mioseg qr endeavors to provide the services offered reliably and with reasonable availability within technically, operationally, and economically reasonable possibilities. However, uninterrupted or entirely error-free availability at all times is not guaranteed unless such availability has been expressly agreed separately.",
@@ -2893,7 +2973,7 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Further provider information required by law and, where applicable, information regarding authority to represent, registration, VAT identification, and other mandatory disclosures are set out in the current Legal Notice (Imprint).",
           "Users may contact the provider regarding contractual or legal matters through the contact options specified in the Legal Notice (Imprint) or within mioseg qr. For general support requests, the support functions provided within the platform may additionally be used.",
           "The version of these Terms of Use applicable at any given time is identified by a version number and an effective-date indication.",
-          "Version: 1.0",
+          "Version: 1.1",
           "Effective date: 08 August 2026",
           "For new users, these Terms of Use apply from the time they are validly incorporated into the relevant user relationship.",
           "For existing users, later changes to these Terms of Use take effect only in accordance with Section 28 and the applicable statutory provisions.",
