@@ -363,12 +363,20 @@ export default function LegalPage({
           </aside>
 
           <div style={styles.mainColumn} data-legal-main-column>
-            {document.sections.map((section, sectionIndex) => (
+            {document.sections.map((section, sectionIndex) => {
+              const isImprintProviderSection =
+                document.title === ui.imprint && sectionIndex === 0;
+
+              return (
               <section
                 key={`${sectionId(sectionIndex)}-${section.title}`}
                 id={sectionId(sectionIndex)}
-                style={styles.sectionCard}
+                style={{
+                  ...styles.sectionCard,
+                  ...(isImprintProviderSection ? styles.providerSectionCard : {}),
+                }}
                 data-legal-section-card
+                data-legal-provider-section={isImprintProviderSection ? "true" : undefined}
               >
                 <h2 style={styles.sectionTitle} data-legal-section-title>
                   {section.title}
@@ -384,7 +392,8 @@ export default function LegalPage({
                   </p>
                 ))}
               </section>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -546,6 +555,11 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 28,
     boxShadow: "0 16px 40px rgba(15, 23, 42, 0.05)",
     scrollMarginTop: 24,
+  },
+  providerSectionCard: {
+    backgroundColor: "#fbfcfe",
+    border: "1px solid #edf1f5",
+    boxShadow: "none",
   },
   sectionTitle: {
     margin: "0 0 14px 0",
