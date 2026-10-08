@@ -2017,7 +2017,7 @@ export default async function QrxPage({
 
       <QrxPasswordGate
         qrxId={qrxId}
-        enabled={entry.password_protected === true && !hasAdminAccess}
+        enabled={entry.password_protected === true && !hasAdminAccess && !isOwner}
         locale={publicLocale}
       >
         {parentQrxId && parentQrxTitle ? (
