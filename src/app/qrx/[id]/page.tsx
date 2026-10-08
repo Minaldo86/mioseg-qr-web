@@ -1316,6 +1316,9 @@ export default async function QrxPage({
   const ui = LEGACY_QRX_TEXT[publicLocale];
   const supabase = await createSupabaseServerClient();
 
+  const { data: userData } = await supabase.auth.getUser();
+  const currentUserId = userData.user?.id ?? null;
+
   // Resolve the authenticated user before loading any protected QR content.
   // Minimal server-only preflight. Never expose password_hash or protected content.
   const { data: accessEntry, error: accessEntryError } = await supabaseAdmin
@@ -1409,9 +1412,6 @@ export default async function QrxPage({
       },
       [],
     );
-
-  const { data: userData } = await supabase.auth.getUser();
-  const currentUserId = userData.user?.id ?? null;
 
   // follower_count is maintained on the entry; avoid an expensive exact COUNT on every public view.
   const saveCountRaw = entry?.follower_count ?? 0;
