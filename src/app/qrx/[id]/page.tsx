@@ -1,8 +1,8 @@
 import type { CSSProperties } from "react";
-import { createClient } from "@supabase/supabase-js";
 import styles from "./page.module.css";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { headers } from "next/headers";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { cookies, headers } from "next/headers";
 import { revalidatePath, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import TrackViewClient from "./TrackViewClient";
@@ -1150,6 +1150,53 @@ function normalizeNewsItems(value: NewsItem[] | null | undefined) {
     });
 }
 
+
+function qrxUnlockCookieName(qrxId: string) {
+  return `mioseg_qrx_unlock_${qrxId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+}
+
+function bytesToHex(bytes: ArrayBuffer) {
+  return Array.from(new Uint8Array(bytes))
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function signQrxUnlock(value: string, secret: string) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  return bytesToHex(
+    await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value)),
+  );
+}
+
+async function hasValidQrxUnlockCookie(qrxId: string) {
+  const secret = String(process.env.QRX_PASSWORD_UNLOCK_SECRET || "").trim();
+  if (!secret) return false;
+
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(qrxUnlockCookieName(qrxId))?.value ?? "";
+  const [expiresRaw, signature] = raw.split(".");
+  const expires = Number(expiresRaw);
+
+  if (!Number.isFinite(expires) || expires <= Date.now() || !signature) {
+    return false;
+  }
+
+  const expected = await signQrxUnlock(`${qrxId}.${expiresRaw}`, secret);
+  if (expected.length !== signature.length) return false;
+
+  let diff = 0;
+  for (let i = 0; i < expected.length; i += 1) {
+    diff |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
 // Cache only public, user-independent QR data. The page itself stays dynamic
 // because authentication, owner/follow state, language headers and moderation
 // actions are request-specific. A short TTL dramatically reduces repeated
@@ -1159,15 +1206,9 @@ const PUBLIC_QRX_CACHE_SECONDS = 60;
 async function loadCachedPublicQrxData(qrxId: string) {
   return unstable_cache(
     async () => {
-      const supabaseUrl = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
-      const supabaseAnonKey = (process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error("Supabase public environment variables are missing.");
-      }
-      // Deliberately cookie-free: cached data must never depend on a visitor session.
-      const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      });
+      // Server-only service-role client. This loader returns only explicitly selected
+      // public fields and is called only after the password/owner gate has been checked.
+      const supabase = supabaseAdmin;
 
       const [entryResult, mediaResult, collectionResult] = await Promise.all([
         supabase
@@ -1208,7 +1249,7 @@ async function loadCachedPublicQrxData(qrxId: string) {
       const collectionChildrenResult = linkedQrxIds.length > 0
         ? await supabase
             .from("qr_x_entries")
-            .select("id,title,company_name,description,type,logo_url,cover_image_url,location_name,verified,deleted_at,suspended")
+            .select("id,title,company_name,description,type,logo_url,cover_image_url,location_name,verified,deleted_at,suspended,password_protected")
             .in("id", linkedQrxIds)
             .is("deleted_at", null)
             .or("suspended.is.null,suspended.eq.false")
@@ -1222,7 +1263,7 @@ async function loadCachedPublicQrxData(qrxId: string) {
         collectionRows,
         collectionRowsError: toErrorMessage(collectionResult.error),
         collectionChildren: (collectionChildrenResult.data ?? []) as Array<
-          QrxCollectionPreviewItem & { deleted_at?: string | null; suspended?: boolean | null }
+          QrxCollectionPreviewItem & { deleted_at?: string | null; suspended?: boolean | null; password_protected?: boolean | null }
         >,
         collectionChildrenError: toErrorMessage(collectionChildrenResult.error),
       };
@@ -1275,6 +1316,54 @@ export default async function QrxPage({
   const ui = LEGACY_QRX_TEXT[publicLocale];
   const supabase = await createSupabaseServerClient();
 
+  // Resolve the authenticated user before loading any protected QR content.
+  // Minimal server-only preflight. Never expose password_hash or protected content.
+  const { data: accessEntry, error: accessEntryError } = await supabaseAdmin
+    .from("qr_x_entries")
+    .select("id,owner_user_id,password_protected,deleted_at,suspended")
+    .eq("id", qrxId)
+    .maybeSingle();
+
+  if (accessEntryError || !accessEntry) {
+    return (
+      <main className={styles.page}>
+        <div className={styles.card}>
+          <h1 className={styles.title}>404</h1>
+          <p className={styles.sub}>{ui.notFound}</p>
+        </div>
+      </main>
+    );
+  }
+
+  const isOwnerPreflight = Boolean(
+    accessEntry.owner_user_id &&
+    currentUserId &&
+    accessEntry.owner_user_id === currentUserId,
+  );
+
+  const needsPassword =
+    accessEntry.password_protected === true &&
+    !hasAdminAccess &&
+    !isOwnerPreflight;
+
+  const passwordUnlocked = needsPassword
+    ? await hasValidQrxUnlockCookie(qrxId)
+    : true;
+
+  if (needsPassword && !passwordUnlocked) {
+    return (
+      <main className={styles.page}>
+        <QrxPasswordGate
+          qrxId={qrxId}
+          enabled={true}
+          locale={publicLocale}
+        >
+          {null}
+        </QrxPasswordGate>
+      </main>
+    );
+  }
+
   const publicData = await loadCachedPublicQrxData(qrxId);
   const entry = publicData.entry;
   const entryErr = publicData.entryError;
@@ -1302,7 +1391,7 @@ export default async function QrxPage({
     publicData.collectionRows.reduce<QrxCollectionPreviewItem[]>(
       (accumulator, row) => {
         const child = collectionChildrenById.get(row.linked_qrx_id);
-        if (!child || child.deleted_at || child.suspended === true) return accumulator;
+        if (!child || child.deleted_at || child.suspended === true || child.password_protected === true) return accumulator;
 
         accumulator.push({
           id: child.id,
@@ -1476,7 +1565,7 @@ export default async function QrxPage({
     hasSaved: Boolean(savedRow),
     env: {
       SUPABASE_URL: !!process.env.SUPABASE_URL,
-      SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
+      QRX_PASSWORD_UNLOCK_SECRET: !!process.env.QRX_PASSWORD_UNLOCK_SECRET,
       runtime: "nodejs",
     },
   };
@@ -2017,7 +2106,7 @@ export default async function QrxPage({
 
       <QrxPasswordGate
         qrxId={qrxId}
-        enabled={entry.password_protected === true && !hasAdminAccess && !isOwner}
+        enabled={entry.password_protected === true && !hasAdminAccess && !isOwner && !passwordUnlocked}
         locale={publicLocale}
       >
         {parentQrxId && parentQrxTitle ? (

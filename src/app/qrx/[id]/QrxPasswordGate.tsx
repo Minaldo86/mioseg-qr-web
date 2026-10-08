@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import styles from "./page.module.css";
 
@@ -16,133 +17,48 @@ const PASSWORD_TEXT = {
   it:{required:"Inserisci la password.",checkFailed:"Impossibile verificare la password.",wrong:"Password errata. Controlla i dati inseriti.",title:"Mioseg QR protetto",text:"Questo Mioseg QR è protetto da password. Inseriscila per aprire il contenuto.",placeholder:"Password",checking:"Verifica…",open:"Apri Mioseg QR"},
 } as const;
 
-
-export default function QrxPasswordGate({
-  qrxId,
-  enabled,
-  children,
-  locale = "de",
-}: {
-  qrxId: string;
-  enabled: boolean;
-  children: React.ReactNode;
-  locale?: QrxPasswordLocale;
+export default function QrxPasswordGate({ qrxId, enabled, children, locale = "de" }: {
+  qrxId: string; enabled: boolean; children: React.ReactNode; locale?: QrxPasswordLocale;
 }) {
   const ui = PASSWORD_TEXT[locale];
-  const [password, setPassword] = useState("");
-  const [unlocked, setUnlocked] = useState(!enabled);
-  const [checking, setChecking] = useState(false);
-  const [errorText, setErrorText] = useState<string | null>(null);
+  const router = useRouter();
+  const [password,setPassword]=useState("");
+  const [unlocked,setUnlocked]=useState(!enabled);
+  const [checking,setChecking]=useState(false);
+  const [errorText,setErrorText]=useState<string|null>(null);
 
-  const verifyPassword = async () => {
-    const trimmed = password.trim();
-
-    if (!trimmed) {
-      setErrorText(ui.required);
-      return;
-    }
-
-    try {
-      setChecking(true);
-      setErrorText(null);
-
-      const res = await fetch("/api/qrx/verify-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          qrxId,
-          password: trimmed,
-        }),
-      });
-
-      const data = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        throw new Error(data?.error || ui.checkFailed);
-      }
-
-      if (data?.accessGranted === true) {
-        setUnlocked(true);
-        setPassword("");
+  const verifyPassword=async()=>{
+    const trimmed=password.trim();
+    if(!trimmed){setErrorText(ui.required);return;}
+    try{
+      setChecking(true);setErrorText(null);
+      const res=await fetch("/api/qrx/verify-password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({qrxId,password:trimmed})});
+      const data=await res.json().catch(()=>null);
+      if(!res.ok) throw new Error(data?.error||ui.checkFailed);
+      if(data?.accessGranted===true){
+        setUnlocked(true);setPassword("");
+        router.refresh();
         return;
       }
-
       setErrorText(ui.wrong);
-    } catch (error: unknown) {
-
-      setErrorText(
-        error instanceof Error
-          ? error.message
-          : ui.checkFailed
-      );
-    } finally {
-      setChecking(false);
-    }
+    }catch(error:unknown){
+      setErrorText(error instanceof Error?error.message:ui.checkFailed);
+    }finally{setChecking(false);}
   };
 
-  if (unlocked) {
-    return <>{children}</>;
-  }
-
-  return (
-    <div className={styles.card}>
-      <h1 className={styles.title}>{ui.title}</h1>
-      <p className={styles.sub}>
-        {ui.text}
-      </p>
-
-      <div style={{ display: "grid", gap: 12, marginTop: 18 }}>
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              verifyPassword();
-            }
-          }}
-          placeholder={ui.placeholder}
-          autoComplete="current-password"
-          style={{
-            width: "100%",
-            minHeight: 48,
-            borderRadius: 14,
-            border: "1px solid rgba(255,255,255,0.18)",
-            background: "rgba(255,255,255,0.08)",
-            color: "#fff",
-            padding: "0 14px",
-            fontSize: 16,
-            outline: "none",
-            boxSizing: "border-box",
-          }}
-        />
-
-        {errorText ? (
-          <p className={styles.sub} style={{ color: "#fecaca", margin: 0 }}>
-            {errorText}
-          </p>
-        ) : null}
-
-        <button
-          type="button"
-          onClick={verifyPassword}
-          disabled={checking}
-          style={{
-            minHeight: 48,
-            borderRadius: 14,
-            border: "none",
-            background: "#e2e8f0",
-            color: "#0f172a",
-            fontWeight: 800,
-            cursor: checking ? "default" : "pointer",
-            opacity: checking ? 0.65 : 1,
-          }}
-        >
-          {checking ? ui.checking : ui.open}
-        </button>
-      </div>
+  if(unlocked) return <>{children}</>;
+  return <div className={styles.card}>
+    <h1 className={styles.title}>{ui.title}</h1>
+    <p className={styles.sub}>{ui.text}</p>
+    <div style={{display:"grid",gap:12,marginTop:18}}>
+      <input type="password" value={password} onChange={e=>setPassword(e.target.value)}
+        onKeyDown={e=>{if(e.key==="Enter") verifyPassword();}} placeholder={ui.placeholder}
+        autoComplete="current-password" style={{width:"100%",minHeight:48,borderRadius:14,border:"1px solid rgba(255,255,255,0.18)",background:"rgba(255,255,255,0.08)",color:"#fff",padding:"0 14px",fontSize:16,outline:"none",boxSizing:"border-box"}}/>
+      {errorText?<p className={styles.sub} style={{color:"#fecaca",margin:0}}>{errorText}</p>:null}
+      <button type="button" onClick={verifyPassword} disabled={checking}
+        style={{minHeight:48,borderRadius:14,border:"none",background:"#e2e8f0",color:"#0f172a",fontWeight:800,cursor:checking?"default":"pointer",opacity:checking?0.65:1}}>
+        {checking?ui.checking:ui.open}
+      </button>
     </div>
-  );
+  </div>;
 }
