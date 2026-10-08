@@ -812,59 +812,31 @@ export default function DashboardQrxPage() {
       return;
     }
 
-    const [ownRes, savedRes] = await Promise.all([
-      supabase
-        .from("qr_x_entries")
-        .select(
-          "id,title,company_name,description,type,category,verified,password_protected,cover_image_url,cover_media_id,cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url),logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,follower_count,created_at,deleted_at",
-        )
-        .eq("owner_user_id", user.id)
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false })
-        .returns<QrxEntry[]>(),
+    const { data: payload, error: listError } = await supabase.functions.invoke(
+      "get-dashboard-qrx-list",
+      { body: {} },
+    );
 
-      supabase
-        .from("qrx_saves")
-        .select(
-          `
-          qrx_id,
-          qr_x_entries (
-            id,title,company_name,description,type,category,verified,password_protected,
-            cover_image_url,cover_media_id,cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url),
-            logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,
-            follower_count,created_at,deleted_at
-          )
-        `,
-        )
-        .eq("user_id", user.id)
-        .is("qr_x_entries.deleted_at", null)
-        .returns<SavedQrxRow[]>(),
-    ]);
-
-    if (ownRes.error) {
-      setErrorText(ownRes.error.message);
+    if (listError || !payload?.ok) {
+      const message =
+        listError?.message ||
+        payload?.error ||
+        "Mioseg QR konnten nicht geladen werden.";
+      setErrorText(message);
       setOwnItems([]);
+      setSavedItems([]);
       setMediaAnalyticsByQrxId({});
     } else {
-      const ownData = ownRes.data ?? [];
+      const ownData = Array.isArray(payload.own)
+        ? (payload.own as QrxEntry[])
+        : [];
+      const savedData = Array.isArray(payload.saved)
+        ? (payload.saved as QrxEntry[])
+        : [];
+
       setOwnItems(ownData);
+      setSavedItems(savedData);
       await loadMediaAnalyticsForOwnQrx(ownData);
-    }
-
-    if (savedRes.error) {
-      setErrorText(savedRes.error.message);
-      setSavedItems([]);
-    } else {
-      const mapped = (savedRes.data ?? [])
-        .map((row) => row.qr_x_entries)
-        .filter((entry): entry is QrxEntry => Boolean(entry))
-        .filter((entry) => !entry.deleted_at)
-        .filter(
-          (entry) =>
-            entry.id && !(ownRes.data ?? []).some((own) => own.id === entry.id),
-        );
-
-      setSavedItems(mapped);
     }
 
     setLoading(false);
