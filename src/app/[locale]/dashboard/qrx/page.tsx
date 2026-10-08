@@ -42,6 +42,7 @@ const QRLIST_TEXT = {
     businessQrx: "Business Mioseg QR",
     normalQrx: "Normale Mioseg QR",
     verified: "Verifiziert",
+    passwordProtected: "🔒 Passwortgeschützt",
     createdTitle: "Deine erstellten Mioseg QR",
     savedTitle: "Deine gespeicherten Mioseg QR",
     createdText: "Alle Mioseg QR aus deinem Konto, sortiert nach dem neuesten Eintrag.",
@@ -112,6 +113,7 @@ const QRLIST_TEXT = {
     businessQrx: "Business Mioseg QR",
     normalQrx: "Normal Mioseg QR",
     verified: "Verified",
+    passwordProtected: "🔒 Password protected",
     createdTitle: "Your created Mioseg QR",
     savedTitle: "Your saved Mioseg QR",
     createdText: "All Mioseg QR in your account, sorted by newest first.",
@@ -182,6 +184,7 @@ const QRLIST_TEXT = {
     businessQrx: "Business Mioseg QR",
     normalQrx: "Normal Mioseg QR",
     verified: "Doğrulandı",
+    passwordProtected: "🔒 Parola korumalı",
     createdTitle: "Oluşturduğun Mioseg QR'ler",
     savedTitle: "Kaydettiğin Mioseg QR'ler",
     createdText: "Hesabındaki tüm Mioseg QR'ler, en yeniler önce.",
@@ -252,6 +255,7 @@ const QRLIST_TEXT = {
     businessQrx: "Business Mioseg QR",
     normalQrx: "Zwykłe Mioseg QR",
     verified: "Zweryfikowane",
+    passwordProtected: "🔒 Chronione hasłem",
     createdTitle: "Utworzone Mioseg QR",
     savedTitle: "Zapisane Mioseg QR",
     createdText: "Wszystkie Mioseg QR na Twoim koncie, od najnowszych.",
@@ -322,6 +326,7 @@ const QRLIST_TEXT = {
     businessQrx: "Business Mioseg QR",
     normalQrx: "Mioseg QR عادية",
     verified: "موثّق",
+    passwordProtected: "🔒 محمي بكلمة مرور",
     createdTitle: "Mioseg QR التي أنشأتها",
     savedTitle: "Mioseg QR المحفوظة لديك",
     createdText: "كل Mioseg QR في حسابك مرتبة من الأحدث.",
@@ -392,6 +397,7 @@ const QRLIST_TEXT = {
     businessQrx: "Business Mioseg QR",
     normalQrx: "Mioseg QR normaux",
     verified: "Vérifié",
+    passwordProtected: "🔒 Protégé par mot de passe",
     createdTitle: "Vos Mioseg QR créés",
     savedTitle: "Vos Mioseg QR enregistrés",
     createdText: "Tous les Mioseg QR de votre compte, du plus récent au plus ancien.",
@@ -462,6 +468,7 @@ const QRLIST_TEXT = {
     businessQrx: "Business Mioseg QR",
     normalQrx: "Mioseg QR normales",
     verified: "Verificado",
+    passwordProtected: "🔒 Protegido con contraseña",
     createdTitle: "Tus Mioseg QR creados",
     savedTitle: "Tus Mioseg QR guardados",
     createdText: "Todos los Mioseg QR de tu cuenta, ordenados del más reciente.",
@@ -532,6 +539,7 @@ const QRLIST_TEXT = {
     businessQrx: "Business Mioseg QR",
     normalQrx: "Mioseg QR normali",
     verified: "Verificato",
+    passwordProtected: "🔒 Protetto da password",
     createdTitle: "I tuoi Mioseg QR creati",
     savedTitle: "I tuoi Mioseg QR salvati",
     createdText: "Tutti i Mioseg QR del tuo account, ordinati dal più recente.",
@@ -642,6 +650,7 @@ type QrxEntry = {
   type: "normal" | "business" | null;
   category: BusinessCategory | null;
   verified: boolean | null;
+  password_protected?: boolean | null;
   cover_image_url: string | null;
   cover_media_id?: string | null;
   cover_media?: QrxMedia | QrxMedia[] | null;
@@ -807,7 +816,7 @@ export default function DashboardQrxPage() {
       supabase
         .from("qr_x_entries")
         .select(
-          "id,title,company_name,description,type,category,verified,cover_image_url,cover_media_id,cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url),logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,follower_count,created_at,deleted_at",
+          "id,title,company_name,description,type,category,verified,password_protected,cover_image_url,cover_media_id,cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url),logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,follower_count,created_at,deleted_at",
         )
         .eq("owner_user_id", user.id)
         .is("deleted_at", null)
@@ -820,7 +829,7 @@ export default function DashboardQrxPage() {
           `
           qrx_id,
           qr_x_entries (
-            id,title,company_name,description,type,category,verified,
+            id,title,company_name,description,type,category,verified,password_protected,
             cover_image_url,cover_media_id,cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url),
             logo_url,logo_media_id,logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url),location_name,views_total,
             follower_count,created_at,deleted_at
@@ -1003,8 +1012,8 @@ export default function DashboardQrxPage() {
       const searchableText = [
         item.title ?? "",
         item.company_name ?? "",
-        item.description ?? "",
-        item.location_name ?? "",
+        activeTab === "saved" && item.password_protected ? "" : item.description ?? "",
+        activeTab === "saved" && item.password_protected ? "" : item.location_name ?? "",
         categoryLabel,
         item.type === "business" ? "business" : "normal",
         item.verified ? "verifiziert" : "",
@@ -1014,7 +1023,7 @@ export default function DashboardQrxPage() {
 
       return searchableText.includes(query);
     });
-  }, [items, searchQuery]);
+  }, [items, searchQuery, activeTab]);
 
   const stats = useMemo(() => {
     const business = items.filter((item) => item.type === "business").length;
@@ -1345,6 +1354,8 @@ export default function DashboardQrxPage() {
               const title = getQrxTitle(entry, ui.untitled);
               const image = getQrxCardImage(entry);
               const isBusiness = entry.type === "business";
+              const isPasswordProtected = entry.password_protected === true;
+              const hideProtectedSavedDetails = activeTab === "saved" && isPasswordProtected;
               const categoryLabel = getBusinessCategoryLabel(entry.category, ui);
               const openHref = `/qrx/${entry.id}`;
               const editHref = `/${locale}/dashboard/qrx/${entry.id}/edit`;
@@ -1489,7 +1500,7 @@ export default function DashboardQrxPage() {
                         overflow: "hidden",
                       }}
                     >
-                      {getQrxText(entry, ui.qrxFallback)}
+                      {hideProtectedSavedDetails ? ui.passwordProtected : getQrxText(entry, ui.qrxFallback)}
                     </p>
 
                     <div
@@ -1500,7 +1511,7 @@ export default function DashboardQrxPage() {
                         marginBottom: 14,
                       }}
                     >
-                      {entry.location_name?.trim() ? (
+                      {!hideProtectedSavedDetails && entry.location_name?.trim() ? (
                         <span
                           style={{
                             minHeight: 30,
@@ -1518,7 +1529,7 @@ export default function DashboardQrxPage() {
                         </span>
                       ) : null}
 
-                      {isBusiness && categoryLabel ? (
+                      {!hideProtectedSavedDetails && isBusiness && categoryLabel ? (
                         <span
                           style={{
                             minHeight: 30,
@@ -1534,6 +1545,25 @@ export default function DashboardQrxPage() {
                           }}
                         >
                           ▦ {categoryLabel}
+                        </span>
+                      ) : null}
+
+                      {isPasswordProtected ? (
+                        <span
+                          style={{
+                            minHeight: 30,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            borderRadius: 999,
+                            padding: "0 10px",
+                            background: "rgba(245,158,11,0.14)",
+                            color: "#fde68a",
+                            fontSize: 12,
+                            fontWeight: 900,
+                            border: "1px solid rgba(245,158,11,0.22)",
+                          }}
+                        >
+                          {ui.passwordProtected}
                         </span>
                       ) : null}
 
