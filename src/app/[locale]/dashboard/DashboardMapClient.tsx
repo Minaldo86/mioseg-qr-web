@@ -1015,18 +1015,11 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         setLoading(true);
       }
 
-      const ownQuery = supabase
-        .from("qr_x_entries")
-        .select(
-          "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at,suspended,password_protected",
-        )
-        .eq("owner_user_id", userId)
-        .is("deleted_at", null)
-        .or("suspended.is.null,suspended.eq.false")
-        .gte("location_lat", viewport.south)
-        .lte("location_lat", viewport.north)
-        .gte("location_lng", viewport.west)
-        .lte("location_lng", viewport.east);
+      // Own + saved Mioseg QR are resolved server-side. This removes the
+      // dashboard map's direct client read from qr_x_entries.
+      const qrxMapPromise = supabase.functions.invoke("get-dashboard-map-qrx", {
+        body: { viewport },
+      });
 
       const scansQuery = supabase
         .from("user_scans")
@@ -1037,40 +1030,15 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         .gte("longitude", viewport.west)
         .lte("longitude", viewport.east);
 
-      const savedIds = savedQrxIdsRef.current;
-      const savedPromise =
-        savedIds.length > 0
-          ? supabase
-              .from("qr_x_entries")
-              .select(
-                "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at,suspended,password_protected",
-              )
-              .in("id", savedIds)
-              .is("deleted_at", null)
-              .or("suspended.is.null,suspended.eq.false")
-              .gte("location_lat", viewport.south)
-              .lte("location_lat", viewport.north)
-              .gte("location_lng", viewport.west)
-              .lte("location_lng", viewport.east)
-              .returns<QrxEntry[]>()
-          : Promise.resolve({ data: [] as QrxEntry[], error: null });
-
-      const [ownQrxRes, savedQrxRes, scansRes] = await Promise.all([
-        ownQuery.returns<QrxEntry[]>(),
-        savedPromise,
+      const [qrxMapRes, scansRes] = await Promise.all([
+        qrxMapPromise,
         scansQuery.returns<UserScan[]>(),
       ]);
 
-      if (ownQrxRes.error) {
+      if (qrxMapRes.error) {
         console.warn(
-          "Dashboard map own Mioseg QR viewport error:",
-          ownQrxRes.error.message,
-        );
-      }
-      if (savedQrxRes.error) {
-        console.warn(
-          "Dashboard map saved Mioseg QR viewport error:",
-          savedQrxRes.error.message,
+          "Dashboard map Mioseg QR viewport error:",
+          qrxMapRes.error.message,
         );
       }
       if (scansRes.error) {
@@ -1080,7 +1048,17 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
         );
       }
 
-      const ownPoints: MapPoint[] = (ownQrxRes.data ?? [])
+      const ownQrxRows: QrxEntry[] =
+        !qrxMapRes.error && qrxMapRes.data?.ok && Array.isArray(qrxMapRes.data.own)
+          ? (qrxMapRes.data.own as QrxEntry[])
+          : [];
+
+      const savedQrxRows: QrxEntry[] =
+        !qrxMapRes.error && qrxMapRes.data?.ok && Array.isArray(qrxMapRes.data.saved)
+          ? (qrxMapRes.data.saved as QrxEntry[])
+          : [];
+
+      const ownPoints: MapPoint[] = ownQrxRows
         .filter((entry) => entry.deleted_at == null && entry.suspended !== true)
         .filter((entry) =>
           isValidCoordinate(entry.location_lat, entry.location_lng),
@@ -1105,7 +1083,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           protectedPreview: false,
         }));
 
-      const savedPoints: MapPoint[] = (savedQrxRes.data ?? [])
+      const savedPoints: MapPoint[] = savedQrxRows
         .filter((entry) => entry.deleted_at == null && entry.suspended !== true)
         .filter((entry) => entry.owner_user_id !== userId)
         .filter((entry) =>
