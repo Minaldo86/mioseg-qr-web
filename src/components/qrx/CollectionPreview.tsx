@@ -1,8 +1,5 @@
 "use client";
 
-import { normalizeMediaDeliveryUrl } from "@/lib/media";
-
-
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
@@ -17,6 +14,7 @@ export type QrxCollectionPreviewItem = {
   location_name?: string | null;
   verified?: boolean | null;
   custom_title?: string | null;
+  password_protected?: boolean | null;
 };
 
 type CollectionPreviewProps = {
@@ -83,8 +81,8 @@ export default function CollectionPreview({
         {items.map((item) => {
           const title = getDisplayTitle(item, labels.untitled);
           const image =
-            normalizeMediaDeliveryUrl(item.cover_image_url) ||
-            normalizeMediaDeliveryUrl(item.logo_url) ||
+            item.cover_image_url?.trim() ||
+            item.logo_url?.trim() ||
             null;
 
           const detailPath =
@@ -124,6 +122,10 @@ export default function CollectionPreview({
 
               <div style={bodyStyle}>
                 <h3 style={itemTitleStyle}>{title}</h3>
+
+                {item.password_protected ? (
+                  <div style={passwordProtectedStyle}>🔒 Passwortgeschützt</div>
+                ) : null}
 
                 <p style={itemTextStyle}>
                   {getDisplayText(item, labels.business, labels.normal)}
@@ -299,6 +301,17 @@ const itemTitleStyle: CSSProperties = {
   fontSize: 19,
   lineHeight: 1.2,
   fontWeight: 950,
+};
+
+const passwordProtectedStyle: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 5,
+  margin: "0 0 6px",
+  fontSize: 12,
+  fontWeight: 700,
+  color: "#f8fafc",
+  opacity: 0.9,
 };
 
 const itemTextStyle: CSSProperties = {

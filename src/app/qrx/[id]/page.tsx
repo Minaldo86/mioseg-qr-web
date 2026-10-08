@@ -1396,20 +1396,22 @@ export default async function QrxPage({
         const child = collectionChildrenById.get(row.linked_qrx_id);
         if (!child || child.deleted_at || child.suspended === true) return accumulator;
 
-        // Keep password-protected Mioseg QR visible in collections, but never
-        // expose protected metadata before the visitor unlocks that QR.
+        // Password-protected Mioseg QR stay recognizable inside collections.
+        // Only preview metadata (title + preview image/type) is exposed here;
+        // protected content still requires the QR password on the detail page.
         if (child.password_protected === true) {
           accumulator.push({
             id: child.id,
-            title: null,
+            title: child.title ?? null,
             company_name: null,
             description: null,
             type: child.type ?? null,
-            logo_url: null,
-            cover_image_url: null,
+            logo_url: child.logo_url ?? null,
+            cover_image_url: child.cover_image_url ?? null,
             location_name: null,
-            verified: null,
-            custom_title: null,
+            verified: child.verified ?? null,
+            custom_title: row.custom_title ?? null,
+            password_protected: true,
           });
           return accumulator;
         }
@@ -1425,6 +1427,7 @@ export default async function QrxPage({
           location_name: child.location_name ?? null,
           verified: child.verified ?? null,
           custom_title: row.custom_title ?? null,
+          password_protected: false,
         });
         return accumulator;
       },
