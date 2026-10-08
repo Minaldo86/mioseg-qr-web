@@ -26,6 +26,8 @@ type MapPoint = {
   followerCount: number;
   viewCount: number;
   coverUrl: string | null;
+  passwordProtected: boolean;
+  protectedPreview: boolean;
 };
 
 type QrxEntry = {
@@ -45,6 +47,7 @@ type QrxEntry = {
   cover_image_url: string | null;
   deleted_at: string | null;
   suspended: boolean | null;
+  password_protected: boolean | null;
 };
 
 type UserScan = {
@@ -169,6 +172,7 @@ const MAP_TEXT = {
     currentMapArea: "Aktueller Kartenausschnitt",
     noVisible: "Im aktuellen Ausschnitt ist kein passender Eintrag sichtbar.",
     verified: "Verifiziert",
+    passwordProtected: "Passwortgeschützt",
     edit: "Bearbeiten",
     navigation: "Navigation",
     linkCopied: "Link kopiert",
@@ -217,6 +221,7 @@ const MAP_TEXT = {
     currentMapArea: "Current map area",
     noVisible: "No matching entry is visible in the current area.",
     verified: "Verified",
+    passwordProtected: "Password protected",
     edit: "Edit",
     navigation: "Navigation",
     linkCopied: "Link copied",
@@ -265,6 +270,7 @@ const MAP_TEXT = {
     currentMapArea: "Mevcut harita alanı",
     noVisible: "Mevcut alanda eşleşen kayıt görünmüyor.",
     verified: "Doğrulanmış",
+    passwordProtected: "Parola korumalı",
     edit: "Düzenle",
     navigation: "Navigasyon",
     linkCopied: "Bağlantı kopyalandı",
@@ -313,6 +319,7 @@ const MAP_TEXT = {
     currentMapArea: "Bieżący obszar mapy",
     noVisible: "W bieżącym obszarze nie ma pasującego widocznego wpisu.",
     verified: "Zweryfikowane",
+    passwordProtected: "Chronione hasłem",
     edit: "Edytuj",
     navigation: "Nawigacja",
     linkCopied: "Link skopiowany",
@@ -361,6 +368,7 @@ const MAP_TEXT = {
     currentMapArea: "منطقة الخريطة الحالية",
     noVisible: "لا يوجد إدخال مطابق ظاهر في المنطقة الحالية.",
     verified: "موثّق",
+    passwordProtected: "محمي بكلمة مرور",
     edit: "تعديل",
     navigation: "التنقل",
     linkCopied: "تم نسخ الرابط",
@@ -409,6 +417,7 @@ const MAP_TEXT = {
     currentMapArea: "Zone actuelle de la carte",
     noVisible: "Aucune entrée correspondante n’est visible dans la zone actuelle.",
     verified: "Vérifié",
+    passwordProtected: "Protégé par mot de passe",
     edit: "Modifier",
     navigation: "Navigation",
     linkCopied: "Lien copié",
@@ -457,6 +466,7 @@ const MAP_TEXT = {
     currentMapArea: "Área actual del mapa",
     noVisible: "No hay ninguna entrada coincidente visible en el área actual.",
     verified: "Verificado",
+    passwordProtected: "Protegido con contraseña",
     edit: "Editar",
     navigation: "Navegación",
     linkCopied: "Enlace copiado",
@@ -505,6 +515,7 @@ const MAP_TEXT = {
     currentMapArea: "Area corrente della mappa",
     noVisible: "Nell’area corrente non è visibile alcun elemento corrispondente.",
     verified: "Verificato",
+    passwordProtected: "Protetto da password",
     edit: "Modifica",
     navigation: "Navigazione",
     linkCopied: "Link copiato",
@@ -769,6 +780,7 @@ function buildPopup(point: MapPoint, text: (typeof MAP_TEXT)[MapLocale]) {
         ${escapeHtml(getMarkerLabel(point.kind, text))}
       </div>
       <div style="font-weight:950;font-size:17px;line-height:1.25;margin-bottom:7px;">${escapeHtml(point.title)}</div>
+      ${point.passwordProtected ? `<div style="display:inline-flex;align-items:center;border-radius:999px;background:#fff7ed;color:#9a3412;font-size:11px;font-weight:900;padding:6px 9px;margin-bottom:9px;">🔒 ${escapeHtml(text.passwordProtected)}</div>` : ""}
       <div style="
   color:#5d6b7d;
   font-size:13px;
@@ -1006,7 +1018,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
       const ownQuery = supabase
         .from("qr_x_entries")
         .select(
-          "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at,suspended",
+          "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at,suspended,password_protected",
         )
         .eq("owner_user_id", userId)
         .is("deleted_at", null)
@@ -1031,7 +1043,7 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           ? supabase
               .from("qr_x_entries")
               .select(
-                "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at,suspended",
+                "id,title,company_name,description,type,owner_user_id,location_name,location_lat,location_lng,category,verified,follower_count,views_total,cover_image_url,deleted_at,suspended,password_protected",
               )
               .in("id", savedIds)
               .is("deleted_at", null)
@@ -1089,6 +1101,8 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           followerCount: Number(entry.follower_count ?? 0),
           viewCount: Number(entry.views_total ?? 0),
           coverUrl: entry.cover_image_url,
+          passwordProtected: Boolean(entry.password_protected),
+          protectedPreview: false,
         }));
 
       const savedPoints: MapPoint[] = (savedQrxRes.data ?? [])
@@ -1101,19 +1115,21 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           id: `saved-${entry.id}`,
           rawId: entry.id,
           title: getQrxTitle(entry, ui),
-          description: getQrxDescription(entry, ui),
+          description: entry.password_protected ? ui.passwordProtected : getQrxDescription(entry, ui),
           href: `/qrx/${entry.id}`,
           editHref: null,
           latitude: entry.location_lat as number,
           longitude: entry.location_lng as number,
           kind:
             entry.type === "business" ? "saved_business" : "saved_normal",
-          locationName: entry.location_name,
-          category: entry.category,
+          locationName: entry.password_protected ? null : entry.location_name,
+          category: entry.password_protected ? null : entry.category,
           verified: Boolean(entry.verified),
           followerCount: Number(entry.follower_count ?? 0),
           viewCount: Number(entry.views_total ?? 0),
           coverUrl: entry.cover_image_url,
+          passwordProtected: Boolean(entry.password_protected),
+          protectedPreview: Boolean(entry.password_protected),
         }));
 
       const scanPoints: MapPoint[] = (scansRes.data ?? [])
@@ -1140,6 +1156,8 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
           followerCount: 0,
           viewCount: 0,
           coverUrl: null,
+          passwordProtected: false,
+          protectedPreview: false,
         }));
 
       // Ignore a slower, older viewport request if the user has already
@@ -1719,6 +1737,12 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                       {point.title}
                     </strong>
 
+                    {point.passwordProtected ? (
+                      <div style={{ marginTop: 6, color: "#fdba74", fontSize: 11, fontWeight: 900 }}>
+                        🔒 {ui.passwordProtected}
+                      </div>
+                    ) : null}
+
                     {point.locationName ? (
                       <div style={{ marginTop: 5, color: "#94a3b8", fontSize: 12 }}>📍 {point.locationName}</div>
                     ) : null}
@@ -1751,14 +1775,16 @@ export default function DashboardMapClient({ locale }: { locale: string }) {
                         </a>
                       ) : null}
 
-                      <a
-                        href={getNavigationUrl(point)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mioseg-dashboard-list-button"
-                      >
-                        {ui.navigation}
-                      </a>
+                      {!point.protectedPreview ? (
+                        <a
+                          href={getNavigationUrl(point)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mioseg-dashboard-list-button"
+                        >
+                          {ui.navigation}
+                        </a>
+                      ) : null}
 
                       <button
                         type="button"
