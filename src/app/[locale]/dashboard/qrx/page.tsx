@@ -4,7 +4,7 @@ import { normalizeMediaDeliveryUrl } from "@/lib/media";
 
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/lib/supabase";
@@ -729,11 +729,14 @@ function formatDate(value: string | null, locale: QrxWebLocale = "de") {
 
 export default function DashboardQrxPage() {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const locale = getLocaleFromParams(params?.locale);
   const qrxLocale = normalizeQrxLocale(locale);
   const ui = QRLIST_TEXT[qrxLocale];
 
-  const [activeTab, setActiveTab] = useState<QrxTab>("own");
+  const initialTab: QrxTab = searchParams.get("tab") === "saved" ? "saved" : "own";
+  const [activeTab, setActiveTab] = useState<QrxTab>(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
   const [ownItems, setOwnItems] = useState<QrxEntry[]>([]);
   const [savedItems, setSavedItems] = useState<QrxEntry[]>([]);
@@ -744,6 +747,29 @@ export default function DashboardQrxPage() {
   const [mediaAnalyticsByQrxId, setMediaAnalyticsByQrxId] = useState<
     Record<string, QrxMediaAnalyticsSummary>
   >({});
+
+  const changeTab = (tab: QrxTab) => {
+    setActiveTab(tab);
+    setSearchQuery("");
+
+    const next = new URLSearchParams(searchParams.toString());
+    if (tab === "saved") {
+      next.set("tab", "saved");
+    } else {
+      next.delete("tab");
+    }
+
+    const query = next.toString();
+    router.replace(`/${locale}/dashboard/qrx${query ? `?${query}` : ""}`, {
+      scroll: false,
+    });
+  };
+
+  useEffect(() => {
+    const tabFromUrl: QrxTab =
+      searchParams.get("tab") === "saved" ? "saved" : "own";
+    setActiveTab(tabFromUrl);
+  }, [searchParams]);
 
   useEffect(() => {
     void loadQrx();
@@ -1068,10 +1094,7 @@ export default function DashboardQrxPage() {
       >
         <button
           type="button"
-          onClick={() => {
-            setActiveTab("own");
-            setSearchQuery("");
-          }}
+          onClick={() => changeTab("own")}
           style={tabButtonStyle(activeTab === "own")}
         >
           {ui.ownQrx}
@@ -1080,10 +1103,7 @@ export default function DashboardQrxPage() {
 
         <button
           type="button"
-          onClick={() => {
-            setActiveTab("saved");
-            setSearchQuery("");
-          }}
+          onClick={() => changeTab("saved")}
           style={tabButtonStyle(activeTab === "saved")}
         >
           {ui.savedQrx}
