@@ -410,60 +410,27 @@ export default async function ExplorePage({
   const { data: authData } = await supabase.auth.getUser();
   const currentUserId = authData.user?.id ?? null;
 
-  const { data, error } = await supabase
-    .from("qr_x_entries")
-    .select(
-      "id, title, description, company_name, category, type, verified, cover_image_url, cover_media_id, cover_media:cover_media_id(id,url,original_url,large_url,medium_url,thumb_url), logo_url, logo_media_id, logo_media:logo_media_id(id,url,original_url,large_url,medium_url,thumb_url), location_name, location_lat, location_lng, created_at, follower_count, views_total, views_unique_total, manual_follower_boost, manual_view_boost, manual_unique_view_boost, force_original_quality, deleted_at, suspended, owner_user_id, show_in_explore, password_protected"
-    )
-    .eq("type", "business")
-    .eq("show_in_explore", true)
-    .is("deleted_at", null)
-    .or("suspended.is.null,suspended.eq.false")
-    .order("created_at", { ascending: false })
-    .limit(120)
-    .returns<ExploreEntry[]>();
+  // Public Explore data is loaded through the hardened Edge Function.
+  // The web page no longer reads qr_x_entries or qrx_saves directly.
+  const { data: explorePayload, error: exploreError } =
+    await supabase.functions.invoke("get-explore-qrx", {
+      body: { limit: 120 },
+    });
 
-  // Zweite Sicherheitsstufe: Auch wenn sich Query/RLS später ändert,
-  // dürfen gelöschte oder gesperrte Mioseg QR niemals in Explore gelangen.
-  const publicEntries = (data ?? []).filter(
-    (entry) =>
-      entry.deleted_at == null &&
-      entry.suspended !== true &&
-      entry.show_in_explore === true
-  );
-
-  const qrxIds = publicEntries.map((entry) => entry.id);
-  let saveRows: Array<{ qrx_id: string | null }> = [];
-
-  if (qrxIds.length > 0) {
-    const { data: qrxSaveRows } = await supabase
-      .from("qrx_saves")
-      .select("qrx_id")
-      .in("qrx_id", qrxIds)
-      .returns<Array<{ qrx_id: string | null }>>();
-
-    saveRows = qrxSaveRows ?? [];
-  }
-
-  const followerCountByQrxId = new Map<string, number>();
-
-  saveRows.forEach((row) => {
-    if (!row.qrx_id) return;
-    followerCountByQrxId.set(row.qrx_id, (followerCountByQrxId.get(row.qrx_id) ?? 0) + 1);
-  });
-
-  const getRealFollowerCountForEntry = (entry: ExploreEntry) =>
-    Math.max(0, Number(entry.follower_count ?? 0), followerCountByQrxId.get(entry.id) ?? 0);
+  const error = exploreError;
+  const publicEntries: ExploreEntry[] =
+    !exploreError && explorePayload?.ok && Array.isArray(explorePayload.entries)
+      ? (explorePayload.entries as ExploreEntry[])
+      : [];
 
   const getFollowerCountForEntry = (entry: ExploreEntry) =>
-    Math.max(0, Number(entry.manual_follower_boost ?? 0)) + getRealFollowerCountForEntry(entry);
+    Math.max(0, Number(entry.follower_count ?? 0));
 
   const getViewTotalForEntry = (entry: ExploreEntry) =>
-    Math.max(0, Number(entry.views_total ?? 0)) + Math.max(0, Number(entry.manual_view_boost ?? 0));
+    Math.max(0, Number(entry.views_total ?? 0));
 
   const getUniqueViewCountForEntry = (entry: ExploreEntry) =>
-    Math.max(0, Number(entry.views_unique_total ?? 0)) +
-    Math.max(0, Number(entry.manual_unique_view_boost ?? 0));
+    Math.max(0, Number(entry.views_unique_total ?? 0));
 
   const items = publicEntries.filter((item) => {
     const categoryOk = selectedCategory === "all" || item.category === selectedCategory;
