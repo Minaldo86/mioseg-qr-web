@@ -1394,7 +1394,25 @@ export default async function QrxPage({
     publicData.collectionRows.reduce<QrxCollectionPreviewItem[]>(
       (accumulator, row) => {
         const child = collectionChildrenById.get(row.linked_qrx_id);
-        if (!child || child.deleted_at || child.suspended === true || child.password_protected === true) return accumulator;
+        if (!child || child.deleted_at || child.suspended === true) return accumulator;
+
+        // Keep password-protected Mioseg QR visible in collections, but never
+        // expose protected metadata before the visitor unlocks that QR.
+        if (child.password_protected === true) {
+          accumulator.push({
+            id: child.id,
+            title: null,
+            company_name: null,
+            description: null,
+            type: child.type ?? null,
+            logo_url: null,
+            cover_image_url: null,
+            location_name: null,
+            verified: null,
+            custom_title: null,
+          });
+          return accumulator;
+        }
 
         accumulator.push({
           id: child.id,
