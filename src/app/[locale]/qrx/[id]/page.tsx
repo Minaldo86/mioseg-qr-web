@@ -911,6 +911,12 @@ type QrxEntry = {
   cta_website: string | null;
   cta_email: string | null;
   cta_navigation: string | null;
+  social_instagram: string | null;
+  social_tiktok: string | null;
+  social_youtube: string | null;
+  social_facebook: string | null;
+  social_linkedin: string | null;
+  social_whatsapp: string | null;
   views_total: number | null;
   follower_count: number | null;
   created_at: string | null;
@@ -982,6 +988,56 @@ function normalizeNavigationUrl(value: string | null) {
   if (!trimmed) return null;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
+}
+
+function normalizeSocialUrl(
+  value: string | null | undefined,
+  baseUrl: string,
+) {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  const handle = trimmed.replace(/^@/, "").replace(/^\/+/, "");
+  return `${baseUrl}${handle}`;
+}
+
+function normalizeWhatsAppUrl(value: string | null | undefined) {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+
+  if (/^https?:\/\/(wa\.me|api\.whatsapp\.com|www\.whatsapp\.com)\//i.test(trimmed)) {
+    return trimmed;
+  }
+
+  let digits = trimmed.replace(/[^\d+]/g, "");
+  if (digits.startsWith("00")) digits = `+${digits.slice(2)}`;
+  digits = digits.replace(/\D/g, "");
+  if (!digits) return null;
+
+  return `https://wa.me/${digits}`;
+}
+
+function SocialIcon({
+  label,
+  href,
+  children,
+}: {
+  label: string;
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      title={label}
+      style={socialIconLinkStyle}
+    >
+      {children}
+    </a>
+  );
 }
 
 function formatNumber(value: number | null | undefined, locale = "de") {
@@ -1125,7 +1181,7 @@ function PublicQrxDetailPageContent() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,description,news,type,category,verified,suspended,deleted_at,cover_image_url,cover_media_id,logo_url,logo_media_id,force_original_quality,location_name,cta_phone,cta_website,cta_email,cta_navigation,views_total,follower_count,created_at",
+          "id,owner_user_id,title,company_name,description,news,type,category,verified,suspended,deleted_at,cover_image_url,cover_media_id,logo_url,logo_media_id,force_original_quality,location_name,cta_phone,cta_website,cta_email,cta_navigation,social_instagram,social_tiktok,social_youtube,social_facebook,social_linkedin,social_whatsapp,views_total,follower_count,created_at",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -1495,6 +1551,15 @@ function PublicQrxDetailPageContent() {
   const isBusiness = entry?.type === "business";
   const website = normalizeUrl(entry?.cta_website ?? null);
   const navigation = normalizeNavigationUrl(entry?.cta_navigation ?? null);
+  const instagram = normalizeSocialUrl(entry?.social_instagram, "https://instagram.com/");
+  const tiktok = normalizeSocialUrl(entry?.social_tiktok, "https://www.tiktok.com/@");
+  const youtube = normalizeSocialUrl(entry?.social_youtube, "https://www.youtube.com/@");
+  const facebook = normalizeSocialUrl(entry?.social_facebook, "https://facebook.com/");
+  const linkedin = normalizeSocialUrl(entry?.social_linkedin, "https://www.linkedin.com/in/");
+  const whatsapp = normalizeWhatsAppUrl(entry?.social_whatsapp);
+  const hasSocialLinks = Boolean(
+    instagram || tiktok || youtube || facebook || linkedin || whatsapp,
+  );
   const rawCategoryMeta = getBusinessCategoryMeta(entry?.category, ui.categories);
   const categoryMeta = rawCategoryMeta && entry?.category ? { ...rawCategoryMeta, label: ui.categories[entry.category as keyof typeof ui.categories] ?? rawCategoryMeta.label } : rawCategoryMeta;
   const newsItems = useMemo(
@@ -1642,6 +1707,17 @@ function PublicQrxDetailPageContent() {
                   {website ? <a href={website} target="_blank" rel="noreferrer" className={styles.secondaryButton}>{ui.website}</a> : null}
                   {entry.cta_email?.trim() ? <a href={`mailto:${entry.cta_email.trim()}`} className={styles.secondaryButton}>{ui.email}</a> : null}
                   {navigation ? <a href={navigation} target="_blank" rel="noreferrer" className={styles.secondaryButton}>{ui.navigation}</a> : null}
+                </div>
+              ) : null}
+
+              {hasSocialLinks ? (
+                <div style={socialRowStyle} aria-label="Social Media">
+                  {instagram ? <SocialIcon label="Instagram" href={instagram}><span style={socialIconTextStyle}>◎</span></SocialIcon> : null}
+                  {tiktok ? <SocialIcon label="TikTok" href={tiktok}><span style={socialIconTextStyle}>♪</span></SocialIcon> : null}
+                  {youtube ? <SocialIcon label="YouTube" href={youtube}><span style={socialIconTextStyle}>▶</span></SocialIcon> : null}
+                  {facebook ? <SocialIcon label="Facebook" href={facebook}><span style={socialIconTextStyle}>f</span></SocialIcon> : null}
+                  {linkedin ? <SocialIcon label="LinkedIn" href={linkedin}><span style={{ ...socialIconTextStyle, fontSize: 15 }}>in</span></SocialIcon> : null}
+                  {whatsapp ? <SocialIcon label="WhatsApp" href={whatsapp}><span style={whatsAppIconStyle}>☎</span></SocialIcon> : null}
                 </div>
               ) : null}
             </div>
@@ -1990,6 +2066,37 @@ const ctaGridStyle: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
   gap: 10,
+};
+
+const socialRowStyle: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
+  flexWrap: "wrap",
+};
+
+const socialIconLinkStyle: CSSProperties = {
+  width: 44,
+  height: 44,
+  borderRadius: 999,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "rgba(255,255,255,0.07)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  color: "#ffffff",
+  textDecoration: "none",
+};
+
+const socialIconTextStyle: CSSProperties = {
+  fontSize: 20,
+  fontWeight: 950,
+  lineHeight: 1,
+};
+
+const whatsAppIconStyle: CSSProperties = {
+  ...socialIconTextStyle,
+  fontSize: 19,
 };
 
 const newsListStyle: CSSProperties = {
