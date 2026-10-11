@@ -79,6 +79,7 @@ type QrxEntry = {
   social_youtube: string | null;
   social_facebook: string | null;
   social_linkedin: string | null;
+  social_whatsapp: string | null;
   company_name: string | null;
   suspended: boolean | null;
   suspended_reason: string | null;
@@ -175,7 +176,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
       "Die Anfrage führt nicht automatisch zur Aufhebung der Sperrung.",
     backCollection: "← Zurück zur Sammlung „{{title}}“",
     normalQrx: "Normaler QR-X",
-    businessVerified: "Verifiziertes Unternehmen",
+    businessVerified: "Verifiziert",
     businessQrx: "Business QR-X",
     verified: "Verifiziert",
     follower: "FOLLOWER",
@@ -283,7 +284,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
       "The request does not automatically lift the restriction.",
     backCollection: "← Back to collection “{{title}}”",
     normalQrx: "Normal QR-X",
-    businessVerified: "Verified business",
+    businessVerified: "Verified",
     businessQrx: "Business QR-X",
     verified: "Verified",
     follower: "FOLLOWERS",
@@ -390,7 +391,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     reviewDisclaimer: "Bu talep kısıtlamayı otomatik olarak kaldırmaz.",
     backCollection: "← “{{title}}” koleksiyonuna dön",
     normalQrx: "Normal QR-X",
-    businessVerified: "Doğrulanmış işletme",
+    businessVerified: "Doğrulandı",
     businessQrx: "Business QR-X",
     verified: "Doğrulandı",
     follower: "TAKİPÇİ",
@@ -499,7 +500,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
       "Zgłoszenie nie powoduje automatycznego zniesienia ograniczenia.",
     backCollection: "← Wróć do kolekcji „{{title}}”",
     normalQrx: "Zwykły QR-X",
-    businessVerified: "Zweryfikowana firma",
+    businessVerified: "Zweryfikowany",
     businessQrx: "Business QR-X",
     verified: "Zweryfikowany",
     follower: "OBSERWUJĄCY",
@@ -606,7 +607,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     reviewDisclaimer: "لا يؤدي الطلب تلقائيًا إلى رفع التقييد.",
     backCollection: "← العودة إلى المجموعة «{{title}}»",
     normalQrx: "QR-X عادي",
-    businessVerified: "نشاط تجاري موثّق",
+    businessVerified: "تم التحقق",
     businessQrx: "Business QR-X",
     verified: "تم التحقق",
     follower: "المتابعون",
@@ -715,7 +716,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     reviewDisclaimer: "La demande ne lève pas automatiquement la restriction.",
     backCollection: "← Retour à la collection « {{title}} »",
     normalQrx: "QR-X normal",
-    businessVerified: "Entreprise vérifiée",
+    businessVerified: "Vérifié",
     businessQrx: "Business QR-X",
     verified: "Vérifié",
     follower: "ABONNÉS",
@@ -824,7 +825,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     reviewDisclaimer: "La solicitud no elimina automáticamente la restricción.",
     backCollection: "← Volver a la colección «{{title}}»",
     normalQrx: "QR-X normal",
-    businessVerified: "Empresa verificada",
+    businessVerified: "Verificado",
     businessQrx: "Business QR-X",
     verified: "Verificado",
     follower: "SEGUIDORES",
@@ -933,7 +934,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
       "La richiesta non rimuove automaticamente la limitazione.",
     backCollection: "← Torna alla raccolta «{{title}}»",
     normalQrx: "QR-X normale",
-    businessVerified: "Azienda verificata",
+    businessVerified: "Verificato",
     businessQrx: "Business QR-X",
     verified: "Verificato",
     follower: "FOLLOWER",
@@ -1079,17 +1080,22 @@ function normalizeWebsite(url: string | null | undefined): string | null {
   return `https://${trimmed}`;
 }
 
-type SocialPlatform = "instagram" | "tiktok" | "youtube" | "facebook" | "linkedin";
+type SocialPlatform = "instagram" | "tiktok" | "youtube" | "facebook" | "linkedin" | "whatsapp";
 
 function normalizeSocialUrl(platform: SocialPlatform, value: string | null | undefined): string | null {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
   if (/^https?:\/\//i.test(raw)) return raw;
 
+  if (platform === "whatsapp") {
+    const digits = raw.replace(/\D/g, "");
+    return digits ? `https://wa.me/${digits}` : null;
+  }
+
   const username = raw.replace(/^@+/, "").replace(/^\/+|\/+$/g, "");
   if (!username) return null;
 
-  const bases: Record<SocialPlatform, string> = {
+  const bases: Record<Exclude<SocialPlatform, "whatsapp">, string> = {
     instagram: "https://www.instagram.com/",
     tiktok: "https://www.tiktok.com/@",
     youtube: "https://www.youtube.com/@",
@@ -1217,7 +1223,7 @@ async function loadCachedPublicQrxData(qrxId: string) {
             id, owner_user_id, title, description, news, location_name,
             location_lat, location_lng, logo_url, type, category, verified,
             cover_image_url, cta_phone, cta_website, cta_email, cta_navigation,
-            social_instagram, social_tiktok, social_youtube, social_facebook, social_linkedin,
+            social_instagram, social_tiktok, social_youtube, social_facebook, social_linkedin, social_whatsapp,
             company_name, suspended, suspended_reason, deleted_at, deleted_reason,
             deleted_by_admin, password_protected, views_total, follower_count,
             created_at, collection_title, collection_description
@@ -1816,6 +1822,7 @@ export default async function QrxPage({
     { key: "youtube", label: "YouTube", url: normalizeSocialUrl("youtube", entry.social_youtube) },
     { key: "facebook", label: "Facebook", url: normalizeSocialUrl("facebook", entry.social_facebook) },
     { key: "linkedin", label: "LinkedIn", url: normalizeSocialUrl("linkedin", entry.social_linkedin) },
+    { key: "whatsapp", label: "WhatsApp", url: normalizeSocialUrl("whatsapp", entry.social_whatsapp) },
   ].filter((item) => Boolean(item.url));
 
   const categoryMeta = getBusinessCategoryMeta(entry.category, ui.categories);
@@ -2322,6 +2329,10 @@ export default async function QrxPage({
                   ) : social.key === "facebook" ? (
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                       <path d="M13.8 21v-8h2.7l.4-3h-3.1V8.1c0-.87.24-1.46 1.55-1.46H17V4a22 22 0 0 0-2.4-.12c-2.38 0-4 1.45-4 4.12v2H8v3h2.6v8h3.2Z" />
+                    </svg>
+                  ) : social.key === "whatsapp" ? (
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M12.04 2a9.84 9.84 0 0 0-8.4 14.96L2.05 22l5.17-1.55A9.94 9.94 0 1 0 12.04 2Zm0 17.98a8.02 8.02 0 0 1-4.1-1.12l-.3-.18-3.07.92.93-2.99-.2-.31a8.03 8.03 0 1 1 6.74 3.68Zm4.4-6.02c-.24-.12-1.43-.7-1.65-.79-.22-.08-.38-.12-.54.12-.16.24-.62.79-.76.95-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2a7.25 7.25 0 0 1-1.34-1.67c-.14-.24-.01-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.4-.54-.41h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.69 2.58 4.1 3.62.57.25 1.02.4 1.37.51.58.18 1.1.16 1.51.1.46-.07 1.43-.59 1.63-1.15.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28Z" />
                     </svg>
                   ) : (
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
