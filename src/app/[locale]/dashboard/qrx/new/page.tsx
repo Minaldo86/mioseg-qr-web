@@ -3620,6 +3620,8 @@ export default function NewQrxPage() {
       creationTransactionId = creationCharge.creationId;
       chargedCreationCost = creationCharge.cost;
 
+      throw new Error("TEST: absichtlicher Fehler für Creation-Refund");
+
       // The server is authoritative. If the price changed since the preview
       // (for example because another creation finished in parallel), stop
       // before creating the QR and refund this reservation.
