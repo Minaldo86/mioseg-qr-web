@@ -3620,7 +3620,6 @@ export default function NewQrxPage() {
       creationTransactionId = creationCharge.creationId;
       chargedCreationCost = creationCharge.cost;
 
-      throw new Error("TEST: absichtlicher Fehler für Creation-Refund");
 
       // The server is authoritative. If the price changed since the preview
       // (for example because another creation finished in parallel), stop
@@ -3737,6 +3736,8 @@ export default function NewQrxPage() {
 
       const newId = data?.id;
       createdQrxId = newId ?? null;
+
+      throw new Error("TEST: absichtlicher Fehler für Creation-Refund");
 
       if (newId && selectedCollectionQrxIds.length > 0) {
         await saveCollectionItems({
