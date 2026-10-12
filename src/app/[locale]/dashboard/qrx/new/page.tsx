@@ -2311,19 +2311,8 @@ export default function NewQrxPage() {
   );
 
   const [credits, setCredits] = useState<number | null>(null);
-  const [normalQrxCount, setNormalQrxCount] = useState<number | null>(null);
-  const [businessQrxCount, setBusinessQrxCount] = useState<number | null>(null);
+  const [creationCostCredits, setCreationCostCredits] = useState<number | null>(null);
   const [pricingLoading, setPricingLoading] = useState(true);
-
-  const creationCostCredits = useMemo(() => {
-    if (qrxType === "business") {
-      if (businessQrxCount == null) return null;
-      return businessQrxCount === 0 ? 2 : 7;
-    }
-
-    if (normalQrxCount == null) return null;
-    return normalQrxCount === 0 ? 0 : 5;
-  }, [qrxType, normalQrxCount, businessQrxCount]);
 
   const verificationCredits = useMemo(() => {
     return qrxType === "business" && wantsVerification
@@ -2634,6 +2623,9 @@ export default function NewQrxPage() {
 
   useEffect(() => {
     void loadCreditAndPricingData();
+  }, [qrxType]);
+
+  useEffect(() => {
     void loadCollectionCandidates();
   }, []);
 
@@ -2813,36 +2805,23 @@ export default function NewQrxPage() {
 
       if (!user) {
         setCredits(null);
-        setNormalQrxCount(null);
-        setBusinessQrxCount(null);
+        setCreationCostCredits(null);
         return;
       }
 
-      const [creditsRes, normalRes, businessRes] = await Promise.all([
+      const [creditsRes, creationCostRes] = await Promise.all([
         supabase
           .from("qrx_credits")
           .select("credits")
           .eq("user_id", user.id)
           .maybeSingle(),
-        supabase
-          .from("qr_x_entries")
-          .select("*", { count: "exact", head: true })
-          .eq("owner_user_id", user.id)
-          .eq("type", "normal")
-          .is("deleted_at", null)
-          .or("suspended.is.null,suspended.eq.false"),
-        supabase
-          .from("qr_x_entries")
-          .select("*", { count: "exact", head: true })
-          .eq("owner_user_id", user.id)
-          .eq("type", "business")
-          .is("deleted_at", null)
-          .or("suspended.is.null,suspended.eq.false"),
+        supabase.rpc("qrx_get_creation_cost", {
+          p_qrx_type: qrxType,
+        }),
       ]);
 
       if (creditsRes.error) throw creditsRes.error;
-      if (normalRes.error) throw normalRes.error;
-      if (businessRes.error) throw businessRes.error;
+      if (creationCostRes.error) throw creationCostRes.error;
 
       if (!creditsRes.data) {
         const { data: inserted, error: insertCreditError } = await supabase
@@ -2861,14 +2840,14 @@ export default function NewQrxPage() {
         setCredits(Number(creditRow?.credits ?? 0));
       }
 
-      setNormalQrxCount(
-        typeof normalRes.count === "number" ? normalRes.count : 0,
-      );
-      setBusinessQrxCount(
-        typeof businessRes.count === "number" ? businessRes.count : 0,
-      );
+      const serverCost = Number(creationCostRes.data);
+      if (!Number.isFinite(serverCost) || ![0, 2, 5, 7].includes(serverCost)) {
+        throw new Error("Ungültiger serverseitiger Erstellungspreis.");
+      }
+      setCreationCostCredits(serverCost);
     } catch (error) {
       console.error("QRX PRICING LOAD ERROR", error);
+      setCreationCostCredits(null);
       setErrorText(
         normalizeErrorMessage(error) ||
           ui.creditsLoadFailed,
@@ -2876,6 +2855,65 @@ export default function NewQrxPage() {
     } finally {
       setPricingLoading(false);
     }
+  }
+
+  async function chargeQrxCreation(type: "normal" | "business") {
+    const { data, error } = await supabase.rpc("qrx_charge_creation", {
+      p_qrx_type: type,
+    });
+
+    if (error) {
+      throw new Error(
+        normalizeErrorMessage(error) ||
+          ui.creditsChargeFailed,
+      );
+    }
+
+    const payload = data as {
+      creation_id?: string;
+      cost?: number;
+      balance?: number;
+      is_first_qrx?: boolean;
+    } | null;
+
+    const creationId = String(payload?.creation_id ?? "").trim();
+    const cost = Number(payload?.cost);
+    const balance = Number(payload?.balance);
+
+    if (!creationId || !Number.isFinite(cost) || !Number.isFinite(balance)) {
+      throw new Error("Ungültige Antwort der QR-Erstellungsabrechnung.");
+    }
+
+    setCredits(balance);
+    setCreationCostCredits(cost);
+
+    return {
+      creationId,
+      cost,
+      balance,
+      isFirstQrx: payload?.is_first_qrx === true,
+    };
+  }
+
+  async function completeQrxCreation(creationId: string, qrxId: string) {
+    const { error } = await supabase.rpc("qrx_complete_creation", {
+      p_creation_id: creationId,
+      p_qrx_id: qrxId,
+    });
+
+    if (error) throw error;
+  }
+
+  async function refundQrxCreation(creationId: string) {
+    const { data, error } = await supabase.rpc("qrx_refund_creation", {
+      p_creation_id: creationId,
+    });
+
+    if (error) throw error;
+
+    const payload = data as { balance?: number } | null;
+    const balance = Number(payload?.balance);
+    if (Number.isFinite(balance)) setCredits(balance);
   }
 
   async function spendCredits(amount: number) {
@@ -2926,12 +2964,16 @@ export default function NewQrxPage() {
 
       const token = session?.access_token;
 
-      await supabase.functions.invoke("delete-qrx", {
+      const { error } = await supabase.functions.invoke("delete-qrx", {
         body: { qrxId },
         ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
       });
+
+      if (error) throw error;
+      return true;
     } catch (deleteError) {
       console.warn("Mioseg QR Cleanup nach Fehler fehlgeschlagen:", deleteError);
+      return false;
     }
   }
 
@@ -3468,7 +3510,8 @@ export default function NewQrxPage() {
     setErrorText(null);
     setSuccessText(null);
 
-    let chargedCreation = false;
+    let creationTransactionId: string | null = null;
+    let chargedCreationCost = 0;
     let chargedVerification = false;
     let chargedStorageCredits = 0;
     let createdQrxId: string | null = null;
@@ -3573,9 +3616,20 @@ export default function NewQrxPage() {
         setCostConfirmed(true);
       }
 
-      if (creationCostCredits > 0) {
-        await spendCredits(creationCostCredits);
-        chargedCreation = true;
+      const creationCharge = await chargeQrxCreation(qrxType);
+      creationTransactionId = creationCharge.creationId;
+      chargedCreationCost = creationCharge.cost;
+
+      // The server is authoritative. If the price changed since the preview
+      // (for example because another creation finished in parallel), stop
+      // before creating the QR and refund this reservation.
+      if (creationCharge.cost !== creationCostCredits) {
+        await refundQrxCreation(creationCharge.creationId);
+        creationTransactionId = null;
+        await loadCreditAndPricingData();
+        throw new Error(
+          `Der Erstellungspreis hat sich geändert. Bitte prüfe die Kosten erneut und starte die Erstellung noch einmal.`,
+        );
       }
 
       if (verificationCredits > 0) {
@@ -3791,6 +3845,13 @@ export default function NewQrxPage() {
         if (verificationInsertError) throw verificationInsertError;
       }
 
+      if (!newId || !creationTransactionId) {
+        throw new Error("QR-Erstellung konnte nicht sicher abgeschlossen werden.");
+      }
+
+      await completeQrxCreation(creationTransactionId, newId);
+      creationTransactionId = null;
+
       clearGalleryFiles();
       clearFileUploads();
       setNewsItems([]);
@@ -3804,7 +3865,7 @@ export default function NewQrxPage() {
       await loadCreditAndPricingData();
 
       const totalCreditsUsed =
-        creationCostCredits + verificationCredits + chargedStorageCredits;
+        chargedCreationCost + verificationCredits + chargedStorageCredits;
       const costText = totalCreditsUsed > 0
         ? ` ${runtimeUi.creditsDeducted.replace("{{count}}", String(totalCreditsUsed))}`
         : ` ${runtimeUi.firstFree}`;
@@ -3826,23 +3887,26 @@ export default function NewQrxPage() {
     } catch (error) {
       console.error("QRX CREATE ERROR", error);
 
+      let qrxCleanupSucceeded = createdQrxId == null;
+
       if (createdQrxId) {
-        await deleteCreatedQrxIfNeeded(createdQrxId);
+        qrxCleanupSucceeded = await deleteCreatedQrxIfNeeded(createdQrxId);
       }
 
-      if (
-        chargedCreation &&
-        creationCostCredits != null &&
-        creationCostCredits > 0
-      ) {
+      if (creationTransactionId && qrxCleanupSucceeded) {
         try {
-          await addCredits(creationCostCredits);
+          await refundQrxCreation(creationTransactionId);
+          creationTransactionId = null;
         } catch (refundError) {
           console.warn(
-            "Credit-Rückbuchung nach Fehler fehlgeschlagen:",
+            "Sichere Credit-Rückbuchung nach Fehler fehlgeschlagen:",
             refundError,
           );
         }
+      } else if (creationTransactionId && !qrxCleanupSucceeded) {
+        console.warn(
+          "Erstellungs-Refund wurde aus Sicherheitsgründen nicht ausgeführt, weil das QR-Cleanup fehlgeschlagen ist.",
+        );
       }
 
       if (chargedVerification && verificationCredits > 0) {
