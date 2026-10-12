@@ -80,6 +80,7 @@ type QrxEntry = {
   social_facebook: string | null;
   social_linkedin: string | null;
   social_whatsapp: string | null;
+  custom_links: Array<{ label?: string; url?: string }> | null;
   company_name: string | null;
   suspended: boolean | null;
   suspended_reason: string | null;
@@ -190,6 +191,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     appMissing: "App nicht installiert?",
     downloadHere: "Hier herunterladen",
     title: "Titel",
+    linksActions: "Links & Aktionen",
     description: "Beschreibung",
     noDescription: "Keine Beschreibung vorhanden.",
     news: "News / Updates",
@@ -298,6 +300,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     appMissing: "App not installed?",
     downloadHere: "Download here",
     title: "Title",
+    linksActions: "Links & Actions",
     description: "Description",
     noDescription: "No description available.",
     news: "News / Updates",
@@ -405,6 +408,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     appMissing: "Uygulama yüklü değil mi?",
     downloadHere: "Buradan indir",
     title: "Başlık",
+    linksActions: "Bağlantılar & İşlemler",
     description: "Açıklama",
     noDescription: "Açıklama yok.",
     news: "Haberler / Güncellemeler",
@@ -514,6 +518,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     appMissing: "Aplikacja nie jest zainstalowana?",
     downloadHere: "Pobierz tutaj",
     title: "Tytuł",
+    linksActions: "Linki i działania",
     description: "Opis",
     noDescription: "Brak opisu.",
     news: "Aktualności",
@@ -621,6 +626,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     appMissing: "التطبيق غير مثبت؟",
     downloadHere: "تنزيل من هنا",
     title: "العنوان",
+    linksActions: "الروابط والإجراءات",
     description: "الوصف",
     noDescription: "لا يوجد وصف.",
     news: "الأخبار / التحديثات",
@@ -730,6 +736,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     appMissing: "Application non installée ?",
     downloadHere: "Télécharger ici",
     title: "Titre",
+    linksActions: "Liens & actions",
     description: "Description",
     noDescription: "Aucune description disponible.",
     news: "Actualités",
@@ -839,6 +846,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     appMissing: "¿No tienes instalada la app?",
     downloadHere: "Descargar aquí",
     title: "Título",
+    linksActions: "Enlaces y acciones",
     description: "Descripción",
     noDescription: "No hay descripción disponible.",
     news: "Noticias / Actualizaciones",
@@ -948,6 +956,7 @@ const LEGACY_QRX_TEXT_SOURCE = {
     appMissing: "App non installata?",
     downloadHere: "Scarica qui",
     title: "Titolo",
+    linksActions: "Link e azioni",
     description: "Descrizione",
     noDescription: "Nessuna descrizione disponibile.",
     news: "Notizie / Aggiornamenti",
@@ -1113,6 +1122,24 @@ function normalizeNavigation(value: string | null | undefined): string | null {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(trimmed)}`;
 }
 
+type CustomLinkItem = { label?: string; url?: string };
+
+function normalizeCustomLinks(value: CustomLinkItem[] | null | undefined) {
+  const raw = Array.isArray(value) ? value : [];
+
+  return raw
+    .map((item) => {
+      const label = String(item?.label ?? "").trim();
+      const url = normalizeWebsite(String(item?.url ?? "").trim());
+      return { label, url };
+    })
+    .filter(
+      (item): item is { label: string; url: string } =>
+        item.label.length > 0 && Boolean(item.url),
+    )
+    .slice(0, 5);
+}
+
 function formatNumber(
   value: number | null | undefined,
   locale: LegacyQrxLocale,
@@ -1223,7 +1250,7 @@ async function loadCachedPublicQrxData(qrxId: string) {
             id, owner_user_id, title, description, news, location_name,
             location_lat, location_lng, logo_url, type, category, verified,
             cover_image_url, cta_phone, cta_website, cta_email, cta_navigation,
-            social_instagram, social_tiktok, social_youtube, social_facebook, social_linkedin, social_whatsapp,
+            social_instagram, social_tiktok, social_youtube, social_facebook, social_linkedin, social_whatsapp, custom_links,
             company_name, suspended, suspended_reason, deleted_at, deleted_reason,
             deleted_by_admin, password_protected, views_total, follower_count,
             created_at, collection_title, collection_description
@@ -1825,6 +1852,7 @@ export default async function QrxPage({
     { key: "whatsapp", label: "WhatsApp", url: normalizeSocialUrl("whatsapp", entry.social_whatsapp) },
   ].filter((item) => Boolean(item.url));
 
+  const customLinks = normalizeCustomLinks(entry.custom_links);
   const categoryMeta = getBusinessCategoryMeta(entry.category, ui.categories);
   const newsItems = normalizeNewsItems(entry.news);
   const transferHistory = (
@@ -2022,6 +2050,30 @@ export default async function QrxPage({
     fontSize: isMobile ? 16 : 17,
     lineHeight: 1.55,
     fontWeight: 400,
+  };
+
+  const customLinksGridStyle: CSSProperties = {
+    marginTop: 16,
+    display: "grid",
+    gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: 12,
+  };
+
+  const customLinkButtonStyle: CSSProperties = {
+    minHeight: 48,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: "12px 16px",
+    borderRadius: 16,
+    background: "rgba(37,99,235,0.14)",
+    border: "1px solid rgba(96,165,250,0.28)",
+    color: "#ffffff",
+    textDecoration: "none",
+    fontSize: 15,
+    fontWeight: 800,
+    lineHeight: 1.3,
   };
 
   const descriptionTextStyle: CSSProperties = {
@@ -2384,13 +2436,34 @@ export default async function QrxPage({
           </pre>
         )}
 
-        {/* 3. Titel */}
+        {/* 3. Links & Aktionen – nur anzeigen, wenn mindestens ein vollständiger Link vorhanden ist */}
+        {customLinks.length > 0 && (
+          <section style={sectionCardStyle}>
+            <h2 style={cardTitleStyle}>{ui.linksActions}</h2>
+            <div style={customLinksGridStyle}>
+              {customLinks.map((link, index) => (
+                <a
+                  key={`${link.url}-${index}`}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={customLinkButtonStyle}
+                >
+                  <span>{link.label}</span>
+                  <span aria-hidden="true">↗</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 4. Titel */}
         <section style={sectionCardStyle}>
           <h2 style={cardTitleStyle}>{ui.title}</h2>
           <p style={simpleTextStyle}>{entry.title?.trim() || companyName}</p>
         </section>
 
-        {/* 4. Beschreibung */}
+        {/* 5. Beschreibung */}
         <section style={sectionCardStyle}>
           <h2 style={cardTitleStyle}>{ui.description}</h2>
           <p style={descriptionTextStyle}>
@@ -2398,7 +2471,7 @@ export default async function QrxPage({
           </p>
         </section>
 
-        {/* 5. News / Updates */}
+        {/* 6. News / Updates */}
         <section style={sectionCardStyle}>
           <h2 style={cardTitleStyle}>{ui.news}</h2>
 
