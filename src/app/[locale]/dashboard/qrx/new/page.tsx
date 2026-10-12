@@ -3852,7 +3852,9 @@ export default function NewQrxPage() {
         throw new Error("QR-Erstellung konnte nicht sicher abgeschlossen werden.");
       }
 
-      throw new Error("TEST: absichtlicher Fehler für Creation-Refund");
+    if (window.location.search.includes("testRefund=1")) {
+  throw new Error("TEST: absichtlicher Fehler für Creation-Refund");
+}
       
       await completeQrxCreation(creationTransactionId, newId);
       creationTransactionId = null;
