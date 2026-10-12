@@ -3737,7 +3737,7 @@ export default function NewQrxPage() {
       const newId = data?.id;
       createdQrxId = newId ?? null;
 
-      throw new Error("TEST: absichtlicher Fehler für Creation-Refund");
+
 
       if (newId && selectedCollectionQrxIds.length > 0) {
         await saveCollectionItems({
@@ -3852,6 +3852,8 @@ export default function NewQrxPage() {
         throw new Error("QR-Erstellung konnte nicht sicher abgeschlossen werden.");
       }
 
+      throw new Error("TEST: absichtlicher Fehler für Creation-Refund");
+      
       await completeQrxCreation(creationTransactionId, newId);
       creationTransactionId = null;
 
