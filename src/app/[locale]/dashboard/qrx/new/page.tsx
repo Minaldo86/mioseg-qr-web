@@ -1906,7 +1906,8 @@ type QrxType = "normal" | "business";
 
 type LocationMode = "none" | "current" | "manual";
 
-type NewsItem = { text: string; createdAt: string };
+type NewsItem = { text: string; createdAt: string; pinned?: boolean };
+type CustomLinkItem = { label: string; url: string };
 
 type SavedCollectionEntry = Omit<
   QrxCollectionCandidate,
@@ -2171,6 +2172,8 @@ type NewQrxDraft = {
   socialYoutube: string;
   socialFacebook: string;
   socialLinkedin: string;
+  socialWhatsapp: string;
+  customLinks: CustomLinkItem[];
   passwordProtected: boolean;
   wantsVerification: boolean;
   collectionTitle: string;
@@ -2258,6 +2261,9 @@ export default function NewQrxPage() {
   const [socialYoutube, setSocialYoutube] = useState("");
   const [socialFacebook, setSocialFacebook] = useState("");
   const [socialLinkedin, setSocialLinkedin] = useState("");
+  const [socialWhatsapp, setSocialWhatsapp] = useState("");
+  const [customLinks, setCustomLinks] = useState<CustomLinkItem[]>([]);
+
   const [socialMediaExpanded, setSocialMediaExpanded] = useState(false);
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [qrxPassword, setQrxPassword] = useState("");
@@ -2463,6 +2469,17 @@ export default function NewQrxPage() {
       if (typeof draft.socialYoutube === "string") setSocialYoutube(draft.socialYoutube);
       if (typeof draft.socialFacebook === "string") setSocialFacebook(draft.socialFacebook);
       if (typeof draft.socialLinkedin === "string") setSocialLinkedin(draft.socialLinkedin);
+      if (typeof draft.socialWhatsapp === "string") setSocialWhatsapp(draft.socialWhatsapp);
+      if (Array.isArray(draft.customLinks)) {
+        setCustomLinks(
+          draft.customLinks
+            .map((item) => ({
+              label: typeof item?.label === "string" ? item.label : "",
+              url: typeof item?.url === "string" ? item.url : "",
+            }))
+            .slice(0, 5),
+        );
+      }
       if (typeof draft.passwordProtected === "boolean")
         setPasswordProtected(draft.passwordProtected);
       if (typeof draft.wantsVerification === "boolean")
@@ -2528,6 +2545,8 @@ export default function NewQrxPage() {
         socialYoutube,
         socialFacebook,
         socialLinkedin,
+        socialWhatsapp,
+        customLinks,
         passwordProtected,
         wantsVerification,
         collectionTitle,
@@ -2554,6 +2573,8 @@ export default function NewQrxPage() {
           socialYoutube.trim().length > 0 ||
           socialFacebook.trim().length > 0 ||
           socialLinkedin.trim().length > 0 ||
+          socialWhatsapp.trim().length > 0 ||
+          customLinks.some((item) => item.label.trim() || item.url.trim()) ||
           qrxType !== "normal" ||
           passwordProtected ||
           wantsVerification ||
@@ -2602,6 +2623,8 @@ export default function NewQrxPage() {
     socialYoutube,
     socialFacebook,
     socialLinkedin,
+    socialWhatsapp,
+    customLinks,
     passwordProtected,
     wantsVerification,
     collectionTitle,
@@ -3240,7 +3263,7 @@ export default function NewQrxPage() {
     }
 
     setNewsItems((current) => [
-      { text, createdAt: new Date().toISOString() },
+      { text, createdAt: new Date().toISOString(), pinned: false },
       ...current,
     ]);
     setNewsDraft("");
@@ -3251,6 +3274,39 @@ export default function NewQrxPage() {
     setNewsItems((current) =>
       current.filter((_, index) => index !== indexToRemove),
     );
+  }
+
+  function togglePinnedNews(indexToToggle: number) {
+    setNewsItems((current) => {
+      const willPin = current[indexToToggle]?.pinned !== true;
+      return current
+        .map((item, index) => ({
+          ...item,
+          pinned: willPin ? index === indexToToggle : false,
+        }))
+        .sort((a, b) => {
+          if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
+    });
+  }
+
+  function addCustomLink() {
+    setCustomLinks((current) =>
+      current.length >= 5 ? current : [...current, { label: "", url: "" }],
+    );
+  }
+
+  function updateCustomLink(index: number, field: "label" | "url", value: string) {
+    setCustomLinks((current) =>
+      current.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item,
+      ),
+    );
+  }
+
+  function removeCustomLink(index: number) {
+    setCustomLinks((current) => current.filter((_, itemIndex) => itemIndex !== index));
   }
 
   function handleVerificationDocumentChange(
@@ -3551,6 +3607,11 @@ export default function NewQrxPage() {
         social_youtube: qrxType === "business" ? toNullable(socialYoutube) : null,
         social_facebook: qrxType === "business" ? toNullable(socialFacebook) : null,
         social_linkedin: qrxType === "business" ? toNullable(socialLinkedin) : null,
+        social_whatsapp: qrxType === "business" ? toNullable(socialWhatsapp) : null,
+        custom_links: customLinks
+          .map((item) => ({ label: item.label.trim(), url: item.url.trim() }))
+          .filter((item) => item.label && item.url)
+          .slice(0, 5),
         verified: false,
         suspended: false,
         password_protected: false,
@@ -3596,6 +3657,8 @@ export default function NewQrxPage() {
           social_youtube: insertPayload.social_youtube,
           social_facebook: insertPayload.social_facebook,
           social_linkedin: insertPayload.social_linkedin,
+          social_whatsapp: insertPayload.social_whatsapp,
+          custom_links: insertPayload.custom_links,
           verified: insertPayload.verified,
           suspended: insertPayload.suspended,
           password_protected: insertPayload.password_protected,
@@ -4314,13 +4377,23 @@ export default function NewQrxPage() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => removeNewsItem(index)}
-                        style={previewRemoveButtonStyle}
-                      >
-                        {ui.delete}
-                      </button>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <button
+                          type="button"
+                          onClick={() => togglePinnedNews(index)}
+                          style={item.pinned ? pinnedNewsButtonStyle : pinNewsButtonStyle}
+                          aria-pressed={item.pinned === true}
+                        >
+                          {item.pinned ? "📌 Angepinnt" : "📌 Anpinnen"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeNewsItem(index)}
+                          style={previewRemoveButtonStyle}
+                        >
+                          {ui.delete}
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -4597,7 +4670,7 @@ export default function NewQrxPage() {
                   <span>
                     <strong style={{ display: "block", fontSize: 14 }}>Social Media</strong>
                     <span style={{ display: "block", marginTop: 3, color: "#94a3b8", fontSize: 12 }}>
-                      Instagram, TikTok, YouTube, Facebook & LinkedIn · optional
+                      Instagram, TikTok, YouTube, Facebook, LinkedIn & WhatsApp · optional
                     </span>
                   </span>
                   <span aria-hidden="true" style={{ fontSize: 18, color: "#94a3b8" }}>
@@ -4634,11 +4707,53 @@ export default function NewQrxPage() {
                       LinkedIn
                       <input value={socialLinkedin} onChange={(event) => setSocialLinkedin(event.target.value)} style={inputStyle} placeholder="Profil- oder Unternehmens-URL" />
                     </label>
+                    <label style={labelStyle}>
+                      WhatsApp
+                      <input value={socialWhatsapp} onChange={(event) => setSocialWhatsapp(event.target.value)} style={inputStyle} placeholder="+49 172 1234567" />
+                    </label>
                   </div>
                 ) : null}
               </div>
             </>
           ) : null}
+
+          <div style={mediaSectionStyle}>
+            <div>
+              <h3 style={{ margin: "0 0 8px", color: "#ffffff", fontSize: 18 }}>
+                Links &amp; Aktionen
+              </h3>
+              <p style={{ margin: 0, color: "#94a3b8", lineHeight: 1.55 }}>
+                Bis zu 5 eigene Links, z. B. „Tickets“, „Speisekarte“ oder „Termin buchen“.
+              </p>
+            </div>
+
+            <div style={{ display: "grid", gap: 10 }}>
+              {customLinks.map((item, index) => (
+                <div key={`custom-link-${index}`} style={customLinkRowStyle}>
+                  <input
+                    value={item.label}
+                    onChange={(event) => updateCustomLink(index, "label", event.target.value)}
+                    style={inputStyle}
+                    placeholder="Name, z. B. Tickets"
+                  />
+                  <input
+                    value={item.url}
+                    onChange={(event) => updateCustomLink(index, "url", event.target.value)}
+                    style={inputStyle}
+                    placeholder="https://..."
+                  />
+                  <button type="button" onClick={() => removeCustomLink(index)} style={previewRemoveButtonStyle}>
+                    {ui.delete}
+                  </button>
+                </div>
+              ))}
+              {customLinks.length < 5 ? (
+                <button type="button" onClick={addCustomLink} style={fileButtonStyle}>
+                  + Link hinzufügen
+                </button>
+              ) : null}
+            </div>
+          </div>
 
           <div style={mediaSectionStyle}>
             <div>
@@ -5668,6 +5783,31 @@ const newsScrollHintStyle: CSSProperties = {
   color: "#fde68a",
   fontSize: 12,
   fontWeight: 950,
+};
+
+const pinNewsButtonStyle: CSSProperties = {
+  minHeight: 38,
+  borderRadius: 12,
+  border: "1px solid rgba(148,163,184,0.25)",
+  background: "rgba(255,255,255,0.06)",
+  color: "#e2e8f0",
+  fontWeight: 850,
+  cursor: "pointer",
+  padding: "0 12px",
+};
+
+const pinnedNewsButtonStyle: CSSProperties = {
+  ...pinNewsButtonStyle,
+  border: "1px solid rgba(250,204,21,0.42)",
+  background: "rgba(250,204,21,0.14)",
+  color: "#fde68a",
+};
+
+const customLinkRowStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "minmax(140px, 0.8fr) minmax(220px, 1.5fr) auto",
+  gap: 10,
+  alignItems: "end",
 };
 
 const newsPreviewRowStyle: CSSProperties = {

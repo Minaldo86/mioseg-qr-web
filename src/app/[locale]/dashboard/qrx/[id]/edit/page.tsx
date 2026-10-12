@@ -2018,7 +2018,8 @@ type BusinessCategory =
   | "sehenswuerdigkeit"
   | "sonstiges";
 type VerificationStatus = "pending" | "approved" | "rejected" | string;
-type NewsItem = { text: string; createdAt: string };
+type NewsItem = { text: string; createdAt: string; pinned?: boolean };
+type CustomLinkItem = { label: string; url: string };
 
 const MAX_VISIBLE_NEWS = 5;
 const QRX_VERIFICATION_BUCKET = "qrx-verification-documents";
@@ -2064,6 +2065,8 @@ type QrxEntry = {
   social_youtube: string | null;
   social_facebook: string | null;
   social_linkedin: string | null;
+  social_whatsapp: string | null;
+  custom_links: CustomLinkItem[] | null;
   verified: boolean | null;
   suspended: boolean | null;
   password_protected: boolean | null;
@@ -2178,20 +2181,30 @@ function formatOptionalNumber(value: number | null | undefined) {
 
 function normalizeNewsItems(value: NewsItem[] | null | undefined) {
   const raw = Array.isArray(value) ? value : [];
-
   return raw
     .filter((item) => typeof item?.text === "string" && item.text.trim().length > 0)
     .map((item) => ({
       text: item.text.trim(),
-      createdAt: typeof item.createdAt === "string" && item.createdAt.trim()
-        ? item.createdAt
-        : new Date().toISOString(),
+      createdAt: typeof item.createdAt === "string" ? item.createdAt : "",
+      pinned: item.pinned === true,
     }))
     .sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       const ta = new Date(a.createdAt).getTime();
       const tb = new Date(b.createdAt).getTime();
       return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
     });
+}
+
+function normalizeCustomLinks(value: unknown): CustomLinkItem[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => ({
+      label: typeof item?.label === "string" ? item.label : "",
+      url: typeof item?.url === "string" ? item.url : "",
+    }))
+    .filter((item) => item.label.trim() || item.url.trim())
+    .slice(0, 5);
 }
 
 function formatNewsDate(value: string, locale: QrxWebLocale, justNow: string) {
@@ -2352,6 +2365,8 @@ export default function EditQrxPage() {
   const [socialYoutube, setSocialYoutube] = useState("");
   const [socialFacebook, setSocialFacebook] = useState("");
   const [socialLinkedin, setSocialLinkedin] = useState("");
+  const [socialWhatsapp, setSocialWhatsapp] = useState("");
+  const [customLinks, setCustomLinks] = useState<CustomLinkItem[]>([]);
 
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [passwordWasProtected, setPasswordWasProtected] = useState(false);
@@ -3042,7 +3057,7 @@ export default function EditQrxPage() {
       const { data, error } = await supabase
         .from("qr_x_entries")
         .select(
-          "id,owner_user_id,title,company_name,category,description,news,type,show_in_explore,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,social_instagram,social_tiktok,social_youtube,social_facebook,social_linkedin,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb,collection_title,collection_description",
+          "id,owner_user_id,title,company_name,category,description,news,type,show_in_explore,location_name,location_lat,location_lng,cta_phone,cta_website,cta_email,cta_navigation,social_instagram,social_tiktok,social_youtube,social_facebook,social_linkedin,social_whatsapp,custom_links,verified,suspended,password_protected,logo_url,cover_image_url,storage_limit_mb,collection_title,collection_description",
         )
         .eq("id", qrxId)
         .maybeSingle()
@@ -3076,6 +3091,8 @@ export default function EditQrxPage() {
       setSocialYoutube(data.social_youtube ?? "");
       setSocialFacebook(data.social_facebook ?? "");
       setSocialLinkedin(data.social_linkedin ?? "");
+      setSocialWhatsapp(data.social_whatsapp ?? "");
+      setCustomLinks(normalizeCustomLinks(data.custom_links));
       setPasswordProtected(isProtected);
       setPasswordWasProtected(isProtected);
       setQrxPassword("");
@@ -3167,6 +3184,11 @@ export default function EditQrxPage() {
           social_youtube: qrxType === "business" ? toNullable(socialYoutube) : null,
           social_facebook: qrxType === "business" ? toNullable(socialFacebook) : null,
           social_linkedin: qrxType === "business" ? toNullable(socialLinkedin) : null,
+          social_whatsapp: qrxType === "business" ? toNullable(socialWhatsapp) : null,
+          custom_links: customLinks
+            .map((item) => ({ label: item.label.trim(), url: item.url.trim() }))
+            .filter((item) => item.label && item.url)
+            .slice(0, 5),
           collection_title:
             selectedCollectionQrxIds.length > 0
               ? toNullable(collectionTitle)
@@ -3423,7 +3445,7 @@ export default function EditQrxPage() {
 
     setNewsItems((current) =>
       normalizeNewsItems([
-        { text, createdAt: new Date().toISOString() },
+        { text, createdAt: new Date().toISOString(), pinned: false },
         ...current,
       ]),
     );
@@ -3433,6 +3455,36 @@ export default function EditQrxPage() {
 
   function handleRemoveNewsItem(indexToRemove: number) {
     setNewsItems((current) => current.filter((_, index) => index !== indexToRemove));
+  }
+
+  function handleTogglePinnedNews(indexToToggle: number) {
+    setNewsItems((current) => {
+      const willPin = current[indexToToggle]?.pinned !== true;
+      return normalizeNewsItems(
+        current.map((item, index) => ({
+          ...item,
+          pinned: willPin ? index === indexToToggle : false,
+        })),
+      );
+    });
+  }
+
+  function handleAddCustomLink() {
+    setCustomLinks((current) =>
+      current.length >= 5 ? current : [...current, { label: "", url: "" }],
+    );
+  }
+
+  function handleUpdateCustomLink(index: number, field: "label" | "url", value: string) {
+    setCustomLinks((current) =>
+      current.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item,
+      ),
+    );
+  }
+
+  function handleRemoveCustomLink(index: number) {
+    setCustomLinks((current) => current.filter((_, itemIndex) => itemIndex !== index));
   }
 
 
@@ -3701,9 +3753,19 @@ export default function EditQrxPage() {
                           {formatNewsDate(item.createdAt, qrxLocale, extraUi.justNow)}
                         </span>
                       </div>
-                      <button type="button" onClick={() => handleRemoveNewsItem(index)} style={miniDangerButtonStyle}>
-                        {ui.delete}
-                      </button>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleTogglePinnedNews(index)}
+                          style={item.pinned ? pinnedNewsButtonStyle : pinNewsButtonStyle}
+                          aria-pressed={item.pinned === true}
+                        >
+                          {item.pinned ? "📌 Angepinnt" : "📌 Anpinnen"}
+                        </button>
+                        <button type="button" onClick={() => handleRemoveNewsItem(index)} style={miniDangerButtonStyle}>
+                          {ui.delete}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -3925,8 +3987,47 @@ export default function EditQrxPage() {
                   LinkedIn
                   <input value={socialLinkedin} onChange={(event) => setSocialLinkedin(event.target.value)} style={inputStyle} placeholder="Profil- oder Unternehmens-URL" />
                 </label>
+
+                <label style={labelStyle}>
+                  WhatsApp
+                  <input value={socialWhatsapp} onChange={(event) => setSocialWhatsapp(event.target.value)} style={inputStyle} placeholder="+49 172 1234567" />
+                </label>
               </>
             ) : null}
+
+            <div style={sectionBoxStyle}>
+              <div>
+                <h3 style={sectionTitleStyle}>Links &amp; Aktionen</h3>
+                <p style={sectionHintStyle}>Bis zu 5 eigene Links, z. B. „Tickets“, „Speisekarte“ oder „Termin buchen“.</p>
+              </div>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {customLinks.map((item, index) => (
+                  <div key={`custom-link-${index}`} style={customLinkRowStyle}>
+                    <input
+                      value={item.label}
+                      onChange={(event) => handleUpdateCustomLink(index, "label", event.target.value)}
+                      style={inputStyle}
+                      placeholder="Name, z. B. Tickets"
+                    />
+                    <input
+                      value={item.url}
+                      onChange={(event) => handleUpdateCustomLink(index, "url", event.target.value)}
+                      style={inputStyle}
+                      placeholder="https://..."
+                    />
+                    <button type="button" onClick={() => handleRemoveCustomLink(index)} style={miniDangerButtonStyle}>
+                      {ui.delete}
+                    </button>
+                  </div>
+                ))}
+                {customLinks.length < 5 ? (
+                  <button type="button" onClick={handleAddCustomLink} style={addNewsButtonStyle}>
+                    + Link hinzufügen
+                  </button>
+                ) : null}
+              </div>
+            </div>
 
             <div style={passwordBoxStyle(passwordProtected)}>
               <label style={passwordToggleStyle}>
@@ -4310,6 +4411,31 @@ export default function EditQrxPage() {
   );
 }
 
+
+const pinNewsButtonStyle: CSSProperties = {
+  minHeight: 38,
+  borderRadius: 12,
+  border: "1px solid rgba(148,163,184,0.25)",
+  background: "rgba(255,255,255,0.06)",
+  color: "#e2e8f0",
+  fontWeight: 850,
+  cursor: "pointer",
+  padding: "0 12px",
+};
+
+const pinnedNewsButtonStyle: CSSProperties = {
+  ...pinNewsButtonStyle,
+  border: "1px solid rgba(250,204,21,0.42)",
+  background: "rgba(250,204,21,0.14)",
+  color: "#fde68a",
+};
+
+const customLinkRowStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "minmax(140px, 0.8fr) minmax(220px, 1.5fr) auto",
+  gap: 10,
+  alignItems: "end",
+};
 
 const addNewsButtonStyle: CSSProperties = {
   minHeight: 48,
