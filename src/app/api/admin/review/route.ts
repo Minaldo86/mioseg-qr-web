@@ -144,46 +144,21 @@ export async function POST(req: Request) {
       return Response.json({ ok: true, status: "approved" });
     }
 
-    const refundAmount =
-      typeof requestRow.credits_charged === "number" &&
-      requestRow.credits_charged > 0
-        ? requestRow.credits_charged
-        : 10;
-
-    if (!requestRow.refund_done && refundAmount > 0) {
-      const { error: refundError } = await supabaseAdmin.rpc("add_credits_admin", {
-        p_user_id: requestRow.owner_user_id,
-        p_amount: refundAmount,
-      });
-
-      if (refundError) {
-        return Response.json(
-          {
-            error: "Credits konnten nicht erstattet werden",
-            details: refundError.message,
-          },
-          { status: 500 }
-        );
+    // Ablehnung und Rückerstattung ausschließlich atomar in der Datenbank ausführen.
+    // Die RPC sperrt den Antrag, verbucht die Credits samt Ledger-Eintrag
+    // und setzt status/refund_done in derselben Transaktion.
+    const { data: rejectionResult, error: rejectError } = await supabaseAdmin.rpc(
+      "qrx_reject_verification_admin",
+      {
+        p_request_id: requestId,
+        p_review_note: reviewNote,
       }
-    }
-
-    const { error: rejectError } = await supabaseAdmin
-      .from("qrx_verification_requests")
-      .update({
-        status: "rejected",
-        refund_done: true,
-        review_note: reviewNote,
-        reviewed_at: nowIso,
-        updated_at: nowIso,
-      })
-      .eq("id", requestId);
+    );
 
     if (rejectError) {
+      console.error("qrx_reject_verification_admin failed:", rejectError.message);
       return Response.json(
-        {
-          error: "Ablehnung konnte nicht gespeichert werden",
-          details: rejectError.message,
-        },
+        { error: "Ablehnung oder Rückerstattung fehlgeschlagen" },
         { status: 500 }
       );
     }
@@ -192,20 +167,12 @@ export async function POST(req: Request) {
       actionType: "verification_rejected",
       targetUserId: requestRow.owner_user_id,
       qrxId: requestRow.qrx_id,
-      amount: !requestRow.refund_done ? refundAmount : null,
-      note:
-        reviewNote ||
-        `Business QR-X abgelehnt. ${
-          !requestRow.refund_done ? `${refundAmount} Credits erstattet.` : "Keine erneute Erstattung."
-        } Request-ID: ${requestId}`,
+      amount: Number(rejectionResult?.refunded_amount ?? 0),
+      note: reviewNote || `Business QR abgelehnt. Request-ID: ${requestId}`,
     });
 
-    return Response.json({
-      ok: true,
-      status: "rejected",
-      refunded: !requestRow.refund_done,
-      refundedAmount: !requestRow.refund_done ? refundAmount : 0,
-    });
+    return Response.json(rejectionResult);
+
   } catch (e: unknown) {
     return Response.json(
       { error: e instanceof Error ? e.message : "Server error" },
