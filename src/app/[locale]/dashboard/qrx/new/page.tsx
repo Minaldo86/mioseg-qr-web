@@ -2936,26 +2936,6 @@ export default function NewQrxPage() {
     return nextCredits;
   }
 
-  async function addCredits(amount: number) {
-    if (!Number.isFinite(amount) || amount <= 0) return credits ?? 0;
-
-    const { data, error } = await supabase.rpc("add_credits", {
-      p_amount: amount,
-    });
-
-    if (error) {
-      throw new Error(
-        normalizeErrorMessage(error) ||
-          ui.creditsRefundFailed,
-      );
-    }
-
-    const nextCredits =
-      typeof data === "number" ? data : (credits ?? 0) + amount;
-    setCredits(nextCredits);
-    return nextCredits;
-  }
-
   async function deleteCreatedQrxIfNeeded(qrxId: string) {
     try {
       const {
@@ -3512,7 +3492,8 @@ export default function NewQrxPage() {
 
     let creationTransactionId: string | null = null;
     let chargedCreationCost = 0;
-    let chargedVerification = false;
+    let verificationTransactionId: string | null = null;
+    let verificationRequestSaved = false;
     let chargedStorageCredits = 0;
     let createdQrxId: string | null = null;
 
@@ -3631,11 +3612,6 @@ export default function NewQrxPage() {
         throw new Error(
           `Der Erstellungspreis hat sich geändert. Bitte prüfe die Kosten erneut und starte die Erstellung noch einmal.`,
         );
-      }
-
-      if (verificationCredits > 0) {
-        await spendCredits(verificationCredits);
-        chargedVerification = true;
       }
 
       const insertPayload = {
@@ -3820,6 +3796,18 @@ export default function NewQrxPage() {
         wantsVerification &&
         verificationDocument
       ) {
+        const { data: verificationCharge, error: verificationChargeError } =
+          await supabase.rpc("qrx_charge_verification", { p_qrx_id: newId });
+        if (verificationChargeError) throw verificationChargeError;
+
+        const transactionId = String(
+          (verificationCharge as { transaction_id?: string } | null)?.transaction_id ?? "",
+        ).trim();
+        if (!transactionId) {
+          throw new Error("Verifizierungs-Transaktions-ID fehlt.");
+        }
+        verificationTransactionId = transactionId;
+
         const uploadedVerification = await uploadVerificationDocument({
           userId: user.id,
           qrxId: newId,
@@ -3834,6 +3822,7 @@ export default function NewQrxPage() {
             status: "pending",
             credits_charged: verificationCredits,
             refund_done: false,
+            credit_transaction_id: verificationTransactionId,
             document_url: uploadedVerification.documentUrl,
             document_path: uploadedVerification.storagePath,
             document_filename: verificationDocument.file.name,
@@ -3846,6 +3835,14 @@ export default function NewQrxPage() {
           });
 
         if (verificationInsertError) throw verificationInsertError;
+        verificationRequestSaved = true;
+
+        const { error: verificationCompleteError } = await supabase.rpc(
+          "qrx_complete_verification",
+          { p_transaction_id: verificationTransactionId },
+        );
+        if (verificationCompleteError) throw verificationCompleteError;
+        verificationTransactionId = null;
       }
 
       if (!newId || !creationTransactionId) {
@@ -3892,8 +3889,11 @@ export default function NewQrxPage() {
 
       let qrxCleanupSucceeded = createdQrxId == null;
 
-      if (createdQrxId) {
+      if (createdQrxId && !verificationRequestSaved && chargedStorageCredits === 0) {
         qrxCleanupSucceeded = await deleteCreatedQrxIfNeeded(createdQrxId);
+      } else if (verificationRequestSaved || chargedStorageCredits > 0) {
+        // Bereits bezahltes Speicherlimit bis zur serverseitig geprüften Rückerstattung erhalten.
+        qrxCleanupSucceeded = false;
       }
 
       if (creationTransactionId && qrxCleanupSucceeded) {
@@ -3912,26 +3912,27 @@ export default function NewQrxPage() {
         );
       }
 
-      if (chargedVerification && verificationCredits > 0) {
+      if (verificationTransactionId && !verificationRequestSaved) {
         try {
-          await addCredits(verificationCredits);
+          const { error: verificationRefundError } = await supabase.rpc(
+            "qrx_refund_verification",
+            { p_transaction_id: verificationTransactionId },
+          );
+          if (verificationRefundError) throw verificationRefundError;
+          verificationTransactionId = null;
         } catch (refundError) {
           console.warn(
-            "Credit-Rückbuchung Verifizierung nach Fehler fehlgeschlagen:",
+            "Verifizierungs-Transaktionsrefund fehlgeschlagen:",
             refundError,
           );
         }
       }
 
       if (chargedStorageCredits > 0) {
-        try {
-          await addCredits(chargedStorageCredits);
-        } catch (refundError) {
-          console.warn(
-            "Credit-Rückbuchung Storage nach Fehler fehlgeschlagen:",
-            refundError,
-          );
-        }
+        console.warn(
+          "Speicher-Credits wurden berechnet. Keine unsichere Browser-Rückerstattung; QR und Speicherlimit bleiben zur Prüfung erhalten.",
+          { createdQrxId, chargedStorageCredits },
+        );
       }
 
       await loadCreditAndPricingData();
