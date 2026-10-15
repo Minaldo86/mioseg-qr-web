@@ -2092,6 +2092,7 @@ export default async function QrxPage({
       ? "repeat(2, 1fr)"
       : "repeat(auto-fit, minmax(140px, 1fr))",
     gap: isMobile ? 14 : 22,
+    justifyItems: "center",
   };
 
   const imageThumbStyle: CSSProperties = {
@@ -2540,8 +2541,7 @@ export default async function QrxPage({
                       loading="lazy"
                       decoding="async"
                     />
-                    <span style={imageCaptionStyle}>{img.filename}</span>
-                    <span style={imageOpenHintStyle}>{ui.tapImage}</span>
+
                   </MediaInteractionLink>
                 );
               })}
