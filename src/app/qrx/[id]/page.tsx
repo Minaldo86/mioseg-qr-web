@@ -2909,8 +2909,8 @@ const heroMiosegBrandStyle: CSSProperties = {
 };
 
 const heroMiosegLogoStyle: CSSProperties = {
-  width: 34,
-  height: 34,
+  width: 112,
+  height: 48,
   objectFit: "contain",
   display: "block",
 };
