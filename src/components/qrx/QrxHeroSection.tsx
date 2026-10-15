@@ -25,7 +25,7 @@ export default function QrxHeroSection({
   isBusiness,
   categoryMeta,
   verified,
-  labels = { business: "Business Mioseg QR", normal: "Normaler Mioseg QR", verified: "Verifiziert" },
+  labels = { business: "Business", normal: "Normaler Mioseg QR", verified: "Verifiziert" },
 }: Props) {
   return (
     <div style={coverStyle}>
@@ -43,7 +43,7 @@ export default function QrxHeroSection({
           {isBusiness ? (
             <>
               <span aria-hidden="true" style={brandSeparatorStyle}>|</span>
-              <span style={businessNameStyle}>Business</span>
+              <span style={businessNameStyle}>{labels.business === "Business" ? labels.business : "Business"}</span>
             </>
           ) : null}
         </div>
