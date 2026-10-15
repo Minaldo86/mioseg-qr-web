@@ -2233,7 +2233,7 @@ export default async function QrxPage({
                     <span style={heroMiosegBrandStyle}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src="/logo-wwhite.png"
+                        src="/logo-wwhite-tight.png"
                         alt="mioseg qr"
                         style={heroMiosegLogoStyle}
                       />
@@ -2909,8 +2909,9 @@ const heroMiosegBrandStyle: CSSProperties = {
 };
 
 const heroMiosegLogoStyle: CSSProperties = {
-  width: 112,
-  height: 48,
+  width: 145,
+  height: "auto",
+  maxWidth: "100%",
   objectFit: "contain",
   display: "block",
 };
