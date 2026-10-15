@@ -23,6 +23,31 @@ function normalizeQrxLocale(value: string): QrxWebLocale {
 }
 
 
+// Normalisiert die EXIF-Ausrichtung vor Vorschau, Speicherberechnung und Upload.
+async function normalizeGalleryOrientation(file: File): Promise<File> {
+  if (!/^image\/(jpeg|jpg|webp|png)$/i.test(file.type)) return file;
+  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Bild konnte nicht verarbeitet werden.");
+    context.drawImage(bitmap, 0, 0);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => result ? resolve(result) : reject(new Error("Bild konnte nicht verarbeitet werden.")),
+        "image/jpeg",
+        0.9,
+      );
+    });
+    const name = file.name.replace(/\.[^.]+$/, "") || "gallery";
+    return new File([blob], `${name}-oriented.jpg`, { type: "image/jpeg", lastModified: file.lastModified });
+  } finally {
+    bitmap.close();
+  }
+}
+
 async function createPositionedCoverFile(
   file: File,
   positionX: number,
@@ -2380,6 +2405,7 @@ export default function EditQrxPage() {
   const [credits, setCredits] = useState<number | null>(null);
 
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0, phase: "" });
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
 
@@ -3124,7 +3150,9 @@ export default function EditQrxPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (saving) return;
     setSaving(true);
+    setUploadProgress({ completed: 0, total: 0, phase: "Daten werden geprüft und gespeichert …" });
     setErrorText(null);
     setSuccessText(null);
 
@@ -3219,6 +3247,14 @@ export default function EditQrxPage() {
         setQrxPasswordRepeat("");
       }
 
+      const totalUploads = Number(Boolean(logoFile)) + Number(Boolean(coverFile)) + galleryFiles.length + fileUploads.length;
+      let completedUploads = 0;
+      const advanceUpload = () => {
+        completedUploads += 1;
+        setUploadProgress({ completed: completedUploads, total: totalUploads, phase: "Medien werden hochgeladen …" });
+      };
+      setUploadProgress({ completed: 0, total: totalUploads, phase: totalUploads ? "Medien werden hochgeladen …" : "Änderungen werden fertiggestellt …" });
+
       if (logoFile) {
         const uploadedLogo = await uploadQrxMedia({
           qrxId,
@@ -3244,6 +3280,7 @@ export default function EditQrxPage() {
 
         if (logoUpdateError) throw logoUpdateError;
         setLogoUrl(uploadedLogo.publicUrl);
+        advanceUpload();
       }
 
       if (coverFile) {
@@ -3272,14 +3309,17 @@ export default function EditQrxPage() {
 
         if (coverUpdateError) throw coverUpdateError;
         setCoverUrl(uploadedCover.publicUrl);
+        advanceUpload();
       }
 
       for (const file of galleryFiles) {
         await uploadQrxMedia({ qrxId, file, prefix: "gallery", mediaType: "image", mediaRole: "gallery" });
+        advanceUpload();
       }
 
       for (const file of fileUploads) {
         await uploadQrxMedia({ qrxId, file, prefix: "file", mediaType: "file", mediaRole: "file" });
+        advanceUpload();
       }
 
       setLogoFile(null);
@@ -3308,7 +3348,8 @@ export default function EditQrxPage() {
     setErrorText(null);
     setSuccessText(null);
 
-    let chargedVerification = false;
+    let verificationTransactionId: string | null = null;
+    let requestInserted = false;
     let uploadedStoragePath: string | null = null;
 
     try {
@@ -3318,26 +3359,25 @@ export default function EditQrxPage() {
       if (verificationRequest?.status === "pending") {
         throw new Error(ui.alreadyVerification);
       }
-      if (!verificationDocument) {
-        throw new Error(ui.proofImagePdf);
-      }
+      if (!verificationDocument) throw new Error(ui.proofImagePdf);
 
       const allowed = verificationDocument.type.startsWith("image/") || verificationDocument.type === "application/pdf" || verificationDocument.name.toLowerCase().endsWith(".pdf");
-      if (!allowed) {
-        throw new Error(ui.verificationImagePdf);
-      }
+      if (!allowed) throw new Error(ui.verificationImagePdf);
 
       const user = await getCurrentUserOrThrow();
       await loadCreditBalance(user.id);
 
-      if (credits != null && credits < QRX_VERIFICATION_COST_CREDITS) {
-        throw new Error(
-          `${ui.notEnoughCredits}. ${ui.required}: ${QRX_VERIFICATION_COST_CREDITS}, ${ui.available}: ${credits}.`,
-        );
+      // The server checks the actual balance and atomically charges 10 credits.
+      const { data: chargeData, error: chargeError } = await supabase.rpc("qrx_charge_verification", {
+        p_qrx_id: qrxId,
+      });
+      if (chargeError) throw chargeError;
+      const transactionId = chargeData?.transaction_id;
+      if (typeof transactionId !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(transactionId)) {
+        // Do not issue an untraceable refund when the charge result is ambiguous.
+        throw new Error("Verifizierungs-Abbuchung konnte nicht eindeutig zugeordnet werden. Bitte Support kontaktieren.");
       }
-
-      await spendCredits(QRX_VERIFICATION_COST_CREDITS);
-      chargedVerification = true;
+      verificationTransactionId = transactionId;
 
       const safeFilename = sanitizeFilename(verificationDocument.name);
       const storagePath = `${user.id}/${qrxId}/${Date.now().toString()}-${safeFilename}`;
@@ -3349,7 +3389,6 @@ export default function EditQrxPage() {
           contentType: verificationDocument.type || "application/octet-stream",
           upsert: false,
         });
-
       if (uploadError) throw uploadError;
       uploadedStoragePath = storagePath;
 
@@ -3361,41 +3400,59 @@ export default function EditQrxPage() {
           status: "pending",
           credits_charged: QRX_VERIFICATION_COST_CREDITS,
           refund_done: false,
+          credit_transaction_id: transactionId,
           document_url: `storage://${QRX_VERIFICATION_BUCKET}/${storagePath}`,
           document_path: storagePath,
           document_filename: verificationDocument.name,
           document_mime_type: verificationDocument.type || "application/octet-stream",
           document_type: documentType,
         });
-
       if (insertError) throw insertError;
+      requestInserted = true;
+
+      // Never refund after a request has been saved: an admin may review it.
+      const { error: completeError } = await supabase.rpc("qrx_complete_verification", {
+        p_transaction_id: transactionId,
+      });
+      if (completeError) {
+        console.error("Verifizierungs-Transaktion konnte nicht abgeschlossen werden:", completeError);
+        throw new Error("Der Antrag wurde gespeichert, aber der Zahlungsabschluss ist fehlgeschlagen. Bitte Support kontaktieren; nicht erneut beantragen.");
+      }
 
       setVerificationDocument(null);
-      await Promise.all([loadCreditBalance(user.id), loadLatestVerificationRequest(user.id)]);
       setSuccessText(ui.verificationSubmitted);
+      // UI refresh errors must not trigger financial compensation.
+      try {
+        await Promise.all([loadCreditBalance(user.id), loadLatestVerificationRequest(user.id)]);
+      } catch (refreshError) {
+        console.warn("Verifizierungsanzeige konnte nicht aktualisiert werden:", refreshError);
+      }
     } catch (error) {
-      if (uploadedStoragePath) {
-        try {
-          await supabase.storage.from(QRX_VERIFICATION_BUCKET).remove([uploadedStoragePath]);
-        } catch (removeError) {
-          console.warn("Verifizierungsdokument-Cleanup fehlgeschlagen:", removeError);
+      if (!requestInserted) {
+        if (uploadedStoragePath) {
+          try {
+            const { error: cleanupError } = await supabase.storage.from(QRX_VERIFICATION_BUCKET).remove([uploadedStoragePath]);
+            if (cleanupError) console.warn("Verifizierungsdokument-Cleanup fehlgeschlagen:", cleanupError);
+          } catch (removeError) {
+            console.warn("Verifizierungsdokument-Cleanup fehlgeschlagen:", removeError);
+          }
+        }
+        if (verificationTransactionId) {
+          try {
+            const { error: refundError } = await supabase.rpc("qrx_refund_verification", {
+              p_transaction_id: verificationTransactionId,
+            });
+            if (refundError) console.warn("Credit-Rückbuchung nach Verifizierungsfehler fehlgeschlagen:", refundError);
+          } catch (refundError) {
+            console.warn("Credit-Rückbuchung nach Verifizierungsfehler fehlgeschlagen:", refundError);
+          }
         }
       }
-
-      if (chargedVerification) {
-        try {
-          await addCredits(QRX_VERIFICATION_COST_CREDITS);
-        } catch (refundError) {
-          console.warn("Credit-Rückbuchung nach Verifizierungsfehler fehlgeschlagen:", refundError);
-        }
-      }
-
       setErrorText(normalizeErrorMessage(error) || ui.unknownError);
     } finally {
       setVerificationSaving(false);
     }
   }
-
 
   function handleLogoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
@@ -3424,10 +3481,15 @@ export default function EditQrxPage() {
     event.target.value = "";
   }
 
-  function handleGalleryFilesChange(event: ChangeEvent<HTMLInputElement>) {
+  async function handleGalleryFilesChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(event.target.files ?? []).filter(isImageFile);
-    if (selected.length > 0) setGalleryFiles((current) => [...current, ...selected]);
     event.target.value = "";
+    try {
+      const normalized = await Promise.all(selected.map(normalizeGalleryOrientation));
+      if (normalized.length > 0) setGalleryFiles((current) => [...current, ...normalized]);
+    } catch (error) {
+      setErrorText(error instanceof Error ? error.message : "Galeriebilder konnten nicht verarbeitet werden.");
+    }
   }
 
   function handleFileUploadsChange(event: ChangeEvent<HTMLInputElement>) {
@@ -3609,6 +3671,24 @@ export default function EditQrxPage() {
 
   return (
     <main className={styles.page}>
+      {saving && (
+        <div role="status" aria-live="polite" style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(4, 12, 25, 0.78)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ width: "min(100%, 440px)", background: "#172337", color: "#fff", border: "1px solid #40516b", borderRadius: 18, padding: 28, boxShadow: "0 16px 50px rgba(0,0,0,.4)", textAlign: "center" }}>
+            <div style={{ width: 38, height: 38, border: "4px solid #52627a", borderTopColor: "#f4d35e", borderRadius: "50%", margin: "0 auto 18px", animation: "mioseg-upload-spin 1s linear infinite" }} />
+            <h2 style={{ margin: "0 0 10px", fontSize: 21 }}>{locale === "de" ? "Dein Mioseg QR wird gespeichert …" : "Saving your Mioseg QR …"}</h2>
+            <p style={{ margin: "0 0 16px", color: "#c9d6e6" }}>{uploadProgress.phase}</p>
+            {uploadProgress.total > 0 && <>
+              <p style={{ margin: "0 0 8px" }}>{locale === "de" ? "Dateien hochgeladen" : "Files uploaded"}: {uploadProgress.completed} / {uploadProgress.total}</p>
+              <div style={{ height: 9, background: "#34445b", borderRadius: 99, overflow: "hidden" }}>
+                <div style={{ width: `${(uploadProgress.completed / uploadProgress.total) * 100}%`, height: "100%", background: "#f4d35e", transition: "width .25s ease" }} />
+              </div>
+            </>}
+            <p style={{ margin: "16px 0 0", color: "#c9d6e6", fontSize: 13 }}>{locale === "de" ? "Bitte warte und schließe diese Seite nicht." : "Please wait and do not close this page."}</p>
+          </div>
+          <style>{`@keyframes mioseg-upload-spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+
       <header className={styles.topbar}>
         <Link href={`/${locale}/dashboard`} className={styles.brand}>
           <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />

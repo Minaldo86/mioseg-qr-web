@@ -1685,7 +1685,7 @@ function PublicQrxDetailPageContent() {
               isBusiness={isBusiness}
               categoryMeta={categoryMeta}
               verified={entry.verified === true}
-              labels={ui.hero}
+              labels={{ ...ui.hero, business: "Business" }}
             />
 
             <QrxStatsSection stats={stats} ariaLabel={ui.statsAria} />

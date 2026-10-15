@@ -20,6 +20,31 @@ function normalizeQrxLocale(value: string): QrxWebLocale {
 }
 
 
+// Normalisiert die EXIF-Ausrichtung vor Vorschau, Speicherberechnung und Upload.
+async function normalizeGalleryOrientation(file: File): Promise<File> {
+  if (!/^image\/(jpeg|jpg|webp|png)$/i.test(file.type)) return file;
+  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = bitmap.width;
+    canvas.height = bitmap.height;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Bild konnte nicht verarbeitet werden.");
+    context.drawImage(bitmap, 0, 0);
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => result ? resolve(result) : reject(new Error("Bild konnte nicht verarbeitet werden.")),
+        "image/jpeg",
+        0.9,
+      );
+    });
+    const name = file.name.replace(/\.[^.]+$/, "") || "gallery";
+    return new File([blob], `${name}-oriented.jpg`, { type: "image/jpeg", lastModified: file.lastModified });
+  } finally {
+    bitmap.close();
+  }
+}
+
 async function createPositionedCoverFile(
   file: File,
   positionX: number,
@@ -2299,6 +2324,7 @@ export default function NewQrxPage() {
   );
 
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0, phase: "" });
   const [costConfirmed, setCostConfirmed] = useState(false);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [successText, setSuccessText] = useState<string | null>(null);
@@ -3218,19 +3244,17 @@ export default function NewQrxPage() {
     setCoverZoom(100);
   }
 
-  function handleGalleryFilesChange(event: ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = Array.from(event.target.files ?? []).filter(
-      isImageMime,
-    );
-
-    if (selectedFiles.length > 0) {
-      setGalleryFiles((current) => [
-        ...current,
-        ...selectedFiles.map(buildSelectedMediaFile),
-      ]);
-    }
-
+  async function handleGalleryFilesChange(event: ChangeEvent<HTMLInputElement>) {
+    const selectedFiles = Array.from(event.target.files ?? []).filter(isImageMime);
     event.target.value = "";
+    try {
+      const normalized = await Promise.all(selectedFiles.map(normalizeGalleryOrientation));
+      if (normalized.length > 0) {
+        setGalleryFiles((current) => [...current, ...normalized.map(buildSelectedMediaFile)]);
+      }
+    } catch (error) {
+      setErrorText(error instanceof Error ? error.message : "Galeriebilder konnten nicht verarbeitet werden.");
+    }
   }
 
   function handleFileUploadsChange(event: ChangeEvent<HTMLInputElement>) {
@@ -3486,7 +3510,9 @@ export default function NewQrxPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (saving) return;
     setSaving(true);
+    setUploadProgress({ completed: 0, total: 0, phase: "Daten werden geprüft und gespeichert …" });
     setErrorText(null);
     setSuccessText(null);
 
@@ -3730,6 +3756,14 @@ export default function NewQrxPage() {
         });
       }
 
+      const totalUploads = Number(Boolean(logoFile)) + Number(Boolean(qrxType === "business" && coverFile)) + galleryFiles.length + fileUploads.length;
+      let completedUploads = 0;
+      const advanceUpload = () => {
+        completedUploads += 1;
+        setUploadProgress({ completed: completedUploads, total: totalUploads, phase: "Medien werden hochgeladen …" });
+      };
+      setUploadProgress({ completed: 0, total: totalUploads, phase: totalUploads ? "Medien werden hochgeladen …" : "Mioseg QR wird fertiggestellt …" });
+
       if (newId && logoFile) {
         const logoUpload = await uploadQrxMedia({
           qrxId: newId,
@@ -3745,6 +3779,7 @@ export default function NewQrxPage() {
           .eq("id", newId);
 
         if (logoUpdateError) throw logoUpdateError;
+        advanceUpload();
       }
 
       if (newId && qrxType === "business" && coverFile) {
@@ -3763,6 +3798,7 @@ export default function NewQrxPage() {
           .eq("id", newId);
 
         if (coverUpdateError) throw coverUpdateError;
+        advanceUpload();
       }
 
       if (newId && galleryFiles.length > 0) {
@@ -3774,6 +3810,7 @@ export default function NewQrxPage() {
             mediaType: "image",
           });
           chargedStorageCredits += Math.max(0, galleryUpload.chargedCredits);
+          advanceUpload();
         }
       }
 
@@ -3786,6 +3823,7 @@ export default function NewQrxPage() {
             mediaType: "file",
           });
           chargedStorageCredits += Math.max(0, fileUpload.chargedCredits);
+          advanceUpload();
         }
       }
 
@@ -3948,6 +3986,24 @@ export default function NewQrxPage() {
 
   return (
     <main className={styles.page}>
+      {saving && (
+        <div role="status" aria-live="polite" style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(4, 12, 25, 0.78)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ width: "min(100%, 440px)", background: "#172337", color: "#fff", border: "1px solid #40516b", borderRadius: 18, padding: 28, boxShadow: "0 16px 50px rgba(0,0,0,.4)", textAlign: "center" }}>
+            <div style={{ width: 38, height: 38, border: "4px solid #52627a", borderTopColor: "#f4d35e", borderRadius: "50%", margin: "0 auto 18px", animation: "mioseg-upload-spin 1s linear infinite" }} />
+            <h2 style={{ margin: "0 0 10px", fontSize: 21 }}>{locale === "de" ? "Dein Mioseg QR wird gespeichert …" : "Saving your Mioseg QR …"}</h2>
+            <p style={{ margin: "0 0 16px", color: "#c9d6e6" }}>{uploadProgress.phase}</p>
+            {uploadProgress.total > 0 && <>
+              <p style={{ margin: "0 0 8px" }}>{locale === "de" ? "Dateien hochgeladen" : "Files uploaded"}: {uploadProgress.completed} / {uploadProgress.total}</p>
+              <div style={{ height: 9, background: "#34445b", borderRadius: 99, overflow: "hidden" }}>
+                <div style={{ width: `${(uploadProgress.completed / uploadProgress.total) * 100}%`, height: "100%", background: "#f4d35e", transition: "width .25s ease" }} />
+              </div>
+            </>}
+            <p style={{ margin: "16px 0 0", color: "#c9d6e6", fontSize: 13 }}>{locale === "de" ? "Bitte warte und schließe diese Seite nicht." : "Please wait and do not close this page."}</p>
+          </div>
+          <style>{`@keyframes mioseg-upload-spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+
       <header className={styles.topbar}>
         <Link href={`/${locale}/dashboard`} className={styles.brand}>
           <img src="/logo-wwhite.png" alt="Mioseg qr Logo" />
