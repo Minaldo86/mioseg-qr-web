@@ -43,7 +43,7 @@ export default function QrxHeroSection({
           {isBusiness ? (
             <>
               <span aria-hidden="true" style={brandSeparatorStyle}>|</span>
-              <span style={businessNameStyle}>{labels.business === "Business" ? labels.business : "Business"}</span>
+              <span style={businessNameStyle}>{"Business"}</span>
             </>
           ) : null}
         </div>
@@ -106,7 +106,7 @@ const brandNameStyle: CSSProperties = {
   color: "#fff", fontSize: "clamp(18px, 4vw, 25px)", fontWeight: 850, lineHeight: 1.2,
 };
 const brandSeparatorStyle: CSSProperties = { color: "rgba(255,255,255,0.65)", fontSize: 23 };
-// Gleicher Gelbton wie im gezeigten „App öffnen“-Button; bei abweichender CSS-Farbe anpassen.
+// Gelbton der gewünschten Business-Beschriftung.
 const businessNameStyle: CSSProperties = {
   color: "#ffe66b", fontSize: "clamp(18px, 4vw, 25px)", fontWeight: 850, lineHeight: 1.2,
 };
