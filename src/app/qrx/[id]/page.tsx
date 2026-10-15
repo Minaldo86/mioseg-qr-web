@@ -2909,7 +2909,7 @@ const heroMiosegBrandStyle: CSSProperties = {
 };
 
 const heroMiosegLogoStyle: CSSProperties = {
-  width: 105,
+  width: 65,
   height: "auto",
   maxWidth: "100%",
   objectFit: "contain",
