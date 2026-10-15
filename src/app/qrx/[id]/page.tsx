@@ -15,7 +15,7 @@ import CollectionPreview, {
 } from "@/components/qrx/CollectionPreview";
 import VerificationInfoButton from "./VerificationInfoButton";
 
-type NewsItem = { text: string; createdAt: string };
+type NewsItem = { text: string; createdAt: string; pinned?: boolean; isPinned?: boolean; is_pinned?: boolean };
 
 type BusinessCategory =
   | "praxis_gesundheit"
@@ -1175,8 +1175,10 @@ function normalizeNewsItems(value: NewsItem[] | null | undefined) {
       id: `${item.createdAt ?? "news"}-${index}`,
       text: item.text.trim(),
       createdAt: typeof item.createdAt === "string" ? item.createdAt : "",
+      pinned: item.pinned === true || item.isPinned === true || item.is_pinned === true,
     }))
     .sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
       const ta = new Date(a.createdAt).getTime();
       const tb = new Date(b.createdAt).getTime();
       return (Number.isFinite(tb) ? tb : 0) - (Number.isFinite(ta) ? ta : 0);
@@ -2465,14 +2467,26 @@ export default async function QrxPage({
           </p>
         </section>
 
-        {/* 6. News / Updates */}
-        <section style={sectionCardStyle}>
+        {/* 6. News / Updates: Die gesamte Karte inklusive Titel scrollt. */}
+        <section
+          style={{
+            ...sectionCardStyle,
+            maxHeight: isMobile ? 390 : 490,
+            overflowY: "auto",
+            overflowX: "hidden",
+            overscrollBehavior: "contain",
+            scrollbarWidth: "thin",
+            scrollbarColor: "#f2cc62 rgba(148,163,184,0.16)",
+          }}
+          aria-label={ui.news}
+          tabIndex={0}
+        >
           <h2 style={cardTitleStyle}>{ui.news}</h2>
 
           {newsItems.length === 0 ? (
             <p style={mutedTextStyle}>{ui.noNews}</p>
           ) : (
-            <div style={newsBoxStyle}>
+            <div style={{ ...newsBoxStyle, maxHeight: "none", overflow: "visible" }}>
               {newsItems.map((n, index) => (
                 <article
                   key={n.id}
@@ -2484,6 +2498,11 @@ export default async function QrxPage({
                         : "1px solid rgba(65,84,103,0.6)",
                   }}
                 >
+                  {n.pinned && (
+                    <div style={{ color: "#f2cc62", fontSize: 13, fontWeight: 700, marginBottom: 7 }}>
+                      📌 {publicLocale === "de" ? "Angepinnt" : "Pinned"}
+                    </div>
+                  )}
                   <div style={newsTextStyle}>{n.text}</div>
                   <div style={newsDateStyle}>
                     {formatDate(n.createdAt, publicLocale)}
