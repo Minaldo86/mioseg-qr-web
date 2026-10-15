@@ -2230,29 +2230,22 @@ export default async function QrxPage({
                   <h1 style={heroTitleStyle}>{companyName}</h1>
 
                   <div style={heroBrandRowStyle}>
+                    <span style={heroMiosegBrandStyle}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src="/logo-wwhite.png"
+                        alt="mioseg qr"
+                        style={heroMiosegLogoStyle}
+                      />
+                    </span>
+                    <span style={heroBrandDividerStyle} aria-hidden="true">|</span>
+                    <span style={heroBusinessTextStyle}>Business</span>
                     {entry.verified ? (
                       <VerificationInfoButton
                         badgeLabel={ui.businessVerified}
                         copy={ui.verificationInfo}
                       />
-                    ) : (
-                      <span style={heroBusinessBadgeStyle}>
-                        {ui.businessQrx}
-                      </span>
-                    )}
-
-                    <span style={heroBrandDividerStyle} aria-hidden="true" />
-
-                    <span style={heroMiosegBrandStyle}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src="/logo-wwhite.png"
-                        alt=""
-                        aria-hidden="true"
-                        style={heroMiosegLogoStyle}
-                      />
-                      <span>mioseg qr</span>
-                    </span>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -2860,7 +2853,7 @@ const heroIdentityTextStyle: CSSProperties = {
 const heroBrandRowStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: 14,
+  gap: 10,
   flexWrap: "wrap",
   marginTop: 16,
 };
@@ -2892,15 +2885,17 @@ const heroVerifiedBusinessIconStyle: CSSProperties = {
   fontSize: 12,
 };
 
-const heroBusinessBadgeStyle: CSSProperties = {
-  ...heroVerifiedBusinessBadgeStyle,
+const heroBusinessTextStyle: CSSProperties = {
   color: "#fde68a",
+  fontSize: 18,
+  fontWeight: 900,
+  lineHeight: 1.3,
 };
 
 const heroBrandDividerStyle: CSSProperties = {
-  width: 1,
-  height: 30,
-  background: "rgba(250,204,21,0.68)",
+  color: "#ffffff",
+  fontSize: 21,
+  fontWeight: 500,
 };
 
 const heroMiosegBrandStyle: CSSProperties = {
