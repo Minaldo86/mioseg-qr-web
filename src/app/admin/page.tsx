@@ -5,6 +5,7 @@ import AdminMediaDashboard, { type AdminMediaDashboardSection } from "./componen
 import AdminMediaStorage from "./components/AdminMediaStorage";
 import AdminMediaTraffic from "./components/AdminMediaTraffic";
 import AdminMediaJobs from "./components/AdminMediaJobs";
+import AdminAnnouncements from "./components/AdminAnnouncements";
 
 type VerificationRequest = {
   id: string;
@@ -58,7 +59,8 @@ type AdminTab =
   | "credits"
   | "finance"
   | "prices"
-  | "logs";
+  | "logs"
+  | "announcements";
 
 type CreditHistoryEntry = {
   id: string;
@@ -611,6 +613,8 @@ const ADMIN_I18N = {
     tab_overview_hint: "Kennzahlen und wichtigste offene Punkte",
     tab_verifications: "Verifizierungen",
     tab_verifications_hint: "Business-Mioseg QR Nachweise prüfen",
+    tab_announcements: "Mitteilungen",
+    tab_announcements_hint: "Informationen und Zustimmungen verwalten",
     tab_reports: "Meldungen",
     tab_reports_hint: "Gemeldete und gesperrte Mioseg QR moderieren",
     tab_support: "Support",
@@ -892,6 +896,8 @@ const ADMIN_I18N = {
     tab_overview_hint: "Key metrics and most important open items",
     tab_verifications: "Verifications",
     tab_verifications_hint: "Review Business Mioseg QR proof documents",
+    tab_announcements: "Announcements",
+    tab_announcements_hint: "Manage notices and consent requests",
     tab_reports: "Reports",
     tab_reports_hint: "Moderate reported and suspended Mioseg QR",
     tab_support: "Support",
@@ -2673,6 +2679,7 @@ export default function AdminPage() {
     { key: "overview", labelKey: "tab_overview", hintKey: "tab_overview_hint" },
     { key: "verifications", labelKey: "tab_verifications", hintKey: "tab_verifications_hint" },
     { key: "reports", labelKey: "tab_reports", hintKey: "tab_reports_hint" },
+    { key: "announcements", labelKey: "tab_announcements", hintKey: "tab_announcements_hint" },
     { key: "support", labelKey: "tab_support", hintKey: "tab_support_hint" },
     { key: "users", labelKey: "tab_users", hintKey: "tab_users_hint" },
     { key: "credits", labelKey: "tab_credits", hintKey: "tab_credits_hint" },
@@ -5953,6 +5960,8 @@ const handleWarningOpenMediaJobs = async () => {
             </button>
           ))}
         </div>
+
+        {activeAdminTab === "announcements" && <AdminAnnouncements />}
 
         <div style={{ display: activeAdminTab === "overview" ? "block" : "none" }}>
           <div style={{ ...styles.commandPanel, marginBottom: 18 }}>
