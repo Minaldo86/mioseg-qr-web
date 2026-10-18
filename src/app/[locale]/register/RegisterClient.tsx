@@ -7,8 +7,8 @@ import { FormEvent, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import styles from "../auth/auth.module.css";
 
-const CURRENT_TERMS_VERSION = "1.0";
-const CURRENT_TERMS_DATE = "2026-08-08";
+const CURRENT_TERMS_VERSION = "1.1";
+const CURRENT_TERMS_DATE = "2026-10-18";
 
 const SUPPORTED_ACCOUNT_LANGUAGES = [
   "de",
