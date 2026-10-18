@@ -140,6 +140,16 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "14. Kontakt",
         content: ["Bei Fragen zum Datenschutz: info@mioseg-qr.com"],
       },
+      {
+        title: "15. Unternehmensnachfolge und möglicher Wechsel des Verantwortlichen",
+        content: [
+          "Der Betrieb von mioseg qr kann künftig im Rahmen einer Unternehmensgründung, Umstrukturierung oder Unternehmensnachfolge auf einen anderen Rechtsträger, insbesondere eine vom derzeitigen Anbieter gegründete oder kontrollierte GmbH, übertragen werden.",
+          "Im Zusammenhang damit kann die Übermittlung personenbezogener Daten an den zukünftigen Betreiber erforderlich sein, insbesondere von Benutzerkonto- und Kontaktdaten, gespeicherten Mioseg QR, hochgeladenen Inhalten, Berechtigungen, Credit-Guthaben und Transaktionsinformationen, soweit dies für die Fortführung der jeweiligen Leistungen notwendig ist.",
+          "Eine solche Verarbeitung oder Übermittlung erfolgt nur bei Vorliegen einer geeigneten Rechtsgrundlage nach Art. 6 Abs. 1 DSGVO und unter Beachtung aller weiteren gesetzlichen Voraussetzungen. Abhängig vom konkreten Vorgang kommen insbesondere Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) oder berechtigte Interessen (Art. 6 Abs. 1 lit. f DSGVO) in Betracht; die jeweils einschlägige Grundlage wird vor der Übertragung geprüft.",
+          "Bei einem tatsächlichen Wechsel des datenschutzrechtlich Verantwortlichen werden die betroffenen Personen nach Maßgabe der DSGVO über die Identität und Kontaktdaten des neuen Verantwortlichen und gegebenenfalls weitere relevante Änderungen informiert. Die gesetzlichen Betroffenenrechte bleiben unberührt.",
+          "Diese Information stellt weder eine pauschale Einwilligung in künftige Datenübermittlungen noch eine Erlaubnis zur Verarbeitung für neue, mit den ursprünglichen Zwecken unvereinbare Zwecke dar.",
+        ],
+      },
     ],
   },
 
@@ -274,6 +284,16 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Veri korumayla ilgili sorular için: info@mioseg-qr.com",
         ],
       },
+      {
+        title: "15. İşletme Devri ve Veri Sorumlusunun Olası Değişikliği",
+        content: [
+          "mioseg qr işletmesi gelecekte şirket kuruluşu, yeniden yapılanma veya işletme devri kapsamında, mevcut sağlayıcının kurduğu veya kontrol ettiği bir GmbH dahil başka bir tüzel kişiye devredilebilir.",
+          "Bu kapsamda hizmetlerin sürdürülmesi için gerekli olduğu ölçüde hesap ve iletişim verileri, kayıtlı Mioseg QR içerikleri, yüklenen dosyalar, yetkiler, kredi bakiyeleri ve işlem bilgileri gelecekteki işletmeciye aktarılabilir.",
+          "Her türlü işleme veya aktarım yalnızca GDPR Madde 6(1) kapsamında uygun bir hukuki dayanak ve diğer yasal koşullar mevcutsa yapılır. Somut duruma göre sözleşmenin ifası (Madde 6(1)(b)) veya meşru menfaatler (Madde 6(1)(f)) söz konusu olabilir; uygulanacak dayanak aktarım öncesinde değerlendirilir.",
+          "Veri sorumlusu gerçekten değişirse ilgili kişilere GDPR uyarınca yeni sorumlunun kimliği, iletişim bilgileri ve diğer önemli değişiklikler bildirilir. Yasal ilgili kişi hakları saklıdır.",
+          "Bu açıklama, gelecekteki veri aktarımlarına genel rıza veya verilerin başlangıçtaki amaçlarla bağdaşmayan yeni amaçlarla işlenmesine izin teşkil etmez.",
+        ],
+      },
     ],
   },
 
@@ -405,6 +425,16 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "14. Kontakt",
         content: ["W sprawach dotyczących ochrony danych: info@mioseg-qr.com"],
+      },
+      {
+        title: "15. Sukcesja przedsiębiorstwa i możliwa zmiana administratora",
+        content: [
+          "Prowadzenie mioseg qr może w przyszłości zostać przeniesione na inny podmiot prawny w związku z utworzeniem spółki, reorganizacją lub sukcesją przedsiębiorstwa, w tym na GmbH utworzoną lub kontrolowaną przez obecnego dostawcę.",
+          "Może to wymagać przekazania przyszłemu operatorowi danych konta i kontaktowych, zapisanych Mioseg QR, przesłanych treści, uprawnień, sald kredytów i informacji o transakcjach w zakresie niezbędnym do dalszego świadczenia usług.",
+          "Każde przetwarzanie lub przekazanie nastąpi wyłącznie na odpowiedniej podstawie prawnej zgodnie z art. 6 ust. 1 RODO oraz przy spełnieniu pozostałych wymogów. Zależnie od okoliczności może mieć zastosowanie wykonanie umowy (lit. b) lub prawnie uzasadniony interes (lit. f); podstawa zostanie oceniona przed przekazaniem.",
+          "W przypadku faktycznej zmiany administratora osoby, których dane dotyczą, zostaną poinformowane o tożsamości i danych kontaktowych nowego administratora oraz innych istotnych zmianach zgodnie z RODO. Prawa ustawowe pozostają nienaruszone.",
+          "Niniejsza informacja nie stanowi ogólnej zgody na przyszłe przekazywanie danych ani zezwolenia na przetwarzanie ich w nowych celach niezgodnych z pierwotnymi.",
+        ],
       },
     ],
   },
@@ -538,6 +568,16 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "14. التواصل",
         content: ["للأسئلة المتعلقة بحماية البيانات: info@mioseg-qr.com"],
       },
+      {
+        title: "15. خلافة النشاط التجاري والتغيير المحتمل للمسؤول عن البيانات",
+        content: [
+          "قد يُنقل تشغيل mioseg qr مستقبلًا إلى كيان قانوني آخر في إطار تأسيس شركة أو إعادة هيكلة أو خلافة تجارية، بما في ذلك شركة GmbH يؤسسها مقدم الخدمة الحالي أو يسيطر عليها.",
+          "قد يستلزم ذلك نقل بيانات الحساب والاتصال ورموز Mioseg QR المحفوظة والمحتويات المرفوعة والصلاحيات وأرصدة الاعتمادات ومعلومات المعاملات إلى المشغل المستقبلي بالقدر اللازم لاستمرار الخدمات.",
+          "لا تتم أي معالجة أو عملية نقل إلا استنادًا إلى أساس قانوني مناسب وفق المادة 6(1) من اللائحة العامة لحماية البيانات (GDPR) وبالامتثال للشروط القانونية الأخرى. وقد ينطبق تنفيذ العقد (المادة 6(1)(ب)) أو المصالح المشروعة (المادة 6(1)(و)) بحسب الظروف؛ ويُقيّم الأساس قبل النقل.",
+          "إذا تغير المسؤول عن معالجة البيانات فعليًا، فسيتم إبلاغ الأشخاص المعنيين بهوية المسؤول الجديد وبيانات الاتصال به وأي تغييرات مهمة أخرى وفقًا للائحة GDPR. وتبقى الحقوق القانونية محفوظة.",
+          "لا يشكل هذا الإشعار موافقة عامة على عمليات نقل البيانات المستقبلية أو إذنًا بمعالجتها لأغراض جديدة تتعارض مع الأغراض الأصلية.",
+        ],
+      },
     ],
   },
 
@@ -669,6 +709,16 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "14. Contact",
         content: ["Pour toute question relative à la protection des données : info@mioseg-qr.com"],
+      },
+      {
+        title: "15. Succession d’entreprise et changement éventuel de responsable du traitement",
+        content: [
+          "L’exploitation de mioseg qr pourra être transférée à l’avenir à une autre entité juridique dans le cadre d’une constitution de société, d’une restructuration ou d’une succession d’entreprise, notamment à une GmbH créée ou contrôlée par le fournisseur actuel.",
+          "Cela peut nécessiter le transfert au futur exploitant des données de compte et de contact, des Mioseg QR enregistrés, des contenus téléversés, des autorisations, des soldes de crédits et des informations de transaction, dans la mesure nécessaire à la continuité des services.",
+          "Tout traitement ou transfert ne sera effectué que sur une base juridique appropriée conformément à l’article 6, paragraphe 1, du RGPD et dans le respect des autres exigences légales. Selon les circonstances, l’exécution du contrat (point b) ou l’intérêt légitime (point f) peut s’appliquer ; la base pertinente sera évaluée avant le transfert.",
+          "En cas de changement effectif de responsable du traitement, les personnes concernées seront informées de l’identité et des coordonnées du nouveau responsable ainsi que des autres changements pertinents conformément au RGPD. Leurs droits légaux restent préservés.",
+          "Cette information ne constitue ni un consentement général aux futurs transferts de données ni une autorisation de traiter les données à de nouvelles fins incompatibles avec les finalités initiales.",
+        ],
       },
     ],
   },
@@ -802,6 +852,16 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
         title: "14. Contacto",
         content: ["Para preguntas sobre protección de datos: info@mioseg-qr.com"],
       },
+      {
+        title: "15. Sucesión empresarial y posible cambio del responsable del tratamiento",
+        content: [
+          "La explotación de mioseg qr podrá transferirse en el futuro a otra entidad jurídica en el marco de la constitución de una sociedad, una reorganización o una sucesión empresarial, incluida una GmbH fundada o controlada por el proveedor actual.",
+          "Esto puede requerir transferir al futuro operador datos de cuenta y contacto, Mioseg QR guardados, contenidos cargados, permisos, saldos de créditos e información de transacciones, en la medida necesaria para continuar prestando los servicios.",
+          "Todo tratamiento o transferencia se realizará únicamente con una base jurídica adecuada conforme al artículo 6.1 del RGPD y cumpliendo los demás requisitos legales. Según las circunstancias, podrán aplicarse la ejecución del contrato (letra b) o los intereses legítimos (letra f); la base pertinente se evaluará antes de la transferencia.",
+          "Si cambia efectivamente el responsable del tratamiento, se informará a las personas afectadas de la identidad y los datos de contacto del nuevo responsable y de otros cambios pertinentes conforme al RGPD. Sus derechos legales permanecen intactos.",
+          "Esta información no constituye consentimiento general para futuras transferencias ni autorización para tratar datos con nuevas finalidades incompatibles con las originales.",
+        ],
+      },
     ],
   },
 
@@ -933,6 +993,16 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "14. Contatto",
         content: ["Per domande relative alla protezione dei dati: info@mioseg-qr.com"],
+      },
+      {
+        title: "15. Successione aziendale e possibile cambio del titolare del trattamento",
+        content: [
+          "La gestione di mioseg qr potrà essere trasferita in futuro a un altro soggetto giuridico nell’ambito della costituzione di una società, di una riorganizzazione o di una successione aziendale, inclusa una GmbH costituita o controllata dall’attuale fornitore.",
+          "Ciò può richiedere il trasferimento al futuro gestore di dati dell’account e di contatto, Mioseg QR salvati, contenuti caricati, autorizzazioni, saldi di crediti e informazioni sulle transazioni, nella misura necessaria alla continuità dei servizi.",
+          "Qualsiasi trattamento o trasferimento avverrà solo su un’idonea base giuridica ai sensi dell’articolo 6, paragrafo 1, GDPR e nel rispetto degli altri requisiti applicabili. A seconda delle circostanze, possono rilevare l’esecuzione del contratto (lettera b) o i legittimi interessi (lettera f); la base pertinente sarà valutata prima del trasferimento.",
+          "In caso di effettivo cambio del titolare del trattamento, gli interessati saranno informati dell’identità e dei contatti del nuovo titolare e delle altre modifiche rilevanti secondo il GDPR. Restano salvi i diritti di legge.",
+          "Questa informativa non costituisce consenso generale a futuri trasferimenti né autorizzazione a trattare dati per nuove finalità incompatibili con quelle originarie.",
+        ],
       },
     ],
   },
@@ -1072,6 +1142,16 @@ const privacyDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
       {
         title: "14. Contact",
         content: ["For privacy-related questions: info@mioseg-qr.com"],
+      },
+      {
+        title: "15. Business Succession and Potential Change of Controller",
+        content: [
+          "The operation of mioseg qr may in future be transferred to another legal entity as part of incorporation, restructuring or business succession, including a GmbH founded or controlled by the current provider.",
+          "This may require transferring personal data to the future operator, including account and contact data, stored Mioseg QR, uploaded content, permissions, credit balances and transaction information, to the extent necessary to continue the services.",
+          "Any processing or transfer will take place only on an appropriate legal basis under Article 6(1) GDPR and in compliance with other applicable requirements. Depending on the circumstances, contractual necessity (Article 6(1)(b)) or legitimate interests (Article 6(1)(f)) may apply; the relevant basis will be assessed before any transfer.",
+          "If the data controller actually changes, affected individuals will receive information about the identity and contact details of the new controller and other relevant changes as required by the GDPR. Statutory data subject rights remain unaffected.",
+          "This notice is neither blanket consent to future data transfers nor permission to process data for new purposes incompatible with the original purposes.",
+        ],
       },
     ],
   },

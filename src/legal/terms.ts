@@ -518,6 +518,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Zwingende gesetzliche Vorschriften bleiben unberührt.",
         ],
       },
+      {
+        title: "31. Unternehmensnachfolge und Wechsel des Vertragspartners",
+        content: [
+          "Der Anbieter kann den Betrieb von mioseg qr im Rahmen einer Unternehmensgründung, Umstrukturierung oder Unternehmensnachfolge auf eine andere Gesellschaft, insbesondere eine von ihm gegründete oder kontrollierte GmbH, übertragen.",
+          "Eine Übertragung bestehender Nutzungsverträge erfolgt nur, soweit dies gesetzlich zulässig ist. Der neue Vertragspartner muss die bestehenden vertraglichen Verpflichtungen übernehmen. Bereits erworbene und noch nicht verbrauchte Credits, freigeschaltete Funktionen und vertraglich zugesagte Leistungen dürfen durch den bloßen Betreiberwechsel nicht entfallen; gesetzliche Erstattungsansprüche bleiben unberührt.",
+          "Der Nutzer wird vor einem beabsichtigten Vertragspartnerwechsel in Textform über den neuen Vertragspartner, den vorgesehenen Zeitpunkt und seine Rechte informiert. Soweit gesetzlich erforderlich, wird eine gesonderte Zustimmung eingeholt.",
+          "Soweit eine formularmäßige Vorauszustimmung zum Vertragspartnerwechsel rechtlich wirksam vereinbart werden kann, steht dem Nutzer im Zusammenhang mit der Übertragung das Recht zu, das betroffene Vertragsverhältnis ohne zusätzliche Kündigungsgebühr zu beenden. Weitergehende gesetzliche Rechte bleiben unberührt.",
+          "Die Verarbeitung und etwaige Übermittlung personenbezogener Daten richtet sich ausschließlich nach den geltenden Datenschutzvorschriften. Diese Regelung ist keine datenschutzrechtliche Einwilligung.",
+        ],
+      },
     ],
   },
   tr: {
@@ -839,6 +849,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Yürürlük tarihi: 08 Ağustos 2026",
           "Yeni kullanıcılar için bu koşullar ilgili kullanıcı ilişkisine geçerli biçimde dâhil edildikleri andan itibaren uygulanır. Mevcut kullanıcılar için sonraki değişiklikler 28. bölüm ve yürürlükteki yasal hükümler uyarınca geçerli olur.",
           "Gizlilik Politikası, Yasal Bildirim (Impressum) ve gerekli cayma bilgilendirmeleri ayrı belgelerdir. Zorunlu yasal hükümler saklıdır.",
+        ],
+      },
+      {
+        title: "31. İşletme Devri ve Sözleşme Tarafının Değişmesi",
+        content: [
+          "Sağlayıcı, mioseg qr platformunun işletmesini şirket kuruluşu, yeniden yapılanma veya işletme devri kapsamında, kendisi tarafından kurulan veya kontrol edilen bir GmbH dahil başka bir tüzel kişiye devredebilir.",
+          "Mevcut kullanıcı sözleşmeleri yalnızca hukuken izin verildiği ölçüde devredilebilir. Yeni sözleşme tarafı mevcut yükümlülükleri üstlenmelidir. Satın alınmış ve kullanılmamış krediler, etkinleştirilmiş özellikler ve sözleşmeyle taahhüt edilen hizmetler yalnızca işletmeci değişikliği nedeniyle kaybedilemez; yasal iade hakları saklıdır.",
+          "Planlanan sözleşme tarafı değişikliğinden önce kullanıcılara yeni tarafın kimliği, öngörülen tarih ve hakları yazılı biçimde bildirilir. Kanunen gerekli olduğunda ayrıca onay alınır.",
+          "Standart sözleşme koşullarında önceden onay hukuken geçerli şekilde kararlaştırılabildiği ölçüde, kullanıcılar devir nedeniyle ilgili sözleşmeyi ek fesih ücreti ödemeden sona erdirebilir. Diğer yasal haklar saklıdır.",
+          "Kişisel verilerin işlenmesi ve olası aktarımı yürürlükteki veri koruma hukukuna tabidir. Bu hüküm veri koruma mevzuatı kapsamında rıza teşkil etmez.",
         ],
       },
     ],
@@ -1165,6 +1185,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Polityka prywatności, Impressum i ewentualnie wymagane pouczenia o odstąpieniu od umowy są odrębnymi dokumentami. Bezwzględnie obowiązujące przepisy prawa pozostają nienaruszone.",
         ],
       },
+      {
+        title: "31. Sukcesja przedsiębiorstwa i zmiana strony umowy",
+        content: [
+          "Dostawca może przenieść prowadzenie mioseg qr na inny podmiot prawny w związku z założeniem spółki, reorganizacją lub sukcesją przedsiębiorstwa, w tym na założoną lub kontrolowaną przez siebie spółkę GmbH.",
+          "Istniejące umowy użytkowników mogą zostać przeniesione wyłącznie w zakresie dozwolonym przez prawo. Nowa strona umowy musi przejąć dotychczasowe zobowiązania. Niewykorzystane zakupione kredyty, aktywowane funkcje i świadczenia wynikające z umowy nie wygasają wyłącznie z powodu zmiany operatora; ustawowe prawa do zwrotu pozostają nienaruszone.",
+          "Przed planowaną zmianą strony umowy użytkownicy zostaną poinformowani w formie tekstowej o nowej stronie, planowanej dacie i przysługujących im prawach. Odrębna zgoda zostanie uzyskana, jeśli wymaga tego prawo.",
+          "W zakresie, w jakim uprzednia zgoda w standardowych warunkach umowy jest prawnie skuteczna, użytkownik może zakończyć daną umowę w związku z przeniesieniem bez dodatkowej opłaty za rozwiązanie. Dalsze prawa ustawowe pozostają nienaruszone.",
+          "Przetwarzanie i ewentualne przekazywanie danych osobowych podlega obowiązującym przepisom o ochronie danych. Niniejszy zapis nie stanowi zgody w rozumieniu tych przepisów.",
+        ],
+      },
     ],
   },
   ar: {
@@ -1487,6 +1517,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "تاريخ النفاذ: 08 أغسطس 2026",
           "بالنسبة للمستخدمين الجدد تسري هذه الشروط من وقت إدراجها بصورة صحيحة في علاقة الاستخدام. وتسري التغييرات اللاحقة على المستخدمين الحاليين وفق القسم 28 والقانون الساري.",
           "سياسة الخصوصية وImpressum وأي تعليمات لازمة بشأن العدول هي مستندات منفصلة. وتبقى الأحكام القانونية الإلزامية دون مساس.",
+        ],
+      },
+      {
+        title: "31. خلافة النشاط التجاري وتغيير الطرف المتعاقد",
+        content: [
+          "يجوز لمقدم الخدمة نقل تشغيل mioseg qr إلى كيان قانوني آخر في إطار تأسيس شركة أو إعادة هيكلة أو خلافة تجارية، بما في ذلك شركة ذات مسؤولية محدودة (GmbH) يؤسسها أو يسيطر عليها.",
+          "لا يجوز نقل عقود المستخدمين القائمة إلا بالقدر الذي يسمح به القانون. ويجب على الطرف المتعاقد الجديد تحمل الالتزامات القائمة. ولا تضيع الأرصدة المشتراة وغير المستخدمة أو الميزات المفعلة أو الخدمات المتفق عليها لمجرد تغيير المشغل؛ وتبقى حقوق الاسترداد القانونية محفوظة.",
+          "سيتم إخطار المستخدمين قبل التغيير المزمع للطرف المتعاقد في صيغة نصية، مع بيان هوية الطرف الجديد والتاريخ المتوقع وحقوقهم. وسيتم الحصول على موافقة منفصلة متى تطلب القانون ذلك.",
+          "بالقدر الذي يمكن فيه الاتفاق بصورة صحيحة قانونًا على الموافقة المسبقة ضمن الشروط القياسية، يحق للمستخدم إنهاء العقد المعني بسبب النقل دون رسوم إنهاء إضافية. وتبقى الحقوق القانونية الأخرى محفوظة.",
+          "تخضع معالجة البيانات الشخصية وأي نقل لها لقوانين حماية البيانات المعمول بها. ولا يشكل هذا البند موافقة بموجب قوانين حماية البيانات.",
         ],
       },
     ],
@@ -1813,6 +1853,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "La Politique de confidentialité, les Mentions légales (Impressum) et les éventuelles informations requises sur la rétractation sont des documents distincts. Les dispositions légales impératives restent inchangées.",
         ],
       },
+      {
+        title: "31. Succession d’entreprise et changement de cocontractant",
+        content: [
+          "Le fournisseur peut transférer l’exploitation de mioseg qr à une autre entité juridique dans le cadre d’une constitution de société, d’une restructuration ou d’une succession d’entreprise, notamment à une GmbH créée ou contrôlée par lui.",
+          "Les contrats existants ne peuvent être transférés que dans les limites autorisées par la loi. Le nouveau cocontractant doit reprendre les obligations contractuelles existantes. Les crédits achetés non utilisés, les fonctions activées et les prestations promises ne peuvent être perdus du seul fait du changement d’exploitant ; les droits légaux au remboursement restent préservés.",
+          "Les utilisateurs seront informés sous forme textuelle avant le changement envisagé, avec l’identité du nouveau cocontractant, la date prévue et leurs droits. Un consentement distinct sera recueilli lorsque la loi l’exige.",
+          "Dans la mesure où un accord préalable au changement de cocontractant peut être valablement prévu dans des conditions générales, l’utilisateur peut résilier le contrat concerné à l’occasion du transfert sans frais supplémentaires de résiliation. Les autres droits légaux restent inchangés.",
+          "Tout traitement ou transfert de données personnelles est soumis au droit applicable en matière de protection des données. Cette clause ne constitue pas un consentement au sens de ce droit.",
+        ],
+      },
     ],
   },
   es: {
@@ -2137,6 +2187,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "La Política de privacidad, el Impressum y cualquier información necesaria sobre el derecho de desistimiento son documentos separados. Las disposiciones legales imperativas permanecen intactas.",
         ],
       },
+      {
+        title: "31. Sucesión empresarial y cambio de parte contratante",
+        content: [
+          "El proveedor podrá transferir la explotación de mioseg qr a otra entidad jurídica en el marco de la constitución de una sociedad, una reorganización o una sucesión empresarial, incluida una GmbH fundada o controlada por el proveedor.",
+          "Los contratos existentes solo podrán transferirse cuando lo permita la ley. La nueva parte contratante deberá asumir las obligaciones contractuales existentes. Los créditos comprados y no utilizados, las funciones activadas y las prestaciones contratadas no se perderán por el mero cambio de operador; se mantienen los derechos legales de reembolso.",
+          "Antes del cambio previsto, se informará a los usuarios en formato de texto sobre la identidad de la nueva parte, la fecha prevista y sus derechos. Se solicitará consentimiento separado cuando la ley lo exija.",
+          "En la medida en que pueda pactarse válidamente un consentimiento anticipado en condiciones generales, el usuario podrá resolver el contrato afectado con motivo de la transferencia sin gastos adicionales de cancelación. Se mantienen los demás derechos legales.",
+          "El tratamiento y la eventual transferencia de datos personales se rigen por la normativa de protección de datos aplicable. Esta cláusula no constituye consentimiento en materia de protección de datos.",
+        ],
+      },
     ],
   },
   it: {
@@ -2459,6 +2519,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Data di entrata in vigore: 08 agosto 2026",
           "Per i nuovi utenti, le presenti Condizioni si applicano dal momento della loro valida inclusione nel rapporto di utilizzo. Per gli utenti esistenti, le modifiche successive entrano in vigore conformemente alla sezione 28 e alla legge applicabile.",
           "L’Informativa sulla privacy, l’Impressum e le eventuali informazioni richieste sul diritto di recesso sono documenti separati. Restano impregiudicate le disposizioni legali inderogabili.",
+        ],
+      },
+      {
+        title: "31. Successione aziendale e cambio della parte contrattuale",
+        content: [
+          "Il fornitore può trasferire la gestione di mioseg qr a un altro soggetto giuridico nell’ambito della costituzione di una società, di una riorganizzazione o di una successione aziendale, inclusa una GmbH costituita o controllata dal fornitore.",
+          "I contratti esistenti possono essere trasferiti solo nei limiti consentiti dalla legge. La nuova parte contrattuale deve assumere gli obblighi esistenti. I crediti acquistati e non utilizzati, le funzioni attivate e le prestazioni contrattualmente promesse non decadono per il solo cambio di gestore; restano salvi i diritti di rimborso previsti dalla legge.",
+          "Prima del cambio previsto, gli utenti saranno informati in forma testuale dell’identità della nuova parte, della data prevista e dei loro diritti. Ove richiesto dalla legge, sarà richiesto un consenso separato.",
+          "Nella misura in cui un consenso anticipato al cambio della parte contrattuale possa essere validamente previsto nelle condizioni generali, l’utente potrà recedere dal contratto interessato in occasione del trasferimento senza costi aggiuntivi. Restano salvi gli ulteriori diritti di legge.",
+          "Qualsiasi trattamento o trasferimento di dati personali è soggetto alla normativa applicabile sulla protezione dei dati. Questa clausola non costituisce consenso ai sensi di tale normativa.",
         ],
       },
     ],
@@ -2974,6 +3044,16 @@ const termsDocuments: Partial<Record<LegalLocale, LegalDocument>> = {
           "Where supplementary terms apply to certain paid services, Business functions, or other additional offers, those terms will be made available to the user before they are validly incorporated.",
           "The Privacy Policy, Legal Notice (Imprint), and any required withdrawal information are separate documents or information and are made accessible through the designated areas of mioseg qr or the associated website.",
           "Mandatory statutory provisions remain unaffected.",
+        ],
+      },
+      {
+        title: "31. Business Succession and Change of Contracting Party",
+        content: [
+          "The provider may transfer the operation of mioseg qr to another legal entity as part of incorporation, restructuring or business succession, including a limited liability company (GmbH) founded or controlled by the provider.",
+          "Existing user contracts may be transferred only where legally permitted. The new contracting party must assume existing contractual obligations. Unused purchased credits, activated features and contractually promised services shall not be forfeited merely because of a change of operator; statutory refund rights remain unaffected.",
+          "Users will be informed in text form before an intended change of contracting party, including the identity of the new party, the intended date and their rights. Separate consent will be obtained where required by law.",
+          "To the extent that advance consent to a change of contracting party can validly be agreed in standard terms, users may terminate the affected contract in connection with the transfer without an additional termination fee. Further statutory rights remain unaffected.",
+          "Any processing or transfer of personal data is subject to applicable data protection law. This clause does not constitute consent under data protection law.",
         ],
       },
     ],
