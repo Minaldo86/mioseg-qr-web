@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import styles from "./dashboard.module.css";
 import TermsReconsentGate from "./TermsReconsentGate";
+import AdminAnnouncementGate from "./AdminAnnouncementGate";
 
 const DASHBOARD_NAV = {
   de: { overview: "Übersicht", qrx: "Meine Mioseg QR", scans: "Meine Scans", credits: "Credits", aria: "Dashboard Navigation" },
@@ -35,6 +36,7 @@ export default async function DashboardLayout({ children, params }: Props) {
 
   return (
     <TermsReconsentGate locale={locale}>
+      <AdminAnnouncementGate locale={locale}>
       <div className={styles.dashboardLayoutShell}>
         <nav className={styles.dashboardSectionNav} aria-label={ui.aria}>
           <Link href={`/${locale}/dashboard`}>{ui.overview}</Link>
@@ -44,6 +46,7 @@ export default async function DashboardLayout({ children, params }: Props) {
         </nav>
         {children}
       </div>
+          </AdminAnnouncementGate>
     </TermsReconsentGate>
   );
 }
