@@ -22,7 +22,11 @@ export async function GET(req: Request) {
     .select("id,kind,status,audience,title_de,body_de,title_en,body_en,document_type,document_version,created_at,published_at")
     .order("created_at", { ascending: false }).limit(100);
   if (error) { console.error("admin announcements GET", error); return fail("Laden fehlgeschlagen", 500); }
-  return Response.json({ announcements: data ?? [] }, { headers: { "Cache-Control": "no-store" } });
+  const { data: statistics, error: statsError } = await supabaseAdmin.rpc("admin_announcement_statistics");
+  if (statsError) { console.error("admin announcements statistics", statsError); return fail("Statistik konnte nicht geladen werden", 500); }
+  const statsById = new Map((statistics ?? []).map((s: { announcement_id: string }) => [s.announcement_id, s]));
+  const announcements = (data ?? []).map((a) => ({ ...a, statistics: statsById.get(a.id) ?? null }));
+  return Response.json({ announcements }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(req: Request) {

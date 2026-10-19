@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-type Item = { id: string; kind: string; status: string; audience: string; title_de: string; created_at: string; published_at: string | null };
+type AnnouncementStatistics = { recipients: number; acknowledged: number; accepted: number; declined: number; pending: number };
+type Item = { statistics?: AnnouncementStatistics | null; id: string; kind: string; status: string; audience: string; title_de: string; created_at: string; published_at: string | null };
 const inputStyle = { width: "100%", boxSizing: "border-box" as const, padding: 11, background: "#0b1324", color: "#f8fafc", border: "1px solid #334155", borderRadius: 10 };
 const buttonStyle = { padding: "10px 14px", background: "#1e3a5f", color: "#fff", border: "1px solid #475569", borderRadius: 10, cursor: "pointer" };
 
@@ -43,12 +44,12 @@ export default function AdminAnnouncements() {
       const res = await fetch("/api/admin/announcements", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action: name }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Aktion fehlgeschlagen");
-      setMessage(name === "publish" ? "Veröffentlicht. Die Nutzeranzeige wird in Phase 2 angebunden." : "Archiviert."); await load();
+      setMessage(name === "publish" ? "Veröffentlicht. Die Mitteilung wird in App und Web angezeigt." : "Archiviert."); await load();
     } catch (e) { setMessage(e instanceof Error ? e.message : "Fehler"); } finally { setBusy(false); }
   }
   return <section style={{ padding: 20, borderRadius: 20, background: "#0f172a", border: "1px solid #26364f", marginBottom: 20, color: "#f8fafc" }}>
     <h2>Mitteilungen & Zustimmungen</h2>
-    <p style={{ color: "#94a3b8" }}>Phase 1: Entwürfe und Veröffentlichung verwalten. App- und Web-Fenster folgen in Phase 2.</p>
+    <p style={{ color: "#94a3b8" }}>Mitteilungen erstellen, veröffentlichen und Rückmeldungen aus App und Web auswerten.</p>
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
       <label>Art<select style={inputStyle} value={kind} onChange={(e) => setKind(e.target.value)}><option value="info">Information</option><option value="acknowledgement">Lesebestätigung</option><option value="consent">Zustimmung</option></select></label>
       <label>Empfänger<select style={inputStyle} value={audience} onChange={(e) => setAudience(e.target.value)}><option value="all">Alle Nutzer</option><option value="selected">Ausgewählte Nutzer</option></select></label>
@@ -62,6 +63,10 @@ export default function AdminAnnouncements() {
     {message && <p role="status">{message}</p>}
     <h3 style={{ marginTop: 26 }}>Gespeicherte Mitteilungen</h3>
     <button style={buttonStyle} disabled={busy} onClick={() => load().catch((e) => setMessage(e.message))}>Aktualisieren</button>
-    {items.length === 0 ? <p>Noch keine Mitteilungen.</p> : <div style={{ display: "grid", gap: 10, marginTop: 12 }}>{items.map((item) => <div key={item.id} style={{ padding: 12, border: "1px solid #334155", borderRadius: 12 }}><strong>{item.title_de}</strong><div style={{ color: "#94a3b8", fontSize: 13 }}>{item.kind} · {item.audience} · {item.status} · {new Date(item.created_at).toLocaleString("de-DE")}</div>{item.status === "draft" && <button style={{ ...buttonStyle, marginTop: 8 }} disabled={busy} onClick={() => action(item.id, "publish")}>Veröffentlichen</button>}{item.status === "published" && <button style={{ ...buttonStyle, marginTop: 8 }} disabled={busy} onClick={() => action(item.id, "archive")}>Archivieren</button>}</div>)}</div>}
+    {items.length === 0 ? <p>Noch keine Mitteilungen.</p> : <div style={{ display: "grid", gap: 10, marginTop: 12 }}>{items.map((item) => <div key={item.id} style={{ padding: 12, border: "1px solid #334155", borderRadius: 12 }}><strong>{item.title_de}</strong><div style={{ color: "#94a3b8", fontSize: 13 }}>{item.kind} · {item.audience} · {item.status} · {new Date(item.created_at).toLocaleString("de-DE")}</div>{item.statistics && <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 8, marginTop: 12 }}>
+          {([ ["Empfänger", item.statistics.recipients], ["Bestätigt", item.statistics.acknowledged], ["Zugestimmt", item.statistics.accepted], ["Abgelehnt", item.statistics.declined], ["Offen", item.statistics.pending] ] as const).map(([label, value]) =>
+            <div key={label} style={{ padding: 10, borderRadius: 10, background: "#0b1324", border: "1px solid #334155" }}><div style={{ fontSize: 12, color: "#94a3b8" }}>{label}</div><strong style={{ fontSize: 22 }}>{value}</strong></div>)}
+          <div style={{ gridColumn: "1 / -1", fontSize: 12, color: "#94a3b8" }}>Antwortquote: {item.statistics.recipients ? ((item.statistics.recipients - item.statistics.pending) / item.statistics.recipients * 100).toFixed(1).replace(".", ",") : "0"} % · Aktuelle registrierte Konten als Empfängerbasis</div>
+        </div>}{item.status === "draft" && <button style={{ ...buttonStyle, marginTop: 8 }} disabled={busy} onClick={() => action(item.id, "publish")}>Veröffentlichen</button>}{item.status === "published" && <button style={{ ...buttonStyle, marginTop: 8 }} disabled={busy} onClick={() => action(item.id, "archive")}>Archivieren</button>}</div>)}</div>}
   </section>;
 }
